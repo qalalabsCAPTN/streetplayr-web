@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import Image from "next/image";
-import { ArrowRight } from "lucide-react";
+// Removed lucide-react import
 
 const products = [
   {
@@ -52,7 +52,7 @@ export default function NewDrops() {
           <button data-cursor="button" className="group flex items-center gap-3 font-mono text-sm tracking-widest hover:text-[#d4ff1e] transition-colors">
             SHOP NEW
             <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 group-hover:border-[#d4ff1e]/50 transition-colors">
-              <ArrowRight size={14} />
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
             </span>
           </button>
         </motion.div>
