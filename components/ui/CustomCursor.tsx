@@ -6,6 +6,7 @@ import { motion, useMotionValue, useSpring } from "framer-motion";
 export default function CustomCursor() {
   const [cursorType, setCursorType] = useState("default");
   
+  const [isVisible, setIsVisible] = useState(false);
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
@@ -16,11 +17,10 @@ export default function CustomCursor() {
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
+      if (!isVisible) setIsVisible(true);
       mouseX.set(e.clientX);
       mouseY.set(e.clientY);
-    };
 
-    const handleMouseOver = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       // Traverse up to find data-cursor attribute
       const elementWithCursor = target.closest("[data-cursor]");
@@ -39,13 +39,11 @@ export default function CustomCursor() {
     };
 
     window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseover", handleMouseOver);
 
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseover", handleMouseOver);
     };
-  }, [mouseX, mouseY]);
+  }, [mouseX, mouseY, isVisible]);
 
   // Define variants for different cursor states
   const variants = {
@@ -116,8 +114,9 @@ export default function CustomCursor() {
     <motion.div
       className="pointer-events-none fixed left-0 top-0 z-[9999] flex items-center justify-center rounded-full text-[10px] font-bold tracking-wider mix-blend-difference sm:mix-blend-normal"
       style={{
-        x: cursorX,
-        y: cursorY,
+        left: cursorX,
+        top: cursorY,
+        opacity: isVisible ? 1 : 0,
       }}
       variants={variants}
       animate={cursorType}
