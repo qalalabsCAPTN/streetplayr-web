@@ -70,22 +70,43 @@ export default function HomeHero() {
               </motion.span>
             ))}
           </div>
-          <div className="flex overflow-hidden text-white/50 relative">
-            {subtitleText.map((char, index) => (
-              <motion.span
-                key={`s-${index}`}
-                initial={{ y: "100%", opacity: 0, rotateZ: -5 }}
-                animate={{ y: 0, opacity: 1, rotateZ: 0 }}
-                transition={{
-                  duration: 1.2,
-                  delay: 0.6 + index * 0.05,
-                  ease: [0.16, 1, 0.3, 1],
-                }}
-                className="inline-block"
-              >
-                {char === " " ? "\u00A0" : char}
-              </motion.span>
-            ))}
+          <div className="flex overflow-hidden relative text-white/50">
+            {/* Subtle hand-drawn premium accent */}
+            <motion.svg 
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 0.4 }}
+              transition={{ duration: 1.5, delay: 1.8, ease: "easeInOut" }}
+              className="absolute -inset-x-8 -inset-y-4 w-[calc(100%+4rem)] h-[calc(100%+2rem)] pointer-events-none z-0 text-[#d4ff1e]"
+              viewBox="0 0 400 100" 
+              fill="none" 
+              preserveAspectRatio="none"
+            >
+              <motion.path 
+                d="M 20 50 C 50 10, 350 10, 380 50 C 390 80, 350 95, 200 90 C 50 85, 10 70, 30 40" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                className="mix-blend-screen"
+              />
+            </motion.svg>
+            
+            <div className="flex relative z-10">
+              {subtitleText.map((char, index) => (
+                <motion.span
+                  key={`s-${index}`}
+                  initial={{ y: "100%", opacity: 0, rotateZ: -5 }}
+                  animate={{ y: 0, opacity: 1, rotateZ: 0 }}
+                  transition={{
+                    duration: 1.2,
+                    delay: 0.6 + index * 0.05,
+                    ease: [0.16, 1, 0.3, 1],
+                  }}
+                  className="inline-block"
+                >
+                  {char === " " ? "\u00A0" : char}
+                </motion.span>
+              ))}
+            </div>
             <motion.div 
               initial={{ scaleX: 0 }}
               animate={{ scaleX: 1 }}

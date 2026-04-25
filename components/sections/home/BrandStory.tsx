@@ -15,8 +15,15 @@ export default function BrandStory() {
   return (
     <section ref={containerRef} className="relative w-full h-[200vh] bg-[#020202]">
       <div className="sticky top-0 h-screen w-full flex items-center justify-center px-4 md:px-16 overflow-hidden">
+        {/* Grunge typography watermark (SEAKOFF accent) */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5 z-0 select-none overflow-hidden">
+          <span className="font-display text-[15vw] md:text-[25vw] leading-none text-white whitespace-nowrap rotate-[-5deg] mix-blend-overlay" style={{ WebkitTextStroke: "2px white", color: "transparent" }}>
+            BUILT FOR STREETS
+          </span>
+        </div>
+        
         {/* Subtle background glow */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-[#d4ff1e]/5 via-transparent to-transparent opacity-50" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-[#d4ff1e]/5 via-transparent to-transparent opacity-50 z-0" />
         
         <div className="relative z-10 max-w-5xl text-center flex flex-wrap justify-center gap-x-4 gap-y-2 md:gap-x-6 md:gap-y-4">
           {words.map((word, i) => {

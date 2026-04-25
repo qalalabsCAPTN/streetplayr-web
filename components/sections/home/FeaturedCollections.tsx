@@ -34,13 +34,33 @@ export default function FeaturedCollections() {
           </h2>
         </div>
 
+        {/* Low-opacity SEAKOFF style barcode stamp */}
+        <div className="absolute top-10 right-4 md:right-16 opacity-20 rotate-[-2deg] pointer-events-none mix-blend-screen hidden md:block">
+          <svg width="120" height="60" viewBox="0 0 120 60" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <rect x="0" y="0" width="4" height="40" />
+            <rect x="8" y="0" width="2" height="40" />
+            <rect x="14" y="0" width="6" height="40" />
+            <rect x="24" y="0" width="4" height="40" />
+            <rect x="32" y="0" width="8" height="40" />
+            <rect x="44" y="0" width="2" height="40" />
+            <rect x="50" y="0" width="4" height="40" />
+            <rect x="58" y="0" width="12" height="40" />
+            <rect x="74" y="0" width="4" height="40" />
+            <rect x="82" y="0" width="6" height="40" />
+            <rect x="92" y="0" width="2" height="40" />
+            <rect x="98" y="0" width="8" height="40" />
+            <rect x="110" y="0" width="4" height="40" />
+            <text x="0" y="55" fontFamily="monospace" fontSize="10" letterSpacing="2">ST-PLYR-01</text>
+          </svg>
+        </div>
+
         {/* Magazine overlapping composition */}
         <div className="relative grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-0 mt-20">
           <motion.div 
             style={{ y: y1 }}
             className="md:col-span-8 md:col-start-1 relative z-10 group"
           >
-            <div data-cursor="drag" className="relative w-full aspect-[4/5] md:aspect-[16/10] overflow-hidden bg-[#111]">
+            <div data-cursor="drag" className="relative w-full aspect-[4/5] md:aspect-[16/10] overflow-hidden bg-[#111] rotate-[1deg] shadow-2xl border border-white/5 p-1 pb-4 bg-zinc-900/50">
               <Image
                 src="/assets/polo-editorial.png"
                 alt="Polo Editorial"
@@ -59,7 +79,7 @@ export default function FeaturedCollections() {
             style={{ y: y2 }}
             className="md:col-span-5 md:col-start-8 md:-mt-48 md:-ml-16 relative z-20 group"
           >
-            <div data-cursor="product" className="relative w-full aspect-[3/4] md:aspect-[3/4] overflow-hidden bg-[#111] shadow-2xl shadow-black/80">
+            <div data-cursor="product" className="relative w-full aspect-[3/4] md:aspect-[3/4] overflow-hidden bg-[#111] shadow-2xl shadow-black/80 rotate-[-1.5deg] border border-white/5 p-1 pb-8 bg-zinc-900/50">
               <Image
                 src="/assets/srh-jersey.jpg"
                 alt="SRH Jersey"

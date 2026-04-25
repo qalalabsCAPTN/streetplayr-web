@@ -53,9 +53,13 @@ export default function NewDrops() {
             animate={isInView ? { opacity: 1 } : {}}
             transition={{ duration: 1, delay: 0.3 }}
           >
-            <button data-cursor="button" className="group flex items-center gap-4 font-mono text-xs tracking-[0.2em] uppercase border-b border-white/20 pb-2 hover:border-[#d4ff1e] hover:text-[#d4ff1e] transition-colors">
+            <button data-cursor="button" className="group flex items-center gap-4 font-mono text-xs tracking-[0.2em] uppercase border-b border-white/20 pb-2 hover:border-[#d4ff1e] hover:text-[#d4ff1e] transition-colors relative">
               VIEW THE FULL DROP
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="transform transition-transform group-hover:translate-x-1"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="16" viewBox="0 0 100 30" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transform transition-transform group-hover:translate-x-2 text-[#d4ff1e]">
+                <path d="M5,15 Q30,10 85,15" strokeDasharray="3 2" />
+                <path d="M75,5 Q90,15 85,15" />
+                <path d="M75,25 Q90,15 85,15" />
+              </svg>
             </button>
           </motion.div>
         </div>
