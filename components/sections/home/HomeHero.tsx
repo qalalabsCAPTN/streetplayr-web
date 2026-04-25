@@ -10,16 +10,20 @@ export default function HomeHero() {
     offset: ["start start", "end start"],
   });
 
-  const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
+  const y = useTransform(scrollYProgress, [0, 1], ["0%", "40%"]);
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+  const scale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
+
+  const titleText = "REDEFINE".split("");
+  const subtitleText = "THE PLAY".split("");
 
   return (
     <section
       ref={containerRef}
-      className="relative h-screen w-full overflow-hidden bg-black"
+      className="relative h-screen w-full overflow-hidden bg-[#050505]"
     >
       <motion.div
-        style={{ y, opacity }}
+        style={{ y, opacity, scale }}
         className="absolute inset-0 h-full w-full"
       >
         <video
@@ -27,58 +31,88 @@ export default function HomeHero() {
           muted
           loop
           playsInline
-          className="h-full w-full object-cover opacity-60"
+          className="h-full w-full object-cover opacity-80"
         >
           <source src="/assets/videos/WebAnimation_V1.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-black/60" />
+        {/* Luxury deep radial gradient overlay */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-black/40 to-black/90 mix-blend-multiply" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black" />
       </motion.div>
 
-      <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="max-w-4xl"
-        >
-          <h1 className="font-display mb-6 text-6xl uppercase tracking-widest text-white md:text-8xl lg:text-[10vw] leading-[0.85]">
-            Redefine <br />
-            <span className="text-[#d4ff1e]">The Play</span>
-          </h1>
-        </motion.div>
+      <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 md:px-8 text-center mt-12">
+        <div className="flex flex-col items-center gap-2 mb-4 overflow-hidden">
+          <motion.span 
+            initial={{ y: "100%", opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
+            className="font-mono text-xs md:text-sm tracking-[0.3em] text-[#d4ff1e] uppercase"
+          >
+            Spring / Summer Collection
+          </motion.span>
+        </div>
+
+        <h1 className="font-display flex flex-col items-center text-[15vw] md:text-[12vw] uppercase tracking-widest leading-[0.8] text-white">
+          <div className="flex overflow-hidden pb-4">
+            {titleText.map((char, index) => (
+              <motion.span
+                key={`t-${index}`}
+                initial={{ y: "100%", opacity: 0, rotateZ: 5 }}
+                animate={{ y: 0, opacity: 1, rotateZ: 0 }}
+                transition={{
+                  duration: 1.2,
+                  delay: 0.4 + index * 0.05,
+                  ease: [0.16, 1, 0.3, 1],
+                }}
+                className="inline-block"
+              >
+                {char}
+              </motion.span>
+            ))}
+          </div>
+          <div className="flex overflow-hidden text-white/50 relative">
+            {subtitleText.map((char, index) => (
+              <motion.span
+                key={`s-${index}`}
+                initial={{ y: "100%", opacity: 0, rotateZ: -5 }}
+                animate={{ y: 0, opacity: 1, rotateZ: 0 }}
+                transition={{
+                  duration: 1.2,
+                  delay: 0.6 + index * 0.05,
+                  ease: [0.16, 1, 0.3, 1],
+                }}
+                className="inline-block"
+              >
+                {char === " " ? "\u00A0" : char}
+              </motion.span>
+            ))}
+            <motion.div 
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ duration: 1.5, delay: 1, ease: [0.16, 1, 0.3, 1] }}
+              className="absolute bottom-1/2 left-0 right-0 h-[2px] bg-white origin-left"
+            />
+          </div>
+        </h1>
 
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 0.8 }}
-          className="mt-12 flex flex-col items-center space-y-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 1.4 }}
+          className="mt-16"
         >
           <button
             data-cursor="button"
-            className="group relative flex items-center gap-4 overflow-hidden rounded-full border border-white/20 bg-white/5 px-8 py-4 font-mono text-sm tracking-widest text-white backdrop-blur-md transition-all hover:bg-white hover:text-black"
+            className="group relative overflow-hidden rounded-full border border-white/30 bg-transparent px-10 py-5 font-mono text-xs md:text-sm tracking-[0.2em] text-white backdrop-blur-sm transition-all hover:border-[#d4ff1e] hover:text-[#d4ff1e]"
           >
-            <span className="relative z-10">EXPLORE COLLECTION</span>
+            <span className="relative z-10 flex items-center gap-4">
+              DISCOVER MORE
+              <span className="h-[1px] w-8 bg-current transition-all group-hover:w-12" />
+            </span>
+            <div className="absolute inset-0 bg-white/5 opacity-0 transition-opacity group-hover:opacity-100" />
           </button>
         </motion.div>
       </div>
-
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.5, duration: 1 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2"
-      >
-        <div className="flex flex-col items-center gap-2">
-          <span className="font-mono text-xs text-white/50 tracking-widest">SCROLL</span>
-          <div className="h-12 w-[1px] bg-white/20 overflow-hidden">
-            <motion.div
-              animate={{ y: [0, 48, 48] }}
-              transition={{ repeat: Infinity, duration: 1.5, ease: "circInOut" }}
-              className="h-full w-full bg-[#d4ff1e]"
-            />
-          </div>
-        </div>
-      </motion.div>
     </section>
   );
 }

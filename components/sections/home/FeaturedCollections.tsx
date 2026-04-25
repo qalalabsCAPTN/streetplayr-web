@@ -11,61 +11,73 @@ export default function FeaturedCollections() {
     offset: ["start end", "end start"],
   });
 
-  const y1 = useTransform(scrollYProgress, [0, 1], ["0%", "-15%"]);
-  const y2 = useTransform(scrollYProgress, [0, 1], ["15%", "-15%"]);
+  const y1 = useTransform(scrollYProgress, [0, 1], ["0%", "15%"]);
+  const y2 = useTransform(scrollYProgress, [0, 1], ["20%", "-20%"]);
+  const textY = useTransform(scrollYProgress, [0, 1], ["10%", "-10%"]);
 
   return (
-    <section ref={containerRef} className="relative w-full bg-black py-32 px-4 md:px-8 lg:px-16">
-      <div className="mb-20 flex flex-col md:flex-row md:items-end justify-between">
-        <h2 className="font-display text-5xl uppercase tracking-wider text-white md:text-7xl">
-          Curated <br />
-          <span className="text-white/40">For The Streets</span>
-        </h2>
-        <a href="#" data-cursor="button" className="mt-8 font-mono text-sm tracking-widest text-white/60 hover:text-white transition-colors border-b border-white/20 pb-1 w-fit">
-          VIEW ALL COLLECTIONS
-        </a>
-      </div>
+    <section ref={containerRef} className="relative w-full bg-[#050505] py-40 px-4 md:px-8 lg:px-16 overflow-hidden">
+      {/* Background oversized typography watermark */}
+      <motion.div 
+        style={{ y: textY }}
+        className="absolute top-1/4 left-0 w-full text-center pointer-events-none opacity-[0.03] z-0"
+      >
+        <span className="font-display text-[20vw] leading-none whitespace-nowrap">CURATED</span>
+      </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16">
-        <motion.div 
-          style={{ y: y1 }}
-          className="md:col-span-7 flex flex-col group"
-        >
-          <div data-cursor="product" className="relative w-full aspect-[4/5] overflow-hidden bg-[#111]">
-            <Image
-              src="/assets/polo-editorial.png"
-              alt="Polo Editorial"
-              fill
-              className="object-cover transition-transform duration-1000 group-hover:scale-105"
-            />
-          </div>
-          <div className="mt-6 flex justify-between items-center">
-            <div>
-              <h3 className="font-body text-2xl font-medium tracking-wide">Heritage Polo Series</h3>
-              <p className="font-mono text-sm text-white/50 mt-2">CLASSIC • REIMAGINED</p>
-            </div>
-          </div>
-        </motion.div>
+      <div className="relative z-10 max-w-7xl mx-auto">
+        <div className="mb-32 flex flex-col items-center text-center">
+          <span className="font-mono text-xs tracking-[0.3em] text-[#d4ff1e] uppercase mb-6">Archive 001</span>
+          <h2 className="font-display text-5xl md:text-8xl uppercase tracking-widest text-white leading-[0.9]">
+            The <br />
+            <span className="text-white/40 italic pl-12 md:pl-24">Heritage</span>
+          </h2>
+        </div>
 
-        <motion.div 
-          style={{ y: y2 }}
-          className="md:col-span-5 flex flex-col group md:mt-32"
-        >
-          <div data-cursor="product" className="relative w-full aspect-[3/4] overflow-hidden bg-[#111]">
-            <Image
-              src="/assets/srh-jersey.jpg"
-              alt="SRH Jersey"
-              fill
-              className="object-cover transition-transform duration-1000 group-hover:scale-105"
-            />
-          </div>
-          <div className="mt-6 flex justify-between items-center">
-            <div>
-              <h3 className="font-body text-2xl font-medium tracking-wide">Performance Drop</h3>
-              <p className="font-mono text-sm text-white/50 mt-2">TECH • BREATHABLE</p>
+        {/* Magazine overlapping composition */}
+        <div className="relative grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-0 mt-20">
+          <motion.div 
+            style={{ y: y1 }}
+            className="md:col-span-8 md:col-start-1 relative z-10 group"
+          >
+            <div data-cursor="drag" className="relative w-full aspect-[4/5] md:aspect-[16/10] overflow-hidden bg-[#111]">
+              <Image
+                src="/assets/polo-editorial.png"
+                alt="Polo Editorial"
+                fill
+                className="object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-105 opacity-80 group-hover:opacity-100"
+              />
+              <div className="absolute inset-0 bg-black/20 mix-blend-overlay transition-opacity duration-1000 group-hover:opacity-0" />
             </div>
-          </div>
-        </motion.div>
+            <div className="absolute -bottom-16 left-8 md:left-12 flex flex-col bg-[#050505]/80 backdrop-blur-md p-6 border border-white/10">
+              <span className="font-mono text-xs text-white/50 tracking-[0.2em] mb-2 uppercase">Editorial</span>
+              <h3 className="font-display text-3xl tracking-wider">Heritage Polo</h3>
+            </div>
+          </motion.div>
+
+          <motion.div 
+            style={{ y: y2 }}
+            className="md:col-span-5 md:col-start-8 md:-mt-48 md:-ml-16 relative z-20 group"
+          >
+            <div data-cursor="product" className="relative w-full aspect-[3/4] md:aspect-[3/4] overflow-hidden bg-[#111] shadow-2xl shadow-black/80">
+              <Image
+                src="/assets/srh-jersey.jpg"
+                alt="SRH Jersey"
+                fill
+                className="object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-105 opacity-90 group-hover:opacity-100"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80" />
+              
+              <div className="absolute bottom-8 left-8 right-8 flex justify-between items-end">
+                <div className="flex flex-col">
+                  <span className="font-mono text-[10px] text-[#d4ff1e] tracking-[0.2em] mb-2 uppercase">Performance</span>
+                  <h3 className="font-body text-xl tracking-wide text-white">Tech Jersey</h3>
+                </div>
+                <span className="font-mono text-xs text-white/70">001</span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
       </div>
     </section>
   );

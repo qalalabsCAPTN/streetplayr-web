@@ -8,7 +8,7 @@ import SocialProof from "@/components/sections/home/SocialProof";
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col w-full overflow-hidden bg-black text-white">
+    <div className="flex flex-col w-full overflow-hidden bg-black text-white bg-noise">
       <HomeHero />
       <FeaturedCollections />
       <NewDrops />

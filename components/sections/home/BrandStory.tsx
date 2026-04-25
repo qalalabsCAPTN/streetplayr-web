@@ -3,37 +3,56 @@
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 
+const words = "Born from the streets. Engineered for the relentless. We don't just play the game, we redefine the rules.".split(" ");
+
 export default function BrandStory() {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start center", "end center"],
+    offset: ["start start", "end end"],
   });
 
-  const textOpacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.2, 1, 1, 0.2]);
-
   return (
-    <section ref={containerRef} className="relative w-full bg-black py-40 px-4 flex items-center justify-center">
-      <div className="max-w-4xl text-center">
-        <motion.p 
-          style={{ opacity: textOpacity }}
-          className="font-display text-4xl md:text-6xl lg:text-7xl uppercase leading-[1.1] tracking-wide text-white"
-        >
-          Born from the <span className="text-[#d4ff1e] italic pr-2">streets</span>. <br />
-          Engineered for the <span className="text-white/50">relentless</span>. <br />
-          We don't just play the game, <br />
-          we <span className="underline decoration-[#d4ff1e] decoration-4 underline-offset-8">redefine</span> the rules.
-        </motion.p>
+    <section ref={containerRef} className="relative w-full h-[200vh] bg-[#020202]">
+      <div className="sticky top-0 h-screen w-full flex items-center justify-center px-4 md:px-16 overflow-hidden">
+        {/* Subtle background glow */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-[#d4ff1e]/5 via-transparent to-transparent opacity-50" />
+        
+        <div className="relative z-10 max-w-5xl text-center flex flex-wrap justify-center gap-x-4 gap-y-2 md:gap-x-6 md:gap-y-4">
+          {words.map((word, i) => {
+            const start = i / words.length;
+            const end = start + (1 / words.length);
+            
+            // eslint-disable-next-line react-hooks/rules-of-hooks
+            const opacity = useTransform(scrollYProgress, [start, end], [0.15, 1]);
+            // eslint-disable-next-line react-hooks/rules-of-hooks
+            const y = useTransform(scrollYProgress, [start, end], [10, 0]);
+            
+            const isHighlight = word.includes("redefine") || word.includes("streets.");
+            
+            return (
+              <motion.span 
+                key={i}
+                style={{ opacity, y }}
+                className={`font-display text-5xl md:text-7xl lg:text-8xl uppercase leading-[1.1] tracking-wide ${
+                  isHighlight ? "text-[#d4ff1e] italic pr-2" : "text-white"
+                }`}
+              >
+                {word}
+              </motion.span>
+            );
+          })}
+        </div>
 
         <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ delay: 0.4, duration: 0.8 }}
-          className="mt-16"
+          style={{ 
+            opacity: useTransform(scrollYProgress, [0.8, 1], [0, 1]),
+            y: useTransform(scrollYProgress, [0.8, 1], [20, 0])
+          }}
+          className="absolute bottom-16 md:bottom-24"
         >
-          <button data-cursor="button" className="font-mono text-sm tracking-widest text-white hover:text-[#d4ff1e] transition-colors uppercase border border-white/20 px-8 py-4 rounded-full hover:border-[#d4ff1e]/50">
-            Our Story
+          <button data-cursor="button" className="group font-mono text-xs tracking-[0.2em] text-white hover:text-[#d4ff1e] transition-colors uppercase border border-white/20 px-10 py-5 rounded-full hover:border-[#d4ff1e]/50 backdrop-blur-md">
+            Discover Our Origins
           </button>
         </motion.div>
       </div>

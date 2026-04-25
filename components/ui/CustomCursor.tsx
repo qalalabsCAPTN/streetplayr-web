@@ -10,8 +10,8 @@ export default function CustomCursor() {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  // Smooth out the mouse movement
-  const springConfig = { damping: 25, stiffness: 300, mass: 0.5 };
+  // Softer easing for luxury feel
+  const springConfig = { damping: 35, stiffness: 200, mass: 0.8 };
   const cursorX = useSpring(mouseX, springConfig);
   const cursorY = useSpring(mouseY, springConfig);
 
@@ -48,37 +48,40 @@ export default function CustomCursor() {
   // Define variants for different cursor states
   const variants = {
     default: {
-      width: 16,
-      height: 16,
+      width: 12,
+      height: 12,
       backgroundColor: "rgba(255, 255, 255, 1)",
       border: "0px solid rgba(255,255,255,0)",
+      backdropFilter: "blur(0px)",
       x: "-50%",
       y: "-50%",
       opacity: 1,
     },
     button: {
-      width: 48,
-      height: 48,
-      backgroundColor: "rgba(212, 255, 30, 0.2)",
-      border: "1px solid rgba(212, 255, 30, 1)",
+      width: 32,
+      height: 32,
+      backgroundColor: "rgba(212, 255, 30, 0.1)",
+      border: "1px solid rgba(212, 255, 30, 0.8)",
+      backdropFilter: "blur(2px)",
       x: "-50%",
       y: "-50%",
       opacity: 1,
     },
     product: {
-      width: 80,
-      height: 80,
-      backgroundColor: "rgba(255, 255, 255, 0.1)",
-      backdropFilter: "blur(4px)",
-      border: "1px solid rgba(255, 255, 255, 0.5)",
+      width: 64,
+      height: 64,
+      backgroundColor: "rgba(255, 255, 255, 0.05)",
+      backdropFilter: "blur(6px)",
+      border: "1px solid rgba(255, 255, 255, 0.3)",
       x: "-50%",
       y: "-50%",
       opacity: 1,
     },
     video: {
-      width: 80,
-      height: 80,
+      width: 64,
+      height: 64,
       backgroundColor: "rgba(212, 255, 30, 0.9)",
+      backdropFilter: "blur(0px)",
       border: "none",
       x: "-50%",
       y: "-50%",
@@ -86,10 +89,11 @@ export default function CustomCursor() {
       color: "#000",
     },
     drag: {
-      width: 64,
-      height: 64,
-      backgroundColor: "rgba(255, 255, 255, 0.2)",
-      border: "1px solid rgba(255, 255, 255, 0.8)",
+      width: 48,
+      height: 48,
+      backgroundColor: "rgba(255, 255, 255, 0.1)",
+      backdropFilter: "blur(4px)",
+      border: "1px solid rgba(255, 255, 255, 0.6)",
       x: "-50%",
       y: "-50%",
       opacity: 1,
@@ -121,7 +125,7 @@ export default function CustomCursor() {
       variants={variants}
       animate={cursorType}
       initial="default"
-      transition={{ type: "spring", stiffness: 300, damping: 25, mass: 0.5 }}
+      transition={{ type: "spring", stiffness: 200, damping: 35, mass: 0.8 }}
     >
       <motion.span
         initial={{ opacity: 0 }}
