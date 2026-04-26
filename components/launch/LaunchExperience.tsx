@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function LaunchExperience() {
   const [phase, setPhase] = useState<number>(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // 0 = Landing
@@ -24,10 +26,41 @@ export default function LaunchExperience() {
     setPhase(2);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // In a real app, you would send the form data to your backend here
-    setPhase(3);
+    setError("");
+    setIsSubmitting(true);
+
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+
+    const googleFormData = new URLSearchParams();
+    googleFormData.append("entry.1238324646", formData.get("fullName") as string);
+    googleFormData.append("entry.2146950094", formData.get("email") as string);
+    googleFormData.append("entry.105767731", formData.get("phone") as string);
+    googleFormData.append("entry.155039209", formData.get("instagram") as string || "");
+
+    const googleFormUrl = "https://docs.google.com/forms/d/e/1FAIpQLSeQ07-9H9RzYhA4A87Q6rP7t410T7O8XyU1V2x-tQ1_X1-uBw/formResponse";
+
+    try {
+      await fetch(googleFormUrl, {
+        method: "POST",
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: googleFormData.toString(),
+      });
+      
+      // no-cors means we can't read the response status, 
+      // but if fetch completes without network error, it typically succeeded.
+      setPhase(3);
+    } catch (err) {
+      console.error("Form submission error:", err);
+      setError("Something went wrong. Please check your connection and try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -121,6 +154,7 @@ export default function LaunchExperience() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-1">
                   <input
+                    name="fullName"
                     type="text"
                     required
                     placeholder="FULL NAME"
@@ -129,6 +163,7 @@ export default function LaunchExperience() {
                 </div>
                 <div className="space-y-1">
                   <input
+                    name="email"
                     type="email"
                     required
                     placeholder="EMAIL ADDRESS"
@@ -137,6 +172,7 @@ export default function LaunchExperience() {
                 </div>
                 <div className="space-y-1">
                   <input
+                    name="phone"
                     type="tel"
                     required
                     placeholder="PHONE NUMBER"
@@ -145,19 +181,37 @@ export default function LaunchExperience() {
                 </div>
                 <div className="space-y-1">
                   <input
+                    name="instagram"
                     type="text"
                     placeholder="INSTAGRAM HANDLE (OPTIONAL)"
                     className="w-full bg-transparent border-b border-white/20 px-0 py-3 font-mono text-sm text-white placeholder:text-white/30 focus:border-white focus:outline-none focus:ring-0 transition-colors rounded-none"
                   />
                 </div>
 
+                {error && (
+                  <div className="text-red-500 font-mono text-xs tracking-wider text-center pt-2">
+                    {error}
+                  </div>
+                )}
+
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   type="submit"
-                  className="w-full bg-white text-black py-4 mt-8 font-mono text-sm tracking-[0.2em] uppercase font-bold hover:bg-gray-200 transition-colors"
+                  disabled={isSubmitting}
+                  className="w-full bg-white text-black py-4 mt-8 font-mono text-sm tracking-[0.2em] uppercase font-bold hover:bg-gray-200 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  Join The Drop
+                  {isSubmitting ? (
+                    <>
+                      <svg className="animate-spin h-4 w-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Submitting...
+                    </>
+                  ) : (
+                    "Join The Drop"
+                  )}
                 </motion.button>
               </form>
             </div>
