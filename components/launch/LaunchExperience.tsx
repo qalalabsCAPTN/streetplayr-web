@@ -40,7 +40,7 @@ export default function LaunchExperience() {
     googleFormData.append("entry.105767731", formData.get("phone") as string);
     googleFormData.append("entry.155039209", formData.get("instagram") as string || "");
 
-    const googleFormUrl = "https://docs.google.com/forms/d/e/1FAIpQLSeQ07-9H9RzYhA4A87Q6rP7t410T7O8XyU1V2x-tQ1_X1-uBw/formResponse";
+    const googleFormUrl = "https://docs.google.com/forms/d/e/1FAIpQLSd57MYm4NznQoZC5Ugde5_-eY3Uzp-epPuY62rJxklTh-hCaw/formResponse";
 
     try {
       await fetch(googleFormUrl, {
