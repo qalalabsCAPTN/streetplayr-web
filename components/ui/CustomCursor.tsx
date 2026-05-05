@@ -98,9 +98,28 @@ export default function CustomCursor() {
       y: "-50%",
       opacity: 1,
     },
+    cart: {
+      width: 86,
+      height: 86,
+      backgroundColor: "rgba(212, 255, 30, 0.9)",
+      backdropFilter: "blur(0px)",
+      border: "none",
+      x: "-50%",
+      y: "-50%",
+      opacity: 1,
+    },
+    zoom: {
+      width: 64,
+      height: 64,
+      backgroundColor: "rgba(255, 255, 255, 0.05)",
+      backdropFilter: "blur(6px)",
+      border: "1px solid rgba(255, 255, 255, 0.3)",
+      x: "-50%",
+      y: "-50%",
+      opacity: 1,
+    },
   };
 
-  // Text inside the cursor based on type
   const getCursorText = () => {
     switch (cursorType) {
       case "product":
@@ -109,6 +128,10 @@ export default function CustomCursor() {
         return "PLAY";
       case "drag":
         return "DRAG";
+      case "cart":
+        return "ADD TO CART";
+      case "zoom":
+        return "ZOOM";
       default:
         return null;
     }
@@ -131,7 +154,7 @@ export default function CustomCursor() {
         initial={{ opacity: 0 }}
         animate={{ opacity: getCursorText() ? 1 : 0 }}
         className="pointer-events-none"
-        style={{ color: cursorType === "video" ? "#000" : "#fff" }}
+        style={{ color: (cursorType === "video" || cursorType === "cart") ? "#000" : "#fff", textAlign: "center", lineHeight: "1.2" }}
       >
         {getCursorText()}
       </motion.span>
