@@ -41,31 +41,38 @@ export default function ProductInfo({
   const [quantity, setQuantity] = useState(1);
 
   return (
-    <div className="sticky top-24 flex flex-col gap-10 lg:gap-14">
+    <motion.div 
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 1.2, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      className="sticky top-32 flex flex-col gap-10 lg:gap-16"
+    >
       {/* Drop Metadata */}
-      <div className="flex flex-wrap items-center gap-4">
-        <span className="border border-[var(--sp-accent)] bg-black/50 px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-[var(--sp-accent)]">
+      <div className="flex flex-wrap items-center gap-4 opacity-60">
+        <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-[var(--sp-accent)]">
           {dropMetadata.dropNumber}
         </span>
-        <span className="bg-white/10 px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-white">
-          {dropMetadata.releaseType}
+        <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">
+          // {dropMetadata.releaseType}
         </span>
       </div>
 
       {/* Header */}
-      <div className="space-y-4">
-        <h1 className="font-display text-5xl uppercase leading-[0.85] tracking-wide text-white lg:text-7xl">
-          {title}
+      <div className="space-y-6">
+        <h1 className="font-display text-6xl uppercase leading-[0.8] tracking-wide text-white md:text-7xl lg:text-[7rem]">
+          {title.split(' ').map((word, i) => (
+            <span key={i} className="block">{word}</span>
+          ))}
         </h1>
-        <p className="font-mono text-xs uppercase tracking-[0.2em] text-white/50">
+        <p className="font-mono text-sm uppercase tracking-[0.3em] text-white/40">
           {tagline}
         </p>
-        <div className="pt-4 font-mono text-lg text-white">{price}</div>
+        <div className="pt-6 font-mono text-xl text-white/90">{price}</div>
       </div>
 
       {/* Description */}
-      <div className="max-w-md">
-        <p className="text-sm leading-relaxed text-white/70">
+      <div className="max-w-md pr-8">
+        <p className="text-base leading-loose text-white/60">
           {description}
         </p>
       </div>
@@ -98,20 +105,20 @@ export default function ProductInfo({
       </div>
 
       {/* Fabric Drop Meta */}
-      <div className="flex gap-8 border-y border-white/10 py-6">
-        <div className="space-y-1">
-          <span className="block font-mono text-[9px] uppercase tracking-widest text-white/40">
+      <div className="flex gap-12 border-t border-white/5 pt-8 mt-4">
+        <div className="space-y-2">
+          <span className="block font-mono text-[9px] uppercase tracking-[0.2em] text-white/30">
             Fabric
           </span>
-          <span className="block font-mono text-[11px] uppercase tracking-wider text-white">
+          <span className="block font-mono text-[10px] uppercase tracking-wider text-white/60">
             {dropMetadata.fabricDetails}
           </span>
         </div>
-        <div className="space-y-1">
-          <span className="block font-mono text-[9px] uppercase tracking-widest text-white/40">
+        <div className="space-y-2">
+          <span className="block font-mono text-[9px] uppercase tracking-[0.2em] text-white/30">
             Weight
           </span>
-          <span className="block font-mono text-[11px] uppercase tracking-wider text-white">
+          <span className="block font-mono text-[10px] uppercase tracking-wider text-white/60">
             {dropMetadata.gsmInfo}
           </span>
         </div>
@@ -126,6 +133,6 @@ export default function ProductInfo({
       >
         Add To Cart
       </motion.button>
-    </div>
+    </motion.div>
   );
 }

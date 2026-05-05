@@ -102,20 +102,22 @@ const editorialLooks = [
   }
 ];
 
+export function generateStaticParams() {
+  return [
+    { slug: 'example-slug' },
+    { slug: 'srh-jersey-01' }
+  ];
+}
+
 export default function ProductDetailPage() {
   return (
     <>
-      <div className="relative bg-black pt-24 md:pt-32">
+      <div className="relative pt-24 md:pt-32">
         {/* Cinematic Product Hero */}
-        <div className="mx-auto max-w-[1600px] px-0 md:px-12">
-          <div className="flex flex-col lg:flex-row lg:items-start lg:gap-16 xl:gap-24">
-            {/* Left: Oversized Image Gallery */}
-            <div className="w-full lg:w-[60%] xl:w-[65%]">
-              <ProductGallery images={productData.images} />
-            </div>
-
-            {/* Right: Sticky Product Info */}
-            <div className="w-full px-6 pb-24 lg:w-[40%] lg:px-0 xl:w-[35%] relative z-10">
+        <div className="mx-auto max-w-[1800px] px-0 md:px-8 lg:px-12">
+          <div className="flex flex-col-reverse lg:flex-row lg:items-end lg:gap-0">
+            {/* Left: Sticky Product Info (45%) */}
+            <div className="relative z-20 w-full px-6 pb-24 pt-12 lg:sticky lg:bottom-12 lg:w-[45%] lg:px-0 lg:pb-12 lg:-mr-12 xl:-mr-24">
               <ProductInfo
                 title={productData.title}
                 tagline={productData.tagline}
@@ -126,6 +128,11 @@ export default function ProductDetailPage() {
                 colors={productData.colors}
                 sizes={productData.sizes}
               />
+            </div>
+
+            {/* Right: Oversized Image Gallery (55%) */}
+            <div className="relative z-10 w-full lg:w-[55%]">
+              <ProductGallery images={productData.images} />
             </div>
           </div>
         </div>

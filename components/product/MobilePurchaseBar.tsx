@@ -22,8 +22,8 @@ export default function MobilePurchaseBar({ price }: { price: string }) {
     <motion.div
       initial={{ y: "100%" }}
       animate={{ y: isVisible ? "0%" : "100%" }}
-      transition={{ type: "spring", stiffness: 200, damping: 30 }}
-      className="fixed bottom-0 left-0 z-50 flex w-full items-center justify-between border-t border-white/10 bg-black/90 p-4 backdrop-blur-md lg:hidden"
+      transition={{ type: "spring", stiffness: 120, damping: 40, mass: 1 }}
+      className="fixed bottom-0 left-0 z-50 flex w-full items-center justify-between border-t border-white/5 bg-[#050505]/95 p-3 backdrop-blur-md lg:hidden"
     >
       <div className="flex flex-col">
         <span className="font-mono text-[9px] uppercase tracking-widest text-white/50">
@@ -32,7 +32,7 @@ export default function MobilePurchaseBar({ price }: { price: string }) {
         <span className="font-mono text-sm text-white">{price}</span>
       </div>
       <button
-        className="h-12 w-48 bg-white font-mono text-xs uppercase tracking-widest text-black active:bg-[var(--sp-accent)]"
+        className="h-10 w-40 bg-[#f5f5f5] font-mono text-[10px] uppercase tracking-widest text-black active:bg-white"
       >
         Add To Cart
       </button>

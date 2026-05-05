@@ -10,8 +10,8 @@ export default function CustomCursor() {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  // Softer easing for luxury feel
-  const springConfig = { damping: 35, stiffness: 200, mass: 0.8 };
+  // Softer, heavier easing for luxury feel
+  const springConfig = { damping: 45, stiffness: 120, mass: 1.5 };
   const cursorX = useSpring(mouseX, springConfig);
   const cursorY = useSpring(mouseY, springConfig);
 
@@ -89,11 +89,11 @@ export default function CustomCursor() {
       color: "#000",
     },
     drag: {
-      width: 48,
-      height: 48,
-      backgroundColor: "rgba(255, 255, 255, 0.1)",
-      backdropFilter: "blur(4px)",
-      border: "1px solid rgba(255, 255, 255, 0.6)",
+      width: 72,
+      height: 72,
+      backgroundColor: "rgba(255, 255, 255, 0.05)",
+      backdropFilter: "blur(8px)",
+      border: "1px solid rgba(255, 255, 255, 0.4)",
       x: "-50%",
       y: "-50%",
       opacity: 1,

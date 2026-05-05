@@ -14,12 +14,12 @@ type Look = {
 
 export default function EditorialLooks({ looks }: { looks: Look[] }) {
   return (
-    <section className="bg-black py-32 px-6 md:px-12 lg:px-24">
-      <div className="mb-24 flex justify-between items-end">
-        <h2 className="font-display text-5xl uppercase leading-none tracking-wide text-white md:text-7xl">
+    <section className="py-32 px-6 md:px-12 lg:px-24">
+      <div className="mb-32 flex justify-between items-end">
+        <h2 className="font-display text-5xl uppercase leading-none tracking-wide text-white md:text-7xl lg:text-[6rem]">
           Complete<br />The Look
         </h2>
-        <Link href="/shop" className="hidden font-mono text-xs uppercase tracking-widest text-white/50 hover:text-white md:block transition-colors">
+        <Link href="/shop" className="hidden font-mono text-[10px] uppercase tracking-[0.3em] text-white/30 hover:text-white md:block transition-colors">
           View All Drops
         </Link>
       </div>
@@ -30,18 +30,18 @@ export default function EditorialLooks({ looks }: { looks: Look[] }) {
           return (
             <motion.div
               key={look.id}
-              initial={{ opacity: 0, y: 50 }}
+              initial={{ opacity: 0, y: 80 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-10%" }}
-              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
               className={`flex flex-col gap-8 md:flex-row ${
-                isEven ? "md:flex-row" : "md:flex-row-reverse"
+                isEven ? "md:flex-row md:-ml-8 lg:-ml-16" : "md:flex-row-reverse md:-mr-8 lg:-mr-16"
               } items-center`}
             >
               {/* Image Container */}
               <Link 
                 href={look.href}
-                className={`relative w-full md:w-3/5 overflow-hidden bg-[#0a0a0a] group block aspect-[4/5] md:aspect-[3/4] ${
+                className={`relative w-full md:w-[65%] overflow-hidden bg-[#050505] group block aspect-[4/5] md:aspect-[3/4] ${
                   isEven ? "md:mr-auto" : "md:ml-auto"
                 }`}
                 data-cursor="product"

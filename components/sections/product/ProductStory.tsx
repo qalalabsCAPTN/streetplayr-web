@@ -21,11 +21,11 @@ export default function ProductStory({ headline, sublines }: ProductStoryProps) 
   return (
     <section 
       ref={containerRef} 
-      className="relative h-[150vh] w-full bg-black py-24"
+      className="relative h-[250vh] w-full"
     >
       <div className="sticky top-0 flex h-screen w-full flex-col items-center justify-center overflow-hidden px-6 text-center md:px-12">
-        <motion.div style={{ opacity, y }} className="max-w-5xl">
-          <h2 className="mb-12 font-display text-5xl uppercase leading-[0.85] tracking-tight text-white md:text-8xl lg:text-[10rem]">
+        <motion.div style={{ opacity, y }} className="max-w-6xl">
+          <h2 className="mb-12 font-display text-6xl uppercase leading-[0.8] tracking-tight text-white md:text-8xl lg:text-[12rem]">
             {headline}
           </h2>
           <div className="mx-auto flex max-w-2xl flex-col gap-6">

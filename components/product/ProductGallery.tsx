@@ -47,24 +47,27 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
 
   return (
     <>
-      <div className="flex w-full flex-col gap-12 md:gap-32 pb-24">
+      <div className="flex w-full flex-col pb-32">
         {images.map((src, i) => {
-          // Editorial asymmetry logic
+          // Controlled misalignment and visual silence logic
           const isHero = i === 0;
           const isLeftAligned = i % 2 !== 0;
-          const widthClass = isHero ? "w-full" : "w-[85%] md:w-[70%]";
+          const isSmallDetail = i === 2; // Specific image made intentionally smaller for editorial feel
+          
+          const widthClass = isHero ? "w-full" : isSmallDetail ? "w-[70%] md:w-[50%]" : "w-[85%] md:w-[75%]";
           const alignmentClass = isHero ? "" : isLeftAligned ? "self-start" : "self-end";
-          const paddingClass = isHero ? "" : isLeftAligned ? "pl-0 md:pl-12" : "pr-0 md:pr-12";
+          const spacingClass = isHero ? "mb-16 md:mb-32" : isSmallDetail ? "my-24 md:my-48" : "mb-16 md:mb-32";
+          const marginLeftRight = isHero ? "" : isLeftAligned ? "ml-0 md:ml-12 lg:ml-24" : "mr-0 md:mr-12 lg:mr-24";
 
           return (
             <motion.div
-              initial={{ opacity: 0, y: 40 }}
+              initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-10%" }}
-              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 1.4, delay: isHero ? 0 : 0.2, ease: [0.16, 1, 0.3, 1] }}
               key={src + i}
-              className={`relative overflow-hidden bg-[#0a0a0a] ${widthClass} ${alignmentClass} ${paddingClass} ${
-                isHero ? "aspect-[4/5] md:aspect-[3/4]" : "aspect-[3/4]"
+              className={`relative overflow-hidden bg-[#050505] ${widthClass} ${alignmentClass} ${spacingClass} ${marginLeftRight} ${
+                isHero ? "aspect-[4/5] md:aspect-[3/4]" : isSmallDetail ? "aspect-square" : "aspect-[3/4]"
               }`}
               onClick={() => openGallery(i)}
               onMouseMove={handleMouseMove}

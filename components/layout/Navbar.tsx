@@ -72,7 +72,7 @@ export default function Navbar() {
     >
       <nav
         aria-label="Primary navigation"
-        className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-16"
+        className="mx-auto flex h-[88px] max-w-7xl items-center justify-between px-6 sm:px-8 lg:px-12"
       >
         <Link
           aria-label="Street PlayR home"
@@ -92,14 +92,17 @@ export default function Navbar() {
           </motion.span>
         </Link>
 
-        <div className="hidden items-center gap-9 md:flex">
+        <div className="hidden items-center gap-12 md:flex">
           {navLinks.map((link) => (
             <Link
-              className="font-mono text-xs uppercase tracking-[0.18em] text-white/72 transition-colors duration-200 hover:text-white"
+              className="group font-mono text-xs uppercase tracking-[0.2em] text-white/70 transition-colors duration-300 hover:text-white"
               href={link.href}
               key={link.label}
             >
-              {link.label}
+              <span className="relative pb-2">
+                {link.label}
+                <span className="absolute bottom-0 left-0 h-px w-0 bg-white transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:w-full" />
+              </span>
             </Link>
           ))}
         </div>
