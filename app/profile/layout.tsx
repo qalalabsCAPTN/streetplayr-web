@@ -1,0 +1,20 @@
+import type { Metadata } from 'next';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import ProfileShell from './ProfileShell';
+
+export const metadata: Metadata = {
+  title: 'My Profile | Street PlayR',
+  description: 'Your Street PlayR membership identity, wallet, and orders.',
+};
+
+export default function ProfileLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <ProtectedRoute>
+      <ProfileShell>{children}</ProfileShell>
+    </ProtectedRoute>
+  );
+}
