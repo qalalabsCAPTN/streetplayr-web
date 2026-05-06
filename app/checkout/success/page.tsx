@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { useCartStore } from "../../store/cartStore";
+import { useCartStore } from "../../../store/cartStore";
 
 export default function CheckoutSuccessPage() {
   const { clearCart } = useCartStore();
