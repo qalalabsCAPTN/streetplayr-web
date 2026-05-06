@@ -2,10 +2,29 @@
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useState, useEffect } from "react";
+import { useCartStore } from "../../store/cartStore";
 
-export default function MobilePurchaseBar({ price }: { price: string }) {
+export default function MobilePurchaseBar({ price, title = "SRH Jersey 01" }: { price: string, title?: string }) {
   const { scrollY } = useScroll();
   const [isVisible, setIsVisible] = useState(false);
+  const [isAdded, setIsAdded] = useState(false);
+  const addItem = useCartStore((state) => state.addItem);
+
+  const handleAddToCart = () => {
+    const priceNum = parseFloat(price.replace(/[^0-9.-]+/g, ""));
+    addItem({
+      id: `${title}-black-m`,
+      productId: title,
+      name: title,
+      price: priceNum,
+      quantity: 1,
+      color: "Onyx Black",
+      size: "M",
+      image: "/assets/srh-jersey.jpg",
+    });
+    setIsAdded(true);
+    setTimeout(() => setIsAdded(false), 2000);
+  };
 
   useEffect(() => {
     return scrollY.onChange((latest) => {
@@ -32,9 +51,14 @@ export default function MobilePurchaseBar({ price }: { price: string }) {
         <span className="font-mono text-sm text-white">{price}</span>
       </div>
       <button
-        className="h-10 w-40 bg-[#f5f5f5] font-mono text-[10px] uppercase tracking-widest text-black active:bg-white"
+        onClick={handleAddToCart}
+        className={`h-10 w-40 font-mono text-[10px] uppercase tracking-[0.2em] transition-colors ${
+          isAdded 
+            ? "bg-white/20 text-white" 
+            : "bg-[#f5f5f5] text-black active:bg-white"
+        }`}
       >
-        Add To Cart
+        {isAdded ? "Secured" : "Acquire"}
       </button>
     </motion.div>
   );

@@ -5,6 +5,7 @@ import { useState } from "react";
 import ColorSelector from "./ColorSelector";
 import SizeSelector from "./SizeSelector";
 import QuantitySelector from "./QuantitySelector";
+import { useCartStore } from "../../store/cartStore";
 
 type ProductInfoProps = {
   title: string;
@@ -39,6 +40,32 @@ export default function ProductInfo({
   const [selectedColor, setSelectedColor] = useState(colors[0]?.id);
   const [selectedSize, setSelectedSize] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [isAdded, setIsAdded] = useState(false);
+  const addItem = useCartStore((state) => state.addItem);
+
+  const handleAddToCart = () => {
+    if (!selectedSize) {
+      alert("Please select a size.");
+      return;
+    }
+
+    const priceNum = parseFloat(price.replace(/[^0-9.-]+/g, ""));
+    const colorName = colors.find(c => c.id === selectedColor)?.name || selectedColor;
+
+    addItem({
+      id: `${title}-${selectedColor}-${selectedSize}`,
+      productId: title,
+      name: title,
+      price: priceNum,
+      quantity,
+      color: colorName,
+      size: selectedSize,
+      image: "/assets/srh-jersey.jpg", // Using main mock image for now
+    });
+
+    setIsAdded(true);
+    setTimeout(() => setIsAdded(false), 2000);
+  };
 
   return (
     <motion.div 
@@ -128,10 +155,15 @@ export default function ProductInfo({
       <motion.button
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
-        className="hidden h-16 w-full items-center justify-center bg-white font-mono text-sm uppercase tracking-widest text-black transition-colors hover:bg-[var(--sp-accent)] lg:flex"
+        onClick={handleAddToCart}
+        className={`hidden h-16 w-full items-center justify-center font-mono text-xs uppercase tracking-[0.2em] transition-colors lg:flex ${
+          isAdded 
+            ? "bg-white/20 text-white" 
+            : "bg-white text-black hover:bg-[var(--sp-accent)]"
+        }`}
         data-cursor="cart"
       >
-        Add To Cart
+        {isAdded ? "Secured" : "Acquire"}
       </motion.button>
     </motion.div>
   );

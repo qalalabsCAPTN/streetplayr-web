@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useCartStore } from "../../store/cartStore";
 
 const navLinks = [
   { label: "Collection", href: "/collection" },
@@ -52,8 +53,13 @@ function AccountIcon() {
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  
+  const items = useCartStore((state) => state.items);
+  const cartCount = items.reduce((count, item) => count + item.quantity, 0);
 
   useEffect(() => {
+    setMounted(true);
     const handleScroll = () => setIsScrolled(window.scrollY > 80);
 
     handleScroll();
@@ -123,12 +129,19 @@ export default function Navbar() {
             640
           </Link>
           <Link
-            aria-label="Cart - 0 items"
+            aria-label={`Cart - ${mounted ? cartCount : 0} items`}
             className="relative grid h-11 w-11 place-items-center text-white/78 transition-colors duration-200 hover:text-white"
             href="/cart"
           >
             <CartIcon />
-            <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[var(--sp-accent)] shadow-[var(--glow-accent)]" />
+            {mounted && cartCount > 0 && (
+              <motion.span 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 1, ease: "easeOut" }}
+                className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-white opacity-80" 
+              />
+            )}
           </Link>
           <Link
             aria-label="Account"
