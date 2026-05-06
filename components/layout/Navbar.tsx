@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useCartStore } from "../../store/cartStore";
+import { useAuthStore, deriveTier } from "../../store/authStore";
 
 const navLinks = [
   { label: "Collection", href: "/collection" },
@@ -55,9 +56,15 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  
+
   const items = useCartStore((state) => state.items);
   const cartCount = items.reduce((count, item) => count + item.quantity, 0);
+
+  const user = useAuthStore((s) => s.user);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isHydrated = useAuthStore((s) => s.isHydrated);
+  const tier = user ? deriveTier(user.sprrBalance) : null;
+  const tierColor = tier === 'LEGEND' ? 'var(--tier-legend)' : tier === 'PLAYER' ? 'var(--tier-player)' : 'var(--sp-accent)';
 
   useEffect(() => {
     setMounted(true);
@@ -122,13 +129,17 @@ export default function Navbar() {
           >
             <SearchIcon />
           </Link>
-          <Link
-            aria-label="Points wallet"
-            className="grid h-11 min-w-11 place-items-center px-3 font-mono text-xs uppercase tracking-[0.12em] text-[var(--sp-accent)] transition-[filter] duration-200 hover:drop-shadow-[0_0_12px_rgba(212,255,30,0.45)]"
-            href="/profile"
-          >
-            640
-          </Link>
+          {/* SP-RR Balance / wallet link */}
+          {mounted && isHydrated && isAuthenticated && user ? (
+            <Link
+              aria-label={`SP-RR balance: ${user.sprrBalance}`}
+              className="grid h-11 min-w-11 place-items-center px-3 font-mono text-xs uppercase tracking-[0.12em] transition-[filter] duration-200 hover:drop-shadow-[0_0_12px_rgba(212,255,30,0.45)]"
+              style={{ color: tierColor }}
+              href="/profile/wallet"
+            >
+              {user.sprrBalance.toLocaleString('en-IN')}
+            </Link>
+          ) : null}
           <Link
             aria-label={`Cart - ${mounted ? cartCount : 0} items`}
             className="relative grid h-11 w-11 place-items-center text-white/78 transition-colors duration-200 hover:text-white"
@@ -136,21 +147,34 @@ export default function Navbar() {
           >
             <CartIcon />
             {mounted && cartCount > 0 && (
-              <motion.span 
+              <motion.span
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 1, ease: "easeOut" }}
-                className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-white opacity-80" 
+                className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-white opacity-80"
               />
             )}
           </Link>
-          <Link
-            aria-label="Account"
-            className="grid h-11 w-11 place-items-center text-white/78 transition-colors duration-200 hover:text-white"
-            href="/login"
-          >
-            <AccountIcon />
-          </Link>
+          {/* Account icon — avatar initial if logged in, person icon if not */}
+          {mounted && isHydrated && isAuthenticated && user ? (
+            <Link
+              aria-label="My profile"
+              className="grid h-9 w-9 place-items-center rounded-full bg-white/10 border border-white/15 font-display text-sm text-white transition-colors duration-200 hover:bg-white/18"
+              href="/profile"
+              id="navbar-profile-link"
+            >
+              {user.name.charAt(0).toUpperCase()}
+            </Link>
+          ) : (
+            <Link
+              aria-label="Sign in"
+              className="grid h-11 w-11 place-items-center text-white/78 transition-colors duration-200 hover:text-white"
+              href="/login"
+              id="navbar-login-link"
+            >
+              <AccountIcon />
+            </Link>
+          )}
         </div>
 
         <button
@@ -218,12 +242,12 @@ export default function Navbar() {
                   <CartIcon />
                 </Link>
                 <Link
-                  aria-label="Account"
-                  className="grid h-12 place-items-center border border-white/20"
-                  href="/login"
+                  aria-label={isAuthenticated ? 'My profile' : 'Sign in'}
+                  className="grid h-12 place-items-center border border-white/20 font-display text-base"
+                  href={isAuthenticated ? '/profile' : '/login'}
                   onClick={() => setIsOpen(false)}
                 >
-                  <AccountIcon />
+                  {isAuthenticated && user ? user.name.charAt(0).toUpperCase() : <AccountIcon />}
                 </Link>
               </div>
             </div>

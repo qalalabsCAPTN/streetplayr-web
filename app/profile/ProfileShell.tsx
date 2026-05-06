@@ -8,16 +8,17 @@ export default function ProfileShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="profile-root">
-      {/* Desktop: sidebar + content */}
-      <ProfileSidebar />
-
-      <main className="profile-content" id="profile-content">
-        {children}
-      </main>
-
-      {/* Mobile: bottom tab bar */}
+    <>
+      <div className="profile-root">
+        {/* Desktop: sidebar (hidden on mobile via CSS) */}
+        <ProfileSidebar />
+        {/* Main content area */}
+        <main className="profile-content" id="profile-content">
+          {children}
+        </main>
+      </div>
+      {/* Mobile: bottom tab bar (fixed position, outside grid) */}
       <ProfileTabBar />
-    </div>
+    </>
   );
 }

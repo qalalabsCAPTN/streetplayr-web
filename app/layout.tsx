@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Bebas_Neue, JetBrains_Mono, Space_Grotesk } from "next/font/google";
-// import Footer from "@/components/layout/Footer";
-// import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
+import Navbar from "@/components/layout/Navbar";
 import Loader from "@/components/ui/Loader";
+import AuthProvider from "@/components/auth/AuthProvider";
 import "./globals.css";
 
 const display = Bebas_Neue({
@@ -24,9 +25,9 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Street PlayR | Phase 1 Launch",
+  title: "Street PlayR | Enter The Play",
   description:
-    "Street PlayR - Enter The Play. Join the exclusive drop list.",
+    "Street PlayR - Enter The Play. Exclusive drops, luxury streetwear membership.",
 };
 
 export default function RootLayout({
@@ -40,11 +41,14 @@ export default function RootLayout({
       className={`${display.variable} ${body.variable} ${mono.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-black text-white">
-        <Loader />
-        {/* <Navbar /> */}
-        {children}
-        {/* <Footer /> */}
+        <AuthProvider>
+          <Loader />
+          <Navbar />
+          {children}
+          <Footer />
+        </AuthProvider>
       </body>
     </html>
   );
 }
+
