@@ -7,7 +7,8 @@ import { useCartStore } from "../../store/cartStore";
 
 const navLinks = [
   { label: "Collection", href: "/collection" },
-  { label: "Latest Drop", href: "/#latest-drop" },
+  { label: "Lookbook", href: "/lookbook" },
+  { label: "Journal", href: "/journal" },
   { label: "About", href: "/about" },
 ];
 
