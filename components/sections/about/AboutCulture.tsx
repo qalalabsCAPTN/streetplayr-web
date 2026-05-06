@@ -38,14 +38,14 @@ function PillarItem({
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 30 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      initial={{ opacity: 0 }}
+      animate={isInView ? { opacity: 1 } : {}}
       transition={{
-        duration: 1.4,
-        delay: index * 0.15,
-        ease: [0.16, 1, 0.3, 1],
+        duration: 1.8,
+        delay: index * 0.12,
+        ease: "easeOut",
       }}
-      className="group relative border-t border-white/8 pt-8 pb-10"
+      className="group relative border-t border-white/[0.06] pt-8 pb-10"
     >
       {/* Hover accent line */}
       <motion.div
@@ -67,10 +67,10 @@ function PillarItem({
 
         {/* Title + body */}
         <div className="col-span-10 sm:col-span-11">
-          <h3 className="font-display text-[8vw] sm:text-[4.5vw] lg:text-[3.2vw] uppercase leading-none tracking-tight text-white group-hover:text-white/85 transition-colors duration-700">
+          <h3 className="font-display text-[7.5vw] sm:text-[4.2vw] lg:text-[3vw] uppercase leading-none tracking-tight text-white/80 group-hover:text-white transition-colors duration-1000">
             {word}
           </h3>
-          <p className="mt-5 max-w-lg font-body text-sm leading-8 text-white/35 sm:text-white/28 group-hover:text-white/40 transition-colors duration-700">
+          <p className="mt-5 max-w-lg font-body text-sm leading-8 text-white/25 group-hover:text-white/35 transition-colors duration-1000">
             {body}
           </p>
         </div>
@@ -86,7 +86,6 @@ export default function AboutCulture() {
     offset: ["start end", "end start"],
   });
   const lineWidth = useTransform(scrollYProgress, [0.1, 0.5], ["0%", "100%"]);
-  const bgParallax = useTransform(scrollYProgress, [0, 1], ["0%", "8%"]);
 
   const headRef = useRef<HTMLDivElement>(null);
   const headInView = useInView(headRef, { once: true });
@@ -94,12 +93,11 @@ export default function AboutCulture() {
   return (
     <section
       ref={sectionRef}
-      className="relative w-full bg-[#0a0a0a] overflow-hidden py-28 sm:py-40 lg:py-56"
+      className="relative w-full bg-[#050505] overflow-hidden py-32 sm:py-44 lg:py-60"
       aria-label="Cultural positioning"
     >
-      {/* Atmospheric bg element */}
-      <motion.div
-        style={{ y: bgParallax }}
+      {/* Atmospheric bg element — stationary */}
+      <div
         className="pointer-events-none absolute inset-0"
         aria-hidden="true"
       >
@@ -110,7 +108,7 @@ export default function AboutCulture() {
               "radial-gradient(ellipse at bottom right, rgba(255,255,255,0.025) 0%, transparent 65%)",
           }}
         />
-      </motion.div>
+      </div>
 
       {/* Grain */}
       <div

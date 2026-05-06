@@ -11,7 +11,7 @@ export default function AboutCTA() {
   return (
     <section
       ref={ref}
-      className="relative w-full bg-[#050505] overflow-hidden py-36 sm:py-52 lg:py-64"
+      className="relative w-full bg-[#050505] overflow-hidden py-44 sm:py-60 lg:py-72"
       aria-label="Closing call to action"
     >
       {/* Atmospheric focal light */}
@@ -92,9 +92,9 @@ export default function AboutCTA() {
 
         {/* CTA */}
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 1.4, delay: 0.65, ease: [0.16, 1, 0.3, 1] }}
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : {}}
+          transition={{ duration: 1.8, delay: 0.65, ease: "easeOut" }}
           className="mt-14 flex flex-col sm:flex-row items-center justify-center gap-4"
         >
           <Link
@@ -119,14 +119,24 @@ export default function AboutCTA() {
           </Link>
         </motion.div>
 
-        {/* SP mark — visual silence at bottom */}
+        {/* SP mark — visual silence */}
         <motion.p
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : {}}
-          transition={{ duration: 2.5, delay: 1, ease: "easeOut" }}
-          className="mt-24 sm:mt-32 font-display text-[2.5vw] sm:text-[1.8vw] lg:text-[1.4vw] uppercase tracking-[0.5em] text-white/06"
+          transition={{ duration: 3.5, delay: 1.2, ease: "easeOut" }}
+          className="mt-28 sm:mt-40 font-display text-[2.2vw] sm:text-[1.6vw] lg:text-[1.2vw] uppercase tracking-[0.6em] text-white/[0.04]"
         >
           STREET PLAYR — SP — EST. 2024
+        </motion.p>
+
+        {/* Lingering unresolved statement — emotional afterthought */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : {}}
+          transition={{ duration: 4, delay: 2.0, ease: "easeOut" }}
+          className="mt-10 font-body text-[11px] tracking-[0.18em] text-white/[0.08] uppercase"
+        >
+          Still becoming.
         </motion.p>
       </div>
     </section>

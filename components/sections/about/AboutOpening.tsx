@@ -10,14 +10,13 @@ export default function AboutOpening() {
     offset: ["start start", "end start"],
   });
 
-  const y = useTransform(scrollYProgress, [0, 1], ["0%", "28%"]);
-  const opacity = useTransform(scrollYProgress, [0, 0.75], [1, 0]);
-  const textY = useTransform(scrollYProgress, [0, 0.6], ["0%", "-12%"]);
+  const y = useTransform(scrollYProgress, [0, 1], ["0%", "22%"]);
+  const opacity = useTransform(scrollYProgress, [0, 0.65], [1, 0]);
 
   return (
     <section
       ref={containerRef}
-      className="relative h-screen w-full overflow-hidden bg-[#050505]"
+      className="relative h-screen w-full bg-[#050505]"
       aria-label="About opening"
     >
       {/* Atmospheric background */}
@@ -56,13 +55,13 @@ export default function AboutOpening() {
         }}
       />
 
-      {/* Bottom fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-40 z-20 pointer-events-none bg-gradient-to-t from-[#050505] to-transparent" />
+      {/* Bottom bleed — extends into manifesto for continuity */}
+      <div className="absolute bottom-0 left-0 right-0 h-64 z-20 pointer-events-none bg-gradient-to-t from-[#050505] via-[#050505]/80 to-transparent" />
 
-      {/* Content */}
+      {/* Content — opacity fade only, no vertical drift */}
       <motion.div
-        style={{ y: textY, opacity }}
-        className="relative z-30 flex h-full flex-col justify-end pb-24 px-6 sm:px-10 lg:px-20"
+        style={{ opacity }}
+        className="relative z-30 flex h-full flex-col justify-end pb-28 px-6 sm:px-10 lg:px-20"
       >
         {/* Chapter label */}
         <motion.div
@@ -86,7 +85,7 @@ export default function AboutOpening() {
             initial={{ y: "100%", opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 1.4, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="font-display text-[16vw] sm:text-[13vw] lg:text-[11vw] uppercase leading-[0.88] tracking-tight text-white"
+            className="font-display text-[15vw] sm:text-[12vw] lg:text-[10vw] uppercase leading-[0.88] tracking-tight text-white"
           >
             STREET
           </motion.h1>
@@ -96,7 +95,7 @@ export default function AboutOpening() {
             initial={{ y: "100%", opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 1.4, delay: 0.82, ease: [0.16, 1, 0.3, 1] }}
-            className="font-display text-[16vw] sm:text-[13vw] lg:text-[11vw] uppercase leading-[0.88] tracking-tight text-white/20"
+            className="font-display text-[15vw] sm:text-[12vw] lg:text-[10vw] uppercase leading-[0.88] tracking-tight text-white/14"
           >
             PLAYR
           </motion.h1>
@@ -106,8 +105,8 @@ export default function AboutOpening() {
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 2, delay: 1.6, ease: "easeOut" }}
-          className="mt-10 max-w-xs font-body text-sm leading-7 tracking-wide text-white/35 sm:max-w-md"
+          transition={{ duration: 2.5, delay: 1.8, ease: "easeOut" }}
+          className="mt-12 max-w-[260px] font-body text-sm leading-8 tracking-widest text-white/28 sm:max-w-sm"
         >
           Not a uniform. Not a statement.
           <br />A position you earn in the streets.
@@ -121,9 +120,9 @@ export default function AboutOpening() {
           className="absolute bottom-10 right-8 sm:right-16 flex flex-col items-center gap-3"
         >
           <motion.div
-            animate={{ y: [0, 6, 0] }}
-            transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-            className="h-10 w-px bg-gradient-to-b from-white/0 via-white/30 to-white/0"
+            animate={{ opacity: [0.2, 0.6, 0.2] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            className="h-12 w-px bg-gradient-to-b from-white/0 via-white/25 to-white/0"
           />
           <span className="font-mono text-[9px] uppercase tracking-[0.28em] text-white/25 rotate-90 origin-center translate-x-5">
             Scroll

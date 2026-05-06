@@ -17,9 +17,9 @@ function FadeReveal({
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 22 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 1.3, delay, ease: [0.16, 1, 0.3, 1] }}
+      initial={{ opacity: 0 }}
+      animate={isInView ? { opacity: 1 } : {}}
+      transition={{ duration: 1.6, delay, ease: "easeOut" }}
       className={className}
     >
       {children}
@@ -31,19 +31,21 @@ function AtmosphericPanel({
   children,
   className = "",
   delay = 0,
+  whisper = false,
 }: {
   children: React.ReactNode;
   className?: string;
   delay?: number;
+  whisper?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-5% 0px" });
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, scale: 0.985 }}
-      animate={isInView ? { opacity: 1, scale: 1 } : {}}
-      transition={{ duration: 1.6, delay, ease: [0.16, 1, 0.3, 1] }}
+      initial={{ opacity: 0 }}
+      animate={isInView ? { opacity: whisper ? 0.55 : 1 } : {}}
+      transition={{ duration: 2, delay, ease: "easeOut" }}
       className={className}
     >
       {children}
@@ -135,7 +137,7 @@ export default function AboutEditorial() {
       </div>
 
       {/* ——— BLOCK 2: Copy + asymmetric panel ——— */}
-      <div className="mx-auto max-w-7xl px-6 sm:px-10 lg:px-20 py-24 sm:py-36">
+      <div className="mx-auto max-w-7xl px-6 sm:px-10 lg:px-20 py-28 sm:py-44">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
           {/* Text side */}
           <div>
@@ -185,9 +187,11 @@ export default function AboutEditorial() {
         </div>
       </div>
 
-      {/* ——— BLOCK 3: Full-bleed split grid ——— */}
-      <div className="mx-auto max-w-7xl px-6 sm:px-10 lg:px-20 pb-24 sm:pb-36">
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+      {/* ——— BLOCK 3: Interruption line + split grid ——— */}
+      <div className="mx-auto max-w-7xl px-6 sm:px-10 lg:px-20 pb-28 sm:pb-44">
+        {/* Cultural interruption */}
+        <CulturalInterruption />
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mt-14 sm:mt-20">
           <AtmosphericPanel delay={0} className="col-span-1">
             <ImagePanel
               variant="mid"
@@ -195,7 +199,7 @@ export default function AboutEditorial() {
               label="Form — 01"
             />
           </AtmosphericPanel>
-          <AtmosphericPanel delay={0.1} className="col-span-1 mt-12">
+          <AtmosphericPanel delay={0.12} className="col-span-1 mt-12" whisper>
             <ImagePanel
               variant="accent"
               aspectClass="aspect-[2/3]"
@@ -203,7 +207,7 @@ export default function AboutEditorial() {
             />
           </AtmosphericPanel>
           <AtmosphericPanel
-            delay={0.2}
+            delay={0.22}
             className="col-span-2 lg:col-span-1 lg:mt-6"
           >
             <ImagePanel
@@ -216,9 +220,9 @@ export default function AboutEditorial() {
       </div>
 
       {/* ——— BLOCK 4: Macro label detail + silence ——— */}
-      <div className="mx-auto max-w-7xl px-6 sm:px-10 lg:px-20 pb-32 sm:pb-48">
+      <div className="mx-auto max-w-7xl px-6 sm:px-10 lg:px-20 pb-40 sm:pb-60">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-end">
-          {/* Wide atmospheric image */}
+          {/* Wide atmospheric image — dominant */}
           <AtmosphericPanel delay={0} className="lg:col-span-7">
             <ImagePanel
               variant="light"
@@ -229,22 +233,22 @@ export default function AboutEditorial() {
           {/* Quiet text block */}
           <div className="lg:col-span-5 lg:pb-10">
             <FadeReveal delay={0.1}>
-              <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-white/22 mb-8">
+              <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-white/18 mb-8">
                 The Label
               </p>
             </FadeReveal>
             <FadeReveal delay={0.2}>
-              <h3 className="font-display text-[8vw] sm:text-[5vw] lg:text-[3.8vw] uppercase leading-[0.95] tracking-tight text-white">
+              <h3 className="font-display text-[8vw] sm:text-[5vw] lg:text-[3.6vw] uppercase leading-[0.95] tracking-tight text-white">
                 Worn Without
               </h3>
             </FadeReveal>
             <FadeReveal delay={0.28}>
-              <h3 className="font-display text-[8vw] sm:text-[5vw] lg:text-[3.8vw] uppercase leading-[0.95] tracking-tight text-white/18 pl-6">
+              <h3 className="font-display text-[8vw] sm:text-[5vw] lg:text-[3.6vw] uppercase leading-[0.95] tracking-tight text-white/14 pl-6">
                 Explanation
               </h3>
             </FadeReveal>
             <FadeReveal delay={0.38}>
-              <p className="mt-8 font-body text-sm leading-8 tracking-wide text-white/35 max-w-xs">
+              <p className="mt-10 font-body text-sm leading-9 tracking-wide text-white/30 max-w-xs">
                 The stitched label is never loud.
                 <br />
                 It is a quiet signature for those who know.
@@ -254,5 +258,24 @@ export default function AboutEditorial() {
         </div>
       </div>
     </section>
+  );
+}
+
+function CulturalInterruption() {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-10% 0px" });
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0 }}
+      animate={isInView ? { opacity: 1 } : {}}
+      transition={{ duration: 2, ease: "easeOut" }}
+      className="flex items-center gap-6 py-2"
+    >
+      <span className="h-px flex-1 max-w-[3rem] bg-white/10 block" />
+      <p className="font-mono text-[9px] uppercase tracking-[0.3em] text-white/20">
+        Form follows feeling — not function
+      </p>
+    </motion.div>
   );
 }

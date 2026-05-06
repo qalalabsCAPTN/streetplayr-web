@@ -6,13 +6,13 @@ import { motion, useScroll, useTransform, useInView } from "framer-motion";
 const manifestoLines = [
   { text: "We did not launch a brand.", indent: false, dim: false },
   { text: "We declared a position.", indent: true, dim: false },
-  { text: "", indent: false, dim: false }, // silence
+  { text: "", indent: false, dim: false },
   { text: "Born from the tension", indent: false, dim: true },
   { text: "between the street and the studio.", indent: true, dim: false },
-  { text: "", indent: false, dim: false }, // silence
+  { text: "", indent: false, dim: false },
   { text: "Between restraint", indent: false, dim: true },
   { text: "and controlled chaos.", indent: true, dim: false },
-  { text: "", indent: false, dim: false }, // silence
+  { text: "", indent: false, dim: false },
   { text: "StreetPlayR does not follow culture.", indent: false, dim: false },
   { text: "It moves before it.", indent: true, dim: true },
 ];
@@ -32,7 +32,7 @@ function ManifestoLine({
   const isInView = useInView(ref, { once: true, margin: "-10% 0px -10% 0px" });
 
   if (text === "") {
-    return <div className="h-8 sm:h-12" />;
+    return <div className="h-12 sm:h-16" />;
   }
 
   return (
@@ -41,15 +41,15 @@ function ManifestoLine({
       className={`overflow-hidden ${indent ? "pl-8 sm:pl-20 lg:pl-32" : ""}`}
     >
       <motion.p
-        initial={{ y: "105%", opacity: 0 }}
-        animate={isInView ? { y: 0, opacity: 1 } : {}}
+        initial={{ opacity: 0 }}
+        animate={isInView ? { opacity: 1 } : {}}
         transition={{
-          duration: 1.1,
-          delay: index * 0.04,
-          ease: [0.16, 1, 0.3, 1],
+          duration: 1.6,
+          delay: index * 0.03,
+          ease: "easeOut",
         }}
-        className={`font-display text-[7.5vw] sm:text-[5.5vw] lg:text-[4.2vw] xl:text-[3.6vw] uppercase leading-[1.05] tracking-tight ${
-          dim ? "text-white/25" : "text-white"
+        className={`font-display text-[7vw] sm:text-[5.2vw] lg:text-[4vw] xl:text-[3.4vw] uppercase leading-[1.05] tracking-tight ${
+          dim ? "text-white/22" : "text-white"
         }`}
       >
         {text}
@@ -65,17 +65,16 @@ export default function AboutManifesto() {
     offset: ["start end", "end start"],
   });
   const bgOpacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 1, 1, 0]);
-  const accentX = useTransform(scrollYProgress, [0, 1], ["-5%", "5%"]);
 
   return (
     <section
       ref={sectionRef}
-      className="relative w-full bg-[#050505] py-32 sm:py-44 lg:py-56 overflow-hidden"
+      className="relative w-full bg-[#050505] py-36 sm:py-52 lg:py-64 overflow-hidden"
       aria-label="Brand manifesto"
     >
-      {/* Atmospheric accent glow */}
+      {/* Atmospheric accent glow — stationary, no x drift */}
       <motion.div
-        style={{ opacity: bgOpacity, x: accentX }}
+        style={{ opacity: bgOpacity }}
         className="pointer-events-none absolute inset-0"
       >
         <div
@@ -115,7 +114,7 @@ export default function AboutManifesto() {
         <ManifestoSectionLabel />
 
         {/* Manifesto lines */}
-        <div className="mt-16 sm:mt-24">
+        <div className="mt-20 sm:mt-28">
           {manifestoLines.map((line, i) => (
             <ManifestoLine
               key={i}
@@ -126,6 +125,9 @@ export default function AboutManifesto() {
             />
           ))}
         </div>
+
+        {/* Mythology interruption — fragmented campaign statement */}
+        <MythologyBreak />
 
         {/* Closing accent line */}
         <ManifestoClosing />
@@ -153,6 +155,27 @@ function ManifestoSectionLabel() {
   );
 }
 
+function MythologyBreak() {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-10% 0px" });
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0 }}
+      animate={isInView ? { opacity: 1 } : {}}
+      transition={{ duration: 2.2, delay: 0.2, ease: "easeOut" }}
+      className="mt-20 sm:mt-28 py-16 sm:py-20 border-t border-b border-white/[0.045] text-center"
+    >
+      <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-white/18 mb-5">
+        — Fragment —
+      </p>
+      <p className="font-display text-[5.5vw] sm:text-[3.2vw] lg:text-[2.4vw] uppercase tracking-[0.04em] text-white/10 leading-snug">
+        The quietest garment<br className="hidden sm:block" /> speaks loudest.
+      </p>
+    </motion.div>
+  );
+}
+
 function ManifestoClosing() {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-15% 0px" });
@@ -161,14 +184,14 @@ function ManifestoClosing() {
       ref={ref}
       initial={{ opacity: 0 }}
       animate={isInView ? { opacity: 1 } : {}}
-      transition={{ duration: 1.8, delay: 0.3, ease: "easeOut" }}
-      className="mt-24 sm:mt-32 flex items-center gap-6"
+      transition={{ duration: 2, delay: 0.2, ease: "easeOut" }}
+      className="mt-20 sm:mt-28 flex items-center gap-6"
     >
-      <span className="h-px flex-1 bg-white/8" />
-      <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/20">
+      <span className="h-px flex-1 bg-white/6" />
+      <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/15">
         SP — 2024 —
       </span>
-      <span className="h-px w-8 bg-white/8" />
+      <span className="h-px w-8 bg-white/6" />
     </motion.div>
   );
 }
