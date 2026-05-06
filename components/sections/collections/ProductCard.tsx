@@ -1,0 +1,121 @@
+"use client";
+
+import { motion, Variants } from "framer-motion";
+import Image from "next/image";
+import Link from "next/link";
+import { useState } from "react";
+
+export interface ProductMockData {
+  id: string;
+  slug: string;
+  title: string;
+  price: string;
+  image1: string;
+  image2: string;
+  category: string;
+  metadata: {
+    drop: string;
+    fabric: string;
+  };
+  layoutType: "tall" | "square" | "landscape";
+}
+
+interface ProductCardProps {
+  product: ProductMockData;
+  index: number;
+}
+
+export default function ProductCard({ product, index }: ProductCardProps) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  // Staggered reveal based on index
+  const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 50 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] }
+    }
+  };
+
+  // Assign aspect ratios based on layoutType to create the editorial asymmetry
+  const aspectClass = 
+    product.layoutType === "tall" ? "aspect-[3/4] md:aspect-[2/3]" : 
+    product.layoutType === "landscape" ? "aspect-[4/3] md:aspect-[16/9]" : 
+    "aspect-square";
+
+  return (
+    <motion.div
+      variants={itemVariants}
+      className="group relative flex flex-col gap-4"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <Link href={`/product/${product.slug}`} className="block w-full outline-none">
+        <div 
+          className={`relative w-full overflow-hidden bg-[#111] ${aspectClass}`}
+          data-cursor="product"
+        >
+          {/* Default Image */}
+          <Image
+            src={product.image1}
+            alt={product.title}
+            fill
+            priority={index < 2}
+            className={`object-cover transition-transform duration-[0.8s] ease-[cubic-bezier(0.16,1,0.3,1)] ${
+              isHovered ? "scale-105" : "scale-100"
+            }`}
+          />
+          
+          {/* Hover Reveal Image */}
+          <div
+            className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+              isHovered ? "opacity-100" : "opacity-0"
+            }`}
+          >
+            <Image
+              src={product.image2}
+              alt={`${product.title} Alternate View`}
+              fill
+              className="object-cover"
+            />
+          </div>
+
+          {/* Gradient overlay for better text readability on mobile/hover */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+          
+          {/* Top Metadata Badges - Embedded, no UI chrome */}
+          <div className="absolute top-0 left-0 flex w-full justify-between p-4 md:p-6 z-10 pointer-events-none mix-blend-difference">
+            {product.metadata.drop && (
+              <span className="font-mono text-[10px] tracking-[0.2em] text-white/90">
+                {product.metadata.drop}
+              </span>
+            )}
+            {product.metadata.fabric && (
+              <span className="hidden font-mono text-[10px] tracking-[0.2em] text-white/70 md:block">
+                {product.metadata.fabric}
+              </span>
+            )}
+          </div>
+        </div>
+      </Link>
+
+      {/* Product Info: Minimal UI Chrome, readable contrast */}
+      <div className="flex flex-col gap-1 px-6 md:px-2 mt-2">
+        <div className="flex items-center justify-between">
+          <Link href={`/product/${product.slug}`} className="outline-none">
+            <h3 className="font-body text-base font-medium text-white transition-colors duration-300 group-hover:text-[#d4ff1e] md:text-lg">
+              {product.title}
+            </h3>
+          </Link>
+          <span className="font-mono text-sm tracking-widest text-[#8c8c8c]">
+            {product.price}
+          </span>
+        </div>
+        <p className="font-mono text-[11px] text-[#4a4a4a] tracking-wider uppercase md:hidden">
+          {product.metadata.fabric}
+        </p>
+      </div>
+    </motion.div>
+  );
+}
