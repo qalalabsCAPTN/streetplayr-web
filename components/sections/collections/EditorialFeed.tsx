@@ -58,6 +58,14 @@ const MOCK_FEED: FeedItemData[] = [
     content: "STRIPPED OF EXCESS. DEFINED BY FORM. ARCHITECTURE FOR THE STREETS."
   },
   {
+    id: "c3",
+    type: "campaign",
+    category: "ALL",
+    layoutType: "full",
+    image: "https://images.unsplash.com/photo-1603252109303-2751441dd157?q=80&w=2000&auto=format&fit=crop",
+    content: "STUDY IN FORM."
+  },
+  {
     id: "p3",
     type: "product",
     slug: "track-pant-02",
@@ -214,7 +222,12 @@ export default function EditorialFeed({ activeCategory }: EditorialFeedProps) {
                     alt="Campaign Moment"
                     className="h-full w-full object-cover grayscale mix-blend-luminosity opacity-40"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black opacity-60" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-[#050505] opacity-80" />
+                  {item.content && (
+                    <div className="absolute inset-0 flex items-center justify-center p-6 text-center z-10 pointer-events-none mix-blend-plus-lighter">
+                      <h3 className="font-display text-[6vw] md:text-[3vw] text-white/80 tracking-[0.2em]">{item.content}</h3>
+                    </div>
+                  )}
                 </motion.div>
               )}
             </div>

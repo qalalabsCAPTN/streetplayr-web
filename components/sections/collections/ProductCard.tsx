@@ -62,14 +62,14 @@ export default function ProductCard({ product, index }: ProductCardProps) {
             alt={product.title}
             fill
             priority={index < 2}
-            className={`object-cover transition-transform duration-[0.8s] ease-[cubic-bezier(0.16,1,0.3,1)] ${
-              isHovered ? "scale-105" : "scale-100"
+            className={`object-cover transition-transform duration-[2s] ease-[cubic-bezier(0.16,1,0.3,1)] ${
+              isHovered ? "scale-[1.03]" : "scale-100"
             }`}
           />
           
           {/* Hover Reveal Image */}
           <div
-            className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+            className={`absolute inset-0 transition-opacity duration-[1.5s] ease-[cubic-bezier(0.16,1,0.3,1)] ${
               isHovered ? "opacity-100" : "opacity-0"
             }`}
           >
@@ -85,14 +85,14 @@ export default function ProductCard({ product, index }: ProductCardProps) {
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
           
           {/* Top Metadata Badges - Embedded, no UI chrome */}
-          <div className="absolute top-0 left-0 flex w-full justify-between p-4 md:p-6 z-10 pointer-events-none mix-blend-difference">
+          <div className="absolute top-0 left-0 flex w-full justify-between p-4 md:p-6 z-10 pointer-events-none mix-blend-overlay">
             {product.metadata.drop && (
-              <span className="font-mono text-[10px] tracking-[0.2em] text-white/90">
+              <span className="font-mono text-[10px] tracking-[0.2em] text-white/70">
                 {product.metadata.drop}
               </span>
             )}
             {product.metadata.fabric && (
-              <span className="hidden font-mono text-[10px] tracking-[0.2em] text-white/70 md:block">
+              <span className="hidden font-mono text-[10px] tracking-[0.2em] text-white/50 md:block">
                 {product.metadata.fabric}
               </span>
             )}
@@ -100,11 +100,11 @@ export default function ProductCard({ product, index }: ProductCardProps) {
         </div>
       </Link>
 
-      {/* Product Info: Minimal UI Chrome, readable contrast */}
-      <div className="flex flex-col gap-1 px-6 md:px-2 mt-2">
-        <div className="flex items-center justify-between">
+      {/* Product Info: Mobile recomposed for breathing room */}
+      <div className="flex flex-col gap-2 px-6 md:px-2 mt-4 md:mt-2">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-1 md:gap-0">
           <Link href={`/product/${product.slug}`} className="outline-none">
-            <h3 className="font-body text-base font-medium text-white transition-colors duration-300 group-hover:text-[#d4ff1e] md:text-lg">
+            <h3 className="font-body text-base font-medium leading-relaxed text-white transition-colors duration-300 group-hover:text-[#8c8c8c] md:text-lg">
               {product.title}
             </h3>
           </Link>
@@ -112,7 +112,7 @@ export default function ProductCard({ product, index }: ProductCardProps) {
             {product.price}
           </span>
         </div>
-        <p className="font-mono text-[11px] text-[#4a4a4a] tracking-wider uppercase md:hidden">
+        <p className="font-mono text-[11px] text-[#4a4a4a] tracking-wider uppercase md:hidden mt-1">
           {product.metadata.fabric}
         </p>
       </div>
