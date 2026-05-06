@@ -7,9 +7,10 @@ import { useCartStore, CartItem as CartItemType } from "../../store/cartStore";
 
 interface CartItemProps {
   item: CartItemType;
+  index?: number;
 }
 
-export default function CartItem({ item }: CartItemProps) {
+export default function CartItem({ item, index = 0 }: CartItemProps) {
   const { updateQuantity, removeItem } = useCartStore();
 
   return (
@@ -18,17 +19,23 @@ export default function CartItem({ item }: CartItemProps) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.8 } }}
-      transition={{ duration: 1.5, ease: "easeOut" }}
-      className="group relative flex gap-6 sm:gap-10 border-b border-white/5 pb-10 pt-4"
+      transition={{ duration: 1.5, ease: "easeOut", delay: index * 0.15 }}
+      className={`group relative flex gap-6 sm:gap-10 pb-16 pt-8 ${
+        index % 2 !== 0 ? "sm:ml-12 lg:ml-24" : ""
+      }`}
     >
       {/* Oversized Image */}
-      <Link href={`/product`} className="relative block w-32 sm:w-48 shrink-0 aspect-[3/4] bg-[#0a0a0a] overflow-hidden">
+      <Link href={`/product`} className={`relative block shrink-0 bg-[#0a0a0a] overflow-hidden ${
+        index % 2 === 0 ? "w-32 sm:w-56 aspect-[3/4]" : "w-28 sm:w-48 aspect-square"
+      }`}>
         <Image
           src={item.image || "/images/placeholder.jpg"}
           alt={item.name}
           fill
-          className="object-cover object-center opacity-80 transition-opacity duration-700 group-hover:opacity-100"
-          sizes="(max-width: 768px) 128px, 192px"
+          className={`object-cover object-center transition-all duration-1000 group-hover:opacity-100 ${
+            index % 2 === 0 ? "opacity-90" : "opacity-60 grayscale group-hover:grayscale-0"
+          }`}
+          sizes="(max-width: 768px) 128px, 224px"
         />
       </Link>
 

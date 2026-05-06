@@ -41,21 +41,21 @@ export default function MobilePurchaseBar({ price, title = "SRH Jersey 01" }: { 
     <motion.div
       initial={{ y: "100%" }}
       animate={{ y: isVisible ? "0%" : "100%" }}
-      transition={{ type: "spring", stiffness: 120, damping: 40, mass: 1 }}
-      className="fixed bottom-0 left-0 z-50 flex w-full items-center justify-between border-t border-white/5 bg-[#050505]/95 p-3 backdrop-blur-md lg:hidden"
+      transition={{ type: "tween", duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+      className="fixed bottom-0 left-0 z-50 flex w-full items-center justify-between bg-gradient-to-t from-[#050505] to-[#050505]/80 px-6 py-6 pb-8 backdrop-blur-xl lg:hidden"
     >
       <div className="flex flex-col">
-        <span className="font-mono text-[9px] uppercase tracking-widest text-white/50">
-          Total
+        <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-white/30">
+          Value
         </span>
         <span className="font-mono text-sm text-white">{price}</span>
       </div>
       <button
         onClick={handleAddToCart}
-        className={`h-10 w-40 font-mono text-[10px] uppercase tracking-[0.2em] transition-colors ${
+        className={`h-12 px-8 font-mono text-[9px] uppercase tracking-[0.3em] transition-colors ${
           isAdded 
-            ? "bg-white/20 text-white" 
-            : "bg-[#f5f5f5] text-black active:bg-white"
+            ? "bg-white/10 text-white/60" 
+            : "bg-white/5 text-white hover:bg-white/10"
         }`}
       >
         {isAdded ? "Secured" : "Acquire"}

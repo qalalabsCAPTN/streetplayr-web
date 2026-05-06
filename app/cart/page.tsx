@@ -64,8 +64,8 @@ export default function CartPage() {
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-16 lg:gap-24 items-start">
             {/* Items List */}
             <div className="space-y-4">
-              {items.map((item) => (
-                <CartItem key={item.id} item={item} />
+              {items.map((item, index) => (
+                <CartItem key={item.id} item={item} index={index} />
               ))}
             </div>
 
@@ -73,15 +73,15 @@ export default function CartPage() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 2, delay: 0.2, ease: "easeOut" }}
-              className="lg:sticky lg:top-32 space-y-10"
+              transition={{ duration: 3, delay: 0.8, ease: "easeOut" }}
+              className="lg:sticky lg:top-32 space-y-12"
             >
-              <div className="border-b border-white/5 pb-6 space-y-4">
-                <div className="flex justify-between font-mono text-[10px] uppercase tracking-widest text-white/30">
+              <div className="pb-6 space-y-6">
+                <div className="flex justify-between font-mono text-[9px] uppercase tracking-[0.3em] text-white/30">
                   <span>Subtotal</span>
                   <span>${getCartTotal().toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between font-mono text-[10px] uppercase tracking-widest text-white/30">
+                <div className="flex justify-between font-mono text-[9px] uppercase tracking-[0.3em] text-white/30">
                   <span>Shipping</span>
                   <span>Calculated at checkout</span>
                 </div>
