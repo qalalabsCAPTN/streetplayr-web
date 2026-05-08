@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { Bebas_Neue, JetBrains_Mono, Space_Grotesk } from "next/font/google";
-import Footer from "@/components/layout/Footer";
-import Navbar from "@/components/layout/Navbar";
 import Loader from "@/components/ui/Loader";
 import AuthProvider from "@/components/auth/AuthProvider";
+import RealtimeProvider from "@/components/auth/RealtimeProvider";
+import SmoothScrolling from "@/components/ui/SmoothScrolling";
+import { getProfileAction } from "@/app/actions/auth";
 import "./globals.css";
 
 const display = Bebas_Neue({
@@ -30,25 +31,28 @@ export const metadata: Metadata = {
     "Street PlayR - Enter The Play. Exclusive drops, luxury streetwear membership.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const user = await getProfileAction();
+
   return (
     <html
       lang="en"
       className={`${display.variable} ${body.variable} ${mono.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-black text-white">
-        <AuthProvider>
-          <Loader />
-          <Navbar />
-          {children}
-          <Footer />
+        <AuthProvider initialUser={user}>
+          <RealtimeProvider>
+            <SmoothScrolling>
+              <Loader />
+              {children}
+            </SmoothScrolling>
+          </RealtimeProvider>
         </AuthProvider>
       </body>
     </html>
   );
 }
-

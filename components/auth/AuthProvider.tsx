@@ -1,28 +1,33 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useAuthStore } from '@/store/authStore';
+import { useEffect, useRef } from 'react';
+import { useAuthStore, User } from '@/store/authStore';
 
 /**
  * AuthProvider — centralized hydration wrapper.
- *
- * Zustand persist rehydrates from localStorage asynchronously.
- * Without this, the navbar and profile will flash "logged out"
- * for one render tick. This component marks hydration complete
- * via `setHydrated()` which is called by Zustand's onRehydrateStorage.
- *
- * Usage: wrap in app/layout.tsx, above Navbar and children.
+ * Handles zero-flicker sync between Server-side session and Client-side store.
  */
 export default function AuthProvider({
   children,
+  initialUser,
 }: {
   children: React.ReactNode;
+  initialUser: User | null;
 }) {
+  const sync = useAuthStore((s) => s.sync);
   const setHydrated = useAuthStore((s) => s.setHydrated);
+  const initialized = useRef(false);
+
+  // Synchronous sync for initial render if possible
+  // (Zustand doesn't easily support this without a provider pattern, 
+  // but we can use useEffect with a ref to avoid double-sync)
+  if (!initialized.current) {
+    sync(initialUser);
+    initialized.current = true;
+  }
 
   useEffect(() => {
-    // Ensure hydrated flag is set even if onRehydrateStorage fires before
-    // this component mounts (e.g. no persisted state at all)
+    // Ensure hydrated flag is set
     setHydrated();
   }, [setHydrated]);
 

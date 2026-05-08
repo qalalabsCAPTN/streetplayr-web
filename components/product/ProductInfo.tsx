@@ -8,6 +8,7 @@ import QuantitySelector from "./QuantitySelector";
 import { useCartStore } from "../../store/cartStore";
 
 type ProductInfoProps = {
+  productId: string;
   title: string;
   tagline: string;
   price: string;
@@ -25,9 +26,11 @@ type ProductInfoProps = {
   };
   colors: { id: string; name: string; hex: string }[];
   sizes: string[];
+  image: string;
 };
 
 export default function ProductInfo({
+  productId,
   title,
   tagline,
   price,
@@ -36,6 +39,7 @@ export default function ProductInfo({
   fitIntelligence,
   colors,
   sizes,
+  image,
 }: ProductInfoProps) {
   const [selectedColor, setSelectedColor] = useState(colors[0]?.id);
   const [selectedSize, setSelectedSize] = useState("");
@@ -53,14 +57,14 @@ export default function ProductInfo({
     const colorName = colors.find(c => c.id === selectedColor)?.name || selectedColor;
 
     addItem({
-      id: `${title}-${selectedColor}-${selectedSize}`,
-      productId: title,
+      id: `${productId}-${selectedColor}-${selectedSize}`,
+      productId,
       name: title,
       price: priceNum,
       quantity,
       color: colorName,
       size: selectedSize,
-      image: "/assets/srh-jersey.jpg", // Using main mock image for now
+      image: image || "/assets/placeholder.jpg",
     });
 
     setIsAdded(true);

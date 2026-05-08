@@ -24,6 +24,17 @@
   --glow-white: 0 0 18px rgba(255, 255, 255, 0.09);
   --ease-out: cubic-bezier(0, 0, 0.2, 1);
   --ease-snap: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  /* ─── OpsOS Tokens ────────────────────────────────────────────────────────── */
+  --ops-bg-base: #020202;
+  --ops-bg-surface: #0a0a0a;
+  --ops-bg-elevated: #121212;
+  --ops-border-subtle: rgba(255, 255, 255, 0.08);
+  --ops-text-primary: #fcfcfc;
+  --ops-text-secondary: #808080;
+  --ops-text-muted: #404040;
+  --ops-accent: #ffffff;
+  --ops-glow: 0 0 20px rgba(255, 255, 255, 0.05);
 }
 
 @theme inline {

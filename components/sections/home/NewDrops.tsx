@@ -4,34 +4,20 @@ import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import Image from "next/image";
 
-const products = [
-  {
-    id: 1,
-    name: "Oversized Graphic Tee",
-    price: "$45",
-    image: "/assets/hero-tees.png",
-    category: "Tops",
-    className: "md:col-span-5 md:mt-24", // Large left card, pushed down
-  },
-  {
-    id: 2,
-    name: "Performance Shorts",
-    price: "$55",
-    image: "/assets/run-shorts.jpeg",
-    category: "Bottoms",
-    className: "md:col-span-3", // Small middle card, top aligned
-  },
-  {
-    id: 3,
-    name: "Essential Polo",
-    price: "$60",
-    image: "/assets/polo-editorial.png",
-    category: "Tops",
-    className: "md:col-span-4 md:mt-48", // Medium right card, pushed furthest down
-  },
-];
+interface Product {
+  id: string | number;
+  name: string;
+  price: string;
+  image: string;
+  category: string;
+  className?: string;
+}
 
-export default function NewDrops() {
+interface NewDropsProps {
+  products: Product[];
+}
+
+export default function NewDrops({ products }: NewDropsProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
 
@@ -79,6 +65,7 @@ export default function NewDrops() {
                   src={product.image}
                   alt={product.name}
                   fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   className="object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-110 opacity-80 group-hover:opacity-100"
                 />
                 <div className="absolute inset-0 bg-black/10 transition-colors duration-700 group-hover:bg-transparent" />

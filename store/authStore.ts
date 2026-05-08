@@ -36,6 +36,19 @@ export interface WalletTransaction {
 // ─── User Model ──────────────────────────────────────────────────────────────
 export type AuthProvider = 'phone' | 'google';
 
+/**
+ * OpsOS role hierarchy — ordered by privilege level.
+ * Future-safe segmentation for production RBAC.
+ */
+export type UserRole =
+  | 'super_admin'
+  | 'ops_admin'
+  | 'fulfillment'
+  | 'editorial'
+  | 'support'
+  | 'viewer'
+  | 'member';
+
 export interface User {
   id: string;
   username: string;
@@ -50,6 +63,7 @@ export interface User {
   isOnboarded: boolean;
   memberSince: string;     // ISO date string
   sprrBalance: number;
+  role: UserRole;
 }
 
 // ─── Store State ─────────────────────────────────────────────────────────────
@@ -57,45 +71,18 @@ interface AuthState {
   user: User | null;
   transactions: WalletTransaction[];
   isAuthenticated: boolean;
-  isHydrated: boolean; // prevents navbar flicker / flash
+  isHydrated: boolean; // Zustand rehydration from local storage
+  isLoading: boolean;  // Supabase session check in progress
 
   // Actions
-  login: (user: User, initialTransactions?: WalletTransaction[]) => void;
+  setHydrated: () => void;
+  setLoading: (loading: boolean) => void;
+  sync: (user: User | null, transactions?: WalletTransaction[]) => void;
   logout: () => void;
   updateProfile: (partial: Partial<Pick<User, 'name' | 'email' | 'username' | 'isOnboarded'>>) => void;
   addTransaction: (tx: Omit<WalletTransaction, 'id' | 'createdAt'>) => void;
-  setHydrated: () => void;
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-function generateId(prefix = 'id'): string {
-  return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-}
-
-function generateReferralCode(name: string): string {
-  const base = name.replace(/\s+/g, '').toUpperCase().slice(0, 4).padEnd(4, 'X');
-  return `${base}${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
-}
-
-// ─── Default Welcome Transactions ────────────────────────────────────────────
-function createWelcomeTransactions(): WalletTransaction[] {
-  return [
-    {
-      id: generateId('tx'),
-      type: 'BONUS',
-      source: 'Welcome to StreetPlayR',
-      delta: 200,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: generateId('tx'),
-      type: 'DROP',
-      source: 'SS25 Drop Access Granted',
-      delta: 100,
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-    },
-  ];
-}
 
 // ─── Store ───────────────────────────────────────────────────────────────────
 export const useAuthStore = create<AuthState>()(
@@ -105,14 +92,17 @@ export const useAuthStore = create<AuthState>()(
       transactions: [],
       isAuthenticated: false,
       isHydrated: false,
+      isLoading: true, // Start in loading state until sync happens
 
       setHydrated: () => set({ isHydrated: true }),
+      setLoading: (loading: boolean) => set({ isLoading: loading }),
 
-      login: (user, initialTransactions) => {
+      sync: (user, transactions) => {
         set({
           user,
-          isAuthenticated: true,
-          transactions: initialTransactions ?? createWelcomeTransactions(),
+          isAuthenticated: !!user,
+          transactions: transactions ?? get().transactions,
+          isLoading: false,
         });
       },
 
@@ -121,6 +111,7 @@ export const useAuthStore = create<AuthState>()(
           user: null,
           isAuthenticated: false,
           transactions: [],
+          isLoading: false,
         });
       },
 
@@ -131,9 +122,10 @@ export const useAuthStore = create<AuthState>()(
       },
 
       addTransaction: (tx) => {
+        const id = `tx_${Date.now()}`;
         const newTx: WalletTransaction = {
           ...tx,
-          id: generateId('tx'),
+          id,
           createdAt: new Date().toISOString(),
         };
         const current = get().user;
@@ -169,26 +161,15 @@ export const selectTierProgress = (state: AuthState): number => {
   return Math.min(1, (state.user.sprrBalance - min) / (max - min));
 };
 
-// ─── Mock User Factory ────────────────────────────────────────────────────────
-export function createMockUser(
-  name: string,
-  phone: string,
-  provider: AuthProvider,
-  email?: string
-): User {
-  return {
-    id: generateId('usr'),
-    username: name.replace(/\s+/g, '').toLowerCase() + Math.floor(Math.random() * 999),
-    name,
-    phone,
-    email: email ?? null,
-    avatar: null,
-    referralCode: generateReferralCode(name),
-    walletId: generateId('wlt'),
-    joinedFrom: 'organic',
-    authProvider: provider,
-    isOnboarded: false,
-    memberSince: new Date().toISOString(),
-    sprrBalance: 300, // starts in STREET tier
-  };
-}
+const OPS_ADMIN_ROLES: UserRole[] = ['super_admin', 'ops_admin'];
+const OPS_ALL_ROLES: UserRole[] = ['super_admin', 'ops_admin', 'fulfillment', 'editorial', 'support', 'viewer'];
+
+export const selectIsOpsRole = (state: AuthState) => {
+  const role = state.user?.role;
+  return OPS_ALL_ROLES.includes(role as UserRole);
+};
+
+export const selectIsOpsAdmin = (state: AuthState) => {
+  const role = state.user?.role;
+  return OPS_ADMIN_ROLES.includes(role as UserRole);
+};
