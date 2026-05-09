@@ -11,7 +11,7 @@ export default function NotFound() {
           This page does not exist in the collection.
         </p>
         <Link
-          href="/home"
+          href="/collections"
           className="group inline-flex items-center gap-4 border border-white/20 px-8 py-4 font-mono text-xs uppercase tracking-widest text-white transition-all hover:bg-white hover:text-black"
         >
           Return to Storefront

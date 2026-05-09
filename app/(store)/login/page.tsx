@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useRef, useState } from 'react';
@@ -338,6 +338,9 @@ function LoginInner() {
   const searchParams = useSearchParams();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const isHydrated = useAuthStore((s) => s.isHydrated);
+  const [step, setStep] = useState<'phone' | 'otp'>('phone');
+  const [phone, setPhone] = useState('');
+  const isDemoAuth = typeof process !== 'undefined' && process.env.NEXT_PUBLIC_DEMO_AUTH === 'true';
 
   // Redirect if already logged in
   useEffect(() => {
@@ -346,6 +349,15 @@ function LoginInner() {
       router.replace(redirectPath);
     }
   }, [isHydrated, isAuthenticated, router, searchParams]);
+
+  function handlePhoneNext(p: string) {
+    setPhone(p);
+    setStep('otp');
+  }
+
+  function handleVerify() {
+    // AuthProvider will detect session change and sync the store
+  }
 
   if (!isHydrated || isAuthenticated) return null;
 
@@ -361,26 +373,40 @@ function LoginInner() {
         </Link>
 
         <div className="auth-form-container">
-          <motion.div
-            key="google-auth"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <p className="auth-overline">Member Access</p>
-            <h1 className="auth-headline">Welcome<br />back.</h1>
-            <p className="auth-subtext">
-              Sign in with Google to enter.<br />No passwords. No noise.
-            </p>
+          {isDemoAuth ? (
+            <AnimatePresence mode="wait">
+              {step === 'phone' ? (
+                <PhoneStep onNext={handlePhoneNext} />
+              ) : (
+                <OtpStep
+                  phone={phone}
+                  onVerify={handleVerify}
+                  onBack={() => setStep('phone')}
+                />
+              )}
+            </AnimatePresence>
+          ) : (
+            <motion.div
+              key="google-auth"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <p className="auth-overline">Member Access</p>
+              <h1 className="auth-headline">Welcome<br />back.</h1>
+              <p className="auth-subtext">
+                Sign in with Google to enter.<br />No passwords. No noise.
+              </p>
 
-            <GoogleAuthButton />
+              <GoogleAuthButton />
 
-            <p className="auth-fine-print">
-              By continuing, you agree to our{' '}
-              <Link href="/terms" className="auth-link">Terms</Link> &amp;{' '}
-              <Link href="/privacy" className="auth-link">Privacy Policy</Link>.
-            </p>
-          </motion.div>
+              <p className="auth-fine-print">
+                By continuing, you agree to our{' '}
+                <Link href="/terms" className="auth-link">Terms</Link> &amp;{' '}
+                <Link href="/privacy" className="auth-link">Privacy Policy</Link>.
+              </p>
+            </motion.div>
+          )}
         </div>
       </div>
     </main>

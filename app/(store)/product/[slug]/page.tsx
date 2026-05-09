@@ -81,7 +81,7 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
 
       <ProductStory headline={storyData.headline} sublines={storyData.sublines} />
       
-      <MobilePurchaseBar price={displayData.price} />
+      <MobilePurchaseBar price={displayData.price} productId={product.id} title={displayData.title} image={displayData.image} />
     </>
   );
 }

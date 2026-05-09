@@ -27,8 +27,8 @@ export const ProductQueries = {
         name,
         price,
         image_url,
-        category:categories(name),
         slug,
+        category:categories(name),
         metadata
       `)
       .order('created_at', { ascending: false })
@@ -44,6 +44,7 @@ export const ProductQueries = {
       name: p.name,
       price: `$${p.price}`,
       image: p.image_url,
+      slug: p.slug,
       category: (p.category as any)?.name || 'Street',
       className: p.metadata?.className || getDefaultClassName(idx),
     }));

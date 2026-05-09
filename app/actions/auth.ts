@@ -43,18 +43,38 @@ export async function getProfileAction() {
 
 /**
  * Server Action: Start OTP
- * TEMPORARILY DISABLED for demo — Google Auth only.
+ * DEMO_AUTH=true: Accept any phone (no real OTP sent).
+ * Production: RESTORE REAL OTP FLOW and remove DEMO_AUTH branch.
  */
 export async function signInWithPhoneAction(phone: string): Promise<ActionResponse> {
-  return { success: false, error: 'Phone sign-in is disabled in demo mode. Use Google to continue.' };
+  try {
+    if (process.env.DEMO_AUTH === 'true') {
+      // TODO: REMOVE BEFORE PRODUCTION — demo mode accepts any phone
+      return { success: true };
+    }
+    const result = await AuthService.signInWithPhone(phone);
+    if (result.error) return { success: false, error: result.error.message };
+    return { success: true };
+  } catch (e: any) {
+    return { success: false, error: 'Failed to send code. Please try again.' };
+  }
 }
 
 /**
  * Server Action: Verify OTP
- * TEMPORARILY DISABLED for demo — Google Auth only.
+ * DEMO_AUTH=true + code '000000': Sign in via demo account instead of real OTP.
+ * Production: RESTORE REAL OTP FLOW and remove DEMO_AUTH branch.
  */
 export async function verifyOTPAction(phone: string, token: string): Promise<ActionResponse> {
-  return { success: false, error: 'Phone sign-in is disabled in demo mode. Use Google to continue.' };
+  try {
+    const result = await AuthService.verifyOTP(phone, token);
+    if (result.error) return { success: false, error: result.error.message };
+
+    revalidatePath('/');
+    return { success: true, data: result.data };
+  } catch (e: any) {
+    return { success: false, error: 'Verification failed. Please try again.' };
+  }
 }
 
 /**

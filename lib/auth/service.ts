@@ -78,8 +78,13 @@ export const AuthService = {
 
   /**
    * Starts the OTP flow.
+   * DEMO_AUTH=true: Accept any phone, skip actual Supabase OTP send.
    */
   async signInWithPhone(phone: string) {
+    if (process.env.DEMO_AUTH === 'true') {
+      // TODO: REMOVE BEFORE PRODUCTION — demo mode accepts any phone
+      return { error: null };
+    }
     const supabase = await createClient();
     const prefix = process.env.NEXT_PUBLIC_PHONE_PREFIX || '+91';
     const { error } = await supabase.auth.signInWithOtp({
@@ -90,8 +95,20 @@ export const AuthService = {
 
   /**
    * Verifies the OTP.
+   * DEMO_AUTH=true + code '000000': Sign in with demo account instead.
    */
   async verifyOTP(phone: string, token: string) {
+    if (process.env.DEMO_AUTH === 'true' && token === '000000') {
+      // TODO: REMOVE BEFORE PRODUCTION — universal OTP bypass
+      const email = process.env.DEMO_AUTH_EMAIL || 'demo@streetplayr.com';
+      const password = process.env.DEMO_AUTH_PASSWORD || 'Demo@123';
+      const supabase = await createClient();
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      return { data, error };
+    }
     const supabase = await createClient();
     const prefix = process.env.NEXT_PUBLIC_PHONE_PREFIX || '+91';
     const { data, error } = await supabase.auth.verifyOtp({

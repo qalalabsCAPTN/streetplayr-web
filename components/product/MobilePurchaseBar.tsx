@@ -4,7 +4,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useCartStore } from "../../store/cartStore";
 
-export default function MobilePurchaseBar({ price, title = "SRH Jersey 01" }: { price: string, title?: string }) {
+export default function MobilePurchaseBar({ price, productId, title, image }: { price: string; productId?: string; title?: string; image?: string }) {
   const { scrollY } = useScroll();
   const [isVisible, setIsVisible] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
@@ -12,15 +12,16 @@ export default function MobilePurchaseBar({ price, title = "SRH Jersey 01" }: { 
 
   const handleAddToCart = () => {
     const priceNum = parseFloat(price.replace(/[^0-9.-]+/g, ""));
+    const itemId = productId || title || "unknown";
     addItem({
-      id: `${title}-black-m`,
-      productId: title,
-      name: title,
+      id: `${itemId}-default-m`,
+      productId: itemId,
+      name: title || "Product",
       price: priceNum,
       quantity: 1,
       color: "Onyx Black",
       size: "M",
-      image: "/assets/srh-jersey.jpg",
+      image: image || "/assets/placeholder.jpg",
     });
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);

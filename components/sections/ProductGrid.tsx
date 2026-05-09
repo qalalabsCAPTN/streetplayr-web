@@ -12,7 +12,7 @@ const latestDrop: Product[] = [
     image: "/assets/hero-tees.png",
     imageAlt: "Street PlayR Triple Tee Set in black, white, red, yellow, and blue",
     badge: "New",
-    href: "/products/triple-tee-set",
+    href: "/product/triple-tee-set",
     sizes: ["S", "M", "L", "XL"],
   },
   {
@@ -23,7 +23,7 @@ const latestDrop: Product[] = [
     image: "/assets/polo-editorial.png",
     imageAlt: "Street PlayR Court Polo Pack editorial lookbook",
     badge: "Drop",
-    href: "/products/court-polo-pack",
+    href: "/product/court-polo-pack",
     sizes: ["S", "M", "L", "XL"],
   },
   {
@@ -32,7 +32,7 @@ const latestDrop: Product[] = [
     price: "Rs. 999",
     image: "/assets/run-shorts.jpeg",
     imageAlt: "Street PlayR Run Short styled with a blue performance tee",
-    href: "/products/run-short",
+    href: "/product/run-short",
     sizes: ["S", "M", "L", "XL"],
   },
 ];
@@ -46,7 +46,7 @@ const mostViewed: Product[] = [
     image: "/assets/hero-tees.png",
     imageAlt: "Street PlayR Waffle Tee dark training lookbook",
     badge: "New",
-    href: "/products/waffle-tee",
+    href: "/product/waffle-tee",
     sizes: ["S", "M", "L", "XL"],
     hot: true,
   },
@@ -56,7 +56,7 @@ const mostViewed: Product[] = [
     price: "Rs. 1,799",
     image: "/assets/polo-editorial.png",
     imageAlt: "Street PlayR black polo editorial image",
-    href: "/products/polo-black",
+    href: "/product/polo-black",
     sizes: ["S", "M", "L", "XL"],
   },
   {
@@ -66,7 +66,7 @@ const mostViewed: Product[] = [
     spPrice: "SP Rs. 1,699",
     image: "/assets/srh-jersey.jpg",
     imageAlt: "Street PlayR orange Dream11 cricket jersey",
-    href: "/products/dream-jersey",
+    href: "/product/dream-jersey",
     sizes: ["S", "M", "L", "XL"],
   },
   {
@@ -75,7 +75,7 @@ const mostViewed: Product[] = [
     price: "Rs. 999",
     image: "/assets/run-shorts.jpeg",
     imageAlt: "Street PlayR running shorts product campaign",
-    href: "/products/miles-short",
+    href: "/product/miles-short",
     sizes: ["S", "M", "L", "XL"],
   },
 ];

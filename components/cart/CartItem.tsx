@@ -25,7 +25,7 @@ export default function CartItem({ item, index = 0 }: CartItemProps) {
       }`}
     >
       {/* Oversized Image */}
-      <Link href={`/product`} className={`relative block shrink-0 bg-[#0a0a0a] overflow-hidden ${
+      <Link href={`/product/${item.productId}`} className={`relative block shrink-0 bg-[#0a0a0a] overflow-hidden ${
         index % 2 === 0 ? "w-32 sm:w-56 aspect-[3/4]" : "w-28 sm:w-48 aspect-square"
       }`}>
         <Image
@@ -45,7 +45,7 @@ export default function CartItem({ item, index = 0 }: CartItemProps) {
           <div className="flex justify-between items-start gap-4">
             <div>
               <h3 className="font-display text-2xl uppercase tracking-wide text-white">
-                <Link href={`/product`} className="hover:text-white/80 transition-colors">
+                <Link href={`/product/${item.productId}`} className="hover:text-white/80 transition-colors">
                   {item.name}
                 </Link>
               </h3>
