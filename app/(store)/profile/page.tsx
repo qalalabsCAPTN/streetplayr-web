@@ -15,7 +15,16 @@ export default function ProfilePage() {
   const transactions = useAuthStore((s) => s.transactions);
   const progress = useAuthStore(selectTierProgress);
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <div className="profile-page-root">
+        <div className="profile-identity-hero" style={{ padding: '2rem 0', opacity: 0.3 }}>
+          <div className="profile-greeting-sub" style={{ height: '0.8rem', width: '6rem', background: 'rgba(255,255,255,0.06)', marginBottom: '0.6rem' }} />
+          <div style={{ height: '2.5rem', width: '14rem', background: 'rgba(255,255,255,0.04)' }} />
+        </div>
+      </div>
+    );
+  }
 
   const tier = deriveTier(user.sprrBalance);
   const tierInfo = TIER_THRESHOLDS[tier];

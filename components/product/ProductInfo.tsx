@@ -27,6 +27,12 @@ type ProductInfoProps = {
   colors: { id: string; name: string; hex: string }[];
   sizes: string[];
   image: string;
+  selectedColor?: string;
+  selectedSize?: string;
+  quantity?: number;
+  onColorSelect?: (id: string) => void;
+  onSizeSelect?: (size: string) => void;
+  onQuantityChange?: (qty: number) => void;
 };
 
 export default function ProductInfo({
@@ -40,12 +46,40 @@ export default function ProductInfo({
   colors,
   sizes,
   image,
+  selectedColor: controlledColor,
+  selectedSize: controlledSize,
+  quantity: controlledQuantity,
+  onColorSelect,
+  onSizeSelect,
+  onQuantityChange,
 }: ProductInfoProps) {
-  const [selectedColor, setSelectedColor] = useState(colors[0]?.id);
-  const [selectedSize, setSelectedSize] = useState("");
-  const [quantity, setQuantity] = useState(1);
+  const [localColor, setLocalColor] = useState(colors[0]?.id);
+  const [localSize, setLocalSize] = useState("");
+  const [localQuantity, setLocalQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
   const addItem = useCartStore((state) => state.addItem);
+
+  const selectedColor = controlledColor ?? localColor;
+  const selectedSize = controlledSize ?? localSize;
+  const quantity = controlledQuantity ?? localQuantity;
+
+  const handleColorSelect = (id: string) => {
+    if (onColorSelect) onColorSelect(id);
+    else setLocalColor(id);
+  };
+
+  const handleSizeSelect = (size: string) => {
+    if (onSizeSelect) onSizeSelect(size);
+    else setLocalSize(size);
+  };
+
+  const handleQuantityChange = (qty: number) => {
+    if (onQuantityChange) onQuantityChange(qty);
+    else setLocalQuantity(qty);
+  };
+
+  const handleIncrease = () => handleQuantityChange(quantity + 1);
+  const handleDecrease = () => handleQuantityChange(Math.max(1, quantity - 1));
 
   const handleAddToCart = () => {
     if (!selectedSize) {
@@ -113,24 +147,36 @@ export default function ProductInfo({
         <ColorSelector
           colors={colors}
           selectedColorId={selectedColor}
-          onSelect={setSelectedColor}
+          onSelect={handleColorSelect}
         />
-        <SizeSelector
-          sizes={sizes}
-          selectedSize={selectedSize}
-          onSelect={setSelectedSize}
-          fitIntelligence={fitIntelligence.modelInfo}
-          fitType={fitIntelligence.fitType}
-          trueToSize={fitIntelligence.trueToSize}
-        />
+        <div className="flex items-end gap-4">
+          <div className="flex-1">
+            <SizeSelector
+              sizes={sizes}
+              selectedSize={selectedSize}
+              onSelect={handleSizeSelect}
+              fitIntelligence={fitIntelligence.modelInfo}
+              fitType={fitIntelligence.fitType}
+              trueToSize={fitIntelligence.trueToSize}
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => alert("Size guide coming soon.")}
+            className="mb-1 border border-white/10 px-3 py-2 font-mono text-[8px] uppercase tracking-[0.2em] text-white/40 hover:bg-white/5 hover:text-white/70 transition-all duration-300"
+            data-cursor="button"
+          >
+            Size Guide
+          </button>
+        </div>
         <div className="space-y-3">
           <span className="block font-mono text-[11px] uppercase tracking-widest text-white/60">
             Quantity
           </span>
           <QuantitySelector
             quantity={quantity}
-            onIncrease={() => setQuantity((prev) => prev + 1)}
-            onDecrease={() => setQuantity((prev) => Math.max(1, prev - 1))}
+            onIncrease={handleIncrease}
+            onDecrease={handleDecrease}
           />
         </div>
       </div>

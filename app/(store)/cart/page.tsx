@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCartStore } from "@/store/cartStore";
 import CartItem from "@/components/cart/CartItem";
 import { useEffect, useState } from "react";
+import { formatPrice } from "@/lib/utils/format";
 
 export default function CartPage() {
   const { items, getCartTotal } = useCartStore();
@@ -79,7 +80,7 @@ export default function CartPage() {
               <div className="pb-6 space-y-6">
                 <div className="flex justify-between font-mono text-[9px] uppercase tracking-[0.3em] text-white/30">
                   <span>Subtotal</span>
-                  <span>${getCartTotal().toFixed(2)}</span>
+                  <span>{formatPrice(getCartTotal())}</span>
                 </div>
                 <div className="flex justify-between font-mono text-[9px] uppercase tracking-[0.3em] text-white/30">
                   <span>Shipping</span>
@@ -89,7 +90,7 @@ export default function CartPage() {
 
               <div className="flex justify-between items-end">
                 <span className="font-mono text-[10px] uppercase tracking-widest text-white/20">Value</span>
-                <span className="font-mono text-sm tracking-widest text-white/70">${getCartTotal().toFixed(2)}</span>
+                <span className="font-mono text-sm tracking-widest text-white/70">{formatPrice(getCartTotal())}</span>
               </div>
 
               <Link
@@ -104,7 +105,7 @@ export default function CartPage() {
               </Link>
               
               <p className="font-mono text-[10px] uppercase tracking-widest text-white/30 text-center">
-                Complimentary shipping on orders over $500
+                Complimentary shipping on orders over {formatPrice(50000)}
               </p>
             </motion.div>
           </div>

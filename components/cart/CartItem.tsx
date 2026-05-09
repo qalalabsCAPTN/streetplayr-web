@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useCartStore, CartItem as CartItemType } from "../../store/cartStore";
+import { formatPrice, formatProductTitle } from "@/lib/utils/format";
 
 interface CartItemProps {
   item: CartItemType;
@@ -46,7 +47,7 @@ export default function CartItem({ item, index = 0 }: CartItemProps) {
             <div>
               <h3 className="font-display text-2xl uppercase tracking-wide text-white">
                 <Link href={`/product/${item.productId}`} className="hover:text-white/80 transition-colors">
-                  {item.name}
+                  {formatProductTitle(item.name)}
                 </Link>
               </h3>
               <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2 font-mono text-[10px] uppercase tracking-widest text-white/40">
@@ -56,7 +57,7 @@ export default function CartItem({ item, index = 0 }: CartItemProps) {
             </div>
             
             <div className="font-mono text-[10px] uppercase tracking-widest text-white/30">
-              ${(item.price * item.quantity).toFixed(2)}
+              {formatPrice(item.price * item.quantity)}
             </div>
           </div>
         </div>

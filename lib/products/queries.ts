@@ -42,7 +42,7 @@ export const ProductQueries = {
     return data.map((p, idx) => ({
       id: p.id,
       name: p.name,
-      price: `$${p.price}`,
+      price: p.price,
       image: p.image_url,
       slug: p.slug,
       category: (p.category as any)?.name || 'Street',

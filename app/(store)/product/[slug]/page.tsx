@@ -1,9 +1,10 @@
-import ProductGallery from "@/components/product/ProductGallery";
-import ProductInfo from "@/components/product/ProductInfo";
-import MobilePurchaseBar from "@/components/product/MobilePurchaseBar";
+import ProductDetailClient from "./ProductDetailClient";
 import ProductStory from "@/components/sections/product/ProductStory";
+import ProductReviews from "@/components/sections/product/ProductReviews";
+import type { Metadata } from "next";
 import { ProductQueries } from "@/lib/products/queries";
 import { createClient } from "@/lib/supabase/server";
+import { formatPrice, formatProductTitle } from "@/lib/utils/format";
 
 const DEMO_SLUGS = new Set(["srh-jersey-01", "core-waffle-ls", "track-pant-02", "ribbed-tank-pack", "heavy-zip-hoodie", "vintage-wash-tee"]);
 
@@ -85,6 +86,21 @@ async function resolveProduct(slug: string) {
   return getDemoProduct(slug);
 }
 
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const { slug } = await params;
+  const product = await resolveProduct(slug);
+  const title = formatProductTitle(product?.name || slug);
+  return {
+    title: `${title} — Street PlayR`,
+    description: product?.description || "Limited edition piece from the latest drop. Precision-crafted in premium materials.",
+    openGraph: {
+      title: `${title} — Street PlayR`,
+      description: product?.description || "Limited edition piece from the latest drop.",
+      images: product?.image_url ? [{ url: product.image_url }] : [],
+    },
+  };
+}
+
 export async function generateStaticParams() {
   return [];
 }
@@ -94,9 +110,9 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
   const product = await resolveProduct(slug);
 
   const displayData = {
-    title: product.name,
+    title: formatProductTitle(product.name || product.slug),
     tagline: product.metadata?.tagline || "Performance Meets Street",
-    price: `$${product.price}`,
+    price: formatPrice(product.price),
     description: product.description || "",
     image: product.image_url,
     images: product.metadata?.gallery_images || [product.image_url],
@@ -130,34 +146,55 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
 
   return (
     <>
-      <div className="relative pt-24 md:pt-32">
-        <div className="mx-auto max-w-[1800px] px-0 md:px-8 lg:px-12">
-          <div className="flex flex-col-reverse lg:flex-row lg:items-end lg:gap-0">
-            <div className="relative z-20 w-full px-6 pb-24 pt-12 lg:sticky lg:bottom-12 lg:w-[45%] lg:px-0 lg:pb-12 lg:-mr-12 xl:-mr-24">
-              <ProductInfo
-                productId={product.id}
-                title={displayData.title}
-                tagline={displayData.tagline}
-                price={displayData.price}
-                description={displayData.description}
-                dropMetadata={displayData.dropMetadata}
-                fitIntelligence={displayData.fitIntelligence}
-                colors={displayData.colors}
-                sizes={displayData.sizes}
-                image={displayData.image}
-              />
-            </div>
-
-            <div className="relative z-10 w-full lg:w-[55%]">
-              <ProductGallery images={displayData.images} />
-            </div>
-          </div>
-        </div>
-      </div>
+      <ProductDetailClient
+        productId={product.id}
+        title={displayData.title}
+        tagline={displayData.tagline}
+        price={displayData.price}
+        description={displayData.description}
+        image={displayData.image}
+        images={displayData.images}
+        dropMetadata={displayData.dropMetadata}
+        fitIntelligence={displayData.fitIntelligence}
+        colors={displayData.colors}
+        sizes={displayData.sizes}
+      />
 
       <ProductStory headline={storyData.headline} sublines={storyData.sublines} />
 
-      <MobilePurchaseBar price={displayData.price} productId={product.id} title={displayData.title} image={displayData.image} />
+      <ProductReviews />
+
+      {/* AI Try-On — Coming Soon */}
+      <section className="py-24 px-6 md:px-12 lg:px-24 bg-[#050505] border-t border-white/5">
+        <div className="mx-auto max-w-7xl text-center">
+          <span className="font-mono text-[10px] uppercase tracking-[0.4em] text-white/20">AI Try-On</span>
+          <h2 className="mt-6 font-display text-4xl uppercase tracking-wide text-white/80 md:text-5xl">
+            Virtual Fit Studio
+          </h2>
+          <p className="mx-auto mt-4 max-w-md font-mono text-[11px] uppercase leading-relaxed tracking-[0.2em] text-white/40">
+            See how it looks on you before you buy. Coming soon.
+          </p>
+          <div className="mt-10 inline-block border border-white/10 px-8 py-4 font-mono text-[10px] uppercase tracking-[0.3em] text-white/30">
+            Coming Soon
+          </div>
+        </div>
+      </section>
+
+      {/* Generate Your Print — Placeholder */}
+      <section className="py-24 px-6 md:px-12 lg:px-24 bg-[#050505] border-t border-white/5">
+        <div className="mx-auto max-w-7xl text-center">
+          <span className="font-mono text-[10px] uppercase tracking-[0.4em] text-white/20">Your Print</span>
+          <h2 className="mt-6 font-display text-4xl uppercase tracking-wide text-white/80 md:text-5xl">
+            Generate Your Print
+          </h2>
+          <p className="mx-auto mt-4 max-w-md font-mono text-[11px] uppercase leading-relaxed tracking-[0.2em] text-white/40">
+            Design your own custom colorway and fabric combo. Exclusive to SP members.
+          </p>
+          <div className="mt-10 inline-block border border-white/10 px-8 py-4 font-mono text-[10px] uppercase tracking-[0.3em] text-white/30">
+            Unlock with Wallet
+          </div>
+        </div>
+      </section>
     </>
   );
 }

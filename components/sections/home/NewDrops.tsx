@@ -4,11 +4,12 @@ import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
+import { formatPrice, formatProductTitle } from "@/lib/utils/format";
 
 interface Product {
   id: string | number;
   name: string;
-  price: string;
+  price: string | number;
   image: string;
   category: string;
   className?: string;
@@ -77,9 +78,9 @@ export default function NewDrops({ products }: NewDropsProps) {
                   <div className="mt-6 flex justify-between items-start">
                     <div className="flex flex-col">
                       <span className="font-mono text-[10px] text-white/40 tracking-[0.2em] mb-2 uppercase">{product.category}</span>
-                      <h4 className="font-body text-lg font-light tracking-wide text-white/90">{product.name}</h4>
+                      <h4 className="font-body text-lg font-light tracking-wide text-white/90">{formatProductTitle(product.name)}</h4>
                     </div>
-                    <span className="font-mono text-sm tracking-wider text-white/70">{product.price}</span>
+                    <span className="font-mono text-sm tracking-wider text-white/70">{formatPrice(Number(product.price))}</span>
                   </div>
                 </motion.div>
               </Link>

@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import SmoothScrolling from "@/components/ui/SmoothScrolling";
 import CustomCursor from "@/components/ui/CustomCursor";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
 
 export const metadata: Metadata = {
   title: "Journal — Street PlayR | Field Notes",
@@ -26,9 +24,7 @@ export default function JournalLayout({
       }} />
       <CustomCursor />
       <SmoothScrolling>
-        <Navbar />
         <main>{children}</main>
-        <Footer />
       </SmoothScrolling>
     </div>
   );

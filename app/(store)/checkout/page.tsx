@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import PremiumInput from "@/components/checkout/PremiumInput";
 import { useCartStore } from "@/store/cartStore";
 import Image from "next/image";
+import { formatPrice, formatProductTitle } from "@/lib/utils/format";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -188,7 +189,7 @@ export default function CheckoutPage() {
                       />
                     </div>
                     <div>
-                      <p className="font-display text-xs tracking-[0.2em] uppercase text-white/80">{item.name}</p>
+                      <p className="font-display text-xs tracking-[0.2em] uppercase text-white/80">{formatProductTitle(item.name)}</p>
                       <p className="font-mono text-[8px] uppercase tracking-[0.3em] text-white/30 mt-2">
                         {item.color} // {item.size} // QTY {item.quantity}
                       </p>
@@ -200,7 +201,7 @@ export default function CheckoutPage() {
               <div className="pt-12 mt-12 border-t border-white/5 flex flex-col items-end gap-4">
                 <div className="flex gap-12 font-mono text-[9px] uppercase tracking-[0.3em] text-white/20">
                   <span>Value</span>
-                  <span>${getCartTotal().toFixed(2)}</span>
+                  <span>{formatPrice(getCartTotal())}</span>
                 </div>
                 <div className="flex gap-12 font-mono text-[9px] uppercase tracking-[0.3em] text-white/20">
                   <span>Shipping</span>

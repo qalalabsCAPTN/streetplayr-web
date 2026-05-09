@@ -4,7 +4,15 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useCartStore } from "../../store/cartStore";
 
-export default function MobilePurchaseBar({ price, productId, title, image }: { price: string; productId?: string; title?: string; image?: string }) {
+export default function MobilePurchaseBar({ price, productId, title, image, selectedSize, selectedColor, quantity }: {
+  price: string;
+  productId?: string;
+  title?: string;
+  image?: string;
+  selectedSize?: string;
+  selectedColor?: string;
+  quantity?: number;
+}) {
   const { scrollY } = useScroll();
   const [isVisible, setIsVisible] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
@@ -13,14 +21,17 @@ export default function MobilePurchaseBar({ price, productId, title, image }: { 
   const handleAddToCart = () => {
     const priceNum = parseFloat(price.replace(/[^0-9.-]+/g, ""));
     const itemId = productId || title || "unknown";
+    const size = selectedSize || "M";
+    const color = selectedColor || "Onyx Black";
+    const qty = quantity || 1;
     addItem({
-      id: `${itemId}-default-m`,
+      id: `${itemId}-${color}-${size}`,
       productId: itemId,
       name: title || "Product",
       price: priceNum,
-      quantity: 1,
-      color: "Onyx Black",
-      size: "M",
+      quantity: qty,
+      color,
+      size,
       image: image || "/assets/placeholder.jpg",
     });
     setIsAdded(true);

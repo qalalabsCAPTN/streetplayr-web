@@ -3,6 +3,7 @@
 import { AuthService } from '@/lib/auth/service';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 
 /**
  * Standardized Response Wrapper
@@ -68,7 +69,19 @@ export async function signInWithPhoneAction(phone: string): Promise<ActionRespon
 export async function verifyOTPAction(phone: string, token: string): Promise<ActionResponse> {
   try {
     const result = await AuthService.verifyOTP(phone, token);
-    if (result.error) return { success: false, error: result.error.message };
+    if (result.error) {
+      // DEMO_AUTH fallback: if signInWithPassword fails, set demo cookie
+      if (process.env.DEMO_AUTH === 'true' && token === '000000') {
+        const cookieStore = await cookies();
+        cookieStore.set('demo-auth', JSON.stringify({ phone, email: 'demo@streetplayr.com' }), {
+          maxAge: 60 * 60 * 24,
+          path: '/',
+        });
+        revalidatePath('/');
+        return { success: true };
+      }
+      return { success: false, error: result.error.message };
+    }
 
     revalidatePath('/');
     return { success: true, data: result.data };

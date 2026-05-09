@@ -3,6 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { User } from '@/store/authStore';
 import type { UserRole } from '@/lib/auth/gateway';
 import { createMockUser } from '@/lib/auth/demo';
+import { cookies } from 'next/headers';
 
 /**
  * Auth Service — domain logic for authentication and profile management.
@@ -32,7 +33,23 @@ export const AuthService = {
     const supabase = await createClient();
     const { data: { session } } = await supabase.auth.getSession();
 
-    if (!session) return null;
+    if (!session) {
+      // DEMO_AUTH: fallback to demo-auth cookie for mock sessions
+      if (process.env.DEMO_AUTH === 'true') {
+        try {
+          const cookieStore = await cookies();
+          const demoCookie = cookieStore.get('demo-auth');
+          if (demoCookie?.value) {
+            return createMockUser({
+              id: 'demo-user',
+              phone: '0000000000',
+              email: 'demo@streetplayr.com',
+            });
+          }
+        } catch {}
+      }
+      return null;
+    }
 
     const fetchProfile = async () => {
       const { data } = await supabase
