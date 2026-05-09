@@ -1,5 +1,17 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
+
+// SSR-safe storage — no localStorage access during server-side render/build
+const ssrSafeStorage = createJSONStorage(() => {
+  if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+    return localStorage;
+  }
+  return {
+    getItem: () => null,
+    setItem: () => {},
+    removeItem: () => {},
+  };
+});
 
 export type CartItem = {
   id: string; // Unique id combining product id + color + size
@@ -85,6 +97,7 @@ export const useCartStore = create<CartState>()(
     }),
     {
       name: 'streetplayr-cart',
+      storage: ssrSafeStorage,
     }
   )
 );

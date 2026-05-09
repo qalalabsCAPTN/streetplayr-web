@@ -1,5 +1,17 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
+
+// SSR-safe storage — localStorage only in browser, no-op during SSR/build
+const ssrSafeStorage = createJSONStorage(() => {
+  if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+    return localStorage;
+  }
+  return {
+    getItem: () => null,
+    setItem: () => {},
+    removeItem: () => {},
+  };
+});
 
 // ─── Tier Derivation ────────────────────────────────────────────────────────
 export type Tier = 'STREET' | 'PLAYER' | 'LEGEND';
@@ -141,8 +153,8 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'streetplayr-auth',
+      storage: ssrSafeStorage,
       onRehydrateStorage: () => (state) => {
-        // Called after Zustand rehydrates from localStorage
         state?.setHydrated();
       },
     }

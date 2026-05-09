@@ -7,6 +7,10 @@ import SmoothScrolling from "@/components/ui/SmoothScrolling";
 import { getProfileAction } from "@/app/actions/auth";
 import "./globals.css";
 
+// Root layout calls getProfileAction() → createClient() → cookies().
+// This requires a request context — prevent static prerender attempts.
+export const dynamic = 'force-dynamic';
+
 const display = Bebas_Neue({
   subsets: ["latin"],
   weight: "400",

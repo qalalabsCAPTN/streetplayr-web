@@ -3,6 +3,8 @@ import OpsHeader from "@/components/ops/OpsHeader";
 import CommandPalette from "@/components/ops/CommandPalette";
 import OpsGuard from "@/components/auth/OpsGuard";
 
+export const dynamic = 'force-dynamic';
+
 export default function OpsLayout({
   children,
 }: {
