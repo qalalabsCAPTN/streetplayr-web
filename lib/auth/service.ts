@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { User } from '@/store/authStore';
 import type { UserRole } from '@/lib/auth/gateway';
+import { createMockUser } from '@/lib/auth/demo';
 
 /**
  * Auth Service — domain logic for authentication and profile management.
@@ -56,7 +57,17 @@ export const AuthService = {
       }
     }
 
-    if (!profile) return null;
+    if (!profile) {
+      // DEMO_AUTH: return mock profile if real one can't be fetched
+      if (process.env.DEMO_AUTH === 'true') {
+        return createMockUser({
+          id: session.user.id,
+          phone: session.user.phone || '',
+          email: session.user.email || null,
+        });
+      }
+      return null;
+    }
 
     return {
       id: profile.id,

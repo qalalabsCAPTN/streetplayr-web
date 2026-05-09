@@ -2,6 +2,9 @@
 
 import { useEffect, useRef } from 'react';
 import { useAuthStore, User } from '@/store/authStore';
+import { getDemoTransactions } from '@/lib/auth/demo';
+
+const IS_DEMO = typeof process !== 'undefined' && process.env.NEXT_PUBLIC_DEMO_AUTH === 'true';
 
 /**
  * AuthProvider — centralized hydration wrapper.
@@ -16,20 +19,31 @@ export default function AuthProvider({
 }) {
   const sync = useAuthStore((s) => s.sync);
   const setHydrated = useAuthStore((s) => s.setHydrated);
+  const transactions = useAuthStore((s) => s.transactions);
   const initialized = useRef(false);
+  const seeded = useRef(false);
 
   // Synchronous sync for initial render if possible
-  // (Zustand doesn't easily support this without a provider pattern, 
-  // but we can use useEffect with a ref to avoid double-sync)
   if (!initialized.current) {
-    sync(initialUser);
+    const seedTx = initialUser && IS_DEMO && transactions.length === 0
+      ? getDemoTransactions()
+      : undefined;
+    sync(initialUser, seedTx);
+    seeded.current = !!seedTx;
     initialized.current = true;
   }
 
   useEffect(() => {
-    // Ensure hydrated flag is set
     setHydrated();
   }, [setHydrated]);
+
+  // Seed demo transactions after hydration if not already done
+  useEffect(() => {
+    if (initialUser && IS_DEMO && !seeded.current && transactions.length === 0) {
+      seeded.current = true;
+      sync(initialUser, getDemoTransactions());
+    }
+  }, [initialUser, transactions.length, sync]);
 
   return <>{children}</>;
 }

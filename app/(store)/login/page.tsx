@@ -356,7 +356,8 @@ function LoginInner() {
   }
 
   function handleVerify() {
-    // AuthProvider will detect session change and sync the store
+    const redirectPath = searchParams.get('redirect') ?? '/profile';
+    router.replace(redirectPath);
   }
 
   if (!isHydrated || isAuthenticated) return null;
