@@ -20,7 +20,7 @@ export default function Footer() {
           {footerLinks.map((link) => (
             <Link
               className="font-mono text-xs uppercase tracking-[0.18em] text-white/55 transition-colors duration-200 hover:text-white"
-              href={link === "Collection" ? "/collection" : `/${link.toLowerCase()}`}
+              href={link === "Collection" ? "/collections" : `/${link.toLowerCase()}`}
               key={link}
             >
               {link}

@@ -7,7 +7,7 @@ import { useCartStore } from "../../store/cartStore";
 import { useAuthStore, deriveTier } from "../../store/authStore";
 
 const navLinks = [
-  { label: "Collection", href: "/collection" },
+  { label: "Collection", href: "/collections" },
   { label: "Lookbook", href: "/lookbook" },
   { label: "Journal", href: "/journal" },
   { label: "About", href: "/about" },
@@ -123,9 +123,9 @@ export default function Navbar() {
 
         <div className="hidden items-center gap-2 md:flex">
           <Link
-            aria-label="Search"
+            aria-label="Browse"
             className="grid h-11 w-11 place-items-center text-white/78 transition-colors duration-200 hover:text-white"
-            href="/search"
+            href="/collections"
           >
             <SearchIcon />
           </Link>
@@ -226,9 +226,9 @@ export default function Navbar() {
               ))}
               <div className="mt-5 grid grid-cols-3 gap-2">
                 <Link
-                  aria-label="Search"
+                  aria-label="Browse"
                   className="grid h-12 place-items-center border border-white/20"
-                  href="/search"
+                  href="/collections"
                   onClick={() => setIsOpen(false)}
                 >
                   <SearchIcon />

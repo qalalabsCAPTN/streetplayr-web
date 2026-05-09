@@ -74,7 +74,7 @@ export default function Hero() {
             className="mt-9 flex flex-wrap items-center gap-4"
             variants={lineVariants}
           >
-            <Button href="/collection">Shop Now</Button>
+            <Button href="/collections">Shop Now</Button>
             <Button href="#latest-drop" variant="secondary">
               See The Drop
             </Button>

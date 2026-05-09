@@ -43,30 +43,18 @@ export async function getProfileAction() {
 
 /**
  * Server Action: Start OTP
+ * TEMPORARILY DISABLED for demo — Google Auth only.
  */
 export async function signInWithPhoneAction(phone: string): Promise<ActionResponse> {
-  try {
-    const result = await AuthService.signInWithPhone(phone);
-    if (result.error) return { success: false, error: result.error.message };
-    return { success: true };
-  } catch (e: any) {
-    return { success: false, error: 'Failed to send code. Please try again.' };
-  }
+  return { success: false, error: 'Phone sign-in is disabled in demo mode. Use Google to continue.' };
 }
 
 /**
  * Server Action: Verify OTP
+ * TEMPORARILY DISABLED for demo — Google Auth only.
  */
 export async function verifyOTPAction(phone: string, token: string): Promise<ActionResponse> {
-  try {
-    const result = await AuthService.verifyOTP(phone, token);
-    if (result.error) return { success: false, error: result.error.message };
-    
-    revalidatePath('/');
-    return { success: true, data: result.data };
-  } catch (e: any) {
-    return { success: false, error: 'Verification failed. Please try again.' };
-  }
+  return { success: false, error: 'Phone sign-in is disabled in demo mode. Use Google to continue.' };
 }
 
 /**

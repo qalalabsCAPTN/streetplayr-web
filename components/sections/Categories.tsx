@@ -8,27 +8,27 @@ import Reveal from "@/components/ui/Reveal";
 const categories = [
   {
     name: "T-Shirt",
-    href: "/collection?category=t-shirt",
+    href: "/collections?category=t-shirt",
     image: "/assets/hero-tees.png",
   },
   {
     name: "Waffle",
-    href: "/collection?category=waffle",
+    href: "/collections?category=waffle",
     image: "/assets/hero-tees.png",
   },
   {
     name: "Tank",
-    href: "/collection?category=tank",
+    href: "/collections?category=tank",
     image: "/assets/polo-editorial.png",
   },
   {
     name: "Track",
-    href: "/collection?category=track",
+    href: "/collections?category=track",
     image: "/assets/run-shorts.jpeg",
   },
   {
     name: "Pants",
-    href: "/collection?category=pants",
+    href: "/collections?category=pants",
     image: "/assets/srh-jersey.jpg",
   },
 ];
@@ -48,7 +48,7 @@ export default function Categories() {
           </div>
           <Link
             className="hidden font-mono text-xs uppercase tracking-[0.18em] text-white/55 transition-colors duration-200 hover:text-white md:block"
-            href="/collection"
+            href="/collections"
           >
             View All
           </Link>
