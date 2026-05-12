@@ -31,6 +31,9 @@ function CheckoutFormContent({ clientSecret, setClientSecret }: {
   const [city, setCity] = useState("");
   const [country, setCountry] = useState("");
 
+  // Tracks whether confirmPayment has been submitted (prevents double-fire)
+  const [paymentSubmitted, setPaymentSubmitted] = useState(false);
+
   const handleFormSubmit = useCallback(async () => {
     if (!email || !firstName || !lastName || !address || !city || !country) {
       setError("Please fill in all required fields.");
@@ -41,8 +44,7 @@ function CheckoutFormContent({ clientSecret, setClientSecret }: {
 
     try {
       const { initiateCheckoutAction } = await import('@/app/actions/checkout');
-      const { createPaymentIntentAction } = await import('@/app/actions/payment');
-      const { confirmCheckoutPaymentAction } = await import('@/app/actions/checkout');
+      const { createPaymentAndConfirmAction } = await import('@/app/actions/payment');
 
       const totalPaise = Math.round(items.reduce((sum, i) => sum + i.price * i.quantity, 0) * 100);
 
@@ -53,6 +55,21 @@ function CheckoutFormContent({ clientSecret, setClientSecret }: {
         price: i.price,
       }));
 
+      // Pre-check: validate stock before creating order
+      const { validateCartStockAction } = await import('@/app/actions/stock');
+      const stockCheck = await validateCartStockAction(
+        checkoutItems.map(i => ({ variantId: i.variantId, quantity: i.quantity }))
+      );
+
+      if (stockCheck.success && !stockCheck.data!.valid) {
+        const failures = stockCheck.data!.failures;
+        const msg = failures.map(f => `Insufficient stock for item (requested ${f.requested}, available ${f.available})`).join('; ');
+        setError(msg);
+        setPhase('form');
+        return;
+      }
+
+      // Step 1: Create order + order_items + reservations (all atomic via RPC)
       const checkout = await initiateCheckoutAction(checkoutItems, {
         line1: address,
         city,
@@ -67,27 +84,20 @@ function CheckoutFormContent({ clientSecret, setClientSecret }: {
         return;
       }
 
-      setOrderId(checkout.data!.orderId);
+      const createdOrderId = checkout.data!.orderId;
+      setOrderId(createdOrderId);
 
-      const payment = await createPaymentIntentAction(totalPaise);
-      if ('error' in payment) {
-        setError(payment.error ?? "Payment setup failed.");
+      // Step 2: Create PI with order context + link to order + hold reservations
+      // (combined atomic action — eliminates race window with Stripe webhook)
+      const result = await createPaymentAndConfirmAction(createdOrderId, totalPaise);
+
+      if (!result.success) {
+        setError(result.error ?? "Payment setup failed.");
         setPhase('form');
         return;
       }
 
-      const confirm = await confirmCheckoutPaymentAction(
-        checkout.data!.orderId,
-        payment.paymentIntentId
-      );
-
-      if (!confirm.success) {
-        setError(confirm.error ?? "Payment confirmation failed.");
-        setPhase('form');
-        return;
-      }
-
-      setClientSecret(payment.clientSecret);
+      setClientSecret(result.data!.clientSecret);
       setPhase('payment');
     } catch (e: any) {
       setError(e.message ?? "An unexpected error occurred.");
@@ -97,6 +107,9 @@ function CheckoutFormContent({ clientSecret, setClientSecret }: {
 
   const handlePay = useCallback(async () => {
     if (!stripe || !elements || !clientSecret || !orderId) return;
+    // Idempotency: prevent double-fire if user clicks Confirm multiple times
+    if (paymentSubmitted) return;
+    setPaymentSubmitted(true);
     setPhase('processing');
     setError(null);
 
@@ -111,12 +124,18 @@ function CheckoutFormContent({ clientSecret, setClientSecret }: {
 
     if (confirmError) {
       setError(confirmError.message ?? "Payment failed.");
+      // Release held reservations so inventory isn't locked
+      try {
+        const { releaseOrderReservationsAction } = await import('@/app/actions/payment');
+        await releaseOrderReservationsAction(orderId);
+      } catch {}
+      setPaymentSubmitted(false);
       setPhase('payment');
     } else {
       clearCart();
       router.push(`/checkout/success?order_id=${orderId}`);
     }
-  }, [stripe, elements, clientSecret, orderId, router, clearCart]);
+  }, [stripe, elements, clientSecret, orderId, router, clearCart, paymentSubmitted]);
 
   const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
 

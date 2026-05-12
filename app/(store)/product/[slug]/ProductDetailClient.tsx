@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { RealtimeSubscriptions } from "@/lib/realtime/subscriptions";
 import ProductInfo from "@/components/product/ProductInfo";
 import MobilePurchaseBar from "@/components/product/MobilePurchaseBar";
 import ProductGallery from "@/components/product/ProductGallery";
@@ -20,6 +21,13 @@ type FitIntelligence = {
 
 type Color = { id: string; name: string; hex: string };
 
+type VariantInfo = {
+  id: string;
+  size: string;
+  color: string;
+  stockQuantity: number;
+};
+
 type ProductDetailClientProps = {
   productId: string;
   title: string;
@@ -32,15 +40,37 @@ type ProductDetailClientProps = {
   fitIntelligence: FitIntelligence;
   colors: Color[];
   sizes: string[];
+  variants: VariantInfo[];
 };
 
 export default function ProductDetailClient(props: ProductDetailClientProps) {
   const [selectedColor, setSelectedColor] = useState(props.colors[0]?.id);
   const [selectedSize, setSelectedSize] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [liveStock, setLiveStock] = useState<Record<string, number>>({});
 
   const colorName =
     props.colors.find((c) => c.id === selectedColor)?.name || selectedColor;
+
+  // Subscribe to realtime stock updates for the product's variants
+  useEffect(() => {
+    const unsubs: (() => void)[] = [];
+    for (const v of props.variants) {
+      try {
+        const unsub = RealtimeSubscriptions.subscribeToStock(v.id, (stock: number) => {
+          setLiveStock(prev => ({ ...prev, [v.id]: stock }));
+        });
+        unsubs.push(unsub);
+      } catch {}
+    }
+    return () => unsubs.forEach(fn => fn());
+  }, [props.variants]);
+
+  // Merge live stock into variant data
+  const liveVariants = props.variants.map(v => ({
+    ...v,
+    stockQuantity: liveStock[v.id] ?? v.stockQuantity,
+  }));
 
   return (
     <>
@@ -58,6 +88,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
                 fitIntelligence={props.fitIntelligence}
                 colors={props.colors}
                 sizes={props.sizes}
+                variants={liveVariants}
                 image={props.image}
                 selectedColor={selectedColor}
                 selectedSize={selectedSize}
@@ -83,6 +114,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
         selectedSize={selectedSize}
         selectedColor={colorName}
         quantity={quantity}
+        variants={liveVariants}
       />
     </>
   );

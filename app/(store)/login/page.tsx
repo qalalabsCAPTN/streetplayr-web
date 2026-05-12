@@ -259,11 +259,14 @@ function OtpStep({ phone, onVerify, onBack }: OtpStepProps) {
 
 // ─── Google Auth Button ───────────────────────────────────────────────────────
 function GoogleAuthButton() {
+  const searchParams = useSearchParams();
   const [isPending, setIsPending] = useState(false);
 
   async function handleGoogleLogin() {
     setIsPending(true);
-    const redirectTo = `${window.location.origin}/auth/callback`;
+    const redirect = searchParams.get('redirect');
+    const params = redirect ? `?next=${encodeURIComponent(redirect)}` : '';
+    const redirectTo = `${window.location.origin}/auth/callback${params}`;
     const { data, error } = await signInWithGoogleAction(redirectTo);
     
     if (error) {

@@ -4,7 +4,14 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useCartStore } from "../../store/cartStore";
 
-export default function MobilePurchaseBar({ price, productId, title, image, selectedSize, selectedColor, quantity }: {
+type VariantInfo = {
+  id: string;
+  size: string;
+  color: string;
+  stockQuantity: number;
+};
+
+export default function MobilePurchaseBar({ price, productId, title, image, selectedSize, selectedColor, quantity, variants }: {
   price: string;
   productId?: string;
   title?: string;
@@ -12,6 +19,7 @@ export default function MobilePurchaseBar({ price, productId, title, image, sele
   selectedSize?: string;
   selectedColor?: string;
   quantity?: number;
+  variants?: VariantInfo[];
 }) {
   const { scrollY } = useScroll();
   const [isVisible, setIsVisible] = useState(false);
@@ -20,13 +28,22 @@ export default function MobilePurchaseBar({ price, productId, title, image, sele
 
   const handleAddToCart = () => {
     const priceNum = parseFloat(price.replace(/[^0-9.-]+/g, ""));
-    const itemId = productId || title || "unknown";
     const size = selectedSize || "M";
     const color = selectedColor || "Onyx Black";
     const qty = quantity || 1;
+
+    const matchingVariant = variants?.find(v => v.size === size && (v.color === color || true));
+
+    // Client-side stock check
+    if (matchingVariant && matchingVariant.stockQuantity < qty) {
+      return;
+    }
+
+    const variantId = matchingVariant?.id || `${productId || title}-${color}-${size}`;
+
     addItem({
-      id: `${itemId}-${color}-${size}`,
-      productId: itemId,
+      id: variantId,
+      productId: productId || variantId,
       name: title || "Product",
       price: priceNum,
       quantity: qty,

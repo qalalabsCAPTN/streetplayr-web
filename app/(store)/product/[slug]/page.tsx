@@ -2,6 +2,7 @@ import ProductDetailClient from "./ProductDetailClient";
 import ProductStory from "@/components/sections/product/ProductStory";
 import ProductReviews from "@/components/sections/product/ProductReviews";
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { ProductQueries } from "@/lib/products/queries";
 import { createClient } from "@/lib/supabase/server";
 import { formatPrice, formatProductTitle } from "@/lib/utils/format";
@@ -77,26 +78,29 @@ async function resolveProduct(slug: string) {
     }
   } catch {}
 
-  // 4. Known demo slugs — return hardcoded product
-  if (DEMO_SLUGS.has(slug)) {
+  // 4. Development-only: known demo slugs get hardcoded product
+  // Note: In production with Supabase configured, real products should exist.
+  // Demo slugs exist only for local dev without seeded data.
+  if (process.env.DEMO_AUTH === 'true' && DEMO_SLUGS.has(slug)) {
     return getDemoProduct(slug);
   }
 
-  // 5. Absolute fallback — return generic demo product
-  return getDemoProduct(slug);
+  // 5. No product found — return null (caller handles 404)
+  return null;
 }
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const { slug } = await params;
   const product = await resolveProduct(slug);
-  const title = formatProductTitle(product?.name || slug);
+  if (!product) return { title: "Product Not Found — Street PlayR" };
+  const title = formatProductTitle(product.name);
   return {
     title: `${title} — Street PlayR`,
-    description: product?.description || "Limited edition piece from the latest drop. Precision-crafted in premium materials.",
+    description: product.description,
     openGraph: {
       title: `${title} — Street PlayR`,
-      description: product?.description || "Limited edition piece from the latest drop.",
-      images: product?.image_url ? [{ url: product.image_url }] : [],
+      description: product.description,
+      images: product.image_url ? [{ url: product.image_url }] : [],
     },
   };
 }
@@ -108,9 +112,11 @@ export async function generateStaticParams() {
 export default async function ProductDetailPage({ params }: { params: { slug: string } }) {
   const { slug } = await params;
   const product = await resolveProduct(slug);
+  if (!product) notFound();
 
+  const variants = (product as any).variants ?? [];
   const displayData = {
-    title: formatProductTitle(product.name || product.slug),
+    title: formatProductTitle(product.name),
     tagline: product.metadata?.tagline || "Performance Meets Street",
     price: formatPrice(product.price),
     description: product.description || "",
@@ -131,9 +137,15 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
       { id: "default", name: "Standard", hex: "#000000" },
     ],
     sizes:
-      product.variants
+      variants
         ?.map((v: any) => v.size)
         .filter((v: any, i: number, a: any[]) => a.indexOf(v) === i) || ["S", "M", "L", "XL"],
+    variants: variants.map((v: any) => ({
+      id: v.id,
+      size: v.size,
+      color: v.color,
+      stockQuantity: v.stock_quantity ?? 0,
+    })),
   };
 
   const storyData = product.metadata?.story || {
@@ -158,6 +170,7 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
         fitIntelligence={displayData.fitIntelligence}
         colors={displayData.colors}
         sizes={displayData.sizes}
+        variants={displayData.variants}
       />
 
       <ProductStory headline={storyData.headline} sublines={storyData.sublines} />

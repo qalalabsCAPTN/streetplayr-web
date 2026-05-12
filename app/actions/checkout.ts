@@ -122,6 +122,23 @@ export async function initiateCheckoutAction(
       },
     });
 
+    // Emit cart.checked_out commerce event
+    await recordEvent({
+      domain: 'order',
+      severity: 'info',
+      action: 'cart.checked_out',
+      actorId: user.id,
+      resourceType: 'orders',
+      resourceId: checkoutResult.orderId,
+      message: `Cart checked out — ${items.length} items, ${checkoutResult.total} USD`,
+      metadata: {
+        itemCount: items.length,
+        orderTotal: checkoutResult.total,
+        orderId: checkoutResult.orderId,
+        reservationIds: checkoutResult.reservationIds,
+      },
+    });
+
     return { success: true, data: checkoutResult };
   } catch (e: any) {
     return { success: false, error: e.message, code: 'CHECKOUT_ACTION_ERROR' };

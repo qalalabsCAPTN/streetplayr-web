@@ -7,6 +7,13 @@ import SizeSelector from "./SizeSelector";
 import QuantitySelector from "./QuantitySelector";
 import { useCartStore } from "../../store/cartStore";
 
+type VariantInfo = {
+  id: string;
+  size: string;
+  color: string;
+  stockQuantity: number;
+};
+
 type ProductInfoProps = {
   productId: string;
   title: string;
@@ -26,6 +33,7 @@ type ProductInfoProps = {
   };
   colors: { id: string; name: string; hex: string }[];
   sizes: string[];
+  variants: VariantInfo[];
   image: string;
   selectedColor?: string;
   selectedSize?: string;
@@ -45,6 +53,7 @@ export default function ProductInfo({
   fitIntelligence,
   colors,
   sizes,
+  variants,
   image,
   selectedColor: controlledColor,
   selectedSize: controlledSize,
@@ -81,17 +90,39 @@ export default function ProductInfo({
   const handleIncrease = () => handleQuantityChange(quantity + 1);
   const handleDecrease = () => handleQuantityChange(Math.max(1, quantity - 1));
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!selectedSize) {
       alert("Please select a size.");
       return;
     }
 
-    const priceNum = parseFloat(price.replace(/[^0-9.-]+/g, ""));
+    // Find matching variant and validate stock
     const colorName = colors.find(c => c.id === selectedColor)?.name || selectedColor;
+    const matchingVariant = variants.find(v => v.size === selectedSize);
+    const variantId = matchingVariant?.id || productId;
+    const variantStock = matchingVariant?.stockQuantity ?? 0;
+
+    if (matchingVariant && variantStock < quantity) {
+      alert(`Insufficient stock. Only ${variantStock} available.`);
+      return;
+    }
+
+    // Cross-check with server-side available stock for extra safety
+    if (matchingVariant) {
+      try {
+        const { getVariantStockAction } = await import('@/app/actions/stock');
+        const stockResult = await getVariantStockAction(variantId);
+        if (stockResult.success && stockResult.data && stockResult.data.available < quantity) {
+          alert(`Insufficient stock. Only ${stockResult.data.available} available.`);
+          return;
+        }
+      } catch {}
+    }
+
+    const priceNum = parseFloat(price.replace(/[^0-9.-]+/g, ""));
 
     addItem({
-      id: `${productId}-${selectedColor}-${selectedSize}`,
+      id: variantId,
       productId,
       name: title,
       price: priceNum,

@@ -3,35 +3,93 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useCartStore } from "@/store/cartStore";
 
+type VerificationState = 'verifying' | 'succeeded' | 'failed' | 'pending' | 'not_found';
+
 export default function CheckoutSuccessPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { clearCart } = useCartStore();
   const [mounted, setMounted] = useState(false);
-  const [verified, setVerified] = useState<boolean | null>(null);
+  const [verification, setVerification] = useState<VerificationState>('verifying');
 
   const orderId = searchParams.get('order_id');
-  const clientSecret = searchParams.get('payment_intent_client_secret');
   const redirectStatus = searchParams.get('redirect_status');
 
   useEffect(() => {
     setMounted(true);
-    const timeout = setTimeout(() => clearCart(), 1000);
 
-    // Verify payment
-    if (redirectStatus === 'succeeded' || clientSecret) {
-      setVerified(true);
-    } else if (redirectStatus === 'failed') {
-      setVerified(false);
-    } else {
-      setVerified(true);
+    if (!orderId) {
+      setVerification('not_found');
+      return;
     }
 
-    return () => clearTimeout(timeout);
-  }, [clearCart, redirectStatus, clientSecret]);
+    const resolvedOrderId: string = orderId;
+
+    // Verify payment by checking order status from DB
+    async function verify() {
+      try {
+        const { getOrderAction } = await import('@/app/actions/order');
+        const result = await getOrderAction(resolvedOrderId);
+
+        if (!result.success || !result.data) {
+          setVerification('not_found');
+          return;
+        }
+
+        const status = result.data.status;
+
+        if (status === 'confirmed' || status === 'processing' || status === 'shipped' || status === 'delivered') {
+          setVerification('succeeded');
+          clearCart();
+          return;
+        }
+
+        if (status === 'cancelled' || status === 'refunded') {
+          setVerification('failed');
+          return;
+        }
+
+        if (status === 'pending_payment') {
+          // Payment was initiated but may still be processing.
+          // Check redirect_status for more context.
+          if (redirectStatus === 'succeeded') {
+            setVerification('succeeded');
+            clearCart();
+          } else if (redirectStatus === 'failed') {
+            setVerification('failed');
+          } else {
+            setVerification('pending');
+          }
+          return;
+        }
+
+        // draft or on_hold — unexpected at this point
+        if (status === 'draft') {
+          setVerification('failed');
+          return;
+        }
+
+        setVerification('succeeded');
+        clearCart();
+      } catch {
+        // If verification fails (e.g. network), trust redirect_status
+        if (redirectStatus === 'succeeded') {
+          setVerification('succeeded');
+          clearCart();
+        } else if (redirectStatus === 'failed') {
+          setVerification('failed');
+        } else {
+          setVerification('pending');
+        }
+      }
+    }
+
+    verify();
+  }, [orderId, redirectStatus, clearCart]);
 
   if (!mounted) return null;
 
@@ -54,7 +112,45 @@ export default function CheckoutSuccessPage() {
       </motion.div>
 
       <div className="relative z-10 w-full px-6 sm:px-12 flex flex-col items-center text-center py-32">
-        {verified === false ? (
+        {verification === 'verifying' && (
+          <motion.div
+            animate={{ opacity: [0.3, 1, 0.3] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+            className="font-mono text-xs uppercase tracking-[0.3em] text-white/40"
+          >
+            Verifying Acquisition
+          </motion.div>
+        )}
+
+        {verification === 'pending' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 2, ease: "easeOut" }}
+            className="space-y-16"
+          >
+            <p className="font-mono text-[9px] uppercase tracking-[0.5em] text-white/30">
+              Processing
+            </p>
+            <h1 className="font-display text-5xl sm:text-7xl uppercase tracking-[0.1em] text-white/90 leading-[1.1]">
+              Allocation <br />
+              <span className="text-white/40">Pending</span>
+            </h1>
+            <p className="font-mono text-[10px] tracking-[0.1em] text-white/30 max-w-sm">
+              Your payment is being processed. This typically completes within a few minutes.
+            </p>
+            <div className="pt-16">
+              <Link
+                href="/profile/orders"
+                className="border border-white/20 px-8 py-4 font-mono text-xs uppercase tracking-[0.3em] text-white hover:bg-white hover:text-black transition-all"
+              >
+                View Orders
+              </Link>
+            </div>
+          </motion.div>
+        )}
+
+        {verification === 'failed' && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -77,7 +173,34 @@ export default function CheckoutSuccessPage() {
               </Link>
             </div>
           </motion.div>
-        ) : (
+        )}
+
+        {verification === 'not_found' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 2, ease: "easeOut" }}
+            className="space-y-16"
+          >
+            <p className="font-mono text-[9px] uppercase tracking-[0.5em] text-white/30">
+              Order Not Found
+            </p>
+            <h1 className="font-display text-5xl sm:text-7xl uppercase tracking-[0.1em] text-white/90 leading-[1.1]">
+              No <br />
+              <span className="text-white/40">Dossier</span>
+            </h1>
+            <div className="mt-16">
+              <Link
+                href="/"
+                className="border border-white/20 px-8 py-4 font-mono text-xs uppercase tracking-[0.3em] text-white hover:bg-white hover:text-black transition-all"
+              >
+                Return to Surface
+              </Link>
+            </div>
+          </motion.div>
+        )}
+
+        {verification === 'succeeded' && (
           <>
             <motion.div
               initial={{ opacity: 0 }}
