@@ -36,7 +36,7 @@ export default function CategoryFilter({ activeCategory, onSelect }: CategoryFil
                   {isActive && (
                     <motion.div
                       layoutId="activeCategory"
-                      className="absolute bottom-0 left-0 h-[2px] w-full bg-[#d4ff1e]"
+                      className="absolute bottom-0 left-0 h-[2px] w-full bg-[var(--sp-accent)]"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ type: "spring", stiffness: 300, damping: 30 }}

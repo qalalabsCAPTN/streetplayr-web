@@ -2,26 +2,50 @@
 @import "./auth-profile.css";
 
 :root {
-  --sp-bg-base: #050505;
-  --sp-bg-surface: #0a0a0a;
+  /* ── Backgrounds ────────────────────────────────────────────── */
+  --sp-bg-base:     #050505;
+  --sp-bg-surface:  #0a0a0a;
   --sp-bg-elevated: #111111;
   --sp-bg-overlay: rgba(0, 0, 0, 0.86);
   --sp-border-subtle: #1e1e1e;
   --sp-border-strong: #333333;
   --sp-border-focus: #ffffff;
-  --sp-text-primary: #ffffff;
-  --sp-text-secondary: #8c8c8c;
-  --sp-text-muted: #4a4a4a;
+
+  /* ── Text ───────────────────────────────────────────────────── */
+  --sp-text-primary:   #ffffff;
+  --sp-text-secondary: #b0b0b0;
+  --sp-text-muted:     #707070;
+  --sp-text-subtle:    #4a4a4a;
   --sp-text-inverse: #000000;
+
+  /* ── CTA ────────────────────────────────────────────────────── */
   --sp-cta-bg: #ffffff;
   --sp-cta-text: #000000;
   --sp-cta-hover-bg: #e6e6e6;
-  --sp-accent: #d4ff1e;
-  --sp-accent-dim: rgba(212, 255, 30, 0.14);
+
+  /* ── Brand Accent — purple × green duality ──────────────────── */
+  --sp-accent:         #9D4EDD;
+  --sp-accent-dim:     rgba(157, 78, 221, 0.14);
+  --sp-accent-glow:    rgba(157, 78, 221, 0.5);
+
+  --sp-accent-2:       #2DC653;
+  --sp-accent-2-dim:   rgba(45, 198, 83, 0.14);
+  --sp-accent-2-glow:  rgba(45, 198, 83, 0.4);
+
+  --sp-accent-deep:    #7B2FBE;
+
+  /* ── Status ─────────────────────────────────────────────────── */
   --sp-error: #ff3b30;
   --sp-success: #30d158;
-  --glow-accent: 0 0 24px rgba(212, 255, 30, 0.22);
-  --glow-white: 0 0 18px rgba(255, 255, 255, 0.09);
+
+  /* ── Glows ──────────────────────────────────────────────────── */
+  --glow-accent:   0 0 24px rgba(157, 78, 221, 0.45);
+  --glow-accent-2: 0 0 18px rgba(45, 198, 83, 0.35);
+  --glow-white:    0 0 18px rgba(255, 255, 255, 0.09);
+
+  /* ── Gothic font (loaded via Google Fonts @import — not in next/font/google) */
+  --font-sp-gothic: 'UnifrakturMaguntia', cursive;
+
   --ease-out: cubic-bezier(0, 0, 0.2, 1);
   --ease-snap: cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
@@ -58,6 +82,7 @@ html {
 body {
   min-height: 100%;
   margin: 0;
+  font-size: 16px;
   background: var(--sp-bg-base);
   color: var(--sp-text-primary);
   font-family: var(--font-sp-body), system-ui, sans-serif;
@@ -101,12 +126,18 @@ a {
   letter-spacing: 0.08em;
 }
 
+.font-gothic {
+  font-family: var(--font-sp-gothic), var(--font-sp-display), Impact, serif;
+  letter-spacing: 0.06em;
+}
+
 .font-body {
   font-family: var(--font-sp-body), system-ui, sans-serif;
 }
 
 .font-mono {
   font-family: var(--font-sp-mono), "Courier New", monospace;
+  font-size: max(11px, 0.6875rem);
 }
 
 .text-balance {
@@ -116,7 +147,7 @@ a {
 .hero-sweep {
   background:
     linear-gradient(110deg, transparent 0%, rgba(255, 255, 255, 0.14) 45%, transparent 70%),
-    linear-gradient(90deg, rgba(212, 255, 30, 0.08), transparent 32%, rgba(255, 255, 255, 0.04));
+    linear-gradient(90deg, rgba(157, 78, 221, 0.08), transparent 32%, rgba(255, 255, 255, 0.04));
   background-size: 220% 100%, 100% 100%;
   mix-blend-mode: screen;
 }
@@ -166,8 +197,27 @@ a {
 /* ─── Tier Tokens ──────────────────────────────────────────────────────────── */
 :root {
   --tier-street: #b4b4b4;
-  --tier-player: #d4ff1e;
-  --tier-legend: #ffc832;
+  --tier-player: #2DC653;
+  --tier-legend: #C77DFF;
+}
+
+/* ─── Entry Gate ───────────────────────────────────────────────────────────── */
+@keyframes entry-float {
+  0%   { transform: translateY(0) scale(1);   opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 0.4; }
+  100% { transform: translateY(-100vh) scale(0.6); opacity: 0; }
+}
+
+.entry-particle {
+  position: absolute;
+  bottom: -8px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--sp-accent);
+  animation: entry-float linear infinite;
+  pointer-events: none;
 }
 
 /* ─── Auth Page ────────────────────────────────────────────────────────────── */
@@ -193,7 +243,7 @@ a {
 }
 .auth-panel-gradient {
   position: absolute; inset: 0; z-index: 2; pointer-events: none;
-  background: linear-gradient(160deg, rgba(212,255,30,0.04) 0%, transparent 50%, rgba(0,0,0,0.6) 100%);
+  background: linear-gradient(160deg, rgba(157,78,221,0.04) 0%, transparent 50%, rgba(0,0,0,0.6) 100%);
 }
 .auth-panel-content {
   position: relative; z-index: 3;
@@ -293,7 +343,11 @@ a {
   transition: border-color 0.3s;
 }
 .auth-input-row .auth-input { border-bottom: none; }
-.auth-input:focus { border-color: rgba(255,255,255,0.5); }
+.auth-input:focus {
+  border-color: rgba(255, 255, 255, 0.6);
+  outline: 2px solid var(--sp-accent);
+  outline-offset: 2px;
+}
 .auth-input--readonly { color: rgba(255,255,255,0.3); cursor: not-allowed; }
 .auth-input::placeholder { color: rgba(255,255,255,0.2); }
 .auth-error { font-size: 0.75rem; color: var(--sp-error); font-family: var(--font-sp-mono); letter-spacing: 0.05em; }

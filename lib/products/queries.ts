@@ -51,6 +51,41 @@ export const ProductQueries = {
   },
 
   /**
+   * Fetches all active products for the collections feed.
+   */
+  async getActiveProducts() {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return [];
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('products')
+      .select(`
+        id,
+        name,
+        price,
+        image_url,
+        slug,
+        category:categories(name),
+        metadata
+      `)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching active products:', error);
+      return [];
+    }
+
+    return data.map((p) => ({
+      id: p.id,
+      name: p.name,
+      price: p.price,
+      slug: p.slug,
+      image: p.image_url,
+      category: (p.category as any)?.name || 'Street',
+    }));
+  },
+
+  /**
    * Fetches a single product by slug.
    */
   async getProductBySlug(slug: string) {

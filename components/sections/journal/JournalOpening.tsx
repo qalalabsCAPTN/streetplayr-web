@@ -30,7 +30,7 @@ export default function JournalOpening() {
             background: `
               radial-gradient(ellipse 70% 55% at 30% 30%, rgba(255,255,255,0.05) 0%, transparent 60%),
               radial-gradient(ellipse 50% 70% at 80% 65%, rgba(255,255,255,0.03) 0%, transparent 55%),
-              radial-gradient(ellipse 30% 30% at 10% 85%, rgba(212,255,30,0.02) 0%, transparent 50%),
+              radial-gradient(ellipse 30% 30% at 10% 85%, rgba(157,78,221,0.02) 0%, transparent 50%),
               linear-gradient(155deg, #0c0c0c 0%, #050505 50%, #020202 100%)
             `,
           }}

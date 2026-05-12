@@ -67,7 +67,7 @@ export default function MobilePurchaseBar({ price, productId, title, image, sele
         className={`h-12 px-8 font-mono text-[9px] uppercase tracking-[0.3em] transition-colors ${
           isAdded 
             ? "bg-white/10 text-white/60" 
-            : "bg-white/5 text-white hover:bg-white/10"
+            : "bg-white/5 text-white hover:bg-[var(--sp-accent)] hover:text-black"
         }`}
       >
         {isAdded ? "Secured" : "Acquire"}

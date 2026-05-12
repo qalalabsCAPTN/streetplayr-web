@@ -64,7 +64,7 @@ export default function LookbookStoryFragments() {
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse 50% 60% at 5% 50%, rgba(212,255,30,0.018) 0%, transparent 60%)",
+            "radial-gradient(ellipse 50% 60% at 5% 50%, rgba(157,78,221,0.018) 0%, transparent 60%)",
         }}
       />
 

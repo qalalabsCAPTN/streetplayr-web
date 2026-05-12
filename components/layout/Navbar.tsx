@@ -133,7 +133,7 @@ export default function Navbar() {
           {mounted && isHydrated && isAuthenticated && user ? (
             <Link
               aria-label={`SP-RR balance: ${user.sprrBalance}`}
-              className="grid h-11 min-w-11 place-items-center px-3 font-mono text-xs uppercase tracking-[0.12em] transition-[filter] duration-200 hover:drop-shadow-[0_0_12px_rgba(212,255,30,0.45)]"
+              className="grid h-11 min-w-11 place-items-center px-3 font-mono text-xs uppercase tracking-[0.12em] transition-[filter] duration-200 hover:drop-shadow-[0_0_12px_rgba(157,78,221,0.45)]"
               style={{ color: tierColor }}
               href="/profile/wallet"
             >

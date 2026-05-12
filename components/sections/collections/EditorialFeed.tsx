@@ -202,7 +202,7 @@ export default function EditorialFeed({ activeCategory }: EditorialFeedProps) {
                   transition={{ duration: 1, ease: "easeOut" }}
                   className="px-6 py-24 text-center md:py-32"
                 >
-                  <h2 className="font-display text-[8vw] leading-[0.85] tracking-tighter text-[#d4ff1e] md:text-[5vw] text-balance">
+                  <h2 className="font-display text-[8vw] leading-[0.85] tracking-tighter text-[var(--sp-accent)] md:text-[5vw] text-balance">
                     {item.content}
                   </h2>
                 </motion.div>

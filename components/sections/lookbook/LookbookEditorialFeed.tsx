@@ -117,7 +117,7 @@ function AtmosphericPanel({
       linear-gradient(150deg, #141414 0%, #0a0a0a 50%, #060606 100%)
     `,
     accent: `
-      radial-gradient(ellipse 55% 55% at 50% 55%, rgba(212,255,30,0.035) 0%, transparent 65%),
+      radial-gradient(ellipse 55% 55% at 50% 55%, rgba(157,78,221,0.035) 0%, transparent 65%),
       radial-gradient(ellipse 35% 35% at 15% 15%, rgba(255,255,255,0.04) 0%, transparent 60%),
       linear-gradient(135deg, #0c0c0c 0%, #070707 100%)
     `,

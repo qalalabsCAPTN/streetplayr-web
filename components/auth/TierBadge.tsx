@@ -26,16 +26,16 @@ const TIER_CONFIG: Record<Tier, {
   PLAYER: {
     label: 'PLAYR',
     color: 'var(--tier-player)',
-    glow: '0 0 20px rgba(212,255,30,0.18)',
-    bg: 'rgba(212,255,30,0.06)',
-    border: 'rgba(212,255,30,0.2)',
+    glow: '0 0 20px rgba(45,198,83,0.18)',
+    bg: 'rgba(45,198,83,0.06)',
+    border: 'rgba(45,198,83,0.2)',
   },
   LEGEND: {
     label: 'LEGEND',
     color: 'var(--tier-legend)',
-    glow: '0 0 24px rgba(255,200,50,0.22)',
-    bg: 'rgba(255,200,50,0.06)',
-    border: 'rgba(255,200,50,0.24)',
+    glow: '0 0 24px rgba(199,125,255,0.22)',
+    bg: 'rgba(199,125,255,0.06)',
+    border: 'rgba(199,125,255,0.24)',
   },
 };
 

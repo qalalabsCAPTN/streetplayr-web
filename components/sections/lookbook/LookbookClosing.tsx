@@ -19,7 +19,7 @@ export default function LookbookClosing() {
         style={{
           background: `
             radial-gradient(ellipse 70% 60% at 50% 40%, rgba(255,255,255,0.025) 0%, transparent 65%),
-            radial-gradient(ellipse 40% 40% at 80% 80%, rgba(212,255,30,0.015) 0%, transparent 55%),
+            radial-gradient(ellipse 40% 40% at 80% 80%, rgba(157,78,221,0.015) 0%, transparent 55%),
             linear-gradient(180deg, #050505 0%, #020202 100%)
           `,
         }}
