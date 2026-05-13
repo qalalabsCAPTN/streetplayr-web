@@ -1,99 +1,86 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
+import { createClient } from '@/lib/supabase/client';
 
-// ─── Mock Order Data ──────────────────────────────────────────────────────────
-type OrderStatus = 'DELIVERED' | 'PROCESSING' | 'SHIPPED' | 'CANCELLED';
-
-interface MockOrder {
+interface OrderItem {
   id: string;
-  date: string;
-  status: OrderStatus;
-  total: number;
-  items: { name: string; color: string; size: string }[];
+  name: string;
+  quantity: number;
+  price: number;
 }
 
-const MOCK_ORDERS: MockOrder[] = [
-  {
-    id: 'SP-2025-001',
-    date: '2025-04-28T10:30:00Z',
-    status: 'DELIVERED',
-    total: 3999,
-    items: [{ name: 'Arch Oversized Tee', color: 'Chalk', size: 'L' }],
-  },
-  {
-    id: 'SP-2025-002',
-    date: '2025-05-02T14:15:00Z',
-    status: 'SHIPPED',
-    total: 5499,
-    items: [
-      { name: 'Monolith Cargo', color: 'Onyx', size: '32' },
-    ],
-  },
-];
+interface Order {
+  id: string;
+  createdAt: string;
+  status: string;
+  total: number;
+  items: OrderItem[];
+}
 
-const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string }> = {
-  DELIVERED:  { label: 'Delivered',  color: 'var(--sp-success)' },
-  PROCESSING: { label: 'Processing', color: 'var(--sp-accent)' },
-  SHIPPED:    { label: 'Shipped',    color: 'var(--tier-player)' },
-  CANCELLED:  { label: 'Cancelled',  color: 'var(--sp-error)' },
+const STATUS_LABELS: Record<string, string> = {
+  draft: 'Draft',
+  pending_payment: 'Pending Payment',
+  confirmed: 'Confirmed',
+  processing: 'Processing',
+  shipped: 'Shipped',
+  delivered: 'Delivered',
+  cancelled: 'Cancelled',
+  on_hold: 'On Hold',
+  refunded: 'Refunded',
 };
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-IN', {
-    day: 'numeric', month: 'long', year: 'numeric',
-  });
-}
-
-function OrderCard({ order, index }: { order: MockOrder; index: number }) {
-  const status = STATUS_CONFIG[order.status];
-
-  return (
-    <motion.article
-      className="order-card"
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.1 + index * 0.1, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      aria-label={`Order ${order.id}`}
-    >
-      <div className="order-card-header">
-        <div>
-          <p className="order-card-id">#{order.id}</p>
-          <p className="order-card-date">{formatDate(order.date)}</p>
-        </div>
-        <span
-          className="order-card-status"
-          style={{ color: status.color, borderColor: status.color }}
-        >
-          {status.label}
-        </span>
-      </div>
-
-      <div className="order-card-items">
-        {order.items.map((item, i) => (
-          <div key={i} className="order-card-item">
-            <span className="order-card-item-name">{item.name}</span>
-            <span className="order-card-item-meta">{item.color} · {item.size}</span>
-          </div>
-        ))}
-      </div>
-
-      <div className="order-card-footer">
-        <span className="order-card-total">₹{order.total.toLocaleString('en-IN')}</span>
-        <button
-          className="order-card-action"
-          id={`order-details-${order.id}`}
-          type="button"
-        >
-          View Details →
-        </button>
-      </div>
-    </motion.article>
-  );
-}
-
 export default function OrdersPage() {
-  const hasOrders = MOCK_ORDERS.length > 0;
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadOrders() {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { setLoading(false); return; }
+
+        const { data } = await supabase
+          .from('orders')
+          .select('id, created_at, status, total, order_items(id, product_id, quantity, price)')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (data) {
+          setOrders(data.map((o: any) => ({
+            id: o.id,
+            createdAt: o.created_at,
+            status: o.status,
+            total: o.total,
+            items: (o.order_items ?? []).map((i: any) => ({
+              id: i.id,
+              name: i.product_id,
+              quantity: i.quantity,
+              price: i.price,
+            })),
+          })));
+        }
+      } catch {}
+      setLoading(false);
+    }
+    loadOrders();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="profile-page-root">
+        <div className="profile-page-header">
+          <p className="profile-page-eyebrow">Your acquisitions</p>
+          <h1 className="profile-page-title">Orders</h1>
+        </div>
+        <div className="flex h-[30vh] items-center justify-center">
+          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/30">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="profile-page-root">
@@ -107,10 +94,50 @@ export default function OrdersPage() {
         <h1 className="profile-page-title">Orders</h1>
       </motion.div>
 
-      {hasOrders ? (
+      {orders.length > 0 ? (
         <div className="orders-list">
-          {MOCK_ORDERS.map((order, i) => (
-            <OrderCard key={order.id} order={order} index={i} />
+          {orders.map((order, i) => (
+            <motion.article
+              key={order.id}
+              className="order-card"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 + i * 0.1, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <div className="order-card-header">
+                <div>
+                  <p className="order-card-id">#{order.id.slice(0, 8)}</p>
+                  <p className="order-card-date">
+                    {new Date(order.createdAt).toLocaleDateString('en-IN', {
+                      day: 'numeric', month: 'long', year: 'numeric',
+                    })}
+                  </p>
+                </div>
+                <span className="order-card-status">
+                  {STATUS_LABELS[order.status] || order.status}
+                </span>
+              </div>
+
+              <div className="order-card-items">
+                {order.items.map((item, i) => (
+                  <div key={i} className="order-card-item">
+                    <span className="order-card-item-name">{item.name}</span>
+                    <span className="order-card-item-meta">Qty: {item.quantity} · ₹{item.price.toLocaleString('en-IN')}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="order-card-footer">
+                <span className="order-card-total">₹{order.total.toLocaleString('en-IN')}</span>
+                <button
+                  className="order-card-action"
+                  id={`order-details-${order.id}`}
+                  type="button"
+                >
+                  View Details →
+                </button>
+              </div>
+            </motion.article>
           ))}
         </div>
       ) : (

@@ -2,8 +2,6 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { User } from '@/store/authStore';
 import type { UserRole } from '@/lib/auth/gateway';
-import { createMockUser } from '@/lib/auth/demo';
-import { cookies } from 'next/headers';
 
 /**
  * Auth Service — domain logic for authentication and profile management.
@@ -34,20 +32,6 @@ export const AuthService = {
     const { data: { session } } = await supabase.auth.getSession();
 
     if (!session) {
-      // DEMO_AUTH: fallback to demo-auth cookie for mock sessions
-      if (process.env.DEMO_AUTH === 'true') {
-        try {
-          const cookieStore = await cookies();
-          const demoCookie = cookieStore.get('demo-auth');
-          if (demoCookie?.value) {
-            return createMockUser({
-              id: 'demo-user',
-              phone: '0000000000',
-              email: 'demo@streetplayr.com',
-            });
-          }
-        } catch {}
-      }
       return null;
     }
 
@@ -75,14 +59,6 @@ export const AuthService = {
     }
 
     if (!profile) {
-      // DEMO_AUTH: return mock profile if real one can't be fetched
-      if (process.env.DEMO_AUTH === 'true') {
-        return createMockUser({
-          id: session.user.id,
-          phone: session.user.phone || '',
-          email: session.user.email || null,
-        });
-      }
       return null;
     }
 
@@ -106,13 +82,8 @@ export const AuthService = {
 
   /**
    * Starts the OTP flow.
-   * DEMO_AUTH=true: Accept any phone, skip actual Supabase OTP send.
    */
   async signInWithPhone(phone: string) {
-    if (process.env.DEMO_AUTH === 'true') {
-      // TODO: REMOVE BEFORE PRODUCTION — demo mode accepts any phone
-      return { error: null };
-    }
     const supabase = await createClient();
     const prefix = process.env.NEXT_PUBLIC_PHONE_PREFIX || '+91';
     const { error } = await supabase.auth.signInWithOtp({
@@ -123,20 +94,8 @@ export const AuthService = {
 
   /**
    * Verifies the OTP.
-   * DEMO_AUTH=true + code '000000': Sign in with demo account instead.
    */
   async verifyOTP(phone: string, token: string) {
-    if (process.env.DEMO_AUTH === 'true' && token === '000000') {
-      // TODO: REMOVE BEFORE PRODUCTION — universal OTP bypass
-      const email = process.env.DEMO_AUTH_EMAIL || 'demo@streetplayr.com';
-      const password = process.env.DEMO_AUTH_PASSWORD || 'Demo@123';
-      const supabase = await createClient();
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      return { data, error };
-    }
     const supabase = await createClient();
     const prefix = process.env.NEXT_PUBLIC_PHONE_PREFIX || '+91';
     const { data, error } = await supabase.auth.verifyOtp({

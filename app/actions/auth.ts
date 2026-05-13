@@ -3,7 +3,6 @@
 import { AuthService } from '@/lib/auth/service';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
 
 /**
  * Standardized Response Wrapper
@@ -44,15 +43,9 @@ export async function getProfileAction() {
 
 /**
  * Server Action: Start OTP
- * DEMO_AUTH=true: Accept any phone (no real OTP sent).
- * Production: RESTORE REAL OTP FLOW and remove DEMO_AUTH branch.
  */
 export async function signInWithPhoneAction(phone: string): Promise<ActionResponse> {
   try {
-    if (process.env.DEMO_AUTH === 'true') {
-      // TODO: REMOVE BEFORE PRODUCTION — demo mode accepts any phone
-      return { success: true };
-    }
     const result = await AuthService.signInWithPhone(phone);
     if (result.error) return { success: false, error: result.error.message };
     return { success: true };
@@ -63,23 +56,11 @@ export async function signInWithPhoneAction(phone: string): Promise<ActionRespon
 
 /**
  * Server Action: Verify OTP
- * DEMO_AUTH=true + code '000000': Sign in via demo account instead of real OTP.
- * Production: RESTORE REAL OTP FLOW and remove DEMO_AUTH branch.
  */
 export async function verifyOTPAction(phone: string, token: string): Promise<ActionResponse> {
   try {
     const result = await AuthService.verifyOTP(phone, token);
     if (result.error) {
-      // DEMO_AUTH fallback: if signInWithPassword fails, set demo cookie
-      if (process.env.DEMO_AUTH === 'true' && token === '000000') {
-        const cookieStore = await cookies();
-        cookieStore.set('demo-auth', JSON.stringify({ phone, email: 'demo@streetplayr.com' }), {
-          maxAge: 60 * 60 * 24,
-          path: '/',
-        });
-        revalidatePath('/');
-        return { success: true };
-      }
       return { success: false, error: result.error.message };
     }
 

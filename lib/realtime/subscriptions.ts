@@ -1,13 +1,4 @@
 import { createClient } from '@/lib/supabase/client';
-import { createStubClient } from '@/lib/supabase/stub';
-
-function safeClient(): ReturnType<typeof createClient> {
-  try {
-    return createClient();
-  } catch {
-    return createStubClient('realtime');
-  }
-}
 
 /**
  * Realtime Subscriptions — selective listeners for high-heat data.
@@ -17,7 +8,7 @@ export const RealtimeSubscriptions = {
    * Subscribes to wallet balance changes for a specific user.
    */
   subscribeToWallet(userId: string, onUpdate: (balance: number) => void) {
-    const supabase = safeClient();
+    const supabase = createClient();
 
     const channel = supabase
       .channel(`wallet:${userId}`)
@@ -48,7 +39,7 @@ export const RealtimeSubscriptions = {
    * Returns a cleanup function.
    */
   subscribeToStock(variantId: string, onUpdate: (stock: number) => void) {
-    const supabase = safeClient();
+    const supabase = createClient();
 
     const channel = supabase
       .channel(`stock:${variantId}`)
@@ -79,7 +70,7 @@ export const RealtimeSubscriptions = {
    * Useful for the checkout success page and order detail pages.
    */
   subscribeToOrderStatus(orderId: string, onUpdate: (status: string) => void) {
-    const supabase = safeClient();
+    const supabase = createClient();
 
     const channel = supabase
       .channel(`order:${orderId}`)
@@ -110,7 +101,7 @@ export const RealtimeSubscriptions = {
    * Provides realtime visibility into reservation state changes.
    */
   subscribeToReservationChanges(orderId: string, onUpdate: (state: string) => void) {
-    const supabase = safeClient();
+    const supabase = createClient();
 
     const channel = supabase
       .channel(`reservations:${orderId}`)

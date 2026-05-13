@@ -5,62 +5,6 @@ import ProductCard from "./ProductCard";
 import { useEffect, useState } from "react";
 import type { FeedItemData } from "@/lib/products/queries";
 
-/**
- * Inline mock feed used ONLY when server-side data is unavailable
- * (dev mode with no Supabase configured, or during build/SSG).
- */
-const MOCK_FALLBACK_FEED: FeedItemData[] = [
-  {
-    id: "p1", type: "product", slug: "srh-jersey-01", title: "SRH Jersey 01",
-    price: "2499", image1: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200&auto=format&fit=crop",
-    image2: "https://images.unsplash.com/photo-1618244972963-dbee1a7edc95?q=80&w=1200&auto=format&fit=crop",
-    category: "TEES", metadata: { drop: "DROP 01", fabric: "320 GSM HEAVYWEIGHT" }, layoutType: "tall"
-  },
-  {
-    id: "p2", type: "product", slug: "core-waffle-ls", title: "Core Waffle L/S",
-    price: "1899", image1: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=1200&auto=format&fit=crop",
-    image2: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=1200&auto=format&fit=crop",
-    category: "WAFFLE", metadata: { drop: "LIMITED", fabric: "400 GSM THERMAL" }, layoutType: "square"
-  },
-  {
-    id: "c1", type: "typography", category: "ALL", layoutType: "full",
-    content: "STRIPPED OF EXCESS. DEFINED BY FORM. ARCHITECTURE FOR THE STREETS."
-  },
-  {
-    id: "c3", type: "campaign", category: "ALL", layoutType: "full",
-    image: "https://images.unsplash.com/photo-1603252109303-2751441dd157?q=80&w=2000&auto=format&fit=crop",
-    content: "STUDY IN FORM."
-  },
-  {
-    id: "p3", type: "product", slug: "track-pant-02", title: "Nylon Track Pant",
-    price: "2999", image1: "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?q=80&w=1200&auto=format&fit=crop",
-    image2: "https://images.unsplash.com/photo-1517423568366-8b83523034fd?q=80&w=1200&auto=format&fit=crop",
-    category: "TRACKS", metadata: { drop: "DROP 02", fabric: "WATER-REPELLENT NYLON" }, layoutType: "landscape"
-  },
-  {
-    id: "p4", type: "product", slug: "ribbed-tank-pack", title: "Ribbed Tank Pack",
-    price: "1299", image1: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?q=80&w=1200&auto=format&fit=crop",
-    image2: "https://images.unsplash.com/photo-1534961880437-ce5ae2033053?q=80&w=1200&auto=format&fit=crop",
-    category: "TANKS", metadata: { drop: "CORE", fabric: "2X1 COTTON RIB" }, layoutType: "tall"
-  },
-  {
-    id: "c2", type: "campaign", category: "ALL", layoutType: "full",
-    image: "https://images.unsplash.com/photo-1544441893-675973e31985?q=80&w=2000&auto=format&fit=crop"
-  },
-  {
-    id: "p5", type: "product", slug: "heavy-zip-hoodie", title: "Structural Zip Hoodie",
-    price: "3499", image1: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=1200&auto=format&fit=crop",
-    image2: "https://images.unsplash.com/photo-1618244972963-dbee1a7edc95?q=80&w=1200&auto=format&fit=crop",
-    category: "LIMITED DROP", metadata: { drop: "ARCHIVE", fabric: "500 GSM FRENCH TERRY" }, layoutType: "square"
-  },
-  {
-    id: "p6", type: "product", slug: "vintage-wash-tee", title: "Vintage Wash Tee",
-    price: "1499", image1: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=1200&auto=format&fit=crop",
-    image2: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200&auto=format&fit=crop",
-    category: "TEES", metadata: { drop: "DROP 02", fabric: "GARMENT DYED COTTON" }, layoutType: "tall"
-  },
-];
-
 interface EditorialFeedProps {
   activeCategory: string;
 }
@@ -74,16 +18,16 @@ export default function EditorialFeed({ activeCategory }: EditorialFeedProps) {
       try {
         const { getEditorialFeedAction } = await import('@/app/actions/feed');
         const data = await getEditorialFeedAction();
-        setFeed(data.length > 0 ? data : MOCK_FALLBACK_FEED);
+        setFeed(data);
       } catch {
-        setFeed(MOCK_FALLBACK_FEED);
+        setFeed([]);
       }
       setLoaded(true);
     }
     loadFeed();
   }, []);
 
-  const filteredFeed = (loaded ? feed : MOCK_FALLBACK_FEED).filter(item => {
+  const filteredFeed = (loaded ? feed : []).filter(item => {
     if (activeCategory === "ALL") return true;
     return item.category === activeCategory && item.type === "product";
   });
