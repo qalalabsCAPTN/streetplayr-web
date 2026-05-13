@@ -1,5 +1,6 @@
 ﻿import React from "react";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { DropActions } from "./DropActions";
 
 const DROP_STATES = ["draft", "scheduled", "active", "cooling", "archived"] as const;
 type DropState = (typeof DROP_STATES)[number];
@@ -9,6 +10,7 @@ interface DropItem {
   title: string;
   state: DropState;
   products: number;
+  isActive: boolean;
   releaseDate: string;
   timeline: { time: string; event: string; severity: "info" | "warning" }[];
 }
@@ -94,6 +96,7 @@ async function getDrops(): Promise<DropItem[]> {
         title: c.name,
         state,
         products: pCount,
+        isActive: c.is_active ?? false,
         releaseDate: c.created_at ? new Date(c.created_at).toLocaleDateString("en-IN", {
           month: "short", day: "numeric", year: "numeric",
         }) : "—",
@@ -178,6 +181,8 @@ export default async function DropsPage() {
                   ))}
                 </div>
               )}
+
+              <DropActions collectionId={drop.id} isActive={drop.isActive} />
 
               <div className="mt-8 pt-6 border-t border-[var(--ops-border-subtle)] flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <span className="text-[8px] font-mono text-[var(--ops-text-muted)] uppercase tracking-widest">

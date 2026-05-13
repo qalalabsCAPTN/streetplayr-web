@@ -38,12 +38,20 @@ async function getDashboard() {
       admin.from("orders").select("status"),
     ]);
 
-    const drops: DropSummary[] = (collectionsRes.data ?? []).map((c: any) => ({
-      id: c.id,
-      title: c.name,
-      status: c.is_active ? "Active" : "Draft",
-      products: 0,
-    }));
+    const drops: DropSummary[] = await Promise.all(
+      (collectionsRes.data ?? []).map(async (c: any) => {
+        const { count } = await admin
+          .from("collection_products")
+          .select("*", { count: "exact", head: true })
+          .eq("collection_id", c.id);
+        return {
+          id: c.id,
+          title: c.name,
+          status: c.is_active ? "Active" : "Draft",
+          products: count ?? 0,
+        };
+      })
+    );
 
     const events: EventSummary[] = (eventsRes.data ?? []).map((e: any) => ({
       time: formatTime(e.created_at),

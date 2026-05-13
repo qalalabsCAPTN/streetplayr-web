@@ -51,10 +51,21 @@ function IconSettings({ active }: { active?: boolean }) {
   );
 }
 
+function IconGift({ active }: { active?: boolean }) {
+  return (
+    <svg className="profile-nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true" width="16" height="16">
+      <rect x="3" y="8" width="18" height="4" rx="1" stroke="currentColor" strokeWidth={active ? '1.9' : '1.5'} />
+      <path d="M12 8v13M7 3a3 3 0 0 1 5 2 3 3 0 0 1 5-2" stroke="currentColor" strokeWidth={active ? '1.9' : '1.5'} strokeLinecap="round" />
+      <path d="M12 12v9" stroke="currentColor" strokeWidth={active ? '1.9' : '1.5'} />
+    </svg>
+  );
+}
+
 // ─── Nav Items ────────────────────────────────────────────────────────────────
 const NAV_ITEMS = [
   { label: 'Identity', href: '/profile', icon: IconUser },
   { label: 'Wallet', href: '/profile/wallet', icon: IconWallet },
+  { label: 'Rewards', href: '/profile/rewards', icon: IconGift },
   { label: 'Orders', href: '/profile/orders', icon: IconPackage },
   { label: 'Addresses', href: '/profile/addresses', icon: IconMapPin },
   { label: 'Settings', href: '/profile/settings', icon: IconSettings },

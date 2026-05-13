@@ -1,5 +1,4 @@
 import ProductDetailClient from "./ProductDetailClient";
-import ProductStory from "@/components/sections/product/ProductStory";
 import ProductReviews from "@/components/sections/product/ProductReviews";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -68,43 +67,33 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
   const variants = (product as any).variants ?? [];
   const displayData = {
     title: formatProductTitle(product.name),
-    tagline: product.metadata?.tagline || "Performance Meets Street",
+    tagline: product.metadata?.tagline ?? '',
     price: formatPrice(product.price),
-    description: product.description || "",
+    description: product.description ?? '',
     image: product.image_url,
-    images: product.metadata?.gallery_images || [product.image_url],
+    images: product.metadata?.gallery_images || (product.image_url ? [product.image_url] : []),
     dropMetadata: {
-      dropNumber: product.metadata?.drop_number || "DROP 01",
-      releaseType: product.metadata?.release_type || "LIMITED RELEASE",
-      fabricDetails: product.metadata?.fabric_details || "PREMIUM COTTON",
-      gsmInfo: product.metadata?.gsm_info || "HEAVYWEIGHT",
+      dropNumber: product.metadata?.drop_number ?? '',
+      releaseType: product.metadata?.release_type ?? '',
+      fabricDetails: product.metadata?.fabric_details ?? '',
+      gsmInfo: product.metadata?.gsm_info ?? '',
     },
     fitIntelligence: {
-      modelInfo: product.metadata?.model_info || "Standard Fit",
-      fitType: product.metadata?.fit_type || "Boxy",
+      modelInfo: product.metadata?.model_info ?? '',
+      fitType: product.metadata?.fit_type ?? '',
       trueToSize: product.metadata?.true_to_size ?? true,
     },
-    colors: product.metadata?.colors || [
-      { id: "default", name: "Standard", hex: "#000000" },
-    ],
+    colors: product.metadata?.colors ?? [],
     sizes:
       variants
         ?.map((v: any) => v.size)
-        .filter((v: any, i: number, a: any[]) => a.indexOf(v) === i) || ["S", "M", "L", "XL"],
+        .filter((v: any, i: number, a: any[]) => a.indexOf(v) === i) ?? [],
     variants: variants.map((v: any) => ({
       id: v.id,
       size: v.size,
       color: v.color,
       stockQuantity: v.stock_quantity ?? 0,
     })),
-  };
-
-  const storyData = product.metadata?.story || {
-    headline: "Defy The Standard",
-    sublines: [
-      "We stripped away everything unnecessary.",
-      "What remains is a pure expression of form and function.",
-    ],
   };
 
   return (
@@ -123,8 +112,6 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
         sizes={displayData.sizes}
         variants={displayData.variants}
       />
-
-      <ProductStory headline={storyData.headline} sublines={storyData.sublines} />
 
       <ProductReviews />
 

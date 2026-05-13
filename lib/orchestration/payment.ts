@@ -9,11 +9,12 @@
  * reservation state changes on webhook replay.
  */
 import { createAdminClient } from '@/lib/supabase/admin';
-import type { OrderStatus, PaymentEvent, PaymentEventType, OrchestrationResponse, InventoryReservation } from './types';
+import type { OrderStatus, PaymentEvent, PaymentEventType, OrchestrationResponse } from './types';
 import { recordEvent } from './events';
 import { idempotencyGuard } from './idempotency';
 import { OrderService } from './order';
 import { ReservationService } from './reservation';
+import { awardSPRR, awardXP, processReferral } from '@/lib/nectar/engine';
 
 /**
  * Map of payment event types to corresponding reservation state transitions.
@@ -195,6 +196,19 @@ export const PaymentService = {
               eventType: params.eventType,
             },
           });
+
+          // NECTAR: award XP and SPRR on successful payment
+          const sprrAward = Math.floor(params.amount / 100);
+          const xpAward = Math.floor(params.amount / 50);
+          if (sprrAward > 0) {
+            await awardSPRR(order.user_id, sprrAward, `Order #${order.id.slice(0, 8)}`, 'earned');
+          }
+          if (xpAward > 0) {
+            await awardXP(order.user_id, xpAward, `Order #${order.id.slice(0, 8)}`);
+          }
+
+          // NECTAR: process referral if this is the referred user's first paid order
+          await processReferral(order.user_id);
         }
       }
 

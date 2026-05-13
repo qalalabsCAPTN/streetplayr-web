@@ -65,7 +65,7 @@ export async function initiateCheckoutAction(
     for (const item of items) {
       const { data: variant } = await admin
         .from('product_variants')
-        .select('price_override, stock_quantity')
+        .select('price_override, stock_quantity, product_id')
         .eq('id', item.variantId)
         .single();
 
@@ -76,6 +76,28 @@ export async function initiateCheckoutAction(
       // Reject if insufficient stock (first line of defense — RPC also checks)
       if ((variant.stock_quantity ?? 0) < item.quantity) {
         return { success: false, error: `Insufficient stock for variant ${item.variantId}.`, code: 'INSUFFICIENT_STOCK' };
+      }
+
+      // Authoritative price: use price_override if set, otherwise product base price
+      let authorizedPrice = variant.price_override;
+      if (authorizedPrice === null) {
+        const { data: product } = await admin
+          .from('products')
+          .select('price')
+          .eq('id', variant.product_id)
+          .single();
+        if (!product) {
+          return { success: false, error: `Product for variant ${item.variantId} not found.`, code: 'PRODUCT_NOT_FOUND' };
+        }
+        authorizedPrice = product.price;
+      }
+
+      if (item.price !== authorizedPrice) {
+        return {
+          success: false,
+          error: `Price mismatch for variant ${item.variantId}: expected ${authorizedPrice}, got ${item.price}`,
+          code: 'PRICE_MISMATCH',
+        };
       }
     }
 
@@ -145,58 +167,4 @@ export async function initiateCheckoutAction(
   }
 }
 
-/**
- * Confirm checkout — links a PaymentIntent to an existing order.
- * Called after Stripe PaymentIntent is created server-side.
- */
-export async function confirmCheckoutPaymentAction(
-  orderId: string,
-  paymentIntentId: string
-): Promise<OrchestrationResponse<{ orderId: string; status: string }>> {
-  try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { success: false, error: 'Not authenticated.', code: 'UNAUTHORIZED' };
 
-    const admin = createAdminClient();
-
-    // Atomic: link PaymentIntent, transition to pending_payment, hold reservations
-    const { data: updated, error } = await admin
-      .from('orders')
-      .update({
-        status: 'pending_payment',
-        payment_intent_id: paymentIntentId,
-      })
-      .eq('id', orderId)
-      .eq('user_id', user.id)
-      .eq('status', 'draft')
-      .select('id, status')
-      .single();
-
-    if (error || !updated) {
-      return { success: false, error: 'Order not found or not in draft status.', code: 'CONFIRM_FAILED' };
-    }
-
-    // Transition linked reservations from pending → held
-    await admin
-      .from('inventory_reservations')
-      .update({ reservation_state: 'held' })
-      .eq('order_id', orderId)
-      .eq('reservation_state', 'pending');
-
-    await recordEvent({
-      domain: 'order',
-      severity: 'info',
-      action: 'checkout.payment_confirmed',
-      actorId: user.id,
-      resourceType: 'orders',
-      resourceId: orderId,
-      message: `Payment confirmed for order ${orderId} — PaymentIntent ${paymentIntentId}`,
-      metadata: { paymentIntentId },
-    });
-
-    return { success: true, data: { orderId: updated.id, status: updated.status } };
-  } catch (e: any) {
-    return { success: false, error: e.message, code: 'CONFIRM_ACTION_ERROR' };
-  }
-}

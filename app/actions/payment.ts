@@ -161,7 +161,6 @@ export async function createPaymentAndConfirmAction(
 
 /**
  * Release reservations for a failed/cancelled payment.
- * Called when confirmPayment fails client-side.
  */
 export async function releaseOrderReservationsAction(
   orderId: string
@@ -207,3 +206,5 @@ export async function releaseOrderReservationsAction(
     return { success: false, error: e.message, code: 'RELEASE_ERROR' };
   }
 }
+
+

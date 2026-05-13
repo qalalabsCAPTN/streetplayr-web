@@ -1,6 +1,8 @@
 import React from "react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { notFound } from "next/navigation";
+import { getProductEventsAction } from "@/app/actions/ops/products";
+import { ProductActions } from "./ProductActions";
 
 const STATUS_TRANSITIONS = ["draft", "editorial_review", "scheduled", "reserved", "active", "cooling", "archived"];
 
@@ -31,6 +33,7 @@ async function getProduct(id: string) {
 export default async function ProductDetailPage({ params }: { params: { id: string } }) {
   const { id } = await params;
   const product = await getProduct(id);
+  const events = await getProductEventsAction(id);
 
   if (!product) notFound();
 
@@ -138,29 +141,39 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
               </div>
             )}
           </section>
-        </div>
 
-        <div className="space-y-16">
           <section className="space-y-8">
             <div className="flex items-center justify-between border-b border-[var(--ops-border-subtle)] pb-4">
               <h2 className="font-mono text-[10px] uppercase tracking-[0.3em] text-[var(--ops-text-muted)]">
-                Operational Controls
+                Event Timeline
               </h2>
+              <span className="text-[8px] font-mono text-[var(--ops-text-muted)] uppercase tracking-widest">{events.length} events</span>
             </div>
-
-            <div className="space-y-4">
-              <div className="p-6 border border-[var(--ops-border-subtle)] bg-[var(--ops-bg-surface)]/20">
-                <span className="text-[8px] font-mono text-[var(--ops-text-muted)] uppercase tracking-widest mb-2 block">Status</span>
-                <div className="text-lg font-mono text-white uppercase tracking-wider">{status}</div>
+            {events.length > 0 ? (
+              <div className="relative pl-5 space-y-4 before:absolute before:left-[2px] before:top-1.5 before:bottom-1.5 before:w-[1px] before:bg-[var(--ops-border-subtle)]">
+                {events.slice(0, 20).map((e: any, i: number) => (
+                  <div key={i} className="relative">
+                    <div className={`absolute -left-[19px] top-1.5 w-[5px] h-[5px] rounded-full border border-[var(--ops-bg-base)] ${
+                      e.severity === 'error' ? 'bg-red-400/80' :
+                      e.severity === 'warning' ? 'bg-orange-400/80' : 'bg-[var(--ops-text-muted)]'
+                    }`} />
+                    <span className="text-[8px] font-mono text-[var(--ops-text-muted)] block">
+                      {new Date(e.created_at).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                    <p className="text-[10px] font-mono text-[var(--ops-text-secondary)] leading-relaxed">{e.message}</p>
+                  </div>
+                ))}
               </div>
-              <div className="p-6 border border-[var(--ops-border-subtle)] bg-[var(--ops-bg-surface)]/20">
-                <span className="text-[8px] font-mono text-[var(--ops-text-muted)] uppercase tracking-widest mb-2 block">Visibility</span>
-                <div className={`text-lg font-mono uppercase tracking-wider ${product.is_active ? "text-green-400" : "text-red-400/60"}`}>
-                  {product.is_active ? "Published" : "Unpublished"}
-                </div>
+            ) : (
+              <div className="flex h-[10vh] items-center justify-center border border-dashed border-[var(--ops-border-subtle)]">
+                <p className="text-[10px] font-mono text-[var(--ops-text-muted)] uppercase tracking-widest">No events recorded</p>
               </div>
-            </div>
+            )}
           </section>
+        </div>
+
+        <div className="space-y-16">
+          <ProductActions productId={id} currentStatus={status} isActive={product.is_active ?? false} />
 
           <section className="space-y-8">
             <div className="flex items-center justify-between border-b border-[var(--ops-border-subtle)] pb-4">

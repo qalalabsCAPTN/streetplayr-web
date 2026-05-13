@@ -44,11 +44,26 @@ export default function OrdersPage() {
 
         const { data } = await supabase
           .from('orders')
-          .select('id, created_at, status, total, order_items(id, product_id, quantity, price)')
+          .select('id, created_at, status, total, order_items(id, product_id, variant_id, quantity, price)')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
 
         if (data) {
+          // Fetch product names for all referenced product_ids
+          const productIds = data.flatMap((o: any) =>
+            (o.order_items ?? []).map((i: any) => i.product_id)
+          );
+          const productNames: Record<string, string> = {};
+          if (productIds.length > 0) {
+            const { data: products } = await supabase
+              .from('products')
+              .select('id, name')
+              .in('id', productIds);
+            if (products) {
+              for (const p of products) productNames[p.id] = p.name;
+            }
+          }
+
           setOrders(data.map((o: any) => ({
             id: o.id,
             createdAt: o.created_at,
@@ -56,7 +71,7 @@ export default function OrdersPage() {
             total: o.total,
             items: (o.order_items ?? []).map((i: any) => ({
               id: i.id,
-              name: i.product_id,
+              name: productNames[i.product_id] ?? i.product_id.slice(0, 8),
               quantity: i.quantity,
               price: i.price,
             })),
