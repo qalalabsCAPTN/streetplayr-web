@@ -30,13 +30,20 @@ export async function refreshSession(request: NextRequest): Promise<{
     );
   }
 
+  // Track cookie options so we can transfer them to the response
+  const cookieOptions = new Map<string, Record<string, unknown>>();
+
   const supabase = createServerClient(url, key, {
     cookies: {
       getAll() {
         return request.cookies.getAll();
       },
       setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value));
+        cookiesToSet.forEach(({ name, value, options }) => {
+          // Store options for later transfer to response
+          cookieOptions.set(name, options);
+          request.cookies.set(name, value);
+        });
       },
     },
   });
@@ -47,7 +54,13 @@ export async function refreshSession(request: NextRequest): Promise<{
   const response = NextResponse.next({ request });
   const allCookies = request.cookies.getAll();
   for (const cookie of allCookies) {
-    response.cookies.set(cookie.name, cookie.value);
+    // Preserve original cookie options (path, secure, sameSite, httpOnly, maxAge, etc.)
+    const opts = cookieOptions.get(cookie.name);
+    if (opts) {
+      response.cookies.set(cookie.name, cookie.value, opts);
+    } else {
+      response.cookies.set(cookie.name, cookie.value);
+    }
   }
 
   return { user, response };

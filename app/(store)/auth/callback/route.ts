@@ -24,10 +24,16 @@ function isValidRedirect(path: string): boolean {
 }
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
   const code = searchParams.get('code');
   const nextParam = searchParams.get('next');
   const next = nextParam && isValidRedirect(nextParam) ? nextParam : '/profile';
+
+  // Always use NEXT_PUBLIC_SITE_URL for production, fallback to origin for dev
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const baseUrl = siteUrl || new URL(request.url).origin;
+
+  console.log('[AuthCallback] Received:', { hasCode: !!code, next, siteUrl, baseUrl });
 
   if (code) {
     try {
@@ -47,29 +53,29 @@ export async function GET(request: Request) {
               return cookieStore.getAll();
             },
             setAll(cookiesToSet) {
-              try {
-                cookiesToSet.forEach(({ name, value, options }) => {
-                  pendingCookies.push({ name, value, options });
+              cookiesToSet.forEach(({ name, value, options }) => {
+                pendingCookies.push({ name, value, options });
+                try {
                   cookieStore.set(name, value, options);
-                });
-              } catch {
-                // Ignore when called from a Server Component context
-              }
+                } catch {
+                  // Ignore when called from a Server Component context
+                }
+              });
             },
           },
         }
       );
 
+      console.log('[AuthCallback] Exchanging code for session...');
       const { error } = await supabase.auth.exchangeCodeForSession(code);
-      if (!error) {
-        const forwardedHost = request.headers.get('x-forwarded-host');
-        const isLocalEnv = process.env.NODE_ENV === 'development';
 
-        const redirectUrl = isLocalEnv
-          ? `${origin}${next}`
-          : forwardedHost
-            ? `https://${forwardedHost}${next}`
-            : `${origin}${next}`;
+      if (error) {
+        console.error('[AuthCallback] exchangeCodeForSession error:', error.message);
+      } else {
+        console.log('[AuthCallback] Session exchange successful, pending cookies:', pendingCookies.length);
+
+        const redirectUrl = `${baseUrl}${next}`;
+        console.log('[AuthCallback] Redirecting to:', redirectUrl);
 
         const response = NextResponse.redirect(redirectUrl);
 
@@ -87,9 +93,13 @@ export async function GET(request: Request) {
         return response;
       }
     } catch (e) {
-      console.error('OAuth callback error:', e);
+      console.error('[AuthCallback] Exception:', e);
     }
+  } else {
+    console.log('[AuthCallback] No code in URL params');
   }
 
-  return NextResponse.redirect(`${origin}/auth/auth-code-error`);
+  const errorUrl = `${baseUrl}/auth/auth-code-error`;
+  console.log('[AuthCallback] Redirecting to error:', errorUrl);
+  return NextResponse.redirect(errorUrl);
 }
