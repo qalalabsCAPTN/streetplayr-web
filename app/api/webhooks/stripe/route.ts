@@ -116,19 +116,75 @@ export async function POST(request: Request) {
       return NextResponse.json({ received: true, ignored: true });
     }
 
+    const paymentIntentId = event.data.id ?? event.data.object?.id;
+
     // Process payment event
     const result = await PaymentService.processWebhookEvent({
       eventType: ourEventType,
       stripeEventId: event.id,
-      stripePaymentIntentId: event.data.id ?? event.data.object?.id,
+      stripePaymentIntentId: paymentIntentId,
       amount: event.data.amount ?? event.data.object?.amount ?? 0,
       currency: event.data.currency ?? event.data.object?.currency,
       rawPayload: event.data,
     });
 
     if (!result.success && result.code === 'ORDER_NOT_FOUND') {
-      // PaymentIntent exists but no matching order — possible race condition.
-      // Reconciliation will handle it. Log and return 200 to prevent retry spam.
+      // Fallback: try resolving order via Stripe PI metadata.order_id.
+      // This handles the case where the PI was created with order context
+      // but the PI-to-order link in our DB hasn't been committed yet.
+      const metadataOrderId = event.data.metadata?.order_id ?? event.data.object?.metadata?.order_id;
+      if (metadataOrderId && paymentIntentId) {
+        // Link the PI to the order retroactively, then reprocess
+        const { createAdminClient } = await import('@/lib/supabase/admin');
+        const admin = createAdminClient();
+
+        await admin
+          .from('orders')
+          .update({ payment_intent_id: paymentIntentId })
+          .eq('id', metadataOrderId)
+          .eq('status', 'draft');
+
+        // Retry processing
+        const retry = await PaymentService.processWebhookEvent({
+          eventType: ourEventType,
+          stripeEventId: event.id,
+          stripePaymentIntentId: paymentIntentId,
+          amount: event.data.amount ?? event.data.object?.amount ?? 0,
+          currency: event.data.currency ?? event.data.object?.currency,
+          rawPayload: event.data,
+        });
+
+        if (retry.success) {
+          await recordEvent({
+            domain: 'payment',
+            severity: 'info',
+            action: 'webhook.order_resolved_via_metadata',
+            actorId: 'system',
+            resourceType: 'stripe_webhook',
+            resourceId: event.id,
+            message: `Order ${metadataOrderId} resolved via PI metadata — PI ${paymentIntentId} linked retroactively`,
+            metadata: { orderId: metadataOrderId, paymentIntentId },
+          });
+
+          // Reservation transitions after successful reprocessing
+          const reservationTransition = RESERVATION_TRANSITION_MAP[event.type];
+          if (reservationTransition && retry.data) {
+            const { data: reservations } = await admin
+              .from('inventory_reservations')
+              .select('id')
+              .eq('order_id', metadataOrderId)
+              .in('reservation_state', ['pending', 'held']);
+
+            for (const res of reservations ?? []) {
+              await reservationTransition(res.id, 'system');
+            }
+          }
+
+          return NextResponse.json({ received: true, processed: true });
+        }
+      }
+
+      // Still not found — reconciliation will handle it
       await recordEvent({
         domain: 'payment',
         severity: 'warning',
@@ -136,7 +192,7 @@ export async function POST(request: Request) {
         actorId: 'system',
         resourceType: 'stripe_webhook',
         resourceId: event.id,
-        message: `No order found for PaymentIntent ${event.data.id}. Reconciliation will handle.`,
+        message: `No order found for PaymentIntent ${paymentIntentId}. Reconciliation will handle.`,
         metadata: { eventType: event.type, stripeEventId: event.id },
       });
 
@@ -144,43 +200,15 @@ export async function POST(request: Request) {
     }
 
     if (!result.success && result.code !== 'ORDER_NOT_FOUND') {
+      // Reservation transition failure already handled by PaymentService idempotency
       return NextResponse.json(
         { error: result.error },
         { status: 500 }
       );
     }
 
-    // Trigger reservation transition if applicable
-    const reservationTransition = RESERVATION_TRANSITION_MAP[event.type];
-    if (reservationTransition && result.data) {
-      const { createAdminClient } = await import('@/lib/supabase/admin');
-      const admin = createAdminClient();
-
-      // Resolve order ID from the payment event
-      const orderId = (result.data as any)?.orderId;
-      if (!orderId) {
-        await recordEvent({
-          domain: 'payment',
-          severity: 'warning',
-          action: 'webhook.no_order_id',
-          actorId: 'system',
-          resourceType: 'stripe_webhook',
-          resourceId: event.id,
-          message: `No orderId in payment event result for ${event.type}. Cannot transition reservations.`,
-          metadata: { eventType: event.type, stripeEventId: event.id },
-        });
-      } else {
-        const { data: reservations } = await admin
-          .from('inventory_reservations')
-          .select('id')
-          .eq('order_id', orderId)
-          .in('reservation_state', ['pending', 'held']);
-
-        for (const res of reservations ?? []) {
-          await reservationTransition(res.id, 'system');
-        }
-      }
-    }
+    // Reservation transitions handled inside PaymentService.processWebhookEvent
+    // for idempotency coverage. No separate reservation transition needed here.
 
     return NextResponse.json({ received: true, processed: true });
   } catch (e: any) {

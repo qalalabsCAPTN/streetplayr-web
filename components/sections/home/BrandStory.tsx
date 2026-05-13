@@ -23,7 +23,7 @@ export default function BrandStory() {
         </div>
         
         {/* Subtle background glow */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-[#d4ff1e]/5 via-transparent to-transparent opacity-50 z-0" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-[#9D4EDD]/5 via-transparent to-transparent opacity-50 z-0" />
         
         <div className="relative z-10 max-w-5xl text-center flex flex-wrap justify-center gap-x-4 gap-y-2 md:gap-x-6 md:gap-y-4">
           {words.map((word, i) => {
@@ -42,7 +42,7 @@ export default function BrandStory() {
                 key={i}
                 style={{ opacity, y }}
                 className={`font-display text-5xl md:text-7xl lg:text-8xl uppercase leading-[1.1] tracking-wide ${
-                  isHighlight ? "text-[#d4ff1e] italic pr-2" : "text-white"
+                  isHighlight ? "text-[var(--sp-accent)] italic pr-2" : "text-white"
                 }`}
               >
                 {word}
@@ -58,7 +58,7 @@ export default function BrandStory() {
           }}
           className="absolute bottom-16 md:bottom-24"
         >
-          <button data-cursor="button" className="group font-mono text-xs tracking-[0.2em] text-white hover:text-[#d4ff1e] transition-colors uppercase border border-white/20 px-10 py-5 rounded-full hover:border-[#d4ff1e]/50 backdrop-blur-md">
+           <button data-cursor="button" className="group font-mono text-xs tracking-[0.2em] text-white hover:text-[var(--sp-accent)] transition-colors uppercase border border-white/20 px-10 py-5 rounded-full hover:border-[#9D4EDD]/50 backdrop-blur-md">
             Discover Our Origins
           </button>
         </motion.div>

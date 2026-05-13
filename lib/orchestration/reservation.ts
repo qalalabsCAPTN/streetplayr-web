@@ -136,6 +136,25 @@ export const ReservationService = {
         message: 'Reservation converted — stock permanently deducted',
         metadata: { reservationId },
       });
+
+      // Emit inventory.changed for realtime awareness
+      if (result.data) {
+        await recordEvent({
+          domain: 'inventory',
+          severity: 'info',
+          action: 'inventory.changed',
+          actorId,
+          resourceType: 'product_variants',
+          resourceId: result.data.variantId,
+          message: `Inventory changed for variant ${result.data.variantId}: -${result.data.reservedQuantity}`,
+          metadata: {
+            variantId: result.data.variantId,
+            productId: result.data.productId,
+            delta: -result.data.reservedQuantity,
+            reason: 'payment_confirmed',
+          },
+        });
+      }
     }
 
     return result;

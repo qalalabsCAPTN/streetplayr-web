@@ -60,8 +60,8 @@ export default function CustomCursor() {
     button: {
       width: 32,
       height: 32,
-      backgroundColor: "rgba(212, 255, 30, 0.1)",
-      border: "1px solid rgba(212, 255, 30, 0.8)",
+      backgroundColor: "rgba(157, 78, 221, 0.1)",
+      border: "1px solid rgba(157, 78, 221, 0.8)",
       backdropFilter: "blur(2px)",
       x: "-50%",
       y: "-50%",
@@ -80,7 +80,7 @@ export default function CustomCursor() {
     video: {
       width: 64,
       height: 64,
-      backgroundColor: "rgba(212, 255, 30, 0.9)",
+      backgroundColor: "rgba(157, 78, 221, 0.9)",
       backdropFilter: "blur(0px)",
       border: "none",
       x: "-50%",
@@ -101,7 +101,7 @@ export default function CustomCursor() {
     cart: {
       width: 86,
       height: 86,
-      backgroundColor: "rgba(212, 255, 30, 0.9)",
+      backgroundColor: "rgba(157, 78, 221, 0.9)",
       backdropFilter: "blur(0px)",
       border: "none",
       x: "-50%",

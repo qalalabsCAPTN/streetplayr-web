@@ -30,7 +30,7 @@ export default function AboutOpening() {
           style={{
             background: `
               radial-gradient(ellipse 80% 60% at 65% 40%, rgba(255,255,255,0.04) 0%, transparent 60%),
-              radial-gradient(ellipse 60% 80% at 20% 70%, rgba(212,255,30,0.025) 0%, transparent 55%),
+              radial-gradient(ellipse 60% 80% at 20% 70%, rgba(157,78,221,0.025) 0%, transparent 55%),
               linear-gradient(160deg, #0a0a0a 0%, #050505 40%, #020202 100%)
             `,
           }}

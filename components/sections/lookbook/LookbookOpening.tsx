@@ -28,7 +28,7 @@ export default function LookbookOpening() {
           className="h-full w-full"
           style={{
             background: `
-              radial-gradient(ellipse 90% 70% at 75% 35%, rgba(212,255,30,0.03) 0%, transparent 55%),
+              radial-gradient(ellipse 90% 70% at 75% 35%, rgba(157,78,221,0.03) 0%, transparent 55%),
               radial-gradient(ellipse 60% 80% at 15% 75%, rgba(255,255,255,0.04) 0%, transparent 60%),
               radial-gradient(ellipse 40% 40% at 90% 85%, rgba(255,255,255,0.025) 0%, transparent 50%),
               linear-gradient(165deg, #0d0d0d 0%, #050505 45%, #020202 100%)

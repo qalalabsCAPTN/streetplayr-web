@@ -24,7 +24,7 @@ export default function FeaturedProductBanner() {
           className="object-cover opacity-50 mix-blend-luminosity"
         />
         {/* Deep luxury gradients */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#d4ff1e]/10 via-black/60 to-black/90 mix-blend-multiply" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#9D4EDD]/10 via-black/60 to-black/90 mix-blend-multiply" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-[#050505]" />
       </motion.div>
 
@@ -36,7 +36,7 @@ export default function FeaturedProductBanner() {
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
           >
-            <span className="font-mono text-[10px] md:text-xs tracking-[0.4em] text-[#d4ff1e] mb-8 block uppercase">Signature Drop 001</span>
+            <span className="font-mono text-[10px] md:text-xs tracking-[0.4em] text-[var(--sp-accent)] mb-8 block uppercase">Signature Drop 001</span>
             <h2 className="font-display text-6xl md:text-[10vw] leading-[0.85] uppercase tracking-widest text-white mb-12 drop-shadow-2xl">
               The Genesis <br /> Tee
             </h2>

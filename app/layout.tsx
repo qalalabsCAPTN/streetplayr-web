@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { Bebas_Neue, JetBrains_Mono, Space_Grotesk } from "next/font/google";
+import { Bebas_Neue, JetBrains_Mono, Space_Grotesk, UnifrakturMaguntia } from "next/font/google";
 import Loader from "@/components/ui/Loader";
+import EntryGate from "@/components/ui/EntryGate";
 import AuthProvider from "@/components/auth/AuthProvider";
 import RealtimeProvider from "@/components/auth/RealtimeProvider";
 import SmoothScrolling from "@/components/ui/SmoothScrolling";
@@ -29,6 +30,12 @@ const mono = JetBrains_Mono({
   variable: "--font-sp-mono",
 });
 
+const gothic = UnifrakturMaguntia({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-sp-gothic",
+});
+
 export const metadata: Metadata = {
   title: "Street PlayR | Enter The Play",
   description:
@@ -45,12 +52,13 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`${display.variable} ${body.variable} ${mono.variable} h-full antialiased`}
+      className={`${display.variable} ${body.variable} ${mono.variable} ${gothic.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-black text-white">
         <AuthProvider initialUser={user}>
           <RealtimeProvider>
             <SmoothScrolling>
+              <EntryGate />
               <Loader />
               {children}
             </SmoothScrolling>

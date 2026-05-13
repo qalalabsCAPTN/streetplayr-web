@@ -144,7 +144,7 @@
 .wallet-balance-unit { font-family: var(--font-sp-mono); font-size: 0.75rem; letter-spacing: 0.2em; color: rgba(255,255,255,0.28); text-transform: uppercase; }
 .wallet-atmosphere-orb {
   position: absolute; top: -4rem; right: -4rem; width: 18rem; height: 18rem; border-radius: 50%;
-  background: radial-gradient(circle, rgba(212,255,30,0.06) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(157,78,221,0.06) 0%, transparent 70%);
   pointer-events: none; z-index: 1;
 }
 .wallet-tier-section { display: flex; flex-direction: column; gap: 0.75rem; padding: 1.75rem; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); }
@@ -191,7 +191,7 @@
 .address-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
 .address-card-label-row { display: flex; align-items: center; gap: 0.75rem; }
 .address-card-label { font-family: var(--font-sp-display); font-size: 1rem; letter-spacing: 0.08em; color: white; }
-.address-card-primary-badge { font-family: var(--font-sp-mono); font-size: 0.55rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--sp-accent); border: 1px solid rgba(212,255,30,0.3); padding: 0.15rem 0.4rem; }
+.address-card-primary-badge { font-family: var(--font-sp-mono); font-size: 0.55rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--sp-accent); border: 1px solid rgba(157,78,221,0.3); padding: 0.15rem 0.4rem; }
 .address-card-actions { display: flex; gap: 1rem; }
 .address-card-btn { background: none; border: none; font-family: var(--font-sp-mono); font-size: 0.62rem; letter-spacing: 0.12em; color: rgba(255,255,255,0.3); cursor: pointer; transition: color 0.2s; }
 .address-card-btn:hover { color: white; }
@@ -223,7 +223,7 @@
 .settings-toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
 .settings-toggle-label { font-size: 0.875rem; color: rgba(255,255,255,0.6); }
 .settings-toggle { position: relative; width: 2.75rem; height: 1.5rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.14); border-radius: 999px; cursor: pointer; transition: background 0.25s, border-color 0.25s; flex-shrink: 0; }
-.settings-toggle--on { background: rgba(212,255,30,0.18); border-color: rgba(212,255,30,0.3); }
+.settings-toggle--on { background: rgba(157,78,221,0.18); border-color: rgba(157,78,221,0.3); }
 .settings-toggle-thumb { position: absolute; top: 2px; left: 2px; width: 1.1rem; height: 1.1rem; background: rgba(255,255,255,0.5); border-radius: 50%; }
 .settings-toggle--on .settings-toggle-thumb { left: calc(100% - 1.3rem); background: var(--sp-accent); }
 .settings-info-row { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0; border-bottom: 1px solid rgba(255,255,255,0.04); }

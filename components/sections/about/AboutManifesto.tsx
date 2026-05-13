@@ -81,7 +81,7 @@ export default function AboutManifesto() {
           className="absolute top-1/2 left-[-20%] w-[70%] h-[60%] -translate-y-1/2"
           style={{
             background:
-              "radial-gradient(ellipse at center, rgba(212,255,30,0.03) 0%, transparent 70%)",
+              "radial-gradient(ellipse at center, rgba(157,78,221,0.03) 0%, transparent 70%)",
           }}
         />
       </motion.div>

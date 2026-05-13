@@ -2,135 +2,33 @@
 
 import { motion } from "framer-motion";
 import ProductCard from "./ProductCard";
-
-export type FeedItemType = "product" | "campaign" | "typography";
-
-export interface FeedItemData {
-  id: string;
-  type: FeedItemType;
-  category: string;
-  layoutType: "tall" | "square" | "landscape" | "full";
-  // Product specific
-  slug?: string;
-  title?: string;
-  price?: string;
-  image1?: string;
-  image2?: string;
-  metadata?: {
-    drop: string;
-    fabric: string;
-  };
-  // Campaign / Typography specific
-  content?: string;
-  image?: string;
-}
-
-const MOCK_FEED: FeedItemData[] = [
-  {
-    id: "p1",
-    type: "product",
-    slug: "srh-jersey-01",
-    title: "SRH Jersey 01",
-    price: "$120.00",
-    image1: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200&auto=format&fit=crop",
-    image2: "https://images.unsplash.com/photo-1618244972963-dbee1a7edc95?q=80&w=1200&auto=format&fit=crop",
-    category: "TEES",
-    metadata: { drop: "DROP 01", fabric: "320 GSM HEAVYWEIGHT" },
-    layoutType: "tall"
-  },
-  {
-    id: "p2",
-    type: "product",
-    slug: "core-waffle-ls",
-    title: "Core Waffle L/S",
-    price: "$95.00",
-    image1: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=1200&auto=format&fit=crop",
-    image2: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=1200&auto=format&fit=crop",
-    category: "WAFFLE",
-    metadata: { drop: "LIMITED", fabric: "400 GSM THERMAL" },
-    layoutType: "square"
-  },
-  {
-    id: "c1",
-    type: "typography",
-    category: "ALL", // shows everywhere if desired, or maybe just ALL
-    layoutType: "full",
-    content: "STRIPPED OF EXCESS. DEFINED BY FORM. ARCHITECTURE FOR THE STREETS."
-  },
-  {
-    id: "c3",
-    type: "campaign",
-    category: "ALL",
-    layoutType: "full",
-    image: "https://images.unsplash.com/photo-1603252109303-2751441dd157?q=80&w=2000&auto=format&fit=crop",
-    content: "STUDY IN FORM."
-  },
-  {
-    id: "p3",
-    type: "product",
-    slug: "track-pant-02",
-    title: "Nylon Track Pant",
-    price: "$145.00",
-    image1: "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?q=80&w=1200&auto=format&fit=crop",
-    image2: "https://images.unsplash.com/photo-1517423568366-8b83523034fd?q=80&w=1200&auto=format&fit=crop",
-    category: "TRACKS",
-    metadata: { drop: "DROP 02", fabric: "WATER-REPELLENT NYLON" },
-    layoutType: "landscape"
-  },
-  {
-    id: "p4",
-    type: "product",
-    slug: "ribbed-tank-pack",
-    title: "Ribbed Tank Pack",
-    price: "$65.00",
-    image1: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?q=80&w=1200&auto=format&fit=crop",
-    image2: "https://images.unsplash.com/photo-1534961880437-ce5ae2033053?q=80&w=1200&auto=format&fit=crop",
-    category: "TANKS",
-    metadata: { drop: "CORE", fabric: "2X1 COTTON RIB" },
-    layoutType: "tall"
-  },
-  {
-    id: "c2",
-    type: "campaign",
-    category: "ALL",
-    layoutType: "full",
-    image: "https://images.unsplash.com/photo-1544441893-675973e31985?q=80&w=2000&auto=format&fit=crop"
-  },
-  {
-    id: "p5",
-    type: "product",
-    slug: "heavy-zip-hoodie",
-    title: "Structural Zip Hoodie",
-    price: "$180.00",
-    image1: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=1200&auto=format&fit=crop",
-    image2: "https://images.unsplash.com/photo-1618244972963-dbee1a7edc95?q=80&w=1200&auto=format&fit=crop",
-    category: "LIMITED DROP",
-    metadata: { drop: "ARCHIVE", fabric: "500 GSM FRENCH TERRY" },
-    layoutType: "square"
-  },
-  {
-    id: "p6",
-    type: "product",
-    slug: "vintage-wash-tee",
-    title: "Vintage Wash Tee",
-    price: "$75.00",
-    image1: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=1200&auto=format&fit=crop",
-    image2: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200&auto=format&fit=crop",
-    category: "TEES",
-    metadata: { drop: "DROP 02", fabric: "GARMENT DYED COTTON" },
-    layoutType: "tall"
-  }
-];
+import { useEffect, useState } from "react";
+import type { FeedItemData } from "@/lib/products/queries";
 
 interface EditorialFeedProps {
   activeCategory: string;
 }
 
 export default function EditorialFeed({ activeCategory }: EditorialFeedProps) {
-  const filteredFeed = MOCK_FEED.filter(item => {
+  const [feed, setFeed] = useState<FeedItemData[]>([]);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    async function loadFeed() {
+      try {
+        const { getEditorialFeedAction } = await import('@/app/actions/feed');
+        const data = await getEditorialFeedAction();
+        setFeed(data);
+      } catch {
+        setFeed([]);
+      }
+      setLoaded(true);
+    }
+    loadFeed();
+  }, []);
+
+  const filteredFeed = (loaded ? feed : []).filter(item => {
     if (activeCategory === "ALL") return true;
-    // Keep campaign items if viewing a specific category? Or filter them out? 
-    // Let's hide campaign/typography on specific category filters to keep it focused.
     return item.category === activeCategory && item.type === "product";
   });
 
@@ -144,15 +42,13 @@ export default function EditorialFeed({ activeCategory }: EditorialFeedProps) {
           let desktopSpan = "md:col-span-6";
           let alignClass = "";
           let marginClass = "";
-          let opacityClass = "opacity-100"; // For hierarchy
+          let opacityClass = "opacity-100";
 
           if (item.type === "campaign" || item.type === "typography") {
             desktopSpan = "md:col-span-12";
             marginClass = "md:my-24";
           } else {
-            // Asymmetry for products
             const productIndex = index % 6;
-            
             switch(productIndex) {
               case 0:
                 desktopSpan = "md:col-span-7";
@@ -161,7 +57,7 @@ export default function EditorialFeed({ activeCategory }: EditorialFeedProps) {
               case 1:
                 desktopSpan = "md:col-span-4 md:col-start-9";
                 marginClass = "md:mt-32";
-                opacityClass = "opacity-80 hover:opacity-100 transition-opacity duration-700"; // softer moment
+                opacityClass = "opacity-80 hover:opacity-100 transition-opacity duration-700";
                 break;
               case 2:
                 desktopSpan = "md:col-span-8 md:col-start-3";
@@ -173,7 +69,7 @@ export default function EditorialFeed({ activeCategory }: EditorialFeedProps) {
                 break;
               case 4:
                 desktopSpan = "md:col-span-6 md:col-start-7";
-                marginClass = "md:-mt-24"; // overlapping
+                marginClass = "md:-mt-24";
                 break;
               case 5:
                 desktopSpan = "md:col-span-10 md:col-start-2";
@@ -189,7 +85,6 @@ export default function EditorialFeed({ activeCategory }: EditorialFeedProps) {
             >
               {item.type === "product" && (
                 <div className={opacityClass}>
-                  {/* @ts-ignore - we know it's a product here */}
                   <ProductCard product={item as any} index={index} />
                 </div>
               )}
@@ -202,7 +97,7 @@ export default function EditorialFeed({ activeCategory }: EditorialFeedProps) {
                   transition={{ duration: 1, ease: "easeOut" }}
                   className="px-6 py-24 text-center md:py-32"
                 >
-                  <h2 className="font-display text-[8vw] leading-[0.85] tracking-tighter text-[#d4ff1e] md:text-[5vw] text-balance">
+                  <h2 className="font-display text-[8vw] leading-[0.85] tracking-tighter text-[var(--sp-accent)] md:text-[5vw] text-balance">
                     {item.content}
                   </h2>
                 </motion.div>
@@ -235,7 +130,6 @@ export default function EditorialFeed({ activeCategory }: EditorialFeedProps) {
         })}
       </motion.div>
       
-      {/* Empty State */}
       {filteredFeed.length === 0 && (
         <motion.div 
           initial={{ opacity: 0 }}

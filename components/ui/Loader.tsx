@@ -65,7 +65,7 @@ export default function Loader() {
               />
               <motion.path
                 d="M53 75c14-24 31-36 51-36 17 0 29 8 39 24m-72-6 20 19m5-28 25 28m8-20 21 16"
-                stroke="#d4ff1e"
+                stroke="var(--sp-accent)"
                 strokeLinecap="round"
                 strokeWidth="4"
                 variants={{

@@ -3,12 +3,33 @@
  *
  * Server-authoritative payment event processing.
  * Webhooks are the source of truth. Server actions provide optimistic UI.
+ *
+ * Reservation transitions are handled here (not in the webhook handler)
+ * so they're covered by the idempotency guard — preventing duplicate
+ * reservation state changes on webhook replay.
  */
 import { createAdminClient } from '@/lib/supabase/admin';
-import type { OrderStatus, PaymentEvent, PaymentEventType, OrchestrationResponse } from './types';
+import type { OrderStatus, PaymentEvent, PaymentEventType, OrchestrationResponse, InventoryReservation } from './types';
 import { recordEvent } from './events';
 import { idempotencyGuard } from './idempotency';
 import { OrderService } from './order';
+import { ReservationService } from './reservation';
+
+/**
+ * Map of payment event types to corresponding reservation state transitions.
+ * Each entry maps a Stripe event to a function that transitions all
+ * reservations linked to the affected order.
+ */
+const RESERVATION_TRANSITION_MAP: Record<string, (id: string, actor: string) => Promise<any>> = {
+  'payment_intent.created': ReservationService.hold,
+  'payment_intent.succeeded': ReservationService.convert,
+  'payment_intent.payment_failed': (id, actor) =>
+    ReservationService.release(id, actor, 'payment_failed'),
+  'payment_intent.canceled': (id, actor) =>
+    ReservationService.release(id, actor, 'payment_cancelled'),
+  'charge.refunded': (id, actor) =>
+    ReservationService.release(id, actor, 'refund'),
+};
 
 /**
  * Map of payment event types to corresponding order status transitions.
@@ -101,8 +122,32 @@ export const PaymentService = {
         .single();
 
       if (eventError) {
+        // If unique constraint violation, the event was already logged.
+        // This can happen on retry after partial failure. Safe to skip.
+        if (eventError.message?.includes('unique') || eventError.message?.includes('idx_payment_events')) {
+          await guard.complete(null);
+          return { success: true, data: null as any };
+        }
+        await guard.fail(eventError.message);
         return { success: false, error: eventError.message, code: 'EVENT_LOG_FAILED' };
       }
+
+      // Emit payment event
+      await recordEvent({
+        domain: 'payment',
+        severity: params.eventType === 'payment_intent.succeeded' ? 'info' : 'warning',
+        action: `payment.${params.eventType.replace(/\./g, '_')}`,
+        actorId: 'system',
+        resourceType: 'payment_events',
+        resourceId: event.id,
+        message: `Payment event: ${params.eventType} — ${params.amount} ${params.currency ?? 'usd'}`,
+        metadata: {
+          orderId: order.id,
+          eventType: params.eventType,
+          stripeEventId: params.stripeEventId,
+          amount: params.amount,
+        },
+      });
 
       // Route order status transition through OrderService — NEVER bypass the state machine
       const targetStatus = ORDER_TRANSITION_MAP[params.eventType] as OrderStatus | undefined;
@@ -130,6 +175,60 @@ export const PaymentService = {
               error: transitionResult.error,
             },
           });
+          // Mark idempotency as failed so retry doesn't reprocess from scratch
+          await guard.fail(transitionResult.error);
+          return { success: false, error: transitionResult.error, code: 'TRANSITION_FAILED' };
+        } else if (params.eventType === 'payment_intent.succeeded') {
+          // Emit payment.completed on successful payment
+          await recordEvent({
+            domain: 'payment',
+            severity: 'info',
+            action: 'payment.completed',
+            actorId: 'system',
+            resourceType: 'orders',
+            resourceId: order.id,
+            message: `Payment completed for order ${order.id} — ${params.amount} ${params.currency ?? 'usd'}`,
+            metadata: {
+              orderId: order.id,
+              paymentIntentId: params.stripePaymentIntentId,
+              amount: params.amount,
+              eventType: params.eventType,
+            },
+          });
+        }
+      }
+
+      // Trigger reservation transition if applicable
+      const transitionFn = RESERVATION_TRANSITION_MAP[params.eventType];
+      if (transitionFn) {
+        const { data: reservations } = await admin
+          .from('inventory_reservations')
+          .select('id')
+          .eq('order_id', order.id);
+
+        if (reservations && reservations.length > 0) {
+          const results = await Promise.allSettled(
+            reservations.map(r => transitionFn(r.id, 'system'))
+          );
+
+          for (const result of results) {
+            if (result.status === 'rejected') {
+              await recordEvent({
+                domain: 'payment',
+                severity: 'error',
+                action: 'payment.reservation_transition_failed',
+                actorId: 'system',
+                resourceType: 'payment_events',
+                resourceId: event.id,
+                message: `Reservation transition failed for event ${params.eventType}: ${result.reason}`,
+                metadata: {
+                  orderId: order.id,
+                  eventType: params.eventType,
+                  error: result.reason,
+                },
+              });
+            }
+          }
         }
       }
 
@@ -138,6 +237,7 @@ export const PaymentService = {
 
       return { success: true, data: paymentEventFromDb(event) };
     } catch (e: any) {
+      // Don't mark as failed on catch — allows Stripe retry
       return { success: false, error: e.message, code: 'PAYMENT_PROCESS_ERROR' };
     }
   },

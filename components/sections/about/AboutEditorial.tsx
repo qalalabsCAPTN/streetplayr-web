@@ -73,7 +73,7 @@ function ImagePanel({
       linear-gradient(120deg, #060606 0%, #080808 60%, #0a0a0a 100%)
     `,
     accent: `
-      radial-gradient(ellipse 60% 50% at 50% 60%, rgba(212,255,30,0.04) 0%, transparent 65%),
+      radial-gradient(ellipse 60% 50% at 50% 60%, rgba(157,78,221,0.04) 0%, transparent 65%),
       radial-gradient(ellipse 40% 40% at 20% 20%, rgba(255,255,255,0.05) 0%, transparent 60%),
       linear-gradient(135deg, #0c0c0c 0%, #070707 100%)
     `,

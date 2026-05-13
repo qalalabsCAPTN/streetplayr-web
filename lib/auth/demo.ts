@@ -1,6 +1,14 @@
 import type { User, WalletTransaction } from '@/store/authStore';
 
-export function createMockUser(partial?: Partial<User>): User {
+/**
+ * Development-only mock utilities.
+ * NEVER reachable in production — guarded by NODE_ENV check.
+ */
+
+const IS_DEV = process.env.NODE_ENV === 'development';
+
+export function createMockUser(partial?: Partial<User>): User | null {
+  if (!IS_DEV) return null;
   return {
     id: partial?.id ?? '00000000-0000-0000-0000-000000000001',
     username: 'streetplayr_demo',
@@ -21,6 +29,7 @@ export function createMockUser(partial?: Partial<User>): User {
 }
 
 export function getDemoTransactions(): WalletTransaction[] {
+  if (!IS_DEV) return [];
   return [
     { id: 'tx_demo_1', type: 'BONUS', source: 'Welcome to The Play', delta: 500, createdAt: '2025-01-15T10:00:00Z' },
     { id: 'tx_demo_2', type: 'PURCHASE', source: 'Arch Oversized Tee', delta: -120, createdAt: '2025-02-20T14:30:00Z' },

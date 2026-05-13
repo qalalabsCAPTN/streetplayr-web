@@ -46,7 +46,7 @@ export default function HomeHero() {
             initial={{ y: "100%", opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
-            className="font-mono text-xs md:text-sm tracking-[0.3em] text-[#d4ff1e] uppercase"
+            className="font-mono text-xs md:text-sm tracking-[0.3em] text-[var(--sp-accent)] uppercase"
           >
             Spring / Summer Collection
           </motion.span>
@@ -76,7 +76,7 @@ export default function HomeHero() {
               initial={{ pathLength: 0, opacity: 0 }}
               animate={{ pathLength: 1, opacity: 0.4 }}
               transition={{ duration: 1.5, delay: 1.8, ease: "easeInOut" }}
-              className="absolute -inset-x-8 -inset-y-4 w-[calc(100%+4rem)] h-[calc(100%+2rem)] pointer-events-none z-0 text-[#d4ff1e]"
+              className="absolute -inset-x-8 -inset-y-4 w-[calc(100%+4rem)] h-[calc(100%+2rem)] pointer-events-none z-0 text-[var(--sp-accent)]"
               viewBox="0 0 400 100" 
               fill="none" 
               preserveAspectRatio="none"
@@ -124,7 +124,7 @@ export default function HomeHero() {
         >
           <button
             data-cursor="button"
-            className="group relative overflow-hidden rounded-full border border-white/30 bg-transparent px-10 py-5 font-mono text-xs md:text-sm tracking-[0.2em] text-white backdrop-blur-sm transition-all hover:border-[#d4ff1e] hover:text-[#d4ff1e]"
+            className="group relative overflow-hidden rounded-full border border-white/30 bg-transparent px-10 py-5 font-mono text-xs md:text-sm tracking-[0.2em] text-white backdrop-blur-sm transition-all hover:border-[var(--sp-accent)] hover:text-[var(--sp-accent)]"
           >
             <span className="relative z-10 flex items-center gap-4">
               DISCOVER MORE

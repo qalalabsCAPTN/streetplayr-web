@@ -27,7 +27,7 @@ export default function FeaturedCollections() {
 
       <div className="relative z-10 max-w-7xl mx-auto">
         <div className="mb-32 flex flex-col items-center text-center">
-          <span className="font-mono text-xs tracking-[0.3em] text-[#d4ff1e] uppercase mb-6">Archive 001</span>
+          <span className="font-mono text-xs tracking-[0.3em] text-[var(--sp-accent)] uppercase mb-6">Archive 001</span>
           <h2 className="font-display text-5xl md:text-8xl uppercase tracking-widest text-white leading-[0.9]">
             The <br />
             <span className="text-white/40 italic pl-12 md:pl-24">Heritage</span>
@@ -90,7 +90,7 @@ export default function FeaturedCollections() {
               
               <div className="absolute bottom-8 left-8 right-8 flex justify-between items-end">
                 <div className="flex flex-col">
-                  <span className="font-mono text-[10px] text-[#d4ff1e] tracking-[0.2em] mb-2 uppercase">Performance</span>
+                  <span className="font-mono text-[10px] text-[var(--sp-accent)] tracking-[0.2em] mb-2 uppercase">Performance</span>
                   <h3 className="font-body text-xl tracking-wide text-white">Tech Jersey</h3>
                 </div>
                 <span className="font-mono text-xs text-white/70">001</span>
