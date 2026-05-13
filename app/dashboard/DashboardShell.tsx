@@ -1,13 +1,13 @@
 'use client';
 
-import { DashboardSidebar, DashboardTabBar } from '@/components/dashboard/DBNav';
+import { DashboardSidebar as Sidebar, DashboardTabBar as TabBar } from '@/components/dashboard/DBNav';
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="dashboard-root">
-      <DashboardSidebar />
-      <main className="dashboard-content">{children}</main>
-      <DashboardTabBar />
+    <div className="dash-root">
+      <Sidebar />
+      <main className="dash-content">{children}</main>
+      <TabBar />
     </div>
   );
 }

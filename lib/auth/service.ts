@@ -3,6 +3,10 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { User } from '@/store/authStore';
 import type { UserRole } from '@/lib/auth/gateway';
 
+const debug = process.env.NODE_ENV === 'development'
+  ? (msg: string, ...args: unknown[]) => console.log('[AuthService]', msg, ...args)
+  : () => {};
+
 /**
  * Auth Service — domain logic for authentication and profile management.
  */
@@ -33,40 +37,29 @@ export const AuthService = {
     const supabase = await createClient();
     const { data: { session } } = await supabase.auth.getSession();
 
-    console.log('[AuthService] getSession result:', { hasSession: !!session, userId: session?.user?.id });
+    debug('getSession result:', { hasSession: !!session, userId: session?.user?.id });
 
     if (!session) {
-      console.log('[AuthService] No session found, returning null');
+      debug('no session found');
       return null;
     }
 
     const fetchProfile = async () => {
-      // ONLY query columns that exist in the profiles table on this Supabase project.
-      // The profiles table has: id, email, full_name, avatar_url, role, created_at,
-      // updated_at, xp, referred_by, current_streak_days, longest_streak_days,
-      // last_active_at, lifetime_xp.
-      // Columns like sprr_balance, referral_code, wallet_id, joined_from,
-      // is_onboarded, username do NOT exist yet and would cause the query to fail.
       const { data, error } = await supabase
         .from('profiles')
         .select('id, email, full_name, avatar_url, role, created_at')
         .eq('id', session.user.id)
         .single();
 
-      if (error) {
-        console.log('[AuthService] Profile fetch error:', error.message);
-      }
-
+      if (error) debug('profile fetch error:', error.message);
       return data;
     };
 
     let profile = await fetchProfile();
 
-    // If profile doesn't exist yet (race with trigger or fresh signup), attempt creation
     if (!profile) {
-      console.log('[AuthService] Profile missing — attempting bootstrap insert');
+      debug('profile missing — attempting bootstrap insert');
 
-      // Use admin client to avoid RLS issues; only set role for known super_admin
       const admin = createAdminClient();
       const userEmail = session.user.email?.toLowerCase();
       const bootstrapRole = userEmail === 'aayushsingh1107@gmail.com' ? 'super_admin' : 'member';
@@ -82,21 +75,20 @@ export const AuthService = {
         });
 
       if (insertError) {
-        console.log('[AuthService] Profile bootstrap insert error:', insertError.message);
+        debug('profile bootstrap insert error:', insertError.message);
       } else {
-        console.log('[AuthService] Profile created with role:', bootstrapRole);
+        debug('profile created with role:', bootstrapRole);
       }
 
-      // Re-fetch after insert attempt
       profile = await fetchProfile();
     }
 
     if (!profile) {
-      console.log('[AuthService] Profile still null after bootstrap — returning null');
+      debug('profile still null after bootstrap');
       return null;
     }
 
-    console.log('[AuthService] Profile found:', { id: profile.id, role: profile.role, email: profile.email });
+    debug('profile found:', { id: profile.id, role: profile.role, email: profile.email });
 
     return {
       id: profile.id,

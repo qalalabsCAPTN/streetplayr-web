@@ -42,7 +42,6 @@ function GoogleAuthButton() {
     const params = redirect ? `?next=${encodeURIComponent(redirect)}` : '';
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
     const redirectTo = `${siteUrl}/auth/callback${params}`;
-    console.log('[GoogleLogin] redirectTo:', redirectTo);
     const { data, error } = await signInWithGoogleAction(redirectTo);
     
     if (error) {
