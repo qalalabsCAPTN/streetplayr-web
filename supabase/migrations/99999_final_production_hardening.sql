@@ -71,10 +71,22 @@ ALTER TABLE products
   ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'draft';
 
 -- Payment events: event taxonomy columns
-ALTER TABLE payment_events
-  ADD COLUMN IF NOT EXISTS event_type payment_event_type,
-  ADD COLUMN IF NOT EXISTS stripe_event_id TEXT,
-  ADD COLUMN IF NOT EXISTS raw_payload JSONB;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.tables
+    WHERE table_schema = 'public'
+      AND table_name = 'payment_events'
+  ) THEN
+
+    ALTER TABLE payment_events
+      ADD COLUMN IF NOT EXISTS event_type payment_event_type,
+      ADD COLUMN IF NOT EXISTS stripe_event_id TEXT,
+      ADD COLUMN IF NOT EXISTS raw_payload JSONB;
+
+  END IF;
+END $$;
 
 -- Orders: financial breakdown + billing columns
 ALTER TABLE orders
@@ -370,24 +382,103 @@ END $$;
 
 CREATE INDEX IF NOT EXISTS idx_products_slug ON products(slug);
 CREATE INDEX IF NOT EXISTS idx_products_category ON products(category_id);
-CREATE INDEX IF NOT EXISTS idx_products_active ON products(is_active) WHERE is_active = true;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'products'
+      AND column_name = 'is_active'
+  ) THEN
+
+    CREATE INDEX IF NOT EXISTS idx_products_active
+      ON products(is_active)
+      WHERE is_active = true;
+
+  END IF;
+END $$;
 CREATE INDEX IF NOT EXISTS idx_products_status ON products(status);
 CREATE INDEX IF NOT EXISTS idx_variants_product ON product_variants(product_id);
 CREATE INDEX IF NOT EXISTS idx_cart_user ON cart_items(user_id);
 CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id);
 CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
-CREATE INDEX IF NOT EXISTS idx_orders_payment ON orders(payment_intent_id);
-CREATE INDEX IF NOT EXISTS idx_orders_payment_intent ON orders(payment_intent_id) WHERE payment_intent_id IS NOT NULL;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'orders'
+      AND column_name = 'payment_intent_id'
+  ) THEN
+
+    CREATE INDEX IF NOT EXISTS idx_orders_payment
+      ON orders(payment_intent_id);
+
+  END IF;
+END $$;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'orders'
+      AND column_name = 'payment_intent_id'
+  ) THEN
+
+    CREATE INDEX IF NOT EXISTS idx_orders_payment_intent
+      ON orders(payment_intent_id)
+      WHERE payment_intent_id IS NOT NULL;
+
+  END IF;
+END $$;
 CREATE INDEX IF NOT EXISTS idx_orders_status_created ON orders(status, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id);
 CREATE INDEX IF NOT EXISTS idx_wallet_tx_user ON wallet_transactions(user_id);
 CREATE INDEX IF NOT EXISTS idx_wallet_tx_created ON wallet_transactions(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_wallet_events_user ON wallet_events(user_id);
-CREATE INDEX IF NOT EXISTS idx_wallet_events_type ON wallet_events(type);
-CREATE INDEX IF NOT EXISTS idx_payment_events_order ON payment_events(order_id);
-CREATE INDEX IF NOT EXISTS idx_payment_events_intent ON payment_events(stripe_payment_intent_id);
-CREATE INDEX IF NOT EXISTS idx_payment_events_stripe_event ON payment_events(stripe_event_id) WHERE stripe_event_id IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_payment_events_order_success ON payment_events(order_id, event_type) WHERE event_type = 'payment_intent.succeeded';
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'wallet_events'
+      AND column_name = 'type'
+  ) THEN
+
+    CREATE INDEX IF NOT EXISTS idx_wallet_events_type
+      ON wallet_events(type);
+
+  END IF;
+END $$;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.tables
+    WHERE table_schema = 'public'
+      AND table_name = 'payment_events'
+  ) THEN
+
+    CREATE INDEX IF NOT EXISTS idx_payment_events_order
+      ON payment_events(order_id);
+
+    CREATE INDEX IF NOT EXISTS idx_payment_events_intent
+      ON payment_events(stripe_payment_intent_id);
+
+    CREATE INDEX IF NOT EXISTS idx_payment_events_stripe_event
+      ON payment_events(stripe_event_id)
+      WHERE stripe_event_id IS NOT NULL;
+
+    CREATE INDEX IF NOT EXISTS idx_payment_events_order_success
+      ON payment_events(order_id, event_type)
+      WHERE event_type = 'payment_intent.succeeded';
+
+  END IF;
+END $$;
 CREATE INDEX IF NOT EXISTS idx_reservations_owner ON inventory_reservations(reservation_owner);
 CREATE INDEX IF NOT EXISTS idx_reservations_variant_state ON inventory_reservations(variant_id, reservation_state);
 CREATE INDEX IF NOT EXISTS idx_reservations_expires ON inventory_reservations(expires_at) WHERE reservation_state IN ('pending', 'held');
@@ -649,14 +740,6 @@ END $$;
 DO $$
 DECLARE
   tbl TEXT;
-BEGIN
-  FOREACH tbl IN ARRAY ARRAY[
-    'products', 'product_variants', 'orders', 'profiles',
-    'collections', 'collection_products',
-    'inventory_reservations', 'operational_events',
-    'payment_events', 'user_addresses'
-  ]
-  LOOP
     IF NOT EXISTS (
       SELECT 1 FROM pg_publication_tables
       WHERE pubname = 'supabase_realtime'
