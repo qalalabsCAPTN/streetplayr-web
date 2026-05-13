@@ -22,15 +22,13 @@ export default function AuthProvider({
   const initialized = useRef(false);
   const prevUser = useRef<User | null>(null);
 
-  // Synchronous sync for initial render if possible
-  if (!initialized.current) {
-    sync(initialUser);
-    initialized.current = true;
-  }
-
   useEffect(() => {
+    if (!initialized.current) {
+      sync(initialUser);
+      initialized.current = true;
+    }
     setHydrated();
-  }, [setHydrated]);
+  }, [initialUser, sync, setHydrated]);
 
   // Cart merge: detect login transition and merge guest cart into authenticated cart
   useEffect(() => {

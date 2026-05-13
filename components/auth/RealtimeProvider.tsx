@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useAuthStore } from "@/store/authStore";
 import { RealtimeManager } from "@/lib/realtime/manager";
 
@@ -13,17 +13,19 @@ export default function RealtimeProvider({ children }: { children: React.ReactNo
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const isHydrated = useAuthStore((s) => s.isHydrated);
   const sync = useAuthStore((s) => s.sync);
+  const syncRef = useRef(sync);
+  syncRef.current = sync;
 
   useEffect(() => {
     if (!isHydrated || !isAuthenticated || !user?.id) return;
 
     // Start global listeners
     const cleanup = RealtimeManager.initGlobal(user.id, (updates) => {
-      sync({ ...user, ...updates });
+      syncRef.current({ ...user, ...updates });
     });
 
     return () => cleanup();
-  }, [isHydrated, isAuthenticated, user?.id, sync, user]);
+  }, [isHydrated, isAuthenticated, user?.id]);
 
   return <>{children}</>;
 }

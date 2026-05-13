@@ -99,25 +99,29 @@ export default function ProductInfo({
     // Find matching variant and validate stock
     const colorName = colors.find(c => c.id === selectedColor)?.name || selectedColor;
     const matchingVariant = variants.find(v => v.size === selectedSize);
-    const variantId = matchingVariant?.id || productId;
-    const variantStock = matchingVariant?.stockQuantity ?? 0;
 
-    if (matchingVariant && variantStock < quantity) {
+    if (!matchingVariant) {
+      alert('Selected size is not available. Please choose another size.');
+      return;
+    }
+
+    const variantId = matchingVariant.id;
+    const variantStock = matchingVariant.stockQuantity;
+
+    if (variantStock < quantity) {
       alert(`Insufficient stock. Only ${variantStock} available.`);
       return;
     }
 
     // Cross-check with server-side available stock for extra safety
-    if (matchingVariant) {
-      try {
-        const { getVariantStockAction } = await import('@/app/actions/stock');
-        const stockResult = await getVariantStockAction(variantId);
-        if (stockResult.success && stockResult.data && stockResult.data.available < quantity) {
-          alert(`Insufficient stock. Only ${stockResult.data.available} available.`);
-          return;
-        }
-      } catch {}
-    }
+    try {
+      const { getVariantStockAction } = await import('@/app/actions/stock');
+      const stockResult = await getVariantStockAction(variantId);
+      if (stockResult.success && stockResult.data && stockResult.data.available < quantity) {
+        alert(`Insufficient stock. Only ${stockResult.data.available} available.`);
+        return;
+      }
+    } catch {}
 
     const priceNum = parseFloat(price.replace(/[^0-9.-]+/g, ""));
 

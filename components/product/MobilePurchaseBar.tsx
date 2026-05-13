@@ -32,14 +32,14 @@ export default function MobilePurchaseBar({ price, productId, title, image, sele
     const color = selectedColor || "Onyx Black";
     const qty = quantity || 1;
 
-    const matchingVariant = variants?.find(v => v.size === size && (v.color === color || true));
+    const matchingVariant = variants?.find(v => v.size === size);
 
     // Client-side stock check
-    if (matchingVariant && matchingVariant.stockQuantity < qty) {
+    if (!matchingVariant || matchingVariant.stockQuantity < qty) {
       return;
     }
 
-    const variantId = matchingVariant?.id || `${productId || title}-${color}-${size}`;
+    const variantId = matchingVariant.id;
 
     addItem({
       id: variantId,

@@ -20,7 +20,7 @@ export default function OpsHeader() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-6">
-          {["Inventory", "Products", "Drops", "Orders", "Wallet"].map((item) => (
+          {["Inventory", "Products", "Drops", "Orders", "Customers", "Wallet"].map((item) => (
             <Link
               key={item}
               href={`/ops/${item.toLowerCase()}`}

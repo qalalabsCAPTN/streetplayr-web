@@ -17,14 +17,12 @@ export async function refreshSession(request: NextRequest): Promise<{
   user: { id: string } | null;
   response: NextResponse;
 }> {
-  let response = NextResponse.next({ request });
-
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!url || !key) {
     if (process.env.NODE_ENV === 'development') {
-      return { user: null, response };
+      return { user: null, response: NextResponse.next({ request }) };
     }
     throw new Error(
       'Missing Supabase client credentials. ' +
@@ -39,15 +37,18 @@ export async function refreshSession(request: NextRequest): Promise<{
       },
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value));
-        response = NextResponse.next({ request });
-        cookiesToSet.forEach(({ name, value, options }) =>
-          response.cookies.set(name, value, options)
-        );
       },
     },
   });
 
   const { data: { user } } = await supabase.auth.getUser();
+
+  // Build response after all cookie sets are done — single response, all cookies accumulated
+  const response = NextResponse.next({ request });
+  const allCookies = request.cookies.getAll();
+  for (const cookie of allCookies) {
+    response.cookies.set(cookie.name, cookie.value);
+  }
 
   return { user, response };
 }

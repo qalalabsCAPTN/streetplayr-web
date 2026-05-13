@@ -1,6 +1,7 @@
 'use server';
 
 import { AuthService } from '@/lib/auth/service';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
@@ -57,11 +58,42 @@ export async function signInWithPhoneAction(phone: string): Promise<ActionRespon
 /**
  * Server Action: Verify OTP
  */
-export async function verifyOTPAction(phone: string, token: string): Promise<ActionResponse> {
+export async function verifyOTPAction(phone: string, token: string, referredBy?: string): Promise<ActionResponse> {
   try {
     const result = await AuthService.verifyOTP(phone, token);
     if (result.error) {
       return { success: false, error: result.error.message };
+    }
+
+    // Capture referral code on first signup
+    if (referredBy && result.data?.user?.id) {
+      const admin = createAdminClient();
+      const { data: profile } = await admin
+        .from('profiles')
+        .select('referred_by')
+        .eq('id', result.data.user.id)
+        .single();
+      if (profile && !profile.referred_by) {
+        await admin
+          .from('profiles')
+          .update({ referred_by: referredBy, joined_from: 'referral' })
+          .eq('id', result.data.user.id);
+        // Create pending referral claim
+        const { data: referrer } = await admin
+          .from('profiles')
+          .select('id')
+          .eq('referral_code', referredBy)
+          .single();
+        if (referrer) {
+          await admin.from('referral_claims').insert({
+            referrer_id: referrer.id,
+            referred_id: result.data.user.id,
+            bonus_sprr: 0,
+            bonus_xp: 0,
+            status: 'pending',
+          });
+        }
+      }
     }
 
     revalidatePath('/');

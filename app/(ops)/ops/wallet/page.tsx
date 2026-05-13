@@ -1,5 +1,7 @@
 ﻿import React from "react";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { WalletAdminPanel } from "./WalletAdminPanel";
+import { CampaignManager } from "./CampaignManager";
 
 interface WalletTx {
   id: string;
@@ -27,7 +29,7 @@ function formatTime(ts: string) {
   return d.toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" });
 }
 
-async function getWalletData(): Promise<{ transactions: WalletTx[]; summary: WalletSummary }> {
+async function getWalletData(): Promise<{ transactions: WalletTx[]; summary: WalletSummary; campaigns: any[] }> {
   try {
     const admin = createAdminClient();
 
@@ -40,6 +42,12 @@ async function getWalletData(): Promise<{ transactions: WalletTx[]; summary: Wal
     const { data: profiles } = await admin
       .from("profiles")
       .select("sprr_balance");
+
+    const { data: campaigns } = await admin
+      .from("bonus_campaigns")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(50);
 
     const transactions: WalletTx[] = (txns ?? []).map((t: any) => {
       const isEarned = t.delta > 0;
@@ -73,14 +81,15 @@ async function getWalletData(): Promise<{ transactions: WalletTx[]; summary: Wal
         totalRedeemed,
         activeUsers: activeUsers || (profiles?.length ?? 0),
       },
+      campaigns: campaigns ?? [],
     };
   } catch {
-    return { transactions: [], summary: { totalIssued: 0, totalRedeemed: 0, activeUsers: 0 } };
+    return { transactions: [], summary: { totalIssued: 0, totalRedeemed: 0, activeUsers: 0 }, campaigns: [] };
   }
 }
 
 export default async function WalletPage() {
-  const { transactions, summary } = await getWalletData();
+  const { transactions, summary, campaigns } = await getWalletData();
   const burnRate = summary.totalIssued > 0
     ? ((summary.totalRedeemed / summary.totalIssued) * 100).toFixed(1) + "%"
     : "0%";
@@ -192,6 +201,49 @@ export default async function WalletPage() {
             </div>
           </div>
         )}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <WalletAdminPanel />
+
+        <section className="space-y-8">
+          <div className="flex items-center justify-between border-b border-[var(--ops-border-subtle)] pb-4">
+            <h2 className="font-mono text-[10px] uppercase tracking-[0.3em] text-[var(--ops-text-muted)]">
+              Bonus Campaigns
+            </h2>
+            <span className="text-[8px] font-mono text-[var(--ops-text-muted)] uppercase tracking-widest">{campaigns.length} active</span>
+          </div>
+
+          <CampaignManager />
+
+          {campaigns.length > 0 ? (
+            <div className="space-y-4">
+              {campaigns.map((c: any) => (
+                <div key={c.id} className="p-6 border border-[var(--ops-border-subtle)] bg-[var(--ops-bg-surface)]/20">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <div className="text-sm font-display text-white uppercase">{c.name}</div>
+                      {c.description && (
+                        <div className="text-[10px] font-mono text-[var(--ops-text-muted)] mt-1">{c.description}</div>
+                      )}
+                    </div>
+                    <span className={`text-[9px] font-mono uppercase tracking-widest ${c.is_active ? 'text-green-400' : 'text-red-400/60'}`}>
+                      {c.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                  <div className="flex gap-6 text-[10px] font-mono">
+                    <span className="text-[var(--sp-accent)]">+{c.sprr_reward} SP</span>
+                    {c.xp_reward > 0 && <span className="text-blue-400">+{c.xp_reward} XP</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex h-[20vh] items-center justify-center border border-dashed border-[var(--ops-border-subtle)]">
+              <p className="text-[10px] font-mono text-[var(--ops-text-muted)] uppercase tracking-widest">No campaigns</p>
+            </div>
+          )}
+        </section>
       </div>
 
       <section className="pt-12 border-t border-[var(--ops-border-subtle)] flex gap-24">

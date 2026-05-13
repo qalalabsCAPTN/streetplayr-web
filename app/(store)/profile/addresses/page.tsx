@@ -1,35 +1,15 @@
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
-import { useState } from 'react';
-
-interface Address {
-  id: string;
-  label: string;
-  name: string;
-  line1: string;
-  line2: string;
-  city: string;
-  state: string;
-  pincode: string;
-  phone: string;
-  isPrimary: boolean;
-}
-
-const INITIAL_ADDRESSES: Address[] = [
-  {
-    id: 'addr-1',
-    label: 'Home',
-    name: 'Arjun Mehta',
-    line1: '12, Green Park Colony',
-    line2: 'Near Metro Station',
-    city: 'New Delhi',
-    state: 'Delhi',
-    pincode: '110016',
-    phone: '+91 98765 43210',
-    isPrimary: true,
-  },
-];
+import { useEffect, useState, useCallback } from 'react';
+import {
+  getAddressesAction,
+  createAddressAction,
+  updateAddressAction,
+  deleteAddressAction,
+  setPrimaryAddressAction,
+  type AddressData,
+} from '@/app/actions/address';
 
 function AddressCard({
   address,
@@ -37,14 +17,14 @@ function AddressCard({
   onDelete,
   onSetPrimary,
 }: {
-  address: Address;
+  address: AddressData;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   onSetPrimary: (id: string) => void;
 }) {
   return (
     <motion.div
-      className={`address-card ${address.isPrimary ? 'address-card--primary' : ''}`}
+      className={`address-card ${address.is_primary ? 'address-card--primary' : ''}`}
       layout
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
@@ -55,7 +35,7 @@ function AddressCard({
       <div className="address-card-top">
         <div className="address-card-label-row">
           <span className="address-card-label">{address.label}</span>
-          {address.isPrimary && (
+          {address.is_primary && (
             <span className="address-card-primary-badge">Primary</span>
           )}
         </div>
@@ -87,7 +67,7 @@ function AddressCard({
         <p className="address-card-line">{address.phone}</p>
       </div>
 
-      {!address.isPrimary && (
+      {!address.is_primary && (
         <button
           type="button"
           onClick={() => onSetPrimary(address.id)}
@@ -101,13 +81,15 @@ function AddressCard({
   );
 }
 
-interface AddressFormProps {
-  initial?: Partial<Address>;
-  onSave: (addr: Omit<Address, 'id' | 'isPrimary'>) => void;
+function AddressForm({
+  initial = {},
+  onSave,
+  onCancel,
+}: {
+  initial?: Partial<AddressData>;
+  onSave: (addr: Omit<AddressData, 'id' | 'is_primary' | 'user_id' | 'created_at'>) => Promise<void>;
   onCancel: () => void;
-}
-
-function AddressForm({ initial = {}, onSave, onCancel }: AddressFormProps) {
+}) {
   const [form, setForm] = useState({
     label: initial.label ?? '',
     name: initial.name ?? '',
@@ -118,14 +100,17 @@ function AddressForm({ initial = {}, onSave, onCancel }: AddressFormProps) {
     pincode: initial.pincode ?? '',
     phone: initial.phone ?? '',
   });
+  const [saving, setSaving] = useState(false);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    onSave(form);
+    setSaving(true);
+    await onSave(form);
+    setSaving(false);
   }
 
   return (
@@ -142,7 +127,7 @@ function AddressForm({ initial = {}, onSave, onCancel }: AddressFormProps) {
 
       <div className="address-form-grid">
         {[
-          { name: 'label', label: 'Label (Home, Work…)', placeholder: 'Home' },
+          { name: 'label', label: 'Label (Home, Work\u2026)', placeholder: 'Home' },
           { name: 'name', label: 'Full Name', placeholder: 'Your name' },
           { name: 'line1', label: 'Address Line 1', placeholder: 'Street, building, floor' },
           { name: 'line2', label: 'Address Line 2 (optional)', placeholder: 'Landmark, area' },
@@ -161,59 +146,86 @@ function AddressForm({ initial = {}, onSave, onCancel }: AddressFormProps) {
               onChange={handleChange}
               placeholder={placeholder}
               className="auth-input"
+              disabled={saving}
             />
           </div>
         ))}
       </div>
 
       <div className="address-form-actions">
-        <button type="submit" className="auth-cta" id="save-address-btn">Save Address</button>
-        <button type="button" onClick={onCancel} className="address-form-cancel" id="cancel-address-btn">Cancel</button>
+        <button type="submit" className="auth-cta" id="save-address-btn" disabled={saving}>
+          {saving ? 'Saving...' : 'Save Address'}
+        </button>
+        <button type="button" onClick={onCancel} className="address-form-cancel" id="cancel-address-btn" disabled={saving}>Cancel</button>
       </div>
     </motion.form>
   );
 }
 
 export default function AddressesPage() {
-  const [addresses, setAddresses] = useState<Address[]>(INITIAL_ADDRESSES);
+  const [addresses, setAddresses] = useState<AddressData[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  function handleAdd(data: Omit<Address, 'id' | 'isPrimary'>) {
-    const newAddr: Address = {
-      ...data,
-      id: `addr-${Date.now()}`,
-      isPrimary: addresses.length === 0,
-    };
-    setAddresses((prev) => [...prev, newAddr]);
+  useEffect(() => {
+    loadAddresses();
+  }, []);
+
+  async function loadAddresses() {
+    setLoading(true);
+    const result = await getAddressesAction();
+    if (result.success && result.data) {
+      setAddresses(result.data);
+    }
+    setLoading(false);
+  }
+
+  const handleAdd = useCallback(async (data: Omit<AddressData, 'id' | 'is_primary' | 'user_id' | 'created_at'>) => {
+    const result = await createAddressAction(data);
+    if (result.success && result.data) {
+      setAddresses((prev) => [...prev, result.data as AddressData]);
+    }
     setIsAdding(false);
-  }
+  }, []);
 
-  function handleEdit(id: string, data: Omit<Address, 'id' | 'isPrimary'>) {
-    setAddresses((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, ...data } : a))
-    );
+  const handleEdit = useCallback(async (id: string, data: Omit<AddressData, 'id' | 'is_primary' | 'user_id' | 'created_at'>) => {
+    const result = await updateAddressAction(id, data);
+    if (result.success && result.data) {
+      setAddresses((prev) =>
+        prev.map((a) => (a.id === id ? (result.data as AddressData) : a))
+      );
+    }
     setEditingId(null);
-  }
+  }, []);
 
-  function handleDelete(id: string) {
-    setAddresses((prev) => {
-      const next = prev.filter((a) => a.id !== id);
-      // If deleted was primary, set first remaining as primary
-      if (next.length > 0 && !next.some((a) => a.isPrimary)) {
-        next[0].isPrimary = true;
-      }
-      return next;
-    });
-  }
+  const handleDelete = useCallback(async (id: string) => {
+    await deleteAddressAction(id);
+    setAddresses((prev) => prev.filter((a) => a.id !== id));
+  }, []);
 
-  function handleSetPrimary(id: string) {
+  const handleSetPrimary = useCallback(async (id: string) => {
+    await setPrimaryAddressAction(id);
     setAddresses((prev) =>
-      prev.map((a) => ({ ...a, isPrimary: a.id === id }))
+      prev.map((a) => ({ ...a, is_primary: a.id === id }))
     );
-  }
+  }, []);
 
   const editingAddress = addresses.find((a) => a.id === editingId);
+
+  if (loading) {
+    return (
+      <div className="profile-page-root">
+        <div className="profile-page-header">
+          <p className="profile-page-eyebrow">Delivery locations</p>
+          <h1 className="profile-page-title">Addresses</h1>
+        </div>
+        <div className="flex h-[30vh] items-center justify-center">
+          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/30">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="profile-page-root">
