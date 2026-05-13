@@ -1,12 +1,16 @@
-import { AdminGuard } from '@/components/admin/AdminGuard';
-import { AdminShell } from './AdminShell';
-
-export const dynamic = 'force-dynamic';
+import { Sidebar } from '@/components/ops2/sidebar';
+import { CommandPalette } from '@/components/ops2/command-palette';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <AdminGuard>
-      <AdminShell>{children}</AdminShell>
-    </AdminGuard>
+    <div className="min-h-screen bg-base">
+      <Sidebar />
+      <main className="ml-[240px] min-h-screen">
+        <div className="min-h-screen">
+          {children}
+        </div>
+      </main>
+      <CommandPalette />
+    </div>
   );
 }

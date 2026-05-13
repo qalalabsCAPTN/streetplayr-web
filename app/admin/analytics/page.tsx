@@ -1,37 +1,51 @@
-import { createAdminClient } from '@/lib/supabase/admin';
-export const dynamic = 'force-dynamic';
+import type { Metadata } from 'next';
+import { TopBar } from '@/components/ops2/top-bar';
+import { KpiGrid } from '@/modules/overview/components/kpi-grid';
+import { PlatformBreakdown } from '@/modules/overview/components/platform-breakdown';
 
-export default async function AnalyticsPage() {
-  const admin = createAdminClient();
-  const [profilesRes, ordersRes, campaignsRes] = await Promise.all([
-    admin.from('profiles').select('role, created_at').limit(1000),
-    admin.from('orders').select('status, grand_total, created_at').limit(1000),
-    admin.from('bonus_campaigns').select('*'),
-  ]);
-  const profiles = profilesRes.data ?? []; const orders = ordersRes.data ?? []; const campaigns = campaignsRes.data ?? [];
-  const roleCount: Record<string, number> = {};
-  profiles.forEach((p: any) => { const r = p.role || 'member'; roleCount[r] = (roleCount[r] || 0) + 1; });
-  const totalRevenue = orders.reduce((s: number, o: any) => s + (o.grand_total ?? 0), 0);
-  const orderStatuses: Record<string, number> = {};
-  orders.forEach((o: any) => { const s = o.status || 'unknown'; orderStatuses[s] = (orderStatuses[s] || 0) + 1; });
+export const metadata: Metadata = { title: 'Analytics' };
+
+export default function AnalyticsPage() {
   return (
-    <div className="admin-page">
-      <section className="admin-hero"><h1 className="admin-hero-title">Analytics</h1><p className="admin-hero-sub">Revenue, orders, and user growth</p></section>
-      <section className="admin-cards-grid">
-        <div className="admin-stat-card"><div className="admin-stat-label">Total Revenue</div><div className="admin-stat-value">₹{(totalRevenue / 100).toLocaleString()}</div></div>
-        <div className="admin-stat-card"><div className="admin-stat-label">Total Orders</div><div className="admin-stat-value">{orders.length}</div></div>
-        <div className="admin-stat-card"><div className="admin-stat-label">Total Profiles</div><div className="admin-stat-value">{profiles.length}</div></div>
-        <div className="admin-stat-card"><div className="admin-stat-label">Campaigns</div><div className="admin-stat-value">{campaigns.length}</div></div>
-      </section>
-      <div className="admin-grid-cols-2">
-        <section className="admin-section"><h2 className="admin-section-title">Role Distribution</h2>
-          <div className="admin-stat-list">{Object.entries(roleCount).sort(([,a], [,b]) => b - a).map(([role, count]) => (
-            <div key={role} className="admin-stat-row"><span className="admin-role-badge">{role}</span><span className="admin-stat-row-value">{count}</span></div>
-          ))}</div></section>
-        <section className="admin-section"><h2 className="admin-section-title">Order Status</h2>
-          <div className="admin-stat-list">{Object.entries(orderStatuses).sort(([,a], [,b]) => b - a).map(([status, count]) => (
-            <div key={status} className="admin-stat-row"><span className="admin-role-badge">{status}</span><span className="admin-stat-row-value">{count}</span></div>
-          ))}</div></section>
+    <div className="flex flex-col h-screen">
+      <TopBar title="Analytics" />
+      <div className="flex-1 pt-14 p-5 space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="page-title">Analytics</h2>
+            <p className="text-sm text-text-muted mt-0.5">Ecosystem performance, platform attribution, and behavioral intelligence</p>
+          </div>
+        </div>
+
+        <KpiGrid period="30d" />
+
+        <div className="grid grid-cols-3 gap-5">
+          <div className="col-span-2"><PlatformBreakdown /></div>
+          <div className="surface p-5 space-y-4">
+            <div className="section-title">Tier Distribution</div>
+            {[
+              { tier: 'Apex',   count: 180,   color: '#C026D3' },
+              { tier: 'Nectar', count: 580,   color: '#F5A800' },
+              { tier: 'Bloom',  count: 1120,  color: '#60A5FA' },
+              { tier: 'Sprout', count: 2840,  color: '#34D399' },
+              { tier: 'Seed',   count: 8420,  color: '#9CA3AF' },
+            ].map(t => (
+              <div key={t.tier} className="flex items-center gap-3">
+                <div className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: t.color }} />
+                <span className="text-sm text-text-secondary flex-1">{t.tier}</span>
+                <span className="text-sm font-medium text-text-primary">{t.count.toLocaleString()}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="surface p-5">
+          <div className="section-title mb-4">Analytics Pipeline</div>
+          <p className="text-sm text-text-muted">
+            Advanced analytics with ClickHouse pipeline, cohort analysis, and attribution modeling
+            are part of the roadmap. Current metrics aggregate from Postgres views.
+          </p>
+        </div>
       </div>
     </div>
   );

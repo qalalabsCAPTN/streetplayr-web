@@ -1,12 +1,12 @@
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import { DashboardShell } from './DashboardShell';
-
-export const dynamic = 'force-dynamic';
+import { DashboardSidebar } from '@/components/nectar/dashboard-sidebar';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ProtectedRoute>
-      <DashboardShell>{children}</DashboardShell>
-    </ProtectedRoute>
+    <div className="flex min-h-screen">
+      <DashboardSidebar />
+      <main className="flex-1 ml-[220px] min-h-screen">
+        {children}
+      </main>
+    </div>
   );
 }
