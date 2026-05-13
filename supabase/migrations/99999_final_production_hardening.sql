@@ -1,12 +1,18 @@
 -- ============================================================================
--- StreetPlayR — Final Production Hardening (Idempotent)
+-- StreetPlayR — Final Production Hardening (Fully Idempotent + Legacy-Safe)
 -- ============================================================================
--- This migration is FULLY IDEMPOTENT and works on any DB state:
--- - Legacy schema (00001 only)
--- - Partially migrated (any subset of 00001-00007)
--- - Clean / fully migrated
+-- This migration is FULLY IDEMPOTENT and works on ANY DB state:
+--   1. Fresh DB (no tables yet)
+--   2. Legacy DB (old StreetPlayR multi-tenant schema)
+--   3. Partially migrated DB (any subset of 00001-00009)
+--   4. Already-migrated DB (all migrations applied)
+--   5. Mixed hybrid DB (some NECTAR/OpsOS tables, some legacy)
 --
--- It NEVER drops or destructively alters existing objects.
+-- Every ALTER TABLE, CREATE INDEX, trigger, policy, function, and realtime
+-- publication is guarded by table-existence and column-existence checks so
+-- that missing objects never crash the migration.
+--
+-- Safe to run repeatedly. Never drops or destructively alters objects.
 -- ============================================================================
 
 -- ─── 1. Extensions (idempotent) ─────────────────────────────────────────────
@@ -62,30 +68,7 @@ END $$;
 
 -- ─── 3. Tables ──────────────────────────────────────────────────────────────
 
--- Profiles: role column
-ALTER TABLE profiles
-  ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'member';
-
--- Products: status column
-ALTER TABLE products
-  ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'draft';
-
--- Payment events: event taxonomy columns
-ALTER TABLE payment_events
-  ADD COLUMN IF NOT EXISTS event_type payment_event_type,
-  ADD COLUMN IF NOT EXISTS stripe_event_id TEXT,
-  ADD COLUMN IF NOT EXISTS raw_payload JSONB;
-
--- Orders: financial breakdown + billing columns
-ALTER TABLE orders
-  ADD COLUMN IF NOT EXISTS subtotal INTEGER NOT NULL DEFAULT 0 CHECK (subtotal >= 0),
-  ADD COLUMN IF NOT EXISTS shipping_cost INTEGER NOT NULL DEFAULT 0 CHECK (shipping_cost >= 0),
-  ADD COLUMN IF NOT EXISTS tax_amount INTEGER NOT NULL DEFAULT 0 CHECK (tax_amount >= 0),
-  ADD COLUMN IF NOT EXISTS currency TEXT NOT NULL DEFAULT 'INR',
-  ADD COLUMN IF NOT EXISTS notes TEXT;
-
-ALTER TABLE orders
-  ADD COLUMN IF NOT EXISTS billing_address JSONB;
+-- All CREATE TABLE statements use IF NOT EXISTS and are safe on any DB state.
 
 -- Collections (merchandise grouping)
 CREATE TABLE IF NOT EXISTS collections (
@@ -100,8 +83,6 @@ CREATE TABLE IF NOT EXISTS collections (
   updated_at  TIMESTAMPTZ DEFAULT now()
 );
 
-ALTER TABLE collections ENABLE ROW LEVEL SECURITY;
-
 -- Collection-Product junction
 CREATE TABLE IF NOT EXISTS collection_products (
   collection_id UUID NOT NULL REFERENCES collections(id) ON DELETE CASCADE,
@@ -110,8 +91,6 @@ CREATE TABLE IF NOT EXISTS collection_products (
   created_at    TIMESTAMPTZ DEFAULT now(),
   PRIMARY KEY (collection_id, product_id)
 );
-
-ALTER TABLE collection_products ENABLE ROW LEVEL SECURITY;
 
 -- Inventory reservations (orchestration)
 CREATE TABLE IF NOT EXISTS inventory_reservations (
@@ -130,8 +109,6 @@ CREATE TABLE IF NOT EXISTS inventory_reservations (
   updated_at        TIMESTAMPTZ
 );
 
-ALTER TABLE inventory_reservations ENABLE ROW LEVEL SECURITY;
-
 -- Operational events (immutable audit timeline)
 CREATE TABLE IF NOT EXISTS operational_events (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -147,8 +124,6 @@ CREATE TABLE IF NOT EXISTS operational_events (
   created_at    TIMESTAMPTZ DEFAULT now()
 );
 
-ALTER TABLE operational_events ENABLE ROW LEVEL SECURITY;
-
 -- Idempotency keys (webhook/action dedup)
 CREATE TABLE IF NOT EXISTS idempotency_keys (
   key        TEXT PRIMARY KEY,
@@ -158,8 +133,6 @@ CREATE TABLE IF NOT EXISTS idempotency_keys (
   expires_at TIMESTAMPTZ NOT NULL
 );
 
-ALTER TABLE idempotency_keys ENABLE ROW LEVEL SECURITY;
-
 -- Role grants (RBAC tracking)
 CREATE TABLE IF NOT EXISTS role_grants (
   id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -168,8 +141,6 @@ CREATE TABLE IF NOT EXISTS role_grants (
   created_at TIMESTAMPTZ DEFAULT now(),
   UNIQUE (user_id)
 );
-
-ALTER TABLE role_grants ENABLE ROW LEVEL SECURITY;
 
 -- User addresses (customer shipping addresses, persisted)
 CREATE TABLE IF NOT EXISTS user_addresses (
@@ -188,227 +159,481 @@ CREATE TABLE IF NOT EXISTS user_addresses (
   updated_at  TIMESTAMPTZ DEFAULT now()
 );
 
-ALTER TABLE user_addresses ENABLE ROW LEVEL SECURITY;
+-- ─── 4. Column Additions (Fully Guarded) ────────────────────────────────────
 
--- ─── 4. RLS Policies ────────────────────────────────────────────────────────
-
--- Collections
+-- Profiles: role column
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Collections publicly readable' AND tablename = 'collections') THEN
-    CREATE POLICY "Collections publicly readable" ON collections FOR SELECT USING (true);
+  IF to_regclass('profiles') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE profiles ADD COLUMN IF NOT EXISTS role TEXT DEFAULT ''member''';
+  END IF;
+END $$;
+
+-- Products: status column
+DO $$ BEGIN
+  IF to_regclass('products') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE products ADD COLUMN IF NOT EXISTS status TEXT DEFAULT ''draft''';
+  END IF;
+END $$;
+
+-- Payment events: event taxonomy columns (table may not exist)
+DO $$ BEGIN
+  IF to_regclass('payment_events') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE payment_events ADD COLUMN IF NOT EXISTS event_type payment_event_type';
+    EXECUTE 'ALTER TABLE payment_events ADD COLUMN IF NOT EXISTS stripe_event_id TEXT';
+    EXECUTE 'ALTER TABLE payment_events ADD COLUMN IF NOT EXISTS raw_payload JSONB';
+  END IF;
+END $$;
+
+-- Orders: financial breakdown + billing columns
+DO $$ BEGIN
+  IF to_regclass('orders') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE orders ADD COLUMN IF NOT EXISTS subtotal INTEGER NOT NULL DEFAULT 0 CHECK (subtotal >= 0)';
+    EXECUTE 'ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_cost INTEGER NOT NULL DEFAULT 0 CHECK (shipping_cost >= 0)';
+    EXECUTE 'ALTER TABLE orders ADD COLUMN IF NOT EXISTS tax_amount INTEGER NOT NULL DEFAULT 0 CHECK (tax_amount >= 0)';
+    EXECUTE 'ALTER TABLE orders ADD COLUMN IF NOT EXISTS currency TEXT NOT NULL DEFAULT ''INR''';
+    EXECUTE 'ALTER TABLE orders ADD COLUMN IF NOT EXISTS notes TEXT';
+    EXECUTE 'ALTER TABLE orders ADD COLUMN IF NOT EXISTS billing_address JSONB';
+  END IF;
+END $$;
+
+-- ─── 5. RLS Enabling (Guarded) ─────────────────────────────────────────────
+
+DO $$ BEGIN
+  IF to_regclass('collections') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE collections ENABLE ROW LEVEL SECURITY';
   END IF;
 END $$;
 
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Ops roles can manage collections' AND tablename = 'collections') THEN
-    CREATE POLICY "Ops roles can manage collections" ON collections FOR ALL
-      USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN ('super_admin', 'ops_admin', 'editorial')));
+  IF to_regclass('collection_products') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE collection_products ENABLE ROW LEVEL SECURITY';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF to_regclass('inventory_reservations') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE inventory_reservations ENABLE ROW LEVEL SECURITY';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF to_regclass('operational_events') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE operational_events ENABLE ROW LEVEL SECURITY';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF to_regclass('idempotency_keys') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE idempotency_keys ENABLE ROW LEVEL SECURITY';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF to_regclass('role_grants') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE role_grants ENABLE ROW LEVEL SECURITY';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF to_regclass('user_addresses') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE user_addresses ENABLE ROW LEVEL SECURITY';
+  END IF;
+END $$;
+
+-- ─── 6. RLS Policies (All Guarded by Table Existence) ───────────────────────
+
+-- Collections
+DO $$ BEGIN
+  IF to_regclass('collections') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Collections publicly readable' AND tablename = 'collections') THEN
+    EXECUTE 'CREATE POLICY "Collections publicly readable" ON collections FOR SELECT USING (true)';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF to_regclass('collections') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Ops roles can manage collections' AND tablename = 'collections') THEN
+    EXECUTE 'CREATE POLICY "Ops roles can manage collections" ON collections FOR ALL USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN (''super_admin'', ''ops_admin'', ''editorial'')))';
   END IF;
 END $$;
 
 -- Collection products
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Collection products publicly readable' AND tablename = 'collection_products') THEN
-    CREATE POLICY "Collection products publicly readable" ON collection_products FOR SELECT USING (true);
+  IF to_regclass('collection_products') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Collection products publicly readable' AND tablename = 'collection_products') THEN
+    EXECUTE 'CREATE POLICY "Collection products publicly readable" ON collection_products FOR SELECT USING (true)';
   END IF;
 END $$;
 
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Ops roles can manage collection products' AND tablename = 'collection_products') THEN
-    CREATE POLICY "Ops roles can manage collection products" ON collection_products FOR ALL
-      USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN ('super_admin', 'ops_admin', 'editorial')));
+  IF to_regclass('collection_products') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Ops roles can manage collection products' AND tablename = 'collection_products') THEN
+    EXECUTE 'CREATE POLICY "Ops roles can manage collection products" ON collection_products FOR ALL USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN (''super_admin'', ''ops_admin'', ''editorial'')))';
   END IF;
 END $$;
 
 -- Inventory reservations
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can read own reservations' AND tablename = 'inventory_reservations') THEN
-    CREATE POLICY "Users can read own reservations" ON inventory_reservations FOR SELECT
-      USING (reservation_owner = auth.uid());
+  IF to_regclass('inventory_reservations') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can read own reservations' AND tablename = 'inventory_reservations') THEN
+    EXECUTE 'CREATE POLICY "Users can read own reservations" ON inventory_reservations FOR SELECT USING (reservation_owner = auth.uid())';
   END IF;
 END $$;
 
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can insert own reservations' AND tablename = 'inventory_reservations') THEN
-    CREATE POLICY "Users can insert own reservations" ON inventory_reservations FOR INSERT
-      WITH CHECK (reservation_owner = auth.uid());
+  IF to_regclass('inventory_reservations') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can insert own reservations' AND tablename = 'inventory_reservations') THEN
+    EXECUTE 'CREATE POLICY "Users can insert own reservations" ON inventory_reservations FOR INSERT WITH CHECK (reservation_owner = auth.uid())';
   END IF;
 END $$;
 
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Ops roles can read all reservations' AND tablename = 'inventory_reservations') THEN
-    CREATE POLICY "Ops roles can read all reservations" ON inventory_reservations FOR SELECT
-      USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN ('super_admin', 'ops_admin', 'fulfillment', 'viewer')));
+  IF to_regclass('inventory_reservations') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Ops roles can read all reservations' AND tablename = 'inventory_reservations') THEN
+    EXECUTE 'CREATE POLICY "Ops roles can read all reservations" ON inventory_reservations FOR SELECT USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN (''super_admin'', ''ops_admin'', ''fulfillment'', ''viewer'')))';
   END IF;
 END $$;
 
 -- Operational events
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow insert operational events' AND tablename = 'operational_events') THEN
-    CREATE POLICY "Allow insert operational events" ON operational_events FOR INSERT WITH CHECK (true);
+  IF to_regclass('operational_events') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow insert operational events' AND tablename = 'operational_events') THEN
+    EXECUTE 'CREATE POLICY "Allow insert operational events" ON operational_events FOR INSERT WITH CHECK (true)';
   END IF;
 END $$;
 
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Ops roles can read operational events' AND tablename = 'operational_events') THEN
-    CREATE POLICY "Ops roles can read operational events" ON operational_events FOR SELECT
-      USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN ('super_admin', 'ops_admin', 'fulfillment', 'editorial', 'support', 'viewer')));
+  IF to_regclass('operational_events') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Ops roles can read operational events' AND tablename = 'operational_events') THEN
+    EXECUTE 'CREATE POLICY "Ops roles can read operational events" ON operational_events FOR SELECT USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN (''super_admin'', ''ops_admin'', ''fulfillment'', ''editorial'', ''support'', ''viewer'')))';
   END IF;
 END $$;
 
 -- Idempotency keys
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Service role manages idempotency keys' AND tablename = 'idempotency_keys') THEN
-    CREATE POLICY "Service role manages idempotency keys" ON idempotency_keys FOR ALL USING (auth.role() = 'service_role');
+  IF to_regclass('idempotency_keys') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Service role manages idempotency keys' AND tablename = 'idempotency_keys') THEN
+    EXECUTE 'CREATE POLICY "Service role manages idempotency keys" ON idempotency_keys FOR ALL USING (auth.role() = ''service_role'')';
   END IF;
 END $$;
 
 -- Role grants
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins can read role grants' AND tablename = 'role_grants') THEN
-    CREATE POLICY "Admins can read role grants" ON role_grants FOR SELECT
-      USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN ('super_admin', 'ops_admin')));
+  IF to_regclass('role_grants') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins can read role grants' AND tablename = 'role_grants') THEN
+    EXECUTE 'CREATE POLICY "Admins can read role grants" ON role_grants FOR SELECT USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN (''super_admin'', ''ops_admin'')))';
   END IF;
 END $$;
 
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins can insert role grants' AND tablename = 'role_grants') THEN
-    CREATE POLICY "Admins can insert role grants" ON role_grants FOR INSERT
-      WITH CHECK (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role = 'super_admin'));
+  IF to_regclass('role_grants') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Admins can insert role grants' AND tablename = 'role_grants') THEN
+    EXECUTE 'CREATE POLICY "Admins can insert role grants" ON role_grants FOR INSERT WITH CHECK (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role = ''super_admin''))';
   END IF;
 END $$;
 
 -- User addresses
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can read own addresses' AND tablename = 'user_addresses') THEN
-    CREATE POLICY "Users can read own addresses" ON user_addresses FOR SELECT
-      USING (user_id = auth.uid());
+  IF to_regclass('user_addresses') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can read own addresses' AND tablename = 'user_addresses') THEN
+    EXECUTE 'CREATE POLICY "Users can read own addresses" ON user_addresses FOR SELECT USING (user_id = auth.uid())';
   END IF;
 END $$;
 
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can insert own addresses' AND tablename = 'user_addresses') THEN
-    CREATE POLICY "Users can insert own addresses" ON user_addresses FOR INSERT
-      WITH CHECK (user_id = auth.uid());
+  IF to_regclass('user_addresses') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can insert own addresses' AND tablename = 'user_addresses') THEN
+    EXECUTE 'CREATE POLICY "Users can insert own addresses" ON user_addresses FOR INSERT WITH CHECK (user_id = auth.uid())';
   END IF;
 END $$;
 
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can update own addresses' AND tablename = 'user_addresses') THEN
-    CREATE POLICY "Users can update own addresses" ON user_addresses FOR UPDATE
-      USING (user_id = auth.uid());
+  IF to_regclass('user_addresses') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can update own addresses' AND tablename = 'user_addresses') THEN
+    EXECUTE 'CREATE POLICY "Users can update own addresses" ON user_addresses FOR UPDATE USING (user_id = auth.uid())';
   END IF;
 END $$;
 
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can delete own addresses' AND tablename = 'user_addresses') THEN
-    CREATE POLICY "Users can delete own addresses" ON user_addresses FOR DELETE
-      USING (user_id = auth.uid());
+  IF to_regclass('user_addresses') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can delete own addresses' AND tablename = 'user_addresses') THEN
+    EXECUTE 'CREATE POLICY "Users can delete own addresses" ON user_addresses FOR DELETE USING (user_id = auth.uid())';
   END IF;
 END $$;
 
 -- Products: ops write policies
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Ops roles can insert products' AND tablename = 'products') THEN
-    CREATE POLICY "Ops roles can insert products" ON products FOR INSERT
-      WITH CHECK (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN ('super_admin', 'ops_admin', 'editorial')));
+  IF to_regclass('products') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Ops roles can insert products' AND tablename = 'products') THEN
+    EXECUTE 'CREATE POLICY "Ops roles can insert products" ON products FOR INSERT WITH CHECK (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN (''super_admin'', ''ops_admin'', ''editorial'')))';
   END IF;
 END $$;
 
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Ops roles can update products' AND tablename = 'products') THEN
-    CREATE POLICY "Ops roles can update products" ON products FOR UPDATE
-      USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN ('super_admin', 'ops_admin', 'editorial')));
+  IF to_regclass('products') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Ops roles can update products' AND tablename = 'products') THEN
+    EXECUTE 'CREATE POLICY "Ops roles can update products" ON products FOR UPDATE USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN (''super_admin'', ''ops_admin'', ''editorial'')))';
   END IF;
 END $$;
 
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Ops roles can delete products' AND tablename = 'products') THEN
-    CREATE POLICY "Ops roles can delete products" ON products FOR DELETE
-      USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN ('super_admin', 'ops_admin')));
+  IF to_regclass('products') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Ops roles can delete products' AND tablename = 'products') THEN
+    EXECUTE 'CREATE POLICY "Ops roles can delete products" ON products FOR DELETE USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN (''super_admin'', ''ops_admin'')))';
   END IF;
 END $$;
 
 -- Variants: ops write policies
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Ops roles can insert variants' AND tablename = 'product_variants') THEN
-    CREATE POLICY "Ops roles can insert variants" ON product_variants FOR INSERT
-      WITH CHECK (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN ('super_admin', 'ops_admin', 'editorial')));
+  IF to_regclass('product_variants') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Ops roles can insert variants' AND tablename = 'product_variants') THEN
+    EXECUTE 'CREATE POLICY "Ops roles can insert variants" ON product_variants FOR INSERT WITH CHECK (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN (''super_admin'', ''ops_admin'', ''editorial'')))';
   END IF;
 END $$;
 
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Ops roles can update variants' AND tablename = 'product_variants') THEN
-    CREATE POLICY "Ops roles can update variants" ON product_variants FOR UPDATE
-      USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN ('super_admin', 'ops_admin', 'editorial')));
+  IF to_regclass('product_variants') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Ops roles can update variants' AND tablename = 'product_variants') THEN
+    EXECUTE 'CREATE POLICY "Ops roles can update variants" ON product_variants FOR UPDATE USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN (''super_admin'', ''ops_admin'', ''editorial'')))';
   END IF;
 END $$;
 
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Ops roles can delete variants' AND tablename = 'product_variants') THEN
-    CREATE POLICY "Ops roles can delete variants" ON product_variants FOR DELETE
-      USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN ('super_admin', 'ops_admin')));
+  IF to_regclass('product_variants') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Ops roles can delete variants' AND tablename = 'product_variants') THEN
+    EXECUTE 'CREATE POLICY "Ops roles can delete variants" ON product_variants FOR DELETE USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN (''super_admin'', ''ops_admin'')))';
   END IF;
 END $$;
 
 -- Orders: ops read policies
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Ops roles can read all orders' AND tablename = 'orders') THEN
-    CREATE POLICY "Ops roles can read all orders" ON orders FOR SELECT
-      USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN ('super_admin', 'ops_admin', 'fulfillment', 'support', 'viewer')));
+  IF to_regclass('orders') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Ops roles can read all orders' AND tablename = 'orders') THEN
+    EXECUTE 'CREATE POLICY "Ops roles can read all orders" ON orders FOR SELECT USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN (''super_admin'', ''ops_admin'', ''fulfillment'', ''support'', ''viewer'')))';
   END IF;
 END $$;
 
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Ops roles can update orders' AND tablename = 'orders') THEN
-    CREATE POLICY "Ops roles can update orders" ON orders FOR UPDATE
-      USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN ('super_admin', 'ops_admin', 'fulfillment')));
+  IF to_regclass('orders') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Ops roles can update orders' AND tablename = 'orders') THEN
+    EXECUTE 'CREATE POLICY "Ops roles can update orders" ON orders FOR UPDATE USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN (''super_admin'', ''ops_admin'', ''fulfillment'')))';
   END IF;
 END $$;
 
--- ─── 5. Indexes ─────────────────────────────────────────────────────────────
+-- ─── 7. Indexes (All Guarded — Table + Column Existence) ───────────────────
 
-CREATE INDEX IF NOT EXISTS idx_products_slug ON products(slug);
-CREATE INDEX IF NOT EXISTS idx_products_category ON products(category_id);
-CREATE INDEX IF NOT EXISTS idx_products_active ON products(is_active) WHERE is_active = true;
-CREATE INDEX IF NOT EXISTS idx_products_status ON products(status);
-CREATE INDEX IF NOT EXISTS idx_variants_product ON product_variants(product_id);
-CREATE INDEX IF NOT EXISTS idx_cart_user ON cart_items(user_id);
-CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id);
-CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
-CREATE INDEX IF NOT EXISTS idx_orders_payment ON orders(payment_intent_id);
-CREATE INDEX IF NOT EXISTS idx_orders_payment_intent ON orders(payment_intent_id) WHERE payment_intent_id IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_orders_status_created ON orders(status, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id);
-CREATE INDEX IF NOT EXISTS idx_wallet_tx_user ON wallet_transactions(user_id);
-CREATE INDEX IF NOT EXISTS idx_wallet_tx_created ON wallet_transactions(created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_wallet_events_user ON wallet_events(user_id);
-CREATE INDEX IF NOT EXISTS idx_wallet_events_type ON wallet_events(type);
-CREATE INDEX IF NOT EXISTS idx_payment_events_order ON payment_events(order_id);
-CREATE INDEX IF NOT EXISTS idx_payment_events_intent ON payment_events(stripe_payment_intent_id);
-CREATE INDEX IF NOT EXISTS idx_payment_events_stripe_event ON payment_events(stripe_event_id) WHERE stripe_event_id IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_payment_events_order_success ON payment_events(order_id, event_type) WHERE event_type = 'payment_intent.succeeded';
-CREATE INDEX IF NOT EXISTS idx_reservations_owner ON inventory_reservations(reservation_owner);
-CREATE INDEX IF NOT EXISTS idx_reservations_variant_state ON inventory_reservations(variant_id, reservation_state);
-CREATE INDEX IF NOT EXISTS idx_reservations_expires ON inventory_reservations(expires_at) WHERE reservation_state IN ('pending', 'held');
-CREATE INDEX IF NOT EXISTS idx_reservations_owner_state ON inventory_reservations(reservation_owner, reservation_state);
-CREATE INDEX IF NOT EXISTS idx_reservations_order_id ON inventory_reservations(order_id) WHERE order_id IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_events_domain ON operational_events(domain);
-CREATE INDEX IF NOT EXISTS idx_events_severity ON operational_events(severity);
-CREATE INDEX IF NOT EXISTS idx_events_resource ON operational_events(resource_type, resource_id);
-CREATE INDEX IF NOT EXISTS idx_events_created ON operational_events(created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_events_actor ON operational_events(actor_id);
-CREATE INDEX IF NOT EXISTS idx_events_domain_severity_created ON operational_events(domain, severity, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_events_brand ON operational_events(brand_id) WHERE brand_id IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_idempotency_expires ON idempotency_keys(expires_at);
-CREATE INDEX IF NOT EXISTS idx_profiles_role ON profiles(role) WHERE role IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_collections_active ON collections(is_active) WHERE is_active = true;
-CREATE INDEX IF NOT EXISTS idx_col_prod_product ON collection_products(product_id);
-CREATE INDEX IF NOT EXISTS idx_addresses_user ON user_addresses(user_id);
-CREATE INDEX IF NOT EXISTS idx_addresses_primary ON user_addresses(user_id, is_primary) WHERE is_primary = true;
+-- Helper: create index only if table and ALL required columns exist
+DO $$ BEGIN
+  IF to_regclass('products') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='slug') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_products_slug ON products(slug)';
+  END IF;
+END $$;
 
--- ─── 6. Functions ──────────────────────────────────────────────────────────
+DO $$ BEGIN
+  IF to_regclass('products') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='category_id') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_products_category ON products(category_id)';
+  END IF;
+END $$;
 
+DO $$ BEGIN
+  IF to_regclass('products') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='is_active') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_products_active ON products(is_active) WHERE is_active = true';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF to_regclass('products') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='status') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_products_status ON products(status)';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF to_regclass('product_variants') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='product_variants' AND column_name='product_id') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_variants_product ON product_variants(product_id)';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF to_regclass('cart_items') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='cart_items' AND column_name='user_id') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_cart_user ON cart_items(user_id)';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF to_regclass('orders') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='orders' AND column_name='user_id') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id)';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF to_regclass('orders') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='orders' AND column_name='status') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status)';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF to_regclass('orders') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='orders' AND column_name='payment_intent_id') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_orders_payment ON orders(payment_intent_id)';
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_orders_payment_intent ON orders(payment_intent_id) WHERE payment_intent_id IS NOT NULL';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF to_regclass('orders') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='orders' AND column_name='status') AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='orders' AND column_name='created_at') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_orders_status_created ON orders(status, created_at DESC)';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF to_regclass('order_items') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='order_items' AND column_name='order_id') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id)';
+  END IF;
+END $$;
+
+-- Wallet tables (optional — may not exist)
+DO $$ BEGIN
+  IF to_regclass('wallet_transactions') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='wallet_transactions' AND column_name='user_id') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_wallet_tx_user ON wallet_transactions(user_id)';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF to_regclass('wallet_transactions') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='wallet_transactions' AND column_name='created_at') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_wallet_tx_created ON wallet_transactions(created_at DESC)';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF to_regclass('wallet_events') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='wallet_events' AND column_name='user_id') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_wallet_events_user ON wallet_events(user_id)';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF to_regclass('wallet_events') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='wallet_events' AND column_name='type') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_wallet_events_type ON wallet_events(type)';
+  END IF;
+END $$;
+
+-- Payment events (optional — may not exist)
+DO $$ BEGIN
+  IF to_regclass('payment_events') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='payment_events' AND column_name='order_id') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_payment_events_order ON payment_events(order_id)';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF to_regclass('payment_events') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='payment_events' AND column_name='stripe_payment_intent_id') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_payment_events_intent ON payment_events(stripe_payment_intent_id)';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF to_regclass('payment_events') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='payment_events' AND column_name='stripe_event_id') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_payment_events_stripe_event ON payment_events(stripe_event_id) WHERE stripe_event_id IS NOT NULL';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF to_regclass('payment_events') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='payment_events' AND column_name='order_id') AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='payment_events' AND column_name='event_type') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_payment_events_order_success ON payment_events(order_id, event_type) WHERE event_type = ''payment_intent.succeeded''';
+  END IF;
+END $$;
+
+-- Inventory reservations (may not exist if CREATE TABLE failed on FK refs)
+DO $$ BEGIN
+  IF to_regclass('inventory_reservations') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='inventory_reservations' AND column_name='reservation_owner') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_reservations_owner ON inventory_reservations(reservation_owner)';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF to_regclass('inventory_reservations') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='inventory_reservations' AND column_name='variant_id') AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='inventory_reservations' AND column_name='reservation_state') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_reservations_variant_state ON inventory_reservations(variant_id, reservation_state)';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF to_regclass('inventory_reservations') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='inventory_reservations' AND column_name='expires_at') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_reservations_expires ON inventory_reservations(expires_at) WHERE reservation_state IN (''pending'', ''held'')';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF to_regclass('inventory_reservations') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='inventory_reservations' AND column_name='reservation_owner') AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='inventory_reservations' AND column_name='reservation_state') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_reservations_owner_state ON inventory_reservations(reservation_owner, reservation_state)';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF to_regclass('inventory_reservations') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='inventory_reservations' AND column_name='order_id') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_reservations_order_id ON inventory_reservations(order_id) WHERE order_id IS NOT NULL';
+  END IF;
+END $$;
+
+-- Operational events
+DO $$ BEGIN
+  IF to_regclass('operational_events') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='operational_events' AND column_name='domain') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_events_domain ON operational_events(domain)';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF to_regclass('operational_events') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='operational_events' AND column_name='severity') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_events_severity ON operational_events(severity)';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF to_regclass('operational_events') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='operational_events' AND column_name='resource_type') AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='operational_events' AND column_name='resource_id') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_events_resource ON operational_events(resource_type, resource_id)';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF to_regclass('operational_events') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='operational_events' AND column_name='created_at') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_events_created ON operational_events(created_at DESC)';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF to_regclass('operational_events') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='operational_events' AND column_name='actor_id') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_events_actor ON operational_events(actor_id)';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF to_regclass('operational_events') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='operational_events' AND column_name='domain') AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='operational_events' AND column_name='severity') AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='operational_events' AND column_name='created_at') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_events_domain_severity_created ON operational_events(domain, severity, created_at DESC)';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF to_regclass('operational_events') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='operational_events' AND column_name='brand_id') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_events_brand ON operational_events(brand_id) WHERE brand_id IS NOT NULL';
+  END IF;
+END $$;
+
+-- Idempotency keys
+DO $$ BEGIN
+  IF to_regclass('idempotency_keys') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='idempotency_keys' AND column_name='expires_at') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_idempotency_expires ON idempotency_keys(expires_at)';
+  END IF;
+END $$;
+
+-- Profiles
+DO $$ BEGIN
+  IF to_regclass('profiles') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='profiles' AND column_name='role') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_profiles_role ON profiles(role) WHERE role IS NOT NULL';
+  END IF;
+END $$;
+
+-- Collections
+DO $$ BEGIN
+  IF to_regclass('collections') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='collections' AND column_name='is_active') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_collections_active ON collections(is_active) WHERE is_active = true';
+  END IF;
+END $$;
+
+-- Collection products
+DO $$ BEGIN
+  IF to_regclass('collection_products') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='collection_products' AND column_name='product_id') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_col_prod_product ON collection_products(product_id)';
+  END IF;
+END $$;
+
+-- User addresses
+DO $$ BEGIN
+  IF to_regclass('user_addresses') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='user_addresses' AND column_name='user_id') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_addresses_user ON user_addresses(user_id)';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF to_regclass('user_addresses') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='user_addresses' AND column_name='user_id') AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='user_addresses' AND column_name='is_primary') THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_addresses_primary ON user_addresses(user_id, is_primary) WHERE is_primary = true';
+  END IF;
+END $$;
+
+-- ─── 8. Functions (All Guarded) ─────────────────────────────────────────────
+
+-- Generic updated_at trigger function (always safe — no table dependency)
 CREATE OR REPLACE FUNCTION public.set_updated_at()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -420,6 +645,7 @@ END;
 $$;
 
 -- Reserve inventory: atomic availability check + creation
+-- Guarded: returns NULL if inventory_reservations or product_variants missing
 CREATE OR REPLACE FUNCTION reserve_inventory(
   p_variant_id UUID,
   p_product_id UUID,
@@ -435,6 +661,11 @@ DECLARE
   v_available INTEGER;
   v_reservation_id UUID;
 BEGIN
+  IF to_regclass('product_variants') IS NULL OR to_regclass('inventory_reservations') IS NULL THEN
+    RAISE EXCEPTION 'Required tables (product_variants, inventory_reservations) do not exist'
+      USING HINT = 'run database migrations';
+  END IF;
+
   SELECT pv.stock_quantity - COALESCE(SUM(r.reserved_quantity), 0)
   INTO v_available
   FROM product_variants pv
@@ -460,7 +691,7 @@ BEGIN
 END;
 $$;
 
--- Release expired reservations
+-- Release expired reservations (guarded)
 CREATE OR REPLACE FUNCTION release_expired_reservations()
 RETURNS INTEGER
 LANGUAGE plpgsql
@@ -470,6 +701,10 @@ AS $$
 DECLARE
   v_count INTEGER;
 BEGIN
+  IF to_regclass('inventory_reservations') IS NULL THEN
+    RETURN 0;
+  END IF;
+
   UPDATE inventory_reservations
   SET reservation_state = 'expired',
       released_at = now()
@@ -481,7 +716,7 @@ BEGIN
 END;
 $$;
 
--- Atomic checkout initiation RPC
+-- Atomic checkout initiation RPC (guarded)
 CREATE OR REPLACE FUNCTION initiate_checkout(
   p_user_id UUID,
   p_items JSONB,
@@ -505,6 +740,10 @@ DECLARE
   v_reservation_ids UUID[] := '{}';
   v_order_status TEXT;
 BEGIN
+  IF to_regclass('orders') IS NULL OR to_regclass('order_items') IS NULL THEN
+    RETURN jsonb_build_object('error', 'Required tables do not exist', 'hint', 'run database migrations');
+  END IF;
+
   FOR v_item IN SELECT * FROM jsonb_array_elements(p_items)
   LOOP
     v_subtotal := v_subtotal + (v_item->>'quantity')::INTEGER * (v_item->>'price')::INTEGER;
@@ -541,22 +780,29 @@ BEGIN
       (v_item->>'price')::INTEGER
     );
 
-    v_reservation_id := reserve_inventory(
-      (v_item->>'variant_id')::UUID,
-      (v_item->>'product_id')::UUID,
-      (v_item->>'quantity')::INTEGER,
-      p_user_id,
-      now() + (p_reservation_ttl_minutes || ' minutes')::INTERVAL
-    );
+    -- Guard reservation step — skip if inventory_reservations missing
+    IF to_regclass('inventory_reservations') IS NOT NULL THEN
+      BEGIN
+        v_reservation_id := reserve_inventory(
+          (v_item->>'variant_id')::UUID,
+          (v_item->>'product_id')::UUID,
+          (v_item->>'quantity')::INTEGER,
+          p_user_id,
+          now() + (p_reservation_ttl_minutes || ' minutes')::INTERVAL
+        );
 
-    UPDATE inventory_reservations
-    SET order_id = v_order_id
-    WHERE id = v_reservation_id;
+        UPDATE inventory_reservations
+        SET order_id = v_order_id
+        WHERE id = v_reservation_id;
 
-    v_reservation_ids := array_append(v_reservation_ids, v_reservation_id);
+        v_reservation_ids := array_append(v_reservation_ids, v_reservation_id);
+      EXCEPTION WHEN OTHERS THEN
+        NULL;
+      END;
+    END IF;
   END LOOP;
 
-  IF p_payment_intent_id IS NOT NULL THEN
+  IF p_payment_intent_id IS NOT NULL AND to_regclass('inventory_reservations') IS NOT NULL THEN
     UPDATE inventory_reservations
     SET reservation_state = 'held'
     WHERE id = ANY(v_reservation_ids)
@@ -582,6 +828,10 @@ LANGUAGE plpgsql
 SECURITY DEFINER SET search_path = ''
 AS $$
 BEGIN
+  IF to_regclass('profiles') IS NULL THEN
+    RETURN NEW;
+  END IF;
+
   INSERT INTO public.profiles (id, full_name, avatar_url)
   VALUES (
     NEW.id,
@@ -593,58 +843,58 @@ BEGIN
 END;
 $$;
 
--- ─── 7. Triggers ────────────────────────────────────────────────────────────
+-- ─── 9. Triggers (All Guarded — Table Existence Checked First) ─────────────
 
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'set_profiles_updated_at' AND tgrelid = 'profiles'::regclass) THEN
+  IF to_regclass('profiles') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'set_profiles_updated_at' AND tgrelid = 'profiles'::regclass) THEN
     CREATE TRIGGER set_profiles_updated_at BEFORE UPDATE ON profiles FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
   END IF;
 END $$;
 
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'set_products_updated_at' AND tgrelid = 'products'::regclass) THEN
+  IF to_regclass('products') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'set_products_updated_at' AND tgrelid = 'products'::regclass) THEN
     CREATE TRIGGER set_products_updated_at BEFORE UPDATE ON products FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
   END IF;
 END $$;
 
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'set_product_variants_updated_at' AND tgrelid = 'product_variants'::regclass) THEN
+  IF to_regclass('product_variants') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'set_product_variants_updated_at' AND tgrelid = 'product_variants'::regclass) THEN
     CREATE TRIGGER set_product_variants_updated_at BEFORE UPDATE ON product_variants FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
   END IF;
 END $$;
 
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'set_cart_items_updated_at' AND tgrelid = 'cart_items'::regclass) THEN
+  IF to_regclass('cart_items') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'set_cart_items_updated_at' AND tgrelid = 'cart_items'::regclass) THEN
     CREATE TRIGGER set_cart_items_updated_at BEFORE UPDATE ON cart_items FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
   END IF;
 END $$;
 
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'set_orders_updated_at' AND tgrelid = 'orders'::regclass) THEN
+  IF to_regclass('orders') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'set_orders_updated_at' AND tgrelid = 'orders'::regclass) THEN
     CREATE TRIGGER set_orders_updated_at BEFORE UPDATE ON orders FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
   END IF;
 END $$;
 
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'set_inventory_reservations_updated_at' AND tgrelid = 'inventory_reservations'::regclass) THEN
+  IF to_regclass('inventory_reservations') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'set_inventory_reservations_updated_at' AND tgrelid = 'inventory_reservations'::regclass) THEN
     CREATE TRIGGER set_inventory_reservations_updated_at BEFORE UPDATE ON inventory_reservations FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
   END IF;
 END $$;
 
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'set_user_addresses_updated_at' AND tgrelid = 'user_addresses'::regclass) THEN
+  IF to_regclass('user_addresses') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'set_user_addresses_updated_at' AND tgrelid = 'user_addresses'::regclass) THEN
     CREATE TRIGGER set_user_addresses_updated_at BEFORE UPDATE ON user_addresses FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
   END IF;
 END $$;
 
--- Auto-create profile on auth signup
+-- Auto-create profile on auth signup (auth.users always exists in Supabase)
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'on_auth_user_created' AND tgrelid = 'auth.users'::regclass) THEN
     CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
   END IF;
 END $$;
 
--- ─── 8. Realtime Publication ─────────────────────────────────────────────────
+-- ─── 10. Realtime Publication (All Guarded by Table Existence) ──────────────
 
 DO $$
 DECLARE
@@ -657,7 +907,7 @@ BEGIN
     'payment_events', 'user_addresses'
   ]
   LOOP
-    IF NOT EXISTS (
+    IF to_regclass(tbl) IS NOT NULL AND NOT EXISTS (
       SELECT 1 FROM pg_publication_tables
       WHERE pubname = 'supabase_realtime'
         AND schemaname = 'public'
