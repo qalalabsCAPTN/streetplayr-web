@@ -118,7 +118,7 @@ export default function EntryGate() {
               style={{ perspective: "800px" }}
             >
               <div
-                className="grid h-28 w-28 place-items-center bg-white text-black"
+                className="grid h-28 w-28 place-items-center rounded-xl bg-white text-black"
                 style={{
                   boxShadow:
                     "0 0 40px rgba(157,78,221,0.55), 0 0 80px rgba(157,78,221,0.28), 0 0 0 1px rgba(255,255,255,0.15)",
@@ -139,7 +139,8 @@ export default function EntryGate() {
                 <motion.span
                   key={i}
                   aria-hidden="true"
-                  className="font-gothic text-3xl sm:text-4xl text-white leading-none"
+                  className="text-3xl sm:text-4xl text-white leading-none"
+                  style={{ fontFamily: "'Anton', sans-serif" }}
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{
@@ -153,15 +154,7 @@ export default function EntryGate() {
               ))}
             </motion.div>
 
-            {/* Tagline */}
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.1, duration: 0.5 }}
-              className="font-mono text-xs uppercase tracking-[0.32em] text-white/35"
-            >
-              Enter The Play
-            </motion.p>
+            {/* tagline removed per Step 2 */}
           </div>
 
           {/* Tap / click prompt */}
