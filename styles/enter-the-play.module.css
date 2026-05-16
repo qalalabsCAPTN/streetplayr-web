@@ -1,0 +1,108 @@
+.container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #0a0015;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 60px 20px 80px;
+  overflow: hidden;
+  z-index: 999;
+  opacity: 1;
+  transition: opacity 0.6s ease-out;
+}
+
+.container.exit {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.logo {
+  animation: fadeIn 0.6s ease-out;
+  width: 280px;
+  max-width: 90%;
+  height: auto;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.star-container {
+  flex: 1;
+  width: 100%;
+  max-width: 500px;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+}
+
+.star-container:active {
+  cursor: grabbing;
+}
+
+.star-loader {
+  width: 100%;
+  height: 100%;
+  background: #0a0015;
+}
+
+.enter-button {
+  border: 1px solid #c77dff;
+  background: transparent;
+  color: #c77dff;
+  padding: 14px 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 0 0 8px #9d4edd;
+  box-shadow: 0 4px 20px rgba(157, 78, 221, 0.3);
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.enter-button:hover {
+  background: rgba(157, 78, 221, 0.1);
+  text-shadow: 0 0 16px #9d4edd;
+  box-shadow: 0 6px 30px rgba(157, 78, 221, 0.5);
+  transform: scale(1.05);
+}
+
+.enter-button:active {
+  transform: scale(0.98);
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 40px 20px 60px;
+  }
+
+  .logo {
+    width: 200px;
+  }
+
+  .star-container {
+    max-width: 300px;
+  }
+
+  .enter-button {
+    padding: 12px 24px;
+    font-size: 12px;
+  }
+}
