@@ -58,7 +58,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
     <main className="pt-24">
       <div className="flex flex-col lg:flex-row w-full">
         {/* Gallery — Left 2/3 (Sticky on desktop) */}
-        <div className="lg:w-2/3 lg:sticky lg:top-24 lg:self-start lg:h-[calc(100vh-96px)]">
+        <div className="lg:w-2/3 lg:sticky lg:top-24 lg:h-[calc(100vh-96px)]">
           <ProductGallery
             images={props.images}
             title={props.title}
@@ -66,8 +66,8 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
           />
         </div>
 
-        {/* Product Info — Right 1/3 (Scrolls with page) */}
-        <div className="lg:w-1/3">
+        {/* Product Info — Right 1/3 (Scrolls with page, taller than viewport) */}
+        <div className="lg:w-1/3 lg:min-h-[calc(100vh+200px)]">
           <ProductInfo
             productId={props.productId}
             title={props.title}
