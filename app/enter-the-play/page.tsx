@@ -1,9 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
-import Image from "next/image";
 import styles from "@/styles/enter-the-play.module.css";
 
 const GLBStar = dynamic(() => import("@/components/ui/GLBStar"), {
@@ -13,7 +12,32 @@ const GLBStar = dynamic(() => import("@/components/ui/GLBStar"), {
 
 export default function EnterThePlay() {
   const router = useRouter();
+  const [progress, setProgress] = useState(0);
+  const [ready, setReady] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
+
+  useEffect(() => {
+    let p = 0;
+    const id = setInterval(() => {
+      p += Math.random() * 14 + 4;
+      if (p >= 100) {
+        p = 100;
+        setReady(true);
+        clearInterval(id);
+      }
+      setProgress(p);
+    }, 180);
+    return () => clearInterval(id);
+  }, []);
+
+  const particles = useMemo(() =>
+    Array.from({ length: 28 }, (_, i) => ({
+      left: Math.random() * 100,
+      delay: Math.random() * 5,
+      dur: 4 + Math.random() * 6,
+      size: 1 + Math.random() * 2,
+    })),
+  []);
 
   const handleEnter = () => {
     setIsExiting(true);
@@ -22,24 +46,71 @@ export default function EnterThePlay() {
 
   return (
     <div className={`${styles["container"]} ${isExiting ? styles["exit"] : ""}`}>
-      <div className={styles["logo"]}>
-        <Image
-          src="/assets/streetplayr-logo.png"
-          alt="StreetplayR"
-          width={280}
-          height={100}
-          priority
-          unoptimized
-        />
+      {/* Background layers */}
+      <div className={styles["bg-stage"]}>
+        <div className={styles["bg-grid"]} />
+        <div className={styles["bg-blob-purple"]} />
+        <div className={styles["bg-blob-green"]} />
+        <div className={styles["bg-noise"]} />
+        <div className={styles["bg-scanline"]} />
       </div>
 
-      <div className={styles["star-container"]}>
-        <GLBStar modelPath="/models/streetplayr-star/starchrome.glb" />
+      {/* Particles */}
+      <div className={styles["particles"]}>
+        {particles.map((p, i) => (
+          <span
+            key={i}
+            className={styles["particle"]}
+            style={{
+              left: `${p.left}%`,
+              bottom: "-10px",
+              width: p.size,
+              height: p.size,
+              "--dur": `${p.dur}s`,
+              "--delay": `${p.delay}s`,
+            } as React.CSSProperties}
+          />
+        ))}
       </div>
 
-      <button className={styles["enter-button"]} onClick={handleEnter}>
-        ENTER THE PLAY
-      </button>
+      {/* Content */}
+      <div className={styles["content"]}>
+        <div className={styles["star-container"]}>
+          <GLBStar modelPath="/models/streetplayr-star/starchrome.glb" />
+        </div>
+
+        <div className={styles["brand"]}>
+          <h1 className={styles["brand-title"]}>StreetplayR</h1>
+          <div className={styles["tagline"]}>FW · 26 · DROP 01 · 8 PIECES</div>
+        </div>
+
+        {ready ? (
+          <button className={styles["enter-button"]} onClick={handleEnter}>
+            <span className={styles["dot-pulse"]} />
+            <span>Click to Enter</span>
+            <span className={styles["arrow-icon"]}>→</span>
+          </button>
+        ) : (
+          <div className={styles["loading-state"]}>
+            <div className={styles["loading-label"]}>
+              LOADING DROP · {Math.floor(progress).toString().padStart(2, "0")}%
+            </div>
+            <div className={styles["loading-bar"]}>
+              <div
+                className={styles["loading-bar-fill"]}
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Bottom metadata */}
+      <div className={styles["meta"]}>
+        <span>v1.0.0 · STREETPLAYR.COM</span>
+        <span>SYSTEM READY {ready ? "★" : ""}</span>
+        <span>MUMBAI · 04:18 IST</span>
+      </div>
     </div>
   );
 }

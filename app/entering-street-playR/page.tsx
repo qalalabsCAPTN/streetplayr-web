@@ -26,7 +26,7 @@ export default function EnteringStreetPlayR() {
         controls={false}
         onEnded={handleVideoEnd}
       >
-        <source src="/videos/entering-street-playR.mp4" type="video/mp4" />
+        <source src="/assets/videos/WebAnimation_V1.mp4" type="video/mp4" />
       </video>
 
       <button className={styles["skip-button"]} onClick={handleSkip}>
