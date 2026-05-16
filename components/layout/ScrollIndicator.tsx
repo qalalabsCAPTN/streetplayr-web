@@ -1,12 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useLenis } from "lenis/react";
 
 export default function ScrollIndicator() {
   const [sections, setSections] = useState<Element[]>([]);
   const [activeIdx, setActiveIdx] = useState(0);
-  const lenis = useLenis();
 
   useEffect(() => {
     const els = Array.from(document.querySelectorAll("main > section, main section[data-section]"));
@@ -50,7 +48,7 @@ export default function ScrollIndicator() {
           key={i}
           type="button"
           aria-label={`Scroll to section ${i + 1}`}
-          onClick={() => lenis?.scrollTo(section as HTMLElement, { duration: 1.2 })}
+          onClick={() => section.scrollIntoView({ behavior: "smooth", block: "start" })}
           className="rounded-full transition-all duration-300"
           style={
             i === activeIdx

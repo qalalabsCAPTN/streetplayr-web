@@ -58,7 +58,7 @@ export default function ProductGallery({ images, title, heroImage }: ProductGall
       </div>
 
       {/* Right Image Column — Dynamic / Scrollable Gallery */}
-      <div className="w-full lg:w-1/2 lg:h-full lg:min-h-0 p-4 lg:p-8 lg:overflow-y-auto space-y-6">
+      <div className="w-full lg:w-1/2 lg:h-full lg:min-h-0 p-4 lg:p-8 space-y-6">
         {allImages.slice(1).map((src, i) => (
           <div key={i} className="relative aspect-[4/5] bg-[#050505] overflow-hidden border border-white/5">
             <Image

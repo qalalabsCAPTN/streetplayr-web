@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import SmoothScrolling from "@/components/ui/SmoothScrolling";
 import CustomCursor from "@/components/ui/CustomCursor";
 
 export const metadata: Metadata = {
@@ -23,9 +22,7 @@ export default function JournalLayout({
         `
       }} />
       <CustomCursor />
-      <SmoothScrolling>
-        <main>{children}</main>
-      </SmoothScrolling>
+      <main>{children}</main>
     </div>
   );
 }
