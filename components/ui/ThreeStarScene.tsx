@@ -2,17 +2,10 @@
 
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
+import { EffectComposer, RenderPass, UnrealBloomPass } from "three-stdlib";
 
 export default function ThreeStarScene({ size = 340 }: { size?: number }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const sceneRef = useRef<{
-    scene: THREE.Scene;
-    camera: THREE.PerspectiveCamera;
-    renderer: THREE.WebGLRenderer;
-    starGroup: THREE.Group;
-    clock: THREE.Clock;
-    animId: number;
-  } | null>(null);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -36,6 +29,19 @@ export default function ThreeStarScene({ size = 340 }: { size?: number }) {
     renderer.toneMappingExposure = 1.2;
     container.appendChild(renderer.domElement);
 
+    // Bloom post-processing
+    const composer = new EffectComposer(renderer);
+    const renderPass = new RenderPass(scene, camera);
+    composer.addPass(renderPass);
+
+    const bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(size, size),
+      1.2, // strength
+      0.5, // radius
+      0.2, // threshold
+    );
+    composer.addPass(bloomPass);
+
     // Lights
     const ambientLight = new THREE.AmbientLight(0x404060, 0.5);
     scene.add(ambientLight);
@@ -57,13 +63,13 @@ export default function ThreeStarScene({ size = 340 }: { size?: number }) {
     const starGroup = new THREE.Group();
     scene.add(starGroup);
 
-    // Star material — WHITE with purple glow
+    // Star material — PURE WHITE, no emissive (bloom from post-processing)
     const starMaterial = new THREE.MeshStandardMaterial({
       color: 0xffffff,
-      emissive: 0x9d4edd,
-      emissiveIntensity: 1.2,
-      metalness: 0.5,
-      roughness: 0.1,
+      emissive: 0x000000,
+      emissiveIntensity: 0,
+      metalness: 0.2,
+      roughness: 0.3,
     });
 
     // 4 STRAIGHT POINTS — N/S/E/W
@@ -102,16 +108,6 @@ export default function ThreeStarScene({ size = 340 }: { size?: number }) {
     centerMesh.castShadow = true;
     starGroup.add(centerMesh);
 
-    // Subtle glow sphere behind
-    const glowGeo = new THREE.SphereGeometry(0.8, 16, 16);
-    const glowMat = new THREE.MeshBasicMaterial({
-      color: 0x9d4edd,
-      transparent: true,
-      opacity: 0.08,
-    });
-    const glowMesh = new THREE.Mesh(glowGeo, glowMat);
-    starGroup.add(glowMesh);
-
     const clock = new THREE.Clock();
 
     // Drag interaction
@@ -147,11 +143,23 @@ export default function ThreeStarScene({ size = 340 }: { size?: number }) {
     window.addEventListener("pointermove", onPointerMove);
     window.addEventListener("pointerup", onPointerUp);
 
+    // Handle resize
+    const onResize = () => {
+      const w = size;
+      const h = size;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+      composer.setSize(w, h);
+    };
+    window.addEventListener("resize", onResize);
+
     // Float animation
     const floatAmplitude = 0.02;
     const floatSpeed = 2;
 
     // Animation loop
+    let animId: number;
     const animate = () => {
       const elapsed = clock.getElapsedTime();
 
@@ -161,33 +169,22 @@ export default function ThreeStarScene({ size = 340 }: { size?: number }) {
         velocityX *= 0.95;
         starGroup.rotation.y += velocityY;
         starGroup.rotation.x += velocityX;
-        // Clamp vertical rotation
-        starGroup.rotation.x = Math.max(
-          -0.5,
-          Math.min(0.5, starGroup.rotation.x),
-        );
+        starGroup.rotation.x = Math.max(-0.5, Math.min(0.5, starGroup.rotation.x));
       }
 
-      // Float
       starGroup.position.y = Math.sin(elapsed * floatSpeed) * floatAmplitude;
 
-      renderer.render(scene, camera);
-      sceneRef.current!.animId = requestAnimationFrame(animate);
+      composer.render();
+      animId = requestAnimationFrame(animate);
     };
-    sceneRef.current = {
-      scene,
-      camera,
-      renderer,
-      starGroup,
-      clock,
-      animId: requestAnimationFrame(animate),
-    };
+    animId = requestAnimationFrame(animate);
 
     return () => {
-      cancelAnimationFrame(sceneRef.current!.animId);
+      cancelAnimationFrame(animId);
       renderer.domElement.removeEventListener("pointerdown", onPointerDown);
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("resize", onResize);
       renderer.dispose();
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
@@ -195,13 +192,5 @@ export default function ThreeStarScene({ size = 340 }: { size?: number }) {
     };
   }, [size]);
 
-  return (
-    <div
-      ref={containerRef}
-      style={{
-        width: size,
-        height: size,
-      }}
-    />
-  );
+  return <div ref={containerRef} style={{ width: size, height: size }} />;
 }

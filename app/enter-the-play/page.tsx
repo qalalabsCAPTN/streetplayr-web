@@ -9,11 +9,19 @@ import ThreeStarScene from "@/components/ui/ThreeStarScene";
 export default function EnterThePlayPage() {
   const router = useRouter();
   const [show, setShow] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setShow(true), 50);
     return () => clearTimeout(t);
   }, []);
+
+  const handleEnter = async () => {
+    if (isExiting) return;
+    setIsExiting(true);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    router.push("/entering-street-playR");
+  };
 
   return (
     <div
@@ -27,6 +35,8 @@ export default function EnterThePlayPage() {
         justifyContent: "space-between",
         padding: "60px 20px 80px",
         overflow: "hidden",
+        opacity: isExiting ? 0 : 1,
+        transition: "opacity 0.6s ease-out",
       }}
     >
       {/* Particle field */}
@@ -99,12 +109,7 @@ export default function EnterThePlayPage() {
       >
         <EnterButton
           label="ENTER THE PLAY"
-          onClick={() => {
-            const el = document.querySelector(".opening-screen-inner") as HTMLElement;
-            if (el) el.style.opacity = "0";
-            else document.body.style.opacity = "0";
-            setTimeout(() => router.push("/entering-street-playR"), 600);
-          }}
+          onClick={handleEnter}
         />
       </div>
     </div>

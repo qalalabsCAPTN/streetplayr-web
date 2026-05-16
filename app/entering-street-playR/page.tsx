@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import styles from "@/styles/video-page.module.css";
 
 export default function EnteringStreetPlayR() {
   const router = useRouter();
@@ -13,22 +14,22 @@ export default function EnteringStreetPlayR() {
   };
 
   const handleVideoEnd = () => {
-    setIsExiting(true);
-    setTimeout(() => router.push("/home"), 600);
+    handleSkip();
   };
 
   return (
-    <div className={`video-page ${isExiting ? "exit" : ""}`}>
+    <div className={`${styles["video-page"]} ${isExiting ? styles["exit"] : ""}`}>
       <video
-        className="preloader-video"
+        className={styles["preloader-video"]}
         autoPlay
         muted
+        controls={false}
         onEnded={handleVideoEnd}
       >
         <source src="/videos/entering-street-playR.mp4" type="video/mp4" />
       </video>
 
-      <button className="skip-button" onClick={handleSkip}>
+      <button className={styles["skip-button"]} onClick={handleSkip}>
         SKIP
       </button>
     </div>
