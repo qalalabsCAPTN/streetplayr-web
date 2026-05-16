@@ -1,15 +1,11 @@
 import type { Metadata } from "next";
 import { Anton, Bebas_Neue, JetBrains_Mono, Space_Grotesk } from "next/font/google";
-import Loader from "@/components/ui/Loader";
-import EntryGate from "@/components/ui/EntryGate";
 import AuthProvider from "@/components/auth/AuthProvider";
 import RealtimeProvider from "@/components/auth/RealtimeProvider";
 import SmoothScrolling from "@/components/ui/SmoothScrolling";
 import { getProfileAction } from "@/app/actions/auth";
 import "./globals.css";
 
-// Root layout calls getProfileAction() → createClient() → cookies().
-// This requires a request context — prevent static prerender attempts.
 export const dynamic = 'force-dynamic';
 
 const display = Bebas_Neue({
@@ -58,8 +54,6 @@ export default async function RootLayout({
         <AuthProvider initialUser={user}>
           <RealtimeProvider>
             <SmoothScrolling>
-              <EntryGate />
-              <Loader />
               {children}
             </SmoothScrolling>
           </RealtimeProvider>

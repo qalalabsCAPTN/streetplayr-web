@@ -1,9 +1,5 @@
-import LaunchExperience from "@/components/launch/LaunchExperience";
+import { redirect } from "next/navigation";
 
-export default function Home() {
-  return (
-    <main className="bg-black text-white min-h-screen">
-      <LaunchExperience />
-    </main>
-  );
+export default function StoreHome() {
+  redirect("/enter-the-play");
 }
