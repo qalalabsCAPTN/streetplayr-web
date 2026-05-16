@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Anton, Bebas_Neue, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import AuthProvider from "@/components/auth/AuthProvider";
 import RealtimeProvider from "@/components/auth/RealtimeProvider";
-import SmoothScrolling from "@/components/ui/SmoothScrolling";
 import { getProfileAction } from "@/app/actions/auth";
 import "./globals.css";
 
@@ -53,9 +52,7 @@ export default async function RootLayout({
       <body className="min-h-full bg-black text-white">
         <AuthProvider initialUser={user}>
           <RealtimeProvider>
-            <SmoothScrolling>
-              {children}
-            </SmoothScrolling>
+            {children}
           </RealtimeProvider>
         </AuthProvider>
       </body>
