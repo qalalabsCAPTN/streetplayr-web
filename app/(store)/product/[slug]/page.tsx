@@ -6,6 +6,44 @@ import { ProductQueries } from "@/lib/products/queries";
 import { createClient } from "@/lib/supabase/server";
 import { formatPrice, formatProductTitle } from "@/lib/utils/format";
 
+// ── Mock product for dev when Supabase isn't configured ──
+const MOCK_PRODUCT = {
+  id: "mock-gravity-parka",
+  name: "Gravity Parka",
+  price: 2499,
+  description:
+    "A study in suspended animation. The Gravity Parka distills utility into its most essential form — a shell that moves with you, not against you. Cut from Japanese 3-layer ripstop with taped seams and a stealth hood that disappears when you don't need it.",
+  image_url:
+    "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?q=80&w=2000&auto=format&fit=crop",
+  slug: "gravity-parka",
+  metadata: {
+    points: "420",
+    gallery_images: [
+      "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?q=80&w=2000&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1544441893-675973e31985?q=80&w=2000&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1603252109303-2751441dd157?q=80&w=2000&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2000&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1608236426742-0b656403b250?q=80&w=2000&auto=format&fit=crop",
+    ],
+    colors: [
+      { id: "black", name: "Onyx Black", hex: "#0a0a0a" },
+      { id: "olive", name: "Olive Drab", hex: "#4a5d23" },
+      { id: "ash", name: "Ash Grey", hex: "#8a8a8a" },
+    ],
+  },
+  variants: [
+    { id: "v-gp-s", size: "S", color: "black", stock_quantity: 12 },
+    { id: "v-gp-m", size: "M", color: "black", stock_quantity: 8 },
+    { id: "v-gp-l", size: "L", color: "black", stock_quantity: 15 },
+    { id: "v-gp-xl", size: "XL", color: "black", stock_quantity: 5 },
+    { id: "v-gp-s-olive", size: "S", color: "olive", stock_quantity: 6 },
+    { id: "v-gp-m-olive", size: "M", color: "olive", stock_quantity: 10 },
+    { id: "v-gp-l-olive", size: "L", color: "olive", stock_quantity: 4 },
+    { id: "v-gp-s-ash", size: "S", color: "ash", stock_quantity: 3 },
+    { id: "v-gp-m-ash", size: "M", color: "ash", stock_quantity: 7 },
+  ],
+};
+
 async function resolveProduct(slug: string) {
   // 1. Exact match
   let product = await ProductQueries.getProductBySlug(slug);
@@ -39,9 +77,17 @@ async function resolveProduct(slug: string) {
   return null;
 }
 
+async function getProduct(slug: string) {
+  const fromDb = await resolveProduct(slug);
+  if (fromDb) return fromDb;
+
+  // Fall back to mock data for dev UI iteration
+  return MOCK_PRODUCT;
+}
+
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const { slug } = await params;
-  const product = await resolveProduct(slug);
+  const product = await getProduct(slug);
   if (!product) return { title: "Product Not Found — Street PlayR" };
   const title = formatProductTitle(product.name);
   return {
@@ -61,7 +107,7 @@ export async function generateStaticParams() {
 
 export default async function ProductDetailPage({ params }: { params: { slug: string } }) {
   const { slug } = await params;
-  const product = await resolveProduct(slug);
+  const product = await getProduct(slug);
   if (!product) notFound();
 
   const variants = (product as any).variants ?? [];
