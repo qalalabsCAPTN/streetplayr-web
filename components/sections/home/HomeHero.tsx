@@ -10,7 +10,11 @@ export default function HomeHero() {
     <section className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-[#16111b]">
       {/* Cinematic Background */}
       <div className="absolute inset-0 z-0">
-        <div className="w-full h-full bg-gradient-to-br from-[#2e1a3d] via-[#16111b] to-[#050505] opacity-80" />
+        <img
+          alt=""
+          src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9HX8TQLHMYk20qALqwkKNZBlyDmZ62RIF62ovxcikGQV5bz11KMVtewo3Pb00mQ0DukXcU16pcp_v99ftewvkxzn842aLLu7OJDOWLgu_7FXYiLhYjtnrGy5a5q0l0ltBrR_m9ALMyuVCr3hz4oS1aZm1dMzeBHOw2Bigi-NRoqkZrh84tgpGSBPJ9k27JVZVhlq-zAy3Lum3sf7SkEi37MFfqHAu1zFP8CpsHaAZV5KSnAMITDHzGxWf1RjdIUtriOaBhmrVJg"
+          className="w-full h-full object-cover opacity-60"
+        />
         <div className="absolute inset-0 scanline opacity-30" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/40" />
         <div className="absolute inset-0 grid-overlay opacity-20" />
@@ -30,12 +34,12 @@ export default function HomeHero() {
         <p>LATENCY: 12ms</p>
       </div>
 
-      {/* Join the Universe Modal */}
+      {/* Join the Universe Modal — popup overlay after preloader */}
       {joinOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setJoinOpen(false)}>
           <div className="relative z-10 w-full max-w-md mx-4 bg-[#1f1a23]/90 backdrop-blur-xl border border-[var(--sp-accent)]/30 p-8 shadow-[0_0_50px_rgba(132,43,210,0.2)]" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-start mb-8">
-              <h2 className="font-display text-[42px] md:text-[64px] text-[var(--sp-accent)] leading-none uppercase" style={{ fontFamily: "'Anton', sans-serif" }}>Join the<br />Universe</h2>
+              <h2 className="font-gothic text-[42px] md:text-[64px] text-[var(--sp-accent)] leading-none uppercase">Join the<br />Universe</h2>
               <span className="font-hud border border-[var(--sp-accent)] px-2 py-1 text-[var(--sp-accent)]">STREET_01</span>
             </div>
             <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); setJoinOpen(false); }}>
@@ -49,19 +53,17 @@ export default function HomeHero() {
                   <input className="w-full bg-[#39323d] border-b border-[var(--sp-border-subtle)] focus:border-[var(--sp-accent-2)] transition-colors font-hud text-[var(--sp-text-primary)] placeholder:text-[var(--sp-text-muted)] p-3 outline-none" placeholder="+X XXX XXX XXXX" type="tel" />
                 </div>
               </div>
-              <button type="submit" className="w-full bg-[var(--sp-accent)] py-4 font-bold text-[14px] tracking-[0.05em] uppercase text-[var(--sp-cta-text)] hover:bg-white hover:text-black transition-all duration-300 shadow-lg hover:shadow-[var(--sp-accent-glow)] group flex items-center justify-center gap-2">
+              <button type="submit" className="w-full bg-[var(--sp-accent)] py-4 mt-6 font-hud font-bold text-[14px] tracking-[0.05em] uppercase text-[var(--sp-cta-text)] hover:bg-white hover:text-black transition-all duration-300 shadow-lg hover:shadow-[var(--sp-accent-glow)] group flex items-center justify-center gap-2">
                 SUBMIT
                 <span className="inline-block group-hover:translate-x-1 transition-transform">→</span>
               </button>
-              <p className="font-hud text-[10px] text-[var(--sp-text-muted)] text-center leading-relaxed mt-4">
+              <p className="font-hud text-[10px] text-[var(--sp-text-secondary)] text-center leading-relaxed mt-4">
                 BY ENTERING, YOU CONSENT TO DATA TRANSMISSION WITHIN THE STREETPLAYR DECENTRALIZED PROTOCOL.
               </p>
             </form>
           </div>
         </div>
       )}
-
-      {/* Hero center — empty atmospheric space under modal overlay */}
     </section>
   );
 }
