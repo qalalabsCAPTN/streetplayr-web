@@ -6,6 +6,8 @@ import { ProductQueries } from "@/lib/products/queries";
 import { createClient } from "@/lib/supabase/server";
 import { formatPrice, formatProductTitle } from "@/lib/utils/format";
 
+export const dynamic = "force-dynamic";
+
 // ── Mock product for dev when Supabase isn't configured ──
 const MOCK_PRODUCT = {
   id: "mock-gravity-parka",
@@ -101,9 +103,6 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export async function generateStaticParams() {
-  return [];
-}
 
 export default async function ProductDetailPage({ params }: { params: { slug: string } }) {
   const { slug } = await params;
