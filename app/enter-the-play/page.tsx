@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import EnterButton from "@/components/ui/EnterButton";
-import Star3D from "@/components/ui/Star3D";
+import ThreeStarScene from "@/components/ui/ThreeStarScene";
 
 export default function EnterThePlayPage() {
   const router = useRouter();
@@ -87,7 +87,7 @@ export default function EnterThePlayPage() {
           transition: "opacity 0.8s ease-out 0.2s",
         }}
       >
-        <Star3D size={340} />
+        <ThreeStarScene size={340} />
       </div>
 
       {/* Layer 3: Enter Button */}
