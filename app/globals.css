@@ -215,13 +215,13 @@ a {
 /* ─── Step 1 UI Refinements ──────────────────────────────────────────────── */
 .collection-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px 24px; }
 .hero-video-content { display: flex; flex-direction: column; align-items: flex-start; text-align: left; padding-left: 64px; gap: 16px; }
-.pre-enter { border-radius: 12px; }
-.size-btn { border-radius: 12px; }
-.pcard { border-radius: 12px; overflow: hidden; }
-.btn--rounded { border-radius: 12px; }
-.chip-rounded { border-radius: 12px; }
-.join-modal-rounded { border-radius: 16px; }
-.join-chip-rounded { border-radius: 10px; }
+.pre-enter { border-radius: var(--br-lg); }
+.size-btn { border-radius: var(--br-lg); }
+.pcard { border-radius: var(--br-lg); overflow: hidden; }
+.btn--rounded { border-radius: var(--br-lg); }
+.chip-rounded { border-radius: var(--br-lg); }
+.join-modal-rounded { border-radius: var(--br-xl); }
+.join-chip-rounded { border-radius: var(--br-md); }
 .stock-alert { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-left: 3px solid #FF4D00; background: rgba(255,77,0,0.08); font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.2em; color: #ffffff; text-transform: uppercase; margin-bottom: 16px; }
 
 /* ─── Tier Tokens ──────────────────────────────────────────────────────────── */
@@ -485,7 +485,7 @@ a {
 .size-cell {
   padding: 12px 18px;
   border: 1px solid var(--sp-border-strong);
-  border-radius: 8px;
+  border-radius: var(--br-md);
   background: transparent;
   color: var(--sp-text-primary);
   font-family: 'Inter', sans-serif;
@@ -566,7 +566,7 @@ a {
   width: 100%;
   aspect-ratio: 3/4;
   overflow: hidden;
-  border-radius: 12px;
+  border-radius: var(--br-lg);
 }
 
 @media (max-width: 768px) {
@@ -609,7 +609,7 @@ a {
 .review-card {
   padding: 32px;
   background: var(--sp-bg-surface);
-  border-radius: 12px;
+  border-radius: var(--br-lg);
   border: 1px solid var(--sp-border-subtle);
   display: flex;
   flex-direction: column;
