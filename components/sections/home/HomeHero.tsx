@@ -1,129 +1,89 @@
 "use client";
 
-import { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
+import { useState } from "react";
 
 export default function HomeHero() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end start"],
-  });
-
-  const y = useTransform(scrollYProgress, [0, 1], ["0%", "40%"]);
-  const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
-  const scale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
-
-  const titleText = "REDEFINE".split("");
-  const subtitleText = "THE PLAY".split("");
+  const [joinOpen, setJoinOpen] = useState(false);
 
   return (
-    <section
-      ref={containerRef}
-      className="relative h-screen w-full overflow-hidden bg-[#050505]"
-    >
-      <motion.div
-        style={{ y, opacity, scale }}
-        className="absolute inset-0 h-full w-full"
-      >
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="h-full w-full object-cover opacity-80"
-        >
-          <source src="/assets/videos/WebAnimation_V1.mp4" type="video/mp4" />
-        </video>
-        {/* Luxury deep radial gradient overlay */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-black/40 to-black/90 mix-blend-multiply" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black" />
-      </motion.div>
+    <section className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-[#16111b]">
+      {/* Cinematic Background */}
+      <div className="absolute inset-0 z-0">
+        <div className="w-full h-full bg-gradient-to-br from-[#2e1a3d] via-[#16111b] to-[#050505] opacity-80" />
+        <div className="absolute inset-0 scanline opacity-30" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/40" />
+        <div className="absolute inset-0 grid-overlay opacity-20" />
+      </div>
 
-      <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 md:px-8 text-center mt-12">
-        {/* metadata/subtext removed */}
+      {/* HUD Overlays — left */}
+      <div className="absolute top-24 left-16 hidden lg:block font-hud text-[var(--sp-accent)]/60">
+        <p>REC [●] LIVE_SIGNAL_STRENGTH: 98.4%</p>
+        <p>LOC: 35.6895° N, 139.6917° E</p>
+        <p>TIME_STAMP: 04:22:11:09</p>
+      </div>
 
-        <h1 className="font-display flex flex-col items-center text-[15vw] md:text-[12vw] uppercase tracking-widest leading-[0.8] text-white">
-          <div className="flex overflow-hidden pb-4">
-            {titleText.map((char, index) => (
-              <motion.span
-                key={`t-${index}`}
-                initial={{ y: "100%", opacity: 0, rotateZ: 5 }}
-                animate={{ y: 0, opacity: 1, rotateZ: 0 }}
-                transition={{
-                  duration: 1.2,
-                  delay: 0.4 + index * 0.05,
-                  ease: [0.16, 1, 0.3, 1],
-                }}
-                className="inline-block"
-              >
-                {char}
-              </motion.span>
-            ))}
-          </div>
-          <div className="flex overflow-hidden relative text-white/50">
-            {/* Subtle hand-drawn premium accent */}
-            <motion.svg 
-              initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ pathLength: 1, opacity: 0.4 }}
-              transition={{ duration: 1.5, delay: 1.8, ease: "easeInOut" }}
-              className="absolute -inset-x-8 -inset-y-4 w-[calc(100%+4rem)] h-[calc(100%+2rem)] pointer-events-none z-0 text-[var(--sp-accent)]"
-              viewBox="0 0 400 100" 
-              fill="none" 
-              preserveAspectRatio="none"
-            >
-              <motion.path 
-                d="M 20 50 C 50 10, 350 10, 380 50 C 390 80, 350 95, 200 90 C 50 85, 10 70, 30 40" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                className="mix-blend-screen"
-              />
-            </motion.svg>
-            
-            <div className="flex relative z-10">
-              {subtitleText.map((char, index) => (
-                <motion.span
-                  key={`s-${index}`}
-                  initial={{ y: "100%", opacity: 0, rotateZ: -5 }}
-                  animate={{ y: 0, opacity: 1, rotateZ: 0 }}
-                  transition={{
-                    duration: 1.2,
-                    delay: 0.6 + index * 0.05,
-                    ease: [0.16, 1, 0.3, 1],
-                  }}
-                  className="inline-block"
-                >
-                  {char === " " ? "\u00A0" : char}
-                </motion.span>
-              ))}
+      {/* HUD Overlays — right */}
+      <div className="absolute bottom-12 right-16 hidden lg:block font-hud text-[var(--sp-accent)]/60 text-right">
+        <p>CORE_ENGINE: V1.0.4_BETA</p>
+        <p>CHROME_STAR_STATUS: ACTIVE</p>
+        <p>LATENCY: 12ms</p>
+      </div>
+
+      {/* Join the Universe Modal */}
+      {joinOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setJoinOpen(false)}>
+          <div className="relative z-10 w-full max-w-md mx-4 bg-[#1f1a23]/90 backdrop-blur-xl border border-[var(--sp-accent)]/30 p-8 shadow-[0_0_50px_rgba(132,43,210,0.2)]" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-start mb-8">
+              <h2 className="font-display text-[42px] md:text-[64px] text-[var(--sp-accent)] leading-none uppercase" style={{ fontFamily: "'Anton', sans-serif" }}>Join the<br />Universe</h2>
+              <span className="font-hud border border-[var(--sp-accent)] px-2 py-1 text-[var(--sp-accent)]">STREET_01</span>
             </div>
-            <motion.div 
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ duration: 1.5, delay: 1, ease: [0.16, 1, 0.3, 1] }}
-              className="absolute bottom-1/2 left-0 right-0 h-[2px] bg-white origin-left"
-            />
+            <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); setJoinOpen(false); }}>
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <label className="font-hud text-[var(--sp-text-secondary)] block">USER_NAME_INPUT</label>
+                  <input className="w-full bg-[#39323d] border-b border-[var(--sp-border-subtle)] focus:border-[var(--sp-accent-2)] transition-colors font-hud text-[var(--sp-text-primary)] placeholder:text-[var(--sp-text-muted)] p-3 outline-none" placeholder="ENTER_FULL_NAME" type="text" />
+                </div>
+                <div className="space-y-1">
+                  <label className="font-hud text-[var(--sp-text-secondary)] block">USER_PHONE_INPUT</label>
+                  <input className="w-full bg-[#39323d] border-b border-[var(--sp-border-subtle)] focus:border-[var(--sp-accent-2)] transition-colors font-hud text-[var(--sp-text-primary)] placeholder:text-[var(--sp-text-muted)] p-3 outline-none" placeholder="+X XXX XXX XXXX" type="tel" />
+                </div>
+              </div>
+              <button type="submit" className="w-full bg-[var(--sp-accent)] py-4 font-bold text-[14px] tracking-[0.05em] uppercase text-[var(--sp-cta-text)] hover:bg-white hover:text-black transition-all duration-300 shadow-lg hover:shadow-[var(--sp-accent-glow)] group flex items-center justify-center gap-2">
+                SUBMIT
+                <span className="inline-block group-hover:translate-x-1 transition-transform">→</span>
+              </button>
+              <p className="font-hud text-[10px] text-[var(--sp-text-muted)] text-center leading-relaxed mt-4">
+                BY ENTERING, YOU CONSENT TO DATA TRANSMISSION WITHIN THE STREETPLAYR DECENTRALIZED PROTOCOL.
+              </p>
+            </form>
           </div>
-        </h1>
+        </div>
+      )}
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 1.4 }}
-          className="mt-16"
-        >
-          <button
-            data-cursor="button"
-            className="group relative overflow-hidden rounded-full border border-white/30 bg-transparent px-10 py-5 font-mono text-xs md:text-sm tracking-[0.2em] text-white backdrop-blur-sm transition-all hover:border-[var(--sp-accent)] hover:text-[var(--sp-accent)]"
-          >
-            <span className="relative z-10 flex items-center gap-4">
-              DISCOVER MORE
-              <span className="h-[1px] w-8 bg-current transition-all group-hover:w-12" />
-            </span>
-            <div className="absolute inset-0 bg-white/5 opacity-0 transition-opacity group-hover:opacity-100" />
-          </button>
-        </motion.div>
+      {/* Main CTA panel */}
+      <div className="relative z-10 w-full max-w-md mx-4 bg-[#1f1a23]/90 backdrop-blur-xl border border-[var(--sp-accent)]/30 p-8 shadow-[0_0_50px_rgba(132,43,210,0.2)]">
+        <div className="flex justify-between items-start mb-8">
+          <h2 className="font-display text-[42px] md:text-[64px] text-[var(--sp-accent)] leading-none uppercase" style={{ fontFamily: "'Anton', sans-serif" }}>Join the<br />Universe</h2>
+          <span className="font-hud border border-[var(--sp-accent)] px-2 py-1 text-[var(--sp-accent)]">STREET_01</span>
+        </div>
+        <div className="space-y-4">
+          <div className="space-y-1">
+            <label className="font-hud text-[var(--sp-text-secondary)] block">USER_NAME_INPUT</label>
+            <input className="w-full bg-[#39323d] border-b border-[var(--sp-border-subtle)] focus:border-[var(--sp-accent-2)] transition-colors font-hud text-[var(--sp-text-primary)] placeholder:text-[var(--sp-text-muted)] p-3 outline-none" placeholder="ENTER_FULL_NAME" type="text" />
+          </div>
+          <div className="space-y-1">
+            <label className="font-hud text-[var(--sp-text-secondary)] block">USER_PHONE_INPUT</label>
+            <input className="w-full bg-[#39323d] border-b border-[var(--sp-border-subtle)] focus:border-[var(--sp-accent-2)] transition-colors font-hud text-[var(--sp-text-primary)] placeholder:text-[var(--sp-text-muted)] p-3 outline-none" placeholder="+X XXX XXX XXXX" type="tel" />
+          </div>
+        </div>
+        <button className="w-full bg-[var(--sp-accent)] py-4 font-bold text-[14px] tracking-[0.05em] uppercase text-[var(--sp-cta-text)] hover:bg-white hover:text-black transition-all duration-300 shadow-lg hover:shadow-[var(--sp-accent-glow)] group flex items-center justify-center gap-2 mt-6">
+          SUBMIT
+          <span className="inline-block group-hover:translate-x-1 transition-transform">→</span>
+        </button>
+        <p className="font-hud text-[10px] text-[var(--sp-text-muted)] text-center leading-relaxed mt-4">
+          BY ENTERING, YOU CONSENT TO DATA TRANSMISSION WITHIN THE STREETPLAYR DECENTRALIZED PROTOCOL.
+        </p>
       </div>
     </section>
   );
