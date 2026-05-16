@@ -58,7 +58,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
     <main className="pt-24">
       <div className="flex flex-col lg:flex-row w-full">
         {/* Gallery — Left 2/3 (Sticky on desktop) */}
-        <div className="lg:w-2/3 lg:sticky lg:top-24 lg:self-start">
+        <div className="lg:w-2/3 lg:sticky lg:top-24 lg:self-start lg:h-[calc(100vh-96px)]">
           <ProductGallery
             images={props.images}
             title={props.title}

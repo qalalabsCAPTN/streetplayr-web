@@ -14,9 +14,9 @@ export default function ProductGallery({ images, title, heroImage }: ProductGall
   const allImages = images.length > 1 ? images : [heroImage, heroImage];
 
   return (
-    <div className="flex w-full flex-col lg:flex-row lg:max-h-[calc(100vh-96px)]">
+    <div className="flex w-full flex-col lg:flex-row lg:h-full">
       {/* Left Image Column — Static Featured */}
-      <div className="w-full lg:w-1/2 p-4 lg:p-8 flex flex-col">
+      <div className="w-full lg:w-1/2 p-4 lg:p-8 lg:h-full flex flex-col">
         <div className="mb-4 flex justify-between items-end">
           <div>
             <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--sp-accent)] flex items-center gap-2">
@@ -58,7 +58,7 @@ export default function ProductGallery({ images, title, heroImage }: ProductGall
       </div>
 
       {/* Right Image Column — Dynamic / Scrollable Gallery */}
-      <div className="w-full lg:w-1/2 p-4 lg:p-8 lg:overflow-y-auto space-y-6">
+      <div className="w-full lg:w-1/2 lg:h-full lg:min-h-0 p-4 lg:p-8 lg:overflow-y-auto space-y-6">
         {allImages.slice(1).map((src, i) => (
           <div key={i} className="relative aspect-[4/5] bg-[#050505] overflow-hidden border border-white/5">
             <Image
