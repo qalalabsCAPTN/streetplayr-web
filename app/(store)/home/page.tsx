@@ -5,6 +5,7 @@ import BrandStory from "@/components/sections/home/BrandStory";
 import CategoryScroll from "@/components/sections/home/CategoryScroll";
 import FeaturedProductBanner from "@/components/sections/home/FeaturedProductBanner";
 import SocialProof from "@/components/sections/home/SocialProof";
+import ReviewsSection from "@/components/sections/home/ReviewsSection";
 import { ProductQueries } from "@/lib/products/queries";
 
 export default async function HomePage() {
@@ -19,6 +20,7 @@ export default async function HomePage() {
       <CategoryScroll />
       <FeaturedProductBanner />
       <SocialProof />
+      <ReviewsSection />
     </div>
   );
 }

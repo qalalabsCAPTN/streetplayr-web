@@ -510,3 +510,122 @@ a {
   opacity: 0.6;
   flex-shrink: 0;
 }
+
+/* ── About Hero (75/25 Layout) ───────────────────────────── */
+.about-hero {
+  display: grid;
+  grid-template-columns: 75fr 25fr;
+  gap: 64px;
+  align-items: center;
+  padding: 64px;
+  min-height: 60vh;
+}
+
+.about-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.about-headline {
+  font-family: 'Anton', sans-serif;
+  font-size: 48px;
+  margin-bottom: 24px;
+  color: #fff;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.about-description {
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--sp-text-secondary);
+  max-width: 540px;
+}
+
+.about-media {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3/4;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+@media (max-width: 768px) {
+  .about-hero {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    padding: 32px 20px;
+  }
+  .about-headline {
+    font-size: 32px;
+  }
+  .about-description {
+    font-size: 16px;
+  }
+}
+
+/* ── Reviews Section ──────────────────────────────────────── */
+.reviews-section {
+  padding: 80px 24px 64px;
+  background: var(--sp-bg-base);
+}
+
+.reviews-title {
+  font-family: 'Anton', sans-serif;
+  font-size: 36px;
+  margin-bottom: 48px;
+  color: #fff;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.review-card {
+  padding: 32px;
+  background: var(--sp-bg-surface);
+  border-radius: 12px;
+  border: 1px solid var(--sp-border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.review-rating {
+  display: flex;
+  gap: 4px;
+  color: var(--sp-accent-2);
+}
+
+.review-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--sp-text-secondary);
+  flex: 1;
+}
+
+.author-name {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sp-text-primary);
+}
+
+@media (max-width: 768px) {
+  .reviews-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .reviews-section {
+    padding: 48px 16px 40px;
+  }
+}
