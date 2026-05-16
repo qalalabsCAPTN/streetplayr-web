@@ -119,7 +119,7 @@ export default function ProductInfo({
   };
 
   return (
-    <div className="h-full bg-[var(--surface-container-low)] border-l border-white/10 p-8 overflow-y-auto">
+    <div className="bg-[var(--surface-container-low)] border-l border-white/10 p-8">
       <div className="space-y-8">
         {/* Pricing & Metadata */}
         <div>

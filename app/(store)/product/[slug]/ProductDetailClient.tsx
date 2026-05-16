@@ -56,7 +56,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
 
   return (
     <main className="pt-24">
-      <div className="flex flex-col lg:flex-row w-full">
+      <div className="flex flex-col lg:flex-row w-full lg:items-start">
         {/* Gallery — Left 2/3 (Sticky on desktop) */}
         <div className="lg:w-2/3 lg:sticky lg:top-24 lg:h-[calc(100vh-96px)]">
           <ProductGallery
