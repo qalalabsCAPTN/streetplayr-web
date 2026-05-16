@@ -17,20 +17,9 @@ type VariantInfo = {
 type ProductInfoProps = {
   productId: string;
   title: string;
-  tagline: string;
   price: string;
   description: string;
-  dropMetadata: {
-    dropNumber: string;
-    releaseType: string;
-    fabricDetails: string;
-    gsmInfo: string;
-  };
-  fitIntelligence: {
-    modelInfo: string;
-    fitType: string;
-    trueToSize: boolean;
-  };
+  points: string;
   colors: { id: string; name: string; hex: string }[];
   sizes: string[];
   variants: VariantInfo[];
@@ -46,11 +35,9 @@ type ProductInfoProps = {
 export default function ProductInfo({
   productId,
   title,
-  tagline,
   price,
   description,
-  dropMetadata,
-  fitIntelligence,
+  points,
   colors,
   sizes,
   variants,
@@ -147,16 +134,6 @@ export default function ProductInfo({
       transition={{ duration: 1.2, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
       className="sticky top-32 flex flex-col gap-10 lg:gap-16"
     >
-      {/* Drop Metadata */}
-      <div className="flex flex-wrap items-center gap-4 opacity-60">
-        <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-[var(--sp-accent)]">
-          {dropMetadata.dropNumber}
-        </span>
-        <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">
-          // {dropMetadata.releaseType}
-        </span>
-      </div>
-
       {/* Header */}
       <div className="space-y-6">
         <h1 className="font-display text-6xl uppercase leading-[0.8] tracking-wide text-white md:text-7xl lg:text-[7rem]">
@@ -164,9 +141,6 @@ export default function ProductInfo({
             <span key={i} className="block">{word}</span>
           ))}
         </h1>
-        <p className="font-mono text-sm uppercase tracking-[0.3em] text-white/40">
-          {tagline}
-        </p>
         <div className="pt-6 font-mono text-xl text-white/90">{price}</div>
       </div>
 
@@ -184,30 +158,12 @@ export default function ProductInfo({
           selectedColorId={selectedColor}
           onSelect={handleColorSelect}
         />
-        <div className="flex items-end gap-4">
-          <div className="flex-1">
-            <SizeSelector
-              sizes={sizes}
-              selectedSize={selectedSize}
-              onSelect={handleSizeSelect}
-              fitIntelligence={fitIntelligence.modelInfo}
-              fitType={fitIntelligence.fitType}
-              trueToSize={fitIntelligence.trueToSize}
-            />
-          </div>
-          <button
-            type="button"
-            onClick={() => alert("Size guide coming soon.")}
-            className="mb-1 border border-white/10 px-3 py-2 font-mono text-[8px] uppercase tracking-[0.2em] text-white/40 hover:bg-white/5 hover:text-white/70 transition-all duration-300"
-            data-cursor="button"
-          >
-            Size Guide
-          </button>
-        </div>
+        <SizeSelector
+          sizes={sizes}
+          selectedSize={selectedSize}
+          onSelect={handleSizeSelect}
+        />
         <div className="space-y-3">
-          <span className="block font-mono text-[11px] uppercase tracking-widest text-white/60">
-            Quantity
-          </span>
           <QuantitySelector
             quantity={quantity}
             onIncrease={handleIncrease}
@@ -216,23 +172,30 @@ export default function ProductInfo({
         </div>
       </div>
 
-      {/* Fabric Drop Meta */}
-      <div className="flex gap-12 border-t border-white/5 pt-8 mt-4">
-        <div className="space-y-2">
-          <span className="block font-mono text-[9px] uppercase tracking-[0.2em] text-white/30">
-            Fabric
-          </span>
-          <span className="block font-mono text-[10px] uppercase tracking-wider text-white/60">
-            {dropMetadata.fabricDetails}
-          </span>
+      {/* Trust Signals */}
+      <div className="trust-signals">
+        <div className="trust-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="1" y="3" width="15" height="13" rx="2" />
+            <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+            <circle cx="5.5" cy="18.5" r="2.5" />
+            <circle cx="18.5" cy="18.5" r="2.5" />
+          </svg>
+          <span>Free Shipping Over 5000</span>
         </div>
-        <div className="space-y-2">
-          <span className="block font-mono text-[9px] uppercase tracking-[0.2em] text-white/30">
-            Weight
-          </span>
-          <span className="block font-mono text-[10px] uppercase tracking-wider text-white/60">
-            {dropMetadata.gsmInfo}
-          </span>
+        <div className="trust-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+          <span>Authentic Limited Edition</span>
+        </div>
+        <div className="trust-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M2 20h20" />
+            <path d="M4 16l4-12 4 12" />
+            <path d="M16 16l4-6 4 6" />
+          </svg>
+          <span>Earn {points} Points</span>
         </div>
       </div>
 

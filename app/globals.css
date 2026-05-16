@@ -456,3 +456,57 @@ a {
   color: var(--sp-accent);
   margin-top: 4px;
 }
+
+/* ── Size Matrix ──────────────────────────────────────────── */
+.size-matrix {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.size-cell {
+  padding: 12px 18px;
+  border: 1px solid var(--sp-border-strong);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--sp-text-primary);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.size-cell:hover {
+  border-color: var(--sp-text-primary);
+}
+
+.size-cell.active {
+  background: var(--sp-cta-bg);
+  color: var(--sp-text-inverse);
+  border-color: var(--sp-cta-bg);
+}
+
+/* ── Trust Signals ────────────────────────────────────────── */
+.trust-signals {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px 0;
+  border-top: 1px solid var(--sp-border-subtle);
+}
+
+.trust-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--sp-text-secondary);
+}
+
+.trust-item svg {
+  width: 16px;
+  height: 16px;
+  opacity: 0.6;
+  flex-shrink: 0;
+}
