@@ -69,7 +69,7 @@ export default function ProtoCoreCollection() {
         <div className="flex justify-between items-center px-4 md:px-16 h-20 w-full max-w-[1440px] mx-auto">
           <img src="/assets/streetplayr-logo.png" alt="StreetplayR" className="h-12 w-auto object-contain" />
           <nav className="hidden md:flex gap-8">
-            <a href="#" className="text-[12px] tracking-[0.1em] uppercase text-[#ddb7ff] border-b-2 border-[#ddb7ff] pb-1" style={{ fontFamily: "'Space Mono', monospace" }}>Drops</a>
+            <a href="/collection" className="text-[12px] tracking-[0.1em] uppercase text-[#ddb7ff] border-b-2 border-[#ddb7ff] pb-1" style={{ fontFamily: "'Space Mono', monospace" }}>Drops</a>
             <a href="#" className="text-[12px] tracking-[0.1em] uppercase text-[#cfc2d6] hover:text-[#ddb7ff] transition-all glow-sm" style={{ fontFamily: "'Space Mono', monospace" }}>Archive</a>
             <a href="#" className="text-[12px] tracking-[0.1em] uppercase text-[#cfc2d6] hover:text-[#ddb7ff] transition-all glow-sm" style={{ fontFamily: "'Space Mono', monospace" }}>Lab</a>
             <a href="#" className="text-[12px] tracking-[0.1em] uppercase text-[#cfc2d6] hover:text-[#ddb7ff] transition-all glow-sm" style={{ fontFamily: "'Space Mono', monospace" }}>Intel</a>
