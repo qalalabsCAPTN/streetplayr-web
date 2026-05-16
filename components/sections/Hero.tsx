@@ -51,12 +51,7 @@ export default function Hero() {
           initial="hidden"
           variants={copyVariants}
         >
-          <motion.p
-            className="font-mono text-xs uppercase tracking-[0.22em] text-[var(--sp-accent)]"
-            variants={lineVariants}
-          >
-            New Drop: Waffle Collection
-          </motion.p>
+          {/* metadata/subtext removed */}
           <motion.h1
             className="mt-4 max-w-4xl text-balance font-display text-[clamp(4.75rem,15vw,10.5rem)] leading-[0.82] tracking-[0.08em]"
             variants={lineVariants}

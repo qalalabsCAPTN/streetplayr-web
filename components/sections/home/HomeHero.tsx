@@ -41,16 +41,7 @@ export default function HomeHero() {
       </motion.div>
 
       <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 md:px-8 text-center mt-12">
-        <div className="flex flex-col items-center gap-2 mb-4 overflow-hidden">
-          <motion.span 
-            initial={{ y: "100%", opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
-            className="font-mono text-xs md:text-sm tracking-[0.3em] text-[var(--sp-accent)] uppercase"
-          >
-            Spring / Summer Collection
-          </motion.span>
-        </div>
+        {/* metadata/subtext removed */}
 
         <h1 className="font-display flex flex-col items-center text-[15vw] md:text-[12vw] uppercase tracking-widest leading-[0.8] text-white">
           <div className="flex overflow-hidden pb-4">

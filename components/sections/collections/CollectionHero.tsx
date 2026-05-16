@@ -51,9 +51,6 @@ export default function CollectionHero() {
             transition={{ duration: 1.2, ease: "easeOut", delay: 0.3 }}
             className="flex max-w-sm flex-col gap-4 border-l border-white/20 pl-6 md:pl-8"
           >
-            <p className="font-mono text-xs uppercase tracking-widest text-[#8c8c8c]">
-              Season 02 / Core Collection
-            </p>
             <p className="font-body text-sm leading-relaxed text-[#8c8c8c] md:text-base">
               A curated archive of heavyweight structural garments. Stripped of excess, defined by form. Engineered for the streets.
             </p>

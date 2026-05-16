@@ -157,21 +157,7 @@ export default function EntryGate() {
             {/* tagline removed per Step 2 */}
           </div>
 
-          {/* Tap / click prompt */}
-          <motion.div
-            className="absolute bottom-14 flex flex-col items-center gap-3"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: [0, 0.8, 0.4, 0.8], y: 0 }}
-            transition={{ delay: 1.4, duration: 2, repeat: Infinity, repeatType: "mirror" }}
-          >
-            <span className="font-mono text-xs uppercase tracking-[0.28em] text-white/40">
-              Click to Enter
-            </span>
-            {/* Animated chevron */}
-            <svg width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true">
-              <path d="M1 1l4 4 4-4" stroke="rgba(157,78,221,0.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </motion.div>
+          {/* click prompt removed per Step: metadata/subtext removed */}
 
           {/* Bottom accent line */}
           <motion.div
