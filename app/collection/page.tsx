@@ -67,9 +67,7 @@ export default function ProtoCoreCollection() {
       {/* Navbar */}
       <header className="fixed top-0 w-full z-50 bg-[#16111b]/80 backdrop-blur-md border-b border-[#4d4354]">
         <div className="flex justify-between items-center px-4 md:px-16 h-20 w-full max-w-[1440px] mx-auto">
-          <div className="text-[48px] leading-[1.1] text-[#ddb7ff]" style={{ fontFamily: "'Anton', sans-serif", letterSpacing: "0.02em" }}>
-            StreetplayR
-          </div>
+          <img src="/assets/streetplayr-logo.png" alt="StreetplayR" className="h-12 w-auto object-contain" />
           <nav className="hidden md:flex gap-8">
             <a href="#" className="text-[12px] tracking-[0.1em] uppercase text-[#ddb7ff] border-b-2 border-[#ddb7ff] pb-1" style={{ fontFamily: "'Space Mono', monospace" }}>Drops</a>
             <a href="#" className="text-[12px] tracking-[0.1em] uppercase text-[#cfc2d6] hover:text-[#ddb7ff] transition-all glow-sm" style={{ fontFamily: "'Space Mono', monospace" }}>Archive</a>
@@ -239,9 +237,7 @@ export default function ProtoCoreCollection() {
       {/* Footer */}
       <footer className="w-full py-12 px-4 md:px-16 border-t border-[rgba(255,255,255,0.05)] bg-[#110c15]">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6 max-w-[1440px] mx-auto">
-          <div className="text-[48px] leading-[1.1] text-[#eadfed]" style={{ fontFamily: "'Anton', sans-serif", letterSpacing: "0.02em" }}>
-            StreetplayR
-          </div>
+          <img src="/assets/streetplayr-logo.png" alt="StreetplayR" className="h-12 w-auto object-contain brightness-75" />
           <div className="flex gap-8">
             <a href="#" className="text-[12px] tracking-[0.1em] text-[#cfc2d6] hover:text-[#ffb59e] transition-all opacity-80 hover:opacity-100" style={{ fontFamily: "'Space Mono', monospace" }}>Terms</a>
             <a href="#" className="text-[12px] tracking-[0.1em] text-[#cfc2d6] hover:text-[#ffb59e] transition-all opacity-80 hover:opacity-100" style={{ fontFamily: "'Space Mono', monospace" }}>Privacy</a>
