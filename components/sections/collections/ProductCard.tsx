@@ -53,7 +53,7 @@ export default function ProductCard({ product, index }: ProductCardProps) {
     >
       <Link href={`/product/${product.slug}`} className="block w-full outline-none">
         <div 
-          className={`relative w-full overflow-hidden bg-[#111] ${aspectClass}`}
+          className={`relative w-full overflow-hidden rounded-xl bg-[#111] ${aspectClass}`}
           data-cursor="product"
         >
           {/* Default Image */}

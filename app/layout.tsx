@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Bebas_Neue, JetBrains_Mono, Space_Grotesk, UnifrakturMaguntia } from "next/font/google";
+import { Anton, Bebas_Neue, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import Loader from "@/components/ui/Loader";
 import EntryGate from "@/components/ui/EntryGate";
 import AuthProvider from "@/components/auth/AuthProvider";
@@ -30,7 +30,7 @@ const mono = JetBrains_Mono({
   variable: "--font-sp-mono",
 });
 
-const gothic = UnifrakturMaguntia({
+const gothic = Anton({
   subsets: ["latin"],
   weight: "400",
   variable: "--font-sp-gothic",

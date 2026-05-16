@@ -241,7 +241,7 @@ export default function ProductInfo({
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
         onClick={handleAddToCart}
-        className={`hidden h-16 w-full items-center justify-center font-mono text-xs uppercase tracking-[0.2em] transition-colors lg:flex ${
+        className={`hidden h-16 w-full items-center justify-center rounded-xl font-mono text-xs uppercase tracking-[0.2em] transition-colors lg:flex ${
           isAdded 
             ? "bg-white/20 text-white" 
             : "bg-white text-black hover:bg-[var(--sp-accent)]"

@@ -37,11 +37,11 @@ export default function SizeSelector({
             <button
               key={size}
               onClick={() => onSelect(size)}
-              className={`flex h-12 items-center justify-center border font-mono text-[11px] uppercase tracking-widest transition-all duration-300 ${
-                isSelected
-                  ? "border-white bg-white text-black"
-                  : "border-white/10 bg-transparent text-white hover:border-white/40 hover:bg-white/5"
-              }`}
+               className={`flex h-12 items-center justify-center rounded-xl border font-mono text-[11px] uppercase tracking-widest transition-all duration-300 ${
+                 isSelected
+                   ? "border-white bg-white text-black"
+                   : "border-white/10 bg-transparent text-white hover:border-white/40 hover:bg-white/5"
+               }`}
             >
               {size}
             </button>
