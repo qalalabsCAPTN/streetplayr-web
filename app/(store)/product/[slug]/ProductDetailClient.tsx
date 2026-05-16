@@ -55,10 +55,10 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
   }));
 
   return (
-    <main className="pt-24 min-h-screen">
-      <div className="flex flex-col lg:flex-row h-[calc(100vh-96px)] w-full">
-        {/* Gallery — Left 2/3 */}
-        <div className="lg:w-2/3 flex flex-col lg:flex-row overflow-hidden">
+    <main className="pt-24">
+      <div className="flex flex-col lg:flex-row w-full">
+        {/* Gallery — Left 2/3 (Sticky on desktop) */}
+        <div className="lg:w-2/3 lg:sticky lg:top-24 lg:self-start">
           <ProductGallery
             images={props.images}
             title={props.title}
@@ -66,7 +66,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
           />
         </div>
 
-        {/* Product Info — Right 1/3 (Fixed Sidebar) */}
+        {/* Product Info — Right 1/3 (Scrolls with page) */}
         <div className="lg:w-1/3">
           <ProductInfo
             productId={props.productId}
