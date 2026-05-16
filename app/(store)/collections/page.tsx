@@ -11,9 +11,9 @@ export default function ProtoCoreCollection() {
       model: "MODEL: XR-70_V1",
       price: "$840",
       image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCex3zLQuAGXutv2Z9MVCRc5vuwGvV0a74So0cbw_dZfZHvU3pH_YjowL_xBrGY7H2yzFibN3CRVvO4S99oCu32BSLKfo2DW_dulSczrEBGsz6V-XmCiHmVjNCqqZIetD8w-JcrqSNKTggts-ybUVGS7ZEpzcAH1HmiBx0YpzYnxUsi6fBseb2Tv4uSWOYzcmvcbmndbWbnBPBO0q-Oz4yXqC9tw5a4xWxyTIFHx0xTTZrXy1OZ_LblQ8kV27UbGmG-u0pcLGs3ag",
-      imageAlt: "A high-fashion techwear parka displayed against a gritty, industrial concrete backdrop with moody purple neon lighting. The parka features intricate straps, waterproof zippers, and a matte black finish, reflecting a futuristic urban aesthetic. The atmosphere is cinematic and atmospheric, using high-contrast shadows and sharp digital textures consistent with a brutalist vaporwave style.",
+      imageAlt: "A high-fashion techwear parka displayed against a gritty, industrial concrete backdrop with moody purple neon lighting. The parka features intricate straps, waterproof zippers, and a matte black finish, reflecting a futuristic urban aesthetic.",
       altImage: "https://lh3.googleusercontent.com/aida-public/AB6AXuDxhRmkbnPzQBKA1elKycVoq9V4CDyRWOFBkcYm_bagVaSqzsKlArIVjPmOEcRh1T__HQmEzu69SYJdErGA0XipaoibC42L6MYHSw6BsBaHfMO-903PAHlOBugoc4fk5THwSk5LOZk2cd29-dawu-Aqv6BB2lhxbMDuFBL6aLMETXPA7XFVXbZXuXJU4bO4GpfVKc2F4gAjQS7gxGb_p4NHfMnNu1M8Wnh9epLEmnZl4DReeahnF5mZg73A3u_JCk7fyrkRK_cyiw",
-      altImageAlt: "Close-up technical detail of a techwear garment showing the internal mesh lining and specialized waterproof pocket construction. The lighting is harsh and directional, highlighting the advanced fabric textures and metallic hardware. Deep blacks and vibrant purple accents create a sense of premium futuristic engineering and digital scarcity.",
+      altImageAlt: "Close-up technical detail of a techwear garment showing the internal mesh lining and specialized waterproof pocket construction.",
       badge: "New Arrival",
       altIsImage: true,
       icon: "radar",
@@ -26,7 +26,7 @@ export default function ProtoCoreCollection() {
       model: "MODEL: HELM_CORE",
       price: "$1,200",
       image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDw8otXMt6K2cgvkuBcYoYDjo4bXLLUX8V_Hxq5T34_geVcLRyPQsy0OLER2TtoWa0v_MKoQbQlddtqNXCV4NA01mbQRzcsAmy-z8JhVnc5WZ0mtxlRzxYvAhLj0_xq-OO3Ky-9qFHzNdZZNv3nNVnPc6x4i2A2JnjQakilflEGWkQtHkqr_VMNw-8sYOZl6xBnSrj2qBHVVYrW2D1k0NUxabxy3k7BHu5kWHCeazR5Gqpsu0WOXNuXjJhIaVDjBbokgVGbctAT_w",
-      imageAlt: "A sleek, aerodynamic futuristic helmet with a chrome-finished visor and matte charcoal carbon fiber shell. It is staged in a dark laboratory setting with flickering amber warning lights and light scanline effects across the image. The overall mood is aggressive and premium, focusing on the intricate HUD interfaces visible on the visor's reflection.",
+      imageAlt: "A sleek, aerodynamic futuristic helmet with a chrome-finished visor and matte charcoal carbon fiber shell. It is staged in a dark laboratory setting with flickering amber warning lights and light scanline effects across the image.",
       altImage: null,
       altImageAlt: null,
       badge: null,
@@ -41,9 +41,9 @@ export default function ProtoCoreCollection() {
       model: "MODEL: TIME_SYNC",
       price: "$310",
       image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCG-3-shoxluGO1noj8N84BfqKLiPDM-gM_KiIaIFzFZVJVgEc-Pj91F1llwLotwggkPo2oXgLH_t0o29C6CVpjYIw7nxP3TtsRmU4VO1631NslLbFfUG27zj7KDjfhaLdE3ba1GwRKA_Q0qDYBCrXKsjPAWWw35NaEbLZFOL_TJEfUg_Vrss1WTbvw-f1Ofc8Ba_UUbuvelndBmvCqTKR378CWKxrhM5FrNxnE7jqlfKZJ3szOxTzllmCth-xxjoJ8XgqwhNcDVw",
-      imageAlt: "A minimalist yet rugged tactical smartwatch with a monochrome E-ink display showing complex topographic maps. The watch is placed on a bed of dark, crushed glass reflecting cyan and magenta neon hues from an unseen source. The style is hyper-detailed with technical metadata overlays, emphasizing its role as a high-end tool for underground urban navigation.",
+      imageAlt: "A minimalist yet rugged tactical smartwatch with a monochrome E-ink display showing complex topographic maps. The watch is placed on a bed of dark, crushed glass reflecting cyan and magenta neon hues from an unseen source.",
       altImage: "https://lh3.googleusercontent.com/aida-public/AB6AXuC-UTmZXjJQaEEW2oBOAoFbEtPo2KxxXIN-zQAqeTwrWtRDafkg7KxaIIMfY-LOb_3WZF1KmP9j66_abf6TbVRRjtOf0IwJjBibrVewTTzAS1cMDJ2h2oHnOsMF1rGhx1Ctz1ssVnsfvBy7HPEt0UN0nWg7aDbRyaJlo517hAASz_eDW92x8Zqo5RJEhCoVFZQLOp5nbeI_8iwaUgT9DVYgcSte00unO2KP75gtgs1-r9HMI4P0tXP9OCoPoWdRSV6NU-4_PMVuog",
-      altImageAlt: "Macro photography of the watch dial showing a glowing neon orange interface with grid lines and technical coordinate system. The lens flare and soft blur create a sense of futuristic technology and high-stakes exploration. The palette is dominated by deep blacks and vibrant orange accents, consistent with a digital HUD aesthetic.",
+      altImageAlt: "Macro photography of the watch dial showing a glowing neon orange interface with grid lines and technical coordinate system.",
       badge: "Limited Intel",
       altIsImage: true,
       icon: "explore",
@@ -59,6 +59,43 @@ export default function ProtoCoreCollection() {
 
   return (
     <div className="min-h-screen bg-[#16111b] text-[#eadfed] selection:bg-[#ddb7ff] selection:text-[#490080]">
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+      />
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Archivo+Black&family=Anton&display=swap"
+      />
+      <style>{`
+        .material-symbols-outlined {
+          font-family: "Material Symbols Outlined";
+          font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 48;
+        }
+        .scanlines {
+          background: linear-gradient(
+            to bottom,
+            rgba(255, 255, 255, 0.03) 50%,
+            rgba(0, 0, 0, 0.03) 50%
+          );
+          background-size: 100% 4px;
+          pointer-events: none;
+        }
+        .glow-sm:hover {
+          text-shadow: 0 0 10px rgba(221, 183, 255, 0.8);
+        }
+        .product-card:hover .alt-face {
+          opacity: 1;
+        }
+        .pulse-slow {
+          animation: pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+      `}</style>
+
       {/* The Void Layers */}
       <div className="fixed inset-0 z-[-1] overflow-hidden">
         <div className="absolute inset-0 scanlines opacity-30" />
@@ -82,8 +119,8 @@ export default function ProtoCoreCollection() {
             <a href="#" className="text-[12px] tracking-[0.1em] uppercase text-[#cfc2d6] hover:text-[#ddb7ff] transition-colors hover:glow-sm" style={{ fontFamily: "'Space Mono', monospace" }}>Intel</a>
           </nav>
           <div className="flex items-center gap-6">
-            <button className="material-symbols-outlined text-[#ddb7ff] hover:glow-sm transition-all text-2xl" data-icon="shopping_cart">shopping_cart</button>
-            <button className="material-symbols-outlined text-[#ddb7ff] hover:glow-sm transition-all text-2xl" data-icon="account_balance_wallet">account_balance_wallet</button>
+            <button className="material-symbols-outlined text-[#ddb7ff] hover:glow-sm transition-all text-2xl">shopping_cart</button>
+            <button className="material-symbols-outlined text-[#ddb7ff] hover:glow-sm transition-all text-2xl">account_balance_wallet</button>
           </div>
         </div>
       </header>
@@ -96,10 +133,10 @@ export default function ProtoCoreCollection() {
           className="absolute inset-0 w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#16111b] via-transparent to-[#16111b]/40" />
-        <div className="absolute inset-0 scanlines opacity-20" />
+        <div className="absolute inset-0 scanlines opacity-25" />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <p className="text-[12px] tracking-[0.5em] text-[#ddb7ff] uppercase animate-pulse" style={{ fontFamily: "'Space Mono', monospace" }}>
+            <p className="text-[12px] tracking-[0.5em] text-[#ddb7ff] uppercase pulse-slow" style={{ fontFamily: "'Space Mono', monospace", textShadow: "0 0 20px rgba(221, 183, 255, 0.6)" }}>
               Initializing Core Protocol
             </p>
           </div>
@@ -120,11 +157,11 @@ export default function ProtoCoreCollection() {
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
-                className={`px-4 py-2 text-[14px] tracking-[0.05em] uppercase transition-all ${
+                className={`px-4 py-2 text-[14px] tracking-[0.05em] uppercase transition-all duration-200 ${
                   activeFilter === filter
-                    ? "bg-[#ddb7ff] text-[#490080]"
-                    : "border border-[#4d4354] hover:border-[#ddb7ff]"
-                } ${filter === "lab" ? (activeFilter === "lab" ? "" : "text-[#ffb59e] border-[#ffb59e]") : ""}`}
+                    ? "bg-[#ddb7ff]/15 border border-[#ddb7ff] text-[#ddb7ff]"
+                    : "border border-[#4d4354] text-[#ddb7ff]/60 hover:border-[#ddb7ff]/40"
+                } ${filter === "lab" && activeFilter !== "lab" ? "text-[#ffb59e] border-[#ffb59e]/40 hover:border-[#ffb59e]" : ""}`}
                 style={{ fontFamily: "'Archivo Black', sans-serif" }}
               >
                 {filter === "all" ? "All" : filter.charAt(0).toUpperCase() + filter.slice(1)}
@@ -138,7 +175,7 @@ export default function ProtoCoreCollection() {
           {filteredProducts.map((product) => (
             <div
               key={product.id}
-              className="group product-card relative border border-[#4d4354] bg-[#110c15] transition-all hover:border-[#ddb7ff]"
+              className="group product-card relative border border-[#4d4354] bg-[#110c15] transition-all duration-300 hover:border-[#ddb7ff]"
             >
               {/* Badge */}
               {product.badge && (
@@ -161,7 +198,7 @@ export default function ProtoCoreCollection() {
                 <img
                   alt={product.imageAlt || product.name}
                   src={product.image}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  className="w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-0"
                 />
 
                 {/* Alt Face */}
@@ -211,7 +248,8 @@ export default function ProtoCoreCollection() {
                       {product.coord}
                     </span>
                   </div>
-                  <button className="bg-[#ddb7ff]/10 border border-[#ddb7ff]/20 hover:bg-[#ddb7ff] hover:text-[#490080] px-4 py-2 text-[14px] tracking-[0.05em] uppercase transition-all" style={{ fontFamily: "'Archivo Black', sans-serif" }}>
+                  <button className="inline-flex items-center gap-2 px-4 py-2 border border-[#4d4354] text-[#ddb7ff]/80 hover:bg-[#ddb7ff]/5 hover:border-[#ddb7ff] hover:text-[#ddb7ff] text-[14px] tracking-[0.05em] uppercase transition-all duration-200" style={{ fontFamily: "'Archivo Black', sans-serif" }}>
+                    <span className="material-symbols-outlined text-base">tune</span>
                     Select
                   </button>
                 </div>
@@ -260,12 +298,12 @@ export default function ProtoCoreCollection() {
       </footer>
 
       {/* Decorative HUD Elements */}
-      <div className="fixed top-24 left-6 hidden xl:block pointer-events-none">
+      <div className="fixed top-24 left-6 hidden xl:block pointer-events-none z-40">
         <div className="text-[10px] opacity-20 rotate-90 origin-left" style={{ fontFamily: "'Space Mono', monospace" }}>
           SCAN_MODE: ACTIVE // FRAME_RATE: 60FPS // GRID_X: 144.22
         </div>
       </div>
-      <div className="fixed bottom-24 right-6 hidden xl:block pointer-events-none text-right">
+      <div className="fixed bottom-24 right-6 hidden xl:block pointer-events-none text-right z-40">
         <div className="text-[10px] opacity-20" style={{ fontFamily: "'Space Mono', monospace" }}>
           [ REC ] SYSTEM_STATUS_OK<br />
           LAT: 35.6895 N / LONG: 139.6917 E
