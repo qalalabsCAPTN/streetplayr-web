@@ -792,4 +792,12 @@ select {
   0%   { top: -2%; }
   100% { top: 102%; }
 }
+@keyframes starSpin {
+  0%   { transform: rotateY(0deg); }
+  100% { transform: rotateY(360deg); }
+}
+@keyframes starFloat {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(-4px); }
+}
 
