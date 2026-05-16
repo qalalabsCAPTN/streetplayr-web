@@ -1,10 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { useState } from "react";
-import ColorSelector from "./ColorSelector";
-import SizeSelector from "./SizeSelector";
-import QuantitySelector from "./QuantitySelector";
 import { useCartStore } from "../../store/cartStore";
 
 type VariantInfo = {
@@ -32,6 +28,12 @@ type ProductInfoProps = {
   onQuantityChange?: (qty: number) => void;
 };
 
+function getStockForSize(variants: VariantInfo[], size: string): number {
+  return variants
+    .filter((v) => v.size === size)
+    .reduce((sum, v) => sum + v.stockQuantity, 0);
+}
+
 export default function ProductInfo({
   productId,
   title,
@@ -49,33 +51,25 @@ export default function ProductInfo({
   onSizeSelect,
   onQuantityChange,
 }: ProductInfoProps) {
-  const [localColor, setLocalColor] = useState(colors[0]?.id);
   const [localSize, setLocalSize] = useState("");
-  const [localQuantity, setLocalQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
+  const [expandedSpec, setExpandedSpec] = useState<string | null>(null);
+  const [spCredits, setSpCredits] = useState(500);
   const addItem = useCartStore((state) => state.addItem);
 
-  const selectedColor = controlledColor ?? localColor;
   const selectedSize = controlledSize ?? localSize;
-  const quantity = controlledQuantity ?? localQuantity;
+  const priceNum = parseFloat(price.replace(/[^0-9.-]+/g, ""));
+  const ethPrice = (priceNum * 0.00045).toFixed(4);
 
-  const handleColorSelect = (id: string) => {
-    if (onColorSelect) onColorSelect(id);
-    else setLocalColor(id);
-  };
+  const selectedStock = selectedSize ? getStockForSize(variants, selectedSize) : 0;
+  const totalStock = Math.max(...sizes.map((s) => getStockForSize(variants, s)));
+  const lowStockThreshold = 10;
+  const isLowStock = selectedStock > 0 && selectedStock <= lowStockThreshold;
 
   const handleSizeSelect = (size: string) => {
     if (onSizeSelect) onSizeSelect(size);
     else setLocalSize(size);
   };
-
-  const handleQuantityChange = (qty: number) => {
-    if (onQuantityChange) onQuantityChange(qty);
-    else setLocalQuantity(qty);
-  };
-
-  const handleIncrease = () => handleQuantityChange(quantity + 1);
-  const handleDecrease = () => handleQuantityChange(Math.max(1, quantity - 1));
 
   const handleAddToCart = async () => {
     if (!selectedSize) {
@@ -83,41 +77,38 @@ export default function ProductInfo({
       return;
     }
 
-    // Find matching variant and validate stock
-    const colorName = colors.find(c => c.id === selectedColor)?.name || selectedColor;
-    const matchingVariant = variants.find(v => v.size === selectedSize);
+    const colorName = colors.find((c) => c.id === controlledColor)?.name || controlledColor || "Onyx Black";
+    const matchingVariant = variants.find((v) => v.size === selectedSize);
 
     if (!matchingVariant) {
-      alert('Selected size is not available. Please choose another size.');
+      alert("Selected size is not available. Please choose another size.");
       return;
     }
 
     const variantId = matchingVariant.id;
     const variantStock = matchingVariant.stockQuantity;
+    const qty = controlledQuantity ?? 1;
 
-    if (variantStock < quantity) {
+    if (variantStock < qty) {
       alert(`Insufficient stock. Only ${variantStock} available.`);
       return;
     }
 
-    // Cross-check with server-side available stock for extra safety
     try {
-      const { getVariantStockAction } = await import('@/app/actions/stock');
+      const { getVariantStockAction } = await import("@/app/actions/stock");
       const stockResult = await getVariantStockAction(variantId);
-      if (stockResult.success && stockResult.data && stockResult.data.available < quantity) {
+      if (stockResult.success && stockResult.data && stockResult.data.available < qty) {
         alert(`Insufficient stock. Only ${stockResult.data.available} available.`);
         return;
       }
     } catch {}
-
-    const priceNum = parseFloat(price.replace(/[^0-9.-]+/g, ""));
 
     addItem({
       id: variantId,
       productId,
       name: title,
       price: priceNum,
-      quantity,
+      quantity: qty,
       color: colorName,
       size: selectedSize,
       image: image || "/assets/placeholder.jpg",
@@ -128,91 +119,145 @@ export default function ProductInfo({
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 1.2, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className="sticky top-32 flex flex-col gap-10 lg:gap-16"
-    >
-      {/* Header */}
-      <div className="space-y-6">
-        <h1 className="font-display text-6xl uppercase leading-[0.8] tracking-wide text-white md:text-7xl lg:text-[7rem]">
-          {title.split(' ').map((word, i) => (
-            <span key={i} className="block">{word}</span>
-          ))}
-        </h1>
-        <div className="pt-6 font-mono text-xl text-white/90">{price}</div>
-      </div>
-
-      {/* Description */}
-      <div className="max-w-md pr-8">
-        <p className="text-base leading-loose text-white/60">
-          {description}
-        </p>
-      </div>
-
-      {/* Selectors */}
+    <div className="h-full bg-[var(--surface-container-low)] border-l border-white/10 p-8 overflow-y-auto">
       <div className="space-y-8">
-        <ColorSelector
-          colors={colors}
-          selectedColorId={selectedColor}
-          onSelect={handleColorSelect}
-        />
-        <SizeSelector
-          sizes={sizes}
-          selectedSize={selectedSize}
-          onSelect={handleSizeSelect}
-        />
-        <div className="space-y-3">
-          <QuantitySelector
-            quantity={quantity}
-            onIncrease={handleIncrease}
-            onDecrease={handleDecrease}
+        {/* Pricing & Metadata */}
+        <div>
+          <div className="flex justify-between items-start mb-2">
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">UNIT_VALUATION</span>
+            <p className="font-mono text-[10px] text-white/40">35.6895° N, 139.6917° E</p>
+          </div>
+          <div className="flex justify-between items-baseline mb-4">
+            <p className="font-display text-5xl text-white">{price}</p>
+            <p className="font-mono text-xs text-[var(--sp-accent)]">~ {ethPrice} ETH</p>
+          </div>
+          <div className="flex items-center gap-3 py-3 border-y border-white/10">
+            <span className="material-symbols-outlined text-[var(--sp-accent)] animate-pulse text-sm">warning</span>
+            <p className="font-mono text-[10px] uppercase text-[var(--sp-accent)]">
+              {isLowStock
+                ? `Stock Protocol Critical: ${selectedStock} units remaining`
+                : `Stock Protocol Active: ${totalStock}+ units`}
+            </p>
+          </div>
+        </div>
+
+        {/* Color Selector */}
+        {colors.length > 0 && (
+          <div>
+            <label className="font-mono text-xs text-white/40 uppercase mb-4 block">Colorway</label>
+            <div className="flex flex-wrap gap-3">
+              {colors.map((color) => {
+                const isSelected = (controlledColor ?? colors[0]?.id) === color.id;
+                return (
+                  <button
+                    key={color.id}
+                    onClick={() => onColorSelect?.(color.id)}
+                    className="group relative flex h-10 w-10 items-center justify-center border transition-colors duration-300"
+                    style={{
+                      borderColor: isSelected ? "rgba(255,255,255,1)" : "rgba(255,255,255,0.2)",
+                    }}
+                    aria-label={`Select color ${color.name}`}
+                  >
+                    <span
+                      className="h-[80%] w-[80%] transition-transform duration-300 group-hover:scale-90"
+                      style={{ backgroundColor: color.hex }}
+                    />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Sizing */}
+        <div>
+          <div className="flex justify-between mb-4">
+            <label className="font-mono text-xs text-white/40 uppercase">Matrix_Sizing</label>
+            <button className="font-mono text-[10px] text-white underline underline-offset-4 uppercase">GUIDE</button>
+          </div>
+          <div className="grid grid-cols-4 gap-2">
+            {sizes.map((size) => {
+              const stock = getStockForSize(variants, size);
+              const isSelected = selectedSize === size;
+              return (
+                <button
+                  key={size}
+                  onClick={() => handleSizeSelect(size)}
+                  className={`py-3 font-mono text-xs transition-all flex flex-col items-center ${
+                    isSelected
+                      ? "border-2 border-white bg-white/5 text-white"
+                      : "border border-white/20 hover:bg-white/10 text-white/60"
+                  }`}
+                >
+                  <span>{size}</span>
+                  <span className="text-[8px] opacity-50">LTD: {stock}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* SP Credits */}
+        <div className="p-4 bg-[var(--surface-container-lowest)] border border-white/10">
+          <div className="flex justify-between mb-2">
+            <span className="font-mono text-[10px] uppercase text-white/40">SP_CREDITS_APPLIED</span>
+            <span className="font-mono text-[10px] text-white">{spCredits} / 2500</span>
+          </div>
+          <input
+            type="range"
+            min="0"
+            max="2500"
+            value={spCredits}
+            onChange={(e) => setSpCredits(Number(e.target.value))}
+            className="w-full h-1 bg-white/20 appearance-none cursor-pointer accent-white"
           />
         </div>
-      </div>
 
-      {/* Trust Signals */}
-      <div className="trust-signals">
-        <div className="trust-item">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="1" y="3" width="15" height="13" rx="2" />
-            <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
-            <circle cx="5.5" cy="18.5" r="2.5" />
-            <circle cx="18.5" cy="18.5" r="2.5" />
-          </svg>
-          <span>Free Shipping Over 5000</span>
+        {/* CTAs */}
+        <div className="flex flex-col gap-3">
+          <button
+            onClick={handleAddToCart}
+            className="bg-white text-black font-bold py-4 hover:bg-[var(--sp-accent)] hover:shadow-[0_0_20px_rgba(255,183,77,0.4)] transition-all flex items-center justify-center gap-3 group uppercase font-mono text-xs tracking-widest"
+          >
+            {isAdded ? "SECURED" : "INITIALIZE_PURCHASE"}
+            {!isAdded && (
+              <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">bolt</span>
+            )}
+          </button>
+          <button className="border border-white/20 text-white font-mono text-[10px] uppercase tracking-[0.3em] py-3 hover:bg-white/10 transition-colors flex items-center justify-center gap-3">
+            <span className="material-symbols-outlined text-sm">center_focus_strong</span>
+            AI_VIRTUAL_TRY_ON
+          </button>
         </div>
-        <div className="trust-item">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-          </svg>
-          <span>Authentic Limited Edition</span>
-        </div>
-        <div className="trust-item">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M2 20h20" />
-            <path d="M4 16l4-12 4 12" />
-            <path d="M16 16l4-6 4 6" />
-          </svg>
-          <span>Earn {points} Points</span>
+
+        {/* Technical Specs — Accordion */}
+        <div className="border-t border-white/10 pt-2">
+          {[
+            { id: "material", label: "[01] MATERIAL_COMPOSITION", content: description || "Tri-layer GORE-TEX membrane with liquid-chrome finish. Reinforced 500D Cordura panels." },
+            { id: "shipping", label: "[02] SHIP_LOGISTICS", content: "Standard delivery: 5-7 business days. Express: 2-3 business days. International shipping available." },
+            { id: "care", label: "[03] CARE_INSTRUCTIONS", content: "Machine wash cold, gentle cycle. Hang to dry. Do not bleach, iron, or dry clean." },
+          ].map((spec) => (
+            <div key={spec.id} className="border-b border-white/10">
+              <button
+                onClick={() => setExpandedSpec(expandedSpec === spec.id ? null : spec.id)}
+                className="w-full flex justify-between items-center py-4 font-mono text-[10px] uppercase text-white/40 hover:text-white transition-colors"
+              >
+                <span>{spec.label}</span>
+                <span className="material-symbols-outlined text-sm transition-transform duration-300"
+                  style={{ transform: expandedSpec === spec.id ? "rotate(45deg)" : "rotate(0)" }}
+                >
+                  add
+                </span>
+              </button>
+              {expandedSpec === spec.id && (
+                <div className="pb-4 text-white/60 text-xs leading-relaxed">
+                  {spec.content}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </div>
-
-      {/* Desktop Add to Cart CTA */}
-      <motion.button
-        whileHover={{ scale: 1.01 }}
-        whileTap={{ scale: 0.99 }}
-        onClick={handleAddToCart}
-        className={`hidden h-16 w-full items-center justify-center rounded-xl font-mono text-xs uppercase tracking-[0.2em] transition-colors lg:flex ${
-          isAdded 
-            ? "bg-white/20 text-white" 
-            : "bg-white text-black hover:bg-[var(--sp-accent)]"
-        }`}
-        data-cursor="cart"
-      >
-        {isAdded ? "Secured" : "Acquire"}
-      </motion.button>
-    </motion.div>
+    </div>
   );
 }

@@ -1,5 +1,4 @@
 import ProductDetailClient from "./ProductDetailClient";
-import ProductReviews from "@/components/sections/product/ProductReviews";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProductQueries } from "@/lib/products/queries";
@@ -8,13 +7,12 @@ import { formatPrice, formatProductTitle } from "@/lib/utils/format";
 
 export const dynamic = "force-dynamic";
 
-// ── Mock product for dev when Supabase isn't configured ──
 const MOCK_PRODUCT = {
   id: "mock-gravity-parka",
   name: "Gravity Parka",
   price: 2499,
   description:
-    "A study in suspended animation. The Gravity Parka distills utility into its most essential form — a shell that moves with you, not against you. Cut from Japanese 3-layer ripstop with taped seams and a stealth hood that disappears when you don't need it.",
+    "Tri-layer GORE-TEX membrane with liquid-chrome finish. Reinforced 500D Cordura panels. A study in suspended animation — the Gravity Parka distills utility into its most essential form.",
   image_url:
     "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?q=80&w=2000&auto=format&fit=crop",
   slug: "gravity-parka",
@@ -47,15 +45,12 @@ const MOCK_PRODUCT = {
 };
 
 async function resolveProduct(slug: string) {
-  // 1. Exact match
   let product = await ProductQueries.getProductBySlug(slug);
   if (product) return product;
 
-  // 2. Lowercase
   product = await ProductQueries.getProductBySlug(slug.toLowerCase());
   if (product) return product;
 
-  // 3. Try fetching all products and find partial match
   try {
     const supabase = await createClient();
     const { data: allProducts } = await supabase
@@ -82,8 +77,6 @@ async function resolveProduct(slug: string) {
 async function getProduct(slug: string) {
   const fromDb = await resolveProduct(slug);
   if (fromDb) return fromDb;
-
-  // Fall back to mock data for dev UI iteration
   return MOCK_PRODUCT;
 }
 
@@ -103,7 +96,6 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-
 export default async function ProductDetailPage({ params }: { params: { slug: string } }) {
   const { slug } = await params;
   const product = await getProduct(slug);
@@ -113,8 +105,8 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
   const displayData = {
     title: formatProductTitle(product.name),
     price: formatPrice(product.price),
-    description: product.description ?? '',
-    points: product.metadata?.points ?? '100',
+    description: product.description ?? "",
+    points: product.metadata?.points ?? "100",
     image: product.image_url,
     images: product.metadata?.gallery_images || (product.image_url ? [product.image_url] : []),
     colors: product.metadata?.colors ?? [],
@@ -131,53 +123,17 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
   };
 
   return (
-    <>
-      <ProductDetailClient
-        productId={product.id}
-        title={displayData.title}
-        price={displayData.price}
-        description={displayData.description}
-        points={displayData.points}
-        image={displayData.image}
-        images={displayData.images}
-        colors={displayData.colors}
-        sizes={displayData.sizes}
-        variants={displayData.variants}
-      />
-
-      <ProductReviews />
-
-      {/* AI Try-On — Coming Soon */}
-      <section className="py-24 px-6 md:px-12 lg:px-24 bg-[#050505] border-t border-white/5">
-        <div className="mx-auto max-w-7xl text-center">
-          <span className="font-mono text-[10px] uppercase tracking-[0.4em] text-white/20">AI Try-On</span>
-          <h2 className="mt-6 font-display text-4xl uppercase tracking-wide text-white/80 md:text-5xl">
-            Virtual Fit Studio
-          </h2>
-          <p className="mx-auto mt-4 max-w-md font-mono text-[11px] uppercase leading-relaxed tracking-[0.2em] text-white/40">
-            See how it looks on you before you buy. Coming soon.
-          </p>
-          <div className="mt-10 inline-block border border-white/10 px-8 py-4 font-mono text-[10px] uppercase tracking-[0.3em] text-white/30">
-            Coming Soon
-          </div>
-        </div>
-      </section>
-
-      {/* Generate Your Print — Placeholder */}
-      <section className="py-24 px-6 md:px-12 lg:px-24 bg-[#050505] border-t border-white/5">
-        <div className="mx-auto max-w-7xl text-center">
-          <span className="font-mono text-[10px] uppercase tracking-[0.4em] text-white/20">Your Print</span>
-          <h2 className="mt-6 font-display text-4xl uppercase tracking-wide text-white/80 md:text-5xl">
-            Generate Your Print
-          </h2>
-          <p className="mx-auto mt-4 max-w-md font-mono text-[11px] uppercase leading-relaxed tracking-[0.2em] text-white/40">
-            Design your own custom colorway and fabric combo. Exclusive to SP members.
-          </p>
-          <div className="mt-10 inline-block border border-white/10 px-8 py-4 font-mono text-[10px] uppercase tracking-[0.3em] text-white/30">
-            Unlock with Wallet
-          </div>
-        </div>
-      </section>
-    </>
+    <ProductDetailClient
+      productId={product.id}
+      title={displayData.title}
+      price={displayData.price}
+      description={displayData.description}
+      points={displayData.points}
+      image={displayData.image}
+      images={displayData.images}
+      colors={displayData.colors}
+      sizes={displayData.sizes}
+      variants={displayData.variants}
+    />
   );
 }
