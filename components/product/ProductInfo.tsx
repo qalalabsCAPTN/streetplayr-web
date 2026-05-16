@@ -28,12 +28,6 @@ type ProductInfoProps = {
   onQuantityChange?: (qty: number) => void;
 };
 
-function getStockForSize(variants: VariantInfo[], size: string): number {
-  return variants
-    .filter((v) => v.size === size)
-    .reduce((sum, v) => sum + v.stockQuantity, 0);
-}
-
 export default function ProductInfo({
   productId,
   title,
@@ -59,12 +53,10 @@ export default function ProductInfo({
 
   const selectedSize = controlledSize ?? localSize;
   const priceNum = parseFloat(price.replace(/[^0-9.-]+/g, ""));
-  const ethPrice = (priceNum * 0.00045).toFixed(4);
-
-  const selectedStock = selectedSize ? getStockForSize(variants, selectedSize) : 0;
-  const totalStock = Math.max(...sizes.map((s) => getStockForSize(variants, s)));
-  const lowStockThreshold = 10;
-  const isLowStock = selectedStock > 0 && selectedStock <= lowStockThreshold;
+  const selectedStock = selectedSize
+    ? variants.filter((v) => v.size === selectedSize).reduce((sum, v) => sum + v.stockQuantity, 0)
+    : 0;
+  const isLowStock = selectedSize ? selectedStock > 0 && selectedStock <= 10 : false;
 
   const handleSizeSelect = (size: string) => {
     if (onSizeSelect) onSizeSelect(size);
@@ -121,24 +113,15 @@ export default function ProductInfo({
   return (
     <div className="bg-[var(--surface-container-low)] border-l border-white/10 p-8">
       <div className="space-y-8">
-        {/* Pricing & Metadata */}
+        {/* Pricing */}
         <div>
-          <div className="flex justify-between items-start mb-2">
-            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">UNIT_VALUATION</span>
-            <p className="font-mono text-[10px] text-white/40">35.6895° N, 139.6917° E</p>
-          </div>
-          <div className="flex justify-between items-baseline mb-4">
-            <p className="font-display text-5xl text-white">{price}</p>
-            <p className="font-mono text-xs text-[var(--sp-accent)]">~ {ethPrice} ETH</p>
-          </div>
-          <div className="flex items-center gap-3 py-3 border-y border-white/10">
-            <span className="material-symbols-outlined text-[var(--sp-accent)] animate-pulse text-sm">warning</span>
-            <p className="font-mono text-[10px] uppercase text-[var(--sp-accent)]">
-              {isLowStock
-                ? `Stock Protocol Critical: ${selectedStock} units remaining`
-                : `Stock Protocol Active: ${totalStock}+ units`}
-            </p>
-          </div>
+          <p className="font-display text-5xl text-white">{price}</p>
+          {isLowStock && (
+            <div className="flex items-center gap-2 mt-3 py-2 border-y border-white/10">
+              <span className="material-symbols-outlined text-[var(--sp-accent)] animate-pulse text-sm">warning</span>
+              <p className="font-mono text-[10px] uppercase text-[var(--sp-accent)]">Limited Stock Available</p>
+            </div>
+          )}
         </div>
 
         {/* Color Selector */}
@@ -177,20 +160,18 @@ export default function ProductInfo({
           </div>
           <div className="grid grid-cols-4 gap-2">
             {sizes.map((size) => {
-              const stock = getStockForSize(variants, size);
               const isSelected = selectedSize === size;
               return (
                 <button
                   key={size}
                   onClick={() => handleSizeSelect(size)}
-                  className={`py-3 font-mono text-xs transition-all flex flex-col items-center ${
+                  className={`py-3 font-mono text-xs transition-all ${
                     isSelected
                       ? "border-2 border-white bg-white/5 text-white"
                       : "border border-white/20 hover:bg-white/10 text-white/60"
                   }`}
                 >
-                  <span>{size}</span>
-                  <span className="text-[8px] opacity-50">LTD: {stock}</span>
+                  {size}
                 </button>
               );
             })}
