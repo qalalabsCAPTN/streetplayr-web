@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function HomeHero() {
+  const router = useRouter();
   const [joinOpen, setJoinOpen] = useState(true);
 
   return (
@@ -53,9 +55,7 @@ export default function HomeHero() {
         <div className="flex gap-3 mt-4">
           <button
             className="inline-flex items-center gap-3 px-7 py-4 bg-white text-black rounded-xl border border-white font-mono text-[11px] tracking-[0.32em] font-bold uppercase transition-all hover:translate-y-[-1px] hover:shadow-[0_8px_24px_-8px_rgba(255,255,255,0.4)]"
-            onClick={() => {
-              document.getElementById("collection")?.scrollIntoView({ behavior: "smooth" });
-            }}
+            onClick={() => router.push("/collection")}
           >
             Enter the Drop
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

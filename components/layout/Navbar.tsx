@@ -42,8 +42,8 @@ export default function Navbar() {
     >
       <nav className="flex justify-between items-center px-4 md:px-16 h-20 w-full max-w-[1440px] mx-auto">
         <div className="flex items-center gap-8">
-          <Link href="/" className="font-display text-[48px] leading-none text-[var(--sp-accent)]" style={{ fontFamily: "'Anton', sans-serif", letterSpacing: "0.02em" }}>
-            StreetplayR
+          <Link href="/">
+            <img src="/assets/streetplayr-logo.png" alt="StreetplayR" className="h-12 w-auto object-contain" />
           </Link>
           <div className="hidden md:flex gap-6">
             {navLinks.map((link) => (
