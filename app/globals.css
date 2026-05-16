@@ -721,3 +721,75 @@ select {
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
+
+/* ── Claude Preloader Animations ─────────────────────────── */
+@keyframes blobP {
+  0%,100% { transform: translate(-12%, -18%); }
+  33%     { transform: translate(12%, 4%); }
+  66%     { transform: translate(-6%, 18%); }
+}
+@keyframes blobG {
+  0%,100% { transform: translate(82%, 60%); }
+  33%     { transform: translate(70%, 78%); }
+  66%     { transform: translate(88%, 48%); }
+}
+@keyframes scan {
+  0%   { top: -1px; opacity: 0; }
+  6%   { opacity: 0.5; }
+  94%  { opacity: 0.5; }
+  100% { top: 100%; opacity: 0; }
+}
+@keyframes pPart {
+  0%   { transform: translateY(0) translateX(0); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translateY(-100vh) translateX(20px); opacity: 0; }
+}
+@keyframes preFloat {
+  0%,100% { transform: translateY(0) rotate(-0.4deg); }
+  50%     { transform: translateY(-10px) rotate(0.4deg); }
+}
+@keyframes lineSlide {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+}
+@keyframes pulse {
+  0%,100% { transform: scale(1); opacity: 1; }
+  50%     { transform: scale(1.6); opacity: 0.4; }
+}
+
+/* ── Claude IntroVideo Animations ──────────────────────────── */
+@keyframes filmIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes filmCopyIn {
+  from { opacity: 0; transform: translateY(20px); filter: blur(8px); }
+  to   { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+@keyframes filmRec {
+  50% { opacity: 0.2; }
+}
+@keyframes filmNoise {
+  0%,100% { transform: translate(0,0); }
+  33%     { transform: translate(-4px, 2px); }
+  66%     { transform: translate(3px, -3px); }
+}
+@keyframes heroNoise {
+  0%,100% { transform: translate(0,0); }
+  33%     { transform: translate(-4px, 2px); }
+  66%     { transform: translate(3px, -3px); }
+}
+@keyframes gridDrift {
+  from { background-position: 0 0; }
+  to   { background-position: 64px 64px; }
+}
+@keyframes filmGrid {
+  from { background-position: 0 0; }
+  to   { background-position: 80px 80px; }
+}
+@keyframes filmScan {
+  0%   { top: -2%; }
+  100% { top: 102%; }
+}
+
