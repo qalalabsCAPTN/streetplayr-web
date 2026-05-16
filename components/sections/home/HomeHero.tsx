@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation";
 
 export default function HomeHero() {
   const router = useRouter();
-  const [joinOpen, setJoinOpen] = useState(true);
+  const [joinOpen, setJoinOpen] = useState(false);
+
+  const scrollToNext = () => {
+    window.scrollTo({ top: window.innerHeight, behavior: "smooth" });
+  };
 
   return (
     <section className="relative min-h-screen w-full flex flex-col justify-end overflow-hidden bg-[#050505] isolate">
@@ -39,6 +43,12 @@ export default function HomeHero() {
         }}
       />
 
+      {/* LIVE Indicator */}
+      <div className="absolute top-8 left-8 z-10 flex items-center gap-2">
+        <span className="w-2 h-2 bg-[#ff4d00] rounded-full animate-pulse shadow-[0_0_8px_#ff4d00]" />
+        <span className="text-[10px] tracking-[0.3em] text-[#ff4d00] font-bold" style={{ fontFamily: "'Space Mono', monospace" }}>LIVE</span>
+      </div>
+
       {/* Hero Content */}
       <div className="relative z-[2] flex flex-col items-start gap-4 px-[6vw] pb-16 max-w-[880px]">
         <h1 className="font-gothic text-[clamp(64px,10vw,168px)] leading-[0.9] tracking-[0.02em] uppercase text-white m-0">
@@ -46,12 +56,6 @@ export default function HomeHero() {
           <br />
           reality.
         </h1>
-        <p className="text-[15px] leading-relaxed text-white/85 max-w-[640px] m-0">
-          Eight pieces. One drop. Built for the static city &mdash;
-          <br />
-          engineered fabrics, brutalist silhouettes, a wallet that follows you
-          across the iCorETS universe.
-        </p>
         <div className="flex gap-3 mt-4">
           <button
             className="inline-flex items-center gap-3 px-7 py-4 bg-white text-black rounded-xl border border-white font-mono text-[11px] tracking-[0.32em] font-bold uppercase transition-all hover:translate-y-[-1px] hover:shadow-[0_8px_24px_-8px_rgba(255,255,255,0.4)]"
@@ -74,6 +78,15 @@ export default function HomeHero() {
             </svg>
           </button>
         </div>
+      </div>
+
+      {/* Scroll Down Indicator */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 cursor-pointer" onClick={scrollToNext}>
+        <span className="text-[10px] tracking-[0.3em] text-white/40" style={{ fontFamily: "'Space Mono', monospace" }}>SCROLL</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-white/40 animate-bounce">
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <polyline points="19 12 12 19 5 12" />
+        </svg>
       </div>
 
       {/* Join the Drop Modal */}
@@ -122,7 +135,6 @@ export default function HomeHero() {
                 }}
               />
               <div className="relative z-[2] self-center">
-                {/* Star icon placeholder */}
                 <svg width="64" height="64" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <polygon points="100,5 115.6,84.4 195,100 115.6,115.6 100,195 84.4,115.6 5,100 84.4,84.4" fill="#c77dff" opacity="0.8" />
                   <polygon points="100,5 115.6,84.4 195,100 115.6,115.6 100,195 84.4,115.6 5,100 84.4,84.4" fill="url(#starGlow)" style={{ mixBlendMode: "screen" }} />
@@ -144,17 +156,6 @@ export default function HomeHero() {
                 >
                   JOIN THE<br />DROP
                 </h3>
-                <p className="text-[13px] leading-relaxed text-[#7a7a7a]">
-                  First access to Drop 001. Earn pts on every order. Free shipping on day-one launches.
-                </p>
-                <ul className="list-none p-0 m-0 flex flex-col gap-2.5 mt-2">
-                  {["Early access · 24h before public", "100 welcome pts (₹100 off)", "Member-only colorways"].map((item, i) => (
-                    <li key={i} className="flex items-center gap-2.5 text-[10px] tracking-[0.25em] text-white/70 uppercase">
-                      <span className="w-[6px] h-[6px] bg-[#ff4d00] shadow-[0_0_8px_#ff4d00] shrink-0 rounded-full" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
               </div>
             </div>
 
@@ -167,9 +168,6 @@ export default function HomeHero() {
                 <h2 className="font-gothic text-[36px] leading-none tracking-[0.02em] uppercase text-white m-0">
                   Welcome to <em className="not-italic text-[#c77dff]">StreetplayR</em>
                 </h2>
-                <p className="text-[13px] text-[#7a7a7a] leading-relaxed mt-1">
-                  Tell us who you are. We&apos;ll line up your drop.
-                </p>
               </div>
 
               <form
