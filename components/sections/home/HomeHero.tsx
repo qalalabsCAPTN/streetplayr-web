@@ -37,33 +37,8 @@ export default function HomeHero() {
         }}
       />
 
-      {/* HUD Corners */}
-      <div className="absolute top-24 left-[6vw] z-[2] flex flex-col gap-1 font-mono text-[10px] tracking-[0.3em] text-white/70 uppercase">
-        <span className="flex items-center gap-2 text-[#ff4d00]">
-          <span className="w-2 h-2 rounded-full bg-[#ff4d00] shadow-[0_0_10px_#ff4d00] animate-pulse" />
-          LIVE
-        </span>
-        <span>DROP 001 &middot; FW &middot; 26</span>
-      </div>
-      <div className="absolute top-24 right-[6vw] z-[2] flex flex-col gap-1 items-end font-mono text-[10px] tracking-[0.3em] text-white/70 uppercase">
-        <span>EST. 2026 / MUMBAI</span>
-        <span className="text-[#c77dff]">SYSTEM ONLINE &middot; 04:18 IST</span>
-      </div>
-      <div className="absolute bottom-7 left-[6vw] z-[2] hidden md:flex flex-col gap-1 font-mono text-[10px] tracking-[0.3em] text-white/70 uppercase">
-        <span>8 PIECES &middot; NEVER RESTOCKED</span>
-        <span>LAT 19.07 &middot; LON 72.87</span>
-      </div>
-      <div className="absolute bottom-7 right-[6vw] z-[2] hidden md:flex flex-col gap-1 items-end font-mono text-[10px] tracking-[0.3em] text-white/70 uppercase">
-        <span>4K &middot; 23.976</span>
-        <span>FILM &middot; 0:00</span>
-      </div>
-
       {/* Hero Content */}
       <div className="relative z-[2] flex flex-col items-start gap-4 px-[6vw] pb-16 max-w-[880px]">
-        <span className="inline-flex items-center gap-2 px-[10px] py-[6px] border border-[rgba(255,255,255,0.18)] font-mono text-[9px] tracking-[0.3em] uppercase text-[#c77dff] border-[#c77dff]">
-          <span className="w-2 h-2 rounded-full bg-[#c77dff] shadow-[0_0_10px_#c77dff] animate-pulse" />
-          DROP 01 LIVE
-        </span>
         <h1 className="font-gothic text-[clamp(64px,10vw,168px)] leading-[0.9] tracking-[0.02em] uppercase text-white m-0">
           Design <em className="not-italic text-[#c77dff]" style={{ textShadow: "0 0 30px rgba(157,78,221,0.5)" }}>your</em>
           <br />
@@ -100,23 +75,6 @@ export default function HomeHero() {
           </button>
         </div>
       </div>
-
-      {/* Scroll Hint */}
-      <button
-        className="absolute bottom-14 left-1/2 -translate-x-1/2 z-[3] flex flex-col items-center gap-2.5 bg-transparent border-0 font-mono text-[10px] tracking-[0.4em] text-white/60 uppercase cursor-pointer transition-colors hover:text-[#c77dff]"
-        onClick={() => {
-          document.getElementById("collection")?.scrollIntoView({ behavior: "smooth" });
-        }}
-      >
-        <span>SCROLL &middot; DROP 001</span>
-        <span
-          className="w-[1px] h-9"
-          style={{
-            background: "linear-gradient(180deg, transparent, #c77dff)",
-            animation: "heroScroll 1.8s ease-in-out infinite",
-          }}
-        />
-      </button>
 
       {/* Join the Drop Modal */}
       {joinOpen && (

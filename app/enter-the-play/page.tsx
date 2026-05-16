@@ -81,7 +81,6 @@ export default function EnterThePlay() {
 
         <div className={styles["brand"]}>
           <h1 className={styles["brand-title"]}>StreetplayR</h1>
-          <div className={styles["tagline"]}>FW · 26 · DROP 01 · 8 PIECES</div>
         </div>
 
         {ready ? (
@@ -92,9 +91,6 @@ export default function EnterThePlay() {
           </button>
         ) : (
           <div className={styles["loading-state"]}>
-            <div className={styles["loading-label"]}>
-              LOADING DROP · {Math.floor(progress).toString().padStart(2, "0")}%
-            </div>
             <div className={styles["loading-bar"]}>
               <div
                 className={styles["loading-bar-fill"]}
@@ -103,13 +99,6 @@ export default function EnterThePlay() {
             </div>
           </div>
         )}
-      </div>
-
-      {/* Bottom metadata */}
-      <div className={styles["meta"]}>
-        <span>v1.0.0 · STREETPLAYR.COM</span>
-        <span>SYSTEM READY {ready ? "★" : ""}</span>
-        <span>MUMBAI · 04:18 IST</span>
       </div>
     </div>
   );

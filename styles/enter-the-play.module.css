@@ -165,36 +165,12 @@
   50%     { transform: translateY(-10px) rotate(0.4deg); }
 }
 
-.tagline {
-  font-family: var(--font-sp-mono), 'Space Mono', monospace;
-  font-size: 10px;
-  letter-spacing: 0.6em;
-  color: #c77dff;
-  text-transform: uppercase;
-  margin-top: 4px;
-}
-
 /* Loading state */
 .loading-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 14px;
-}
-
-.loading-label {
-  font-family: var(--font-sp-mono), 'Space Mono', monospace;
-  font-size: 10px;
-  letter-spacing: 0.5em;
-  color: #c77dff;
-  text-transform: uppercase;
-}
-
-.loading-pct {
-  font-size: 22px;
-  letter-spacing: 0.15em;
-  color: #fff;
-  font-family: var(--font-sp-gothic), 'Anton', sans-serif;
 }
 
 .loading-bar {
@@ -280,22 +256,6 @@
   transform: translateX(4px);
 }
 
-/* Bottom metadata */
-.meta {
-  position: absolute;
-  bottom: 30px;
-  left: 36px;
-  right: 36px;
-  display: flex;
-  justify-content: space-between;
-  font-family: var(--font-sp-mono), 'Space Mono', monospace;
-  font-size: 10px;
-  letter-spacing: 0.3em;
-  color: rgba(255,255,255,0.4);
-  text-transform: uppercase;
-  z-index: 2;
-}
-
 /* Particles */
 .particles {
   position: absolute;
@@ -336,14 +296,5 @@
   .enter-button {
     padding: 16px 36px;
     font-size: 10px;
-  }
-
-  .meta {
-    left: 20px;
-    right: 20px;
-    font-size: 8px;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
   }
 }
