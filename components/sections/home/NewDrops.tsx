@@ -1,10 +1,7 @@
 "use client";
 
-import { useRef } from "react";
-import { motion, useInView } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { formatPrice, formatProductTitle } from "@/lib/utils/format";
 
 interface Product {
   id: string | number;
@@ -12,7 +9,6 @@ interface Product {
   price: string | number;
   image: string;
   category: string;
-  className?: string;
   slug?: string;
 }
 
@@ -21,68 +17,95 @@ interface NewDropsProps {
 }
 
 export default function NewDrops({ products }: NewDropsProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(containerRef, { once: true, margin: "-100px" });
+  const drops = products.slice(0, 5);
 
   return (
-    <section ref={containerRef} className="w-full bg-[#050505] py-32 px-4 md:px-8 lg:px-16 border-t border-white/5">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-24 gap-8">
-          <motion.h2 
-            initial={{ opacity: 0, y: 30 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-            className="font-display text-5xl uppercase tracking-widest text-white md:text-7xl leading-[0.9]"
-          >
-            Latest <br/>
-            <span className="text-[var(--sp-accent)] italic pr-4">Arrivals</span>
-          </motion.h2>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={isInView ? { opacity: 1 } : {}}
-            transition={{ duration: 1, delay: 0.3 }}
-          >
-            <Link href="/collections" data-cursor="button" className="group flex items-center gap-4 font-mono text-xs tracking-[0.2em] uppercase border-b border-white/20 pb-2 hover:border-[var(--sp-accent)] hover:text-[var(--sp-accent)] transition-colors relative">
-              VIEW THE FULL DROP
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="16" viewBox="0 0 100 30" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transform transition-transform group-hover:translate-x-2 text-[var(--sp-accent)]">
-                <path d="M5,15 Q30,10 85,15" strokeDasharray="3 2" />
-                <path d="M75,5 Q90,15 85,15" />
-                <path d="M75,25 Q90,15 85,15" />
-              </svg>
-            </Link>
-          </motion.div>
+    <section className="py-24 px-4 md:px-16 max-w-[1440px] mx-auto">
+      <div className="flex justify-between items-end mb-12 border-l-4 border-[var(--sp-accent)] pl-6">
+        <div>
+          <span className="font-hud text-[var(--sp-accent)] block mb-2">COLLECTION_V2.04</span>
+          <h2 className="font-display text-[42px] md:text-[64px] uppercase leading-none" style={{ fontFamily: "'Anton', sans-serif" }}>Featured Drops</h2>
         </div>
+        <Link href="/collections" className="font-hud text-[var(--sp-text-secondary)] hover:text-[var(--sp-accent)] transition-colors hidden md:block">
+          [ VIEW_ALL_ARCHIVE ]
+        </Link>
+      </div>
 
-        <div className="product-grid">
-           {products.map((product, index) => {
-            const href = product.slug ? `/product/${product.slug}` : "/collections";
-            return (
-              <Link key={product.id} href={href} className="block cursor-none">
-                <motion.div
-                  initial={{ opacity: 0, y: 80 }}
-                  animate={isInView ? { opacity: 1, y: 0 } : {}}
-                  transition={{ duration: 1.2, delay: index * 0.15, ease: [0.16, 1, 0.3, 1] }}
-                  className={`group flex flex-col cursor-none ${product.className}`}
-                  data-cursor="product"
-                >
-                  <div className="relative aspect-[3/4] w-full overflow-hidden bg-[#111] rounded-none transition-all duration-700 ease-out group-hover:rounded-2xl">
-                    <Image
-                      src={product.image}
-                      alt={product.name}
-                      fill
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      className="object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-110 opacity-80 group-hover:opacity-100"
-                    />
-                    <div className="absolute inset-0 bg-black/10 transition-colors duration-700 group-hover:bg-transparent" />
-                  </div>
-                  <div className="mt-4 flex flex-col gap-1">
-                    <h4 className="product-name">{formatProductTitle(product.name)}</h4>
-                    <span className="product-price">{formatPrice(Number(product.price))}</span>
-                  </div>
-                </motion.div>
-              </Link>
-            );
-          })}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+        {/* Large Card — first product */}
+        {drops[0] && (
+          <Link href={drops[0].slug ? `/product/${drops[0].slug}` : "/collections"} className="md:col-span-8 group relative aspect-video bg-[var(--sp-bg-elevated)] overflow-hidden border border-[var(--sp-border-subtle)]">
+            <Image
+              src={drops[0].image}
+              alt={drops[0].name}
+              fill
+              className="object-cover transition-transform duration-700 group-hover:scale-105 group-hover:opacity-40"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent p-8 flex flex-col justify-end">
+              <span className="font-hud text-[var(--sp-accent-2)] mb-2">DROP_01 // {drops[0].category.toUpperCase()}</span>
+              <h3 className="font-display text-[42px] text-white uppercase" style={{ fontFamily: "'Anton', sans-serif" }}>{drops[0].name}</h3>
+              <div className="flex justify-between items-center mt-4">
+                <span className="font-hud text-[var(--sp-accent)]">Rs. {drops[0].price}</span>
+                <span className="bg-white text-black px-6 py-2 font-bold text-[14px] tracking-[0.05em] uppercase hover:bg-[var(--sp-accent-2)] transition-colors">
+                  Pre-Order
+                </span>
+              </div>
+            </div>
+          </Link>
+        )}
+
+        {/* Vertical Card — second product */}
+        {drops[1] && (
+          <Link href={drops[1].slug ? `/product/${drops[1].slug}` : "/collections"} className="md:col-span-4 group relative aspect-[4/5] bg-[var(--sp-bg-elevated)] overflow-hidden border border-[var(--sp-border-subtle)]">
+            <Image
+              src={drops[1].image}
+              alt={drops[1].name}
+              fill
+              className="object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+            />
+            <div className="absolute inset-0 p-6 flex flex-col justify-between">
+              <div className="flex justify-end">
+                <span className="font-hud border border-[var(--sp-accent-2)] text-[var(--sp-accent-2)] px-2">LIMITED</span>
+              </div>
+              <div>
+                <span className="font-hud text-[var(--sp-accent-2)] mb-2 block">DROP_02 // {drops[1].category.toUpperCase()}</span>
+                <h3 className="font-display text-[32px] text-white uppercase" style={{ fontFamily: "'Anton', sans-serif" }}>{drops[1].name}</h3>
+                <p className="font-hud text-[var(--sp-text-muted)] text-[10px] mt-2">CALIBRATED_FOR_THE_STREETS</p>
+              </div>
+            </div>
+          </Link>
+        )}
+
+        {/* Small Cards Row — remaining products */}
+        {drops.slice(2).map((product, i) => (
+          <Link
+            key={product.id}
+            href={product.slug ? `/product/${product.slug}` : "/collections"}
+            className={`md:col-span-4 group relative aspect-square bg-[var(--sp-bg-elevated)] overflow-hidden border border-[var(--sp-border-subtle)]`}
+          >
+            <Image
+              src={product.image}
+              alt={product.name}
+              fill
+              className="object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500"
+            />
+            <div className="absolute bottom-6 left-6">
+              <span className="font-hud text-[var(--sp-accent)]">DROP_0{i + 3} // {product.category.toUpperCase()}</span>
+              <h3 className="font-display text-[24px] text-white uppercase" style={{ fontFamily: "'Anton', sans-serif" }}>{product.name}</h3>
+            </div>
+          </Link>
+        ))}
+
+        {/* Unlock card */}
+        <div className="md:col-span-4 flex flex-col justify-center items-center border border-dashed border-[var(--sp-border-subtle)] p-8 text-center bg-[var(--sp-bg-surface)] hover:bg-[var(--sp-bg-elevated)] transition-colors group cursor-pointer aspect-square">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-[var(--sp-accent)] mb-4">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <h3 className="font-display text-[24px] text-white uppercase" style={{ fontFamily: "'Anton', sans-serif" }}>Unlock Next Drop</h3>
+          <p className="font-hud text-[var(--sp-text-muted)] text-[10px] mt-2">STAKE_500_POINTS_TO_PREVIEW</p>
+          <div className="mt-6 w-full h-1 bg-[var(--sp-border-subtle)] relative overflow-hidden rounded-full">
+            <div className="absolute left-0 top-0 h-full bg-[var(--sp-accent)] w-2/3 rounded-full" />
+          </div>
         </div>
       </div>
     </section>
