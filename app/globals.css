@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./auth-profile.css";
+@import "./ecosystem-ops.css";
 
 :root {
   /* ── Backgrounds ────────────────────────────────────────────── */
@@ -43,8 +44,25 @@
   --glow-accent-2: 0 0 18px rgba(45, 198, 83, 0.35);
   --glow-white:    0 0 18px rgba(255, 255, 255, 0.09);
 
-  /* ── Gothic font (loaded via Google Fonts @import — not in next/font/google) */
-  --font-sp-gothic: 'UnifrakturMaguntia', cursive;
+  /* ── Border Radius ──────────────────────────────────────────── */
+  --br-sm: 4px;
+  --br-md: 8px;
+  --br-lg: 12px;
+  --br-xl: 16px;
+  --br-full: 9999px;
+
+  /* ── Spacing Grid (4px base) ──────────────────────────────── */
+  --sp-1:  4px;
+  --sp-2:  8px;
+  --sp-3:  12px;
+  --sp-4:  16px;
+  --sp-6:  24px;
+  --sp-8:  32px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+
+  /* ── Gothic font (replaced UnifrakturMaguntia with Anton) */
+  --font-sp-gothic: 'Anton', sans-serif;
 
   --ease-out: cubic-bezier(0, 0, 0.2, 1);
   --ease-snap: cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -127,7 +145,7 @@ a {
 }
 
 .font-gothic {
-  font-family: var(--font-sp-gothic), var(--font-sp-display), Impact, serif;
+  font-family: var(--font-sp-gothic), var(--font-sp-display), Impact, sans-serif;
   letter-spacing: 0.06em;
 }
 
@@ -193,6 +211,18 @@ a {
   opacity: 0.04;
   mix-blend-mode: overlay;
 }
+
+/* ─── Step 1 UI Refinements ──────────────────────────────────────────────── */
+.collection-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px 24px; }
+.hero-video-content { display: flex; flex-direction: column; align-items: flex-start; text-align: left; padding-left: 64px; gap: 16px; }
+.pre-enter { border-radius: var(--br-lg); }
+.size-btn { border-radius: var(--br-lg); }
+.pcard { border-radius: var(--br-lg); overflow: hidden; }
+.btn--rounded { border-radius: var(--br-lg); }
+.chip-rounded { border-radius: var(--br-lg); }
+.join-modal-rounded { border-radius: var(--br-xl); }
+.join-chip-rounded { border-radius: var(--br-md); }
+.stock-alert { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-left: 3px solid #FF4D00; background: rgba(255,77,0,0.08); font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.2em; color: #ffffff; text-transform: uppercase; margin-bottom: 16px; }
 
 /* ─── Tier Tokens ──────────────────────────────────────────────────────────── */
 :root {
@@ -412,3 +442,235 @@ a {
 .otp-digit:focus { border-color: rgba(255,255,255,0.5); }
 .otp-digit::-webkit-outer-spin-button,
 .otp-digit::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+@import './nectar-portal.css';
+
+/* ── Product Grid ─────────────────────────────────────────── */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+@media (max-width: 768px) {
+  .product-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+.product-name {
+  font-family: 'Anton', sans-serif;
+  font-size: 18px;
+  margin-top: 4px;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.product-price {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  color: var(--sp-accent);
+  margin-top: 4px;
+}
+
+/* ── Size Matrix ──────────────────────────────────────────── */
+.size-matrix {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.size-cell {
+  padding: 12px 18px;
+  border: 1px solid var(--sp-border-strong);
+  border-radius: var(--br-md);
+  background: transparent;
+  color: var(--sp-text-primary);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.size-cell:hover {
+  border-color: var(--sp-text-primary);
+}
+
+.size-cell.active {
+  background: var(--sp-cta-bg);
+  color: var(--sp-text-inverse);
+  border-color: var(--sp-cta-bg);
+}
+
+/* ── Trust Signals ────────────────────────────────────────── */
+.trust-signals {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px 0;
+  border-top: 1px solid var(--sp-border-subtle);
+}
+
+.trust-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--sp-text-secondary);
+}
+
+.trust-item svg {
+  width: 16px;
+  height: 16px;
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+/* ── About Hero (75/25 Layout) ───────────────────────────── */
+.about-hero {
+  display: grid;
+  grid-template-columns: 75fr 25fr;
+  gap: 64px;
+  align-items: center;
+  padding: 64px;
+  min-height: 60vh;
+}
+
+.about-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.about-headline {
+  font-family: 'Anton', sans-serif;
+  font-size: 48px;
+  margin-bottom: 24px;
+  color: #fff;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.about-description {
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--sp-text-secondary);
+  max-width: 540px;
+}
+
+.about-media {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3/4;
+  overflow: hidden;
+  border-radius: var(--br-lg);
+}
+
+@media (max-width: 768px) {
+  .about-hero {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    padding: 32px 20px;
+  }
+  .about-headline {
+    font-size: 32px;
+  }
+  .about-description {
+    font-size: 16px;
+  }
+}
+
+/* ── Reviews Section ──────────────────────────────────────── */
+.reviews-section {
+  padding: 80px 24px 64px;
+  background: var(--sp-bg-base);
+}
+
+.reviews-title {
+  font-family: 'Anton', sans-serif;
+  font-size: 36px;
+  margin-bottom: 48px;
+  color: #fff;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.review-card {
+  padding: 32px;
+  background: var(--sp-bg-surface);
+  border-radius: var(--br-lg);
+  border: 1px solid var(--sp-border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.review-rating {
+  display: flex;
+  gap: 4px;
+  color: var(--sp-accent-2);
+}
+
+.review-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--sp-text-secondary);
+  flex: 1;
+}
+
+.author-name {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sp-text-primary);
+}
+
+@media (max-width: 768px) {
+  .reviews-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .reviews-section {
+    padding: 48px 16px 40px;
+  }
+}
+
+/* ── Global Border Radius ──────────────────────────────────── */
+.product-card,
+.review-card,
+button,
+input,
+textarea,
+select {
+  border-radius: var(--br-lg);
+}
+
+.size-cell {
+  border-radius: var(--br-md);
+}
+
+/* ── Spacing Utility Classes (4px grid) ────────────────────── */
+.gap-1 { gap: var(--sp-1); }
+.gap-2 { gap: var(--sp-2); }
+.gap-3 { gap: var(--sp-3); }
+.gap-4 { gap: var(--sp-4); }
+.gap-6 { gap: var(--sp-6); }
+
+.p-4 { padding: var(--sp-4); }
+.p-6 { padding: var(--sp-6); }
+.p-16 { padding: var(--sp-16); }
+
+.m-3 { margin: var(--sp-3); }
+.m-4 { margin: var(--sp-4); }

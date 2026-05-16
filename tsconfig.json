@@ -19,7 +19,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@nectar/types": ["./packages/types/src"]
     }
   },
   "include": [

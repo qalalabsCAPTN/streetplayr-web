@@ -67,22 +67,11 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
   const variants = (product as any).variants ?? [];
   const displayData = {
     title: formatProductTitle(product.name),
-    tagline: product.metadata?.tagline ?? '',
     price: formatPrice(product.price),
     description: product.description ?? '',
+    points: product.metadata?.points ?? '100',
     image: product.image_url,
     images: product.metadata?.gallery_images || (product.image_url ? [product.image_url] : []),
-    dropMetadata: {
-      dropNumber: product.metadata?.drop_number ?? '',
-      releaseType: product.metadata?.release_type ?? '',
-      fabricDetails: product.metadata?.fabric_details ?? '',
-      gsmInfo: product.metadata?.gsm_info ?? '',
-    },
-    fitIntelligence: {
-      modelInfo: product.metadata?.model_info ?? '',
-      fitType: product.metadata?.fit_type ?? '',
-      trueToSize: product.metadata?.true_to_size ?? true,
-    },
     colors: product.metadata?.colors ?? [],
     sizes:
       variants
@@ -101,13 +90,11 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
       <ProductDetailClient
         productId={product.id}
         title={displayData.title}
-        tagline={displayData.tagline}
         price={displayData.price}
         description={displayData.description}
+        points={displayData.points}
         image={displayData.image}
         images={displayData.images}
-        dropMetadata={displayData.dropMetadata}
-        fitIntelligence={displayData.fitIntelligence}
         colors={displayData.colors}
         sizes={displayData.sizes}
         variants={displayData.variants}

@@ -3,6 +3,10 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { User } from '@/store/authStore';
 import type { UserRole } from '@/lib/auth/gateway';
 
+const debug = process.env.NODE_ENV === 'development'
+  ? (msg: string, ...args: unknown[]) => console.log('[AuthService]', msg, ...args)
+  : () => {};
+
 /**
  * Auth Service — domain logic for authentication and profile management.
  */
@@ -26,57 +30,81 @@ export const AuthService = {
   },
   /**
    * Fetches the current user profile from Supabase.
+   * Only queries columns that exist in the profiles table — missing columns
+   * (sprr_balance, referral_code, wallet_id, etc.) are gracefully defaulted.
    */
   async getCurrentProfile(): Promise<User | null> {
     const supabase = await createClient();
     const { data: { session } } = await supabase.auth.getSession();
 
+    debug('getSession result:', { hasSession: !!session, userId: session?.user?.id });
+
     if (!session) {
+      debug('no session found');
       return null;
     }
 
     const fetchProfile = async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
-        .select('id, username, full_name, avatar_url, referral_code, wallet_id, joined_from, is_onboarded, created_at, sprr_balance, role')
+        .select('id, email, full_name, avatar_url, role, created_at')
         .eq('id', session.user.id)
         .single();
+
+      if (error) debug('profile fetch error:', error.message);
       return data;
     };
 
     let profile = await fetchProfile();
 
-    // If profile doesn't exist yet (race with trigger), attempt creation
     if (!profile) {
-      const { error: insertError } = await supabase
-        .from('profiles')
-        .insert({ id: session.user.id });
+      debug('profile missing — attempting bootstrap insert');
 
-      if (!insertError) {
-        // Re-fetch after insert
-        profile = await fetchProfile();
+      const admin = createAdminClient();
+      const userEmail = session.user.email?.toLowerCase();
+      const bootstrapRole = userEmail === 'aayushsingh1107@gmail.com' ? 'super_admin' : 'member';
+
+      const { error: insertError } = await admin
+        .from('profiles')
+        .insert({
+          id: session.user.id,
+          full_name: session.user.user_metadata?.full_name || null,
+          avatar_url: session.user.user_metadata?.avatar_url || null,
+          email: userEmail,
+          role: bootstrapRole,
+        });
+
+      if (insertError) {
+        debug('profile bootstrap insert error:', insertError.message);
+      } else {
+        debug('profile created with role:', bootstrapRole);
       }
+
+      profile = await fetchProfile();
     }
 
     if (!profile) {
+      debug('profile still null after bootstrap');
       return null;
     }
 
+    debug('profile found:', { id: profile.id, role: profile.role, email: profile.email });
+
     return {
       id: profile.id,
-      username: profile.username,
+      username: '',
       name: profile.full_name || '',
       phone: session.user.phone || '',
-      email: session.user.email || null,
+      email: profile.email || session.user.email || null,
       avatar: profile.avatar_url,
-      referralCode: profile.referral_code,
-      walletId: profile.wallet_id,
-      joinedFrom: profile.joined_from,
-      authProvider: session.user.app_metadata.provider as any,
-      isOnboarded: profile.is_onboarded,
+      referralCode: '',
+      walletId: '',
+      joinedFrom: '',
+      authProvider: (session.user.app_metadata?.provider as any) || 'google',
+      isOnboarded: false,
       memberSince: profile.created_at,
-      sprrBalance: profile.sprr_balance || 0,
-      role: (profile.role as UserRole) ?? 'member',
+      sprrBalance: 0,
+      role: (profile.role as UserRole) || 'member',
     };
   },
 

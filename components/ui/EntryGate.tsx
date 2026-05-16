@@ -118,7 +118,7 @@ export default function EntryGate() {
               style={{ perspective: "800px" }}
             >
               <div
-                className="grid h-28 w-28 place-items-center bg-white text-black"
+                className="grid h-28 w-28 place-items-center rounded-xl bg-white text-black"
                 style={{
                   boxShadow:
                     "0 0 40px rgba(157,78,221,0.55), 0 0 80px rgba(157,78,221,0.28), 0 0 0 1px rgba(255,255,255,0.15)",
@@ -139,7 +139,8 @@ export default function EntryGate() {
                 <motion.span
                   key={i}
                   aria-hidden="true"
-                  className="font-gothic text-3xl sm:text-4xl text-white leading-none"
+                  className="text-3xl sm:text-4xl text-white leading-none"
+                  style={{ fontFamily: "'Anton', sans-serif" }}
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{
@@ -153,32 +154,10 @@ export default function EntryGate() {
               ))}
             </motion.div>
 
-            {/* Tagline */}
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.1, duration: 0.5 }}
-              className="font-mono text-xs uppercase tracking-[0.32em] text-white/35"
-            >
-              Enter The Play
-            </motion.p>
+            {/* tagline removed per Step 2 */}
           </div>
 
-          {/* Tap / click prompt */}
-          <motion.div
-            className="absolute bottom-14 flex flex-col items-center gap-3"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: [0, 0.8, 0.4, 0.8], y: 0 }}
-            transition={{ delay: 1.4, duration: 2, repeat: Infinity, repeatType: "mirror" }}
-          >
-            <span className="font-mono text-xs uppercase tracking-[0.28em] text-white/40">
-              Click to Enter
-            </span>
-            {/* Animated chevron */}
-            <svg width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true">
-              <path d="M1 1l4 4 4-4" stroke="rgba(157,78,221,0.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </motion.div>
+          {/* click prompt removed per Step: metadata/subtext removed */}
 
           {/* Bottom accent line */}
           <motion.div

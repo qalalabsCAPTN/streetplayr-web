@@ -1,0 +1,119 @@
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import {
+  LayoutDashboard, Wallet, Trophy, Medal, Scroll,
+  GitBranch, Activity, BarChart3, Star, Settings,
+  ChevronRight, Zap, Bell,
+} from 'lucide-react';
+import { cn } from '@/lib/nectar-portal/cn';
+import { DEMO_USER, DEMO_PROGRESSION, DEMO_WALLET, TIER_CONFIG } from '@/lib/nectar-portal/demo';
+
+const NAV = [
+  { label: 'Overview',       href: '/dashboard/overview',      icon: LayoutDashboard },
+  { label: 'Wallet',         href: '/dashboard/wallet',         icon: Wallet },
+  { label: 'Progression',    href: '/dashboard/progression',    icon: Trophy },
+  { label: 'Achievements',   href: '/dashboard/achievements',   icon: Medal },
+  { label: 'Quests',         href: '/dashboard/quests',         icon: Scroll },
+  { label: 'Leaderboards',   href: '/dashboard/leaderboards',   icon: BarChart3 },
+  { label: 'Referrals',      href: '/dashboard/referrals',      icon: GitBranch },
+  { label: 'Drops',          href: '/dashboard/drops',          icon: Star },
+  { label: 'Activity',       href: '/dashboard/activity',       icon: Activity },
+  { label: 'Settings',       href: '/dashboard/settings',       icon: Settings },
+];
+
+export function DashboardSidebar() {
+  const pathname = usePathname();
+  const tierCfg = TIER_CONFIG[DEMO_PROGRESSION.tier];
+  const xpPct = DEMO_PROGRESSION.xpProgressPct;
+
+  return (
+    <aside className="fixed inset-y-0 left-0 z-40 flex w-[220px] flex-col bg-base-surface border-r border-border">
+      {/* Logo */}
+      <div className="flex h-14 items-center gap-3 border-b border-border px-4">
+        <div className="flex h-8 w-8 items-center justify-center rounded-xl shadow-glow-nectar"
+          style={{ background: 'linear-gradient(135deg, #FBBF24 0%, #F59E14 100%)' }}>
+          <span className="text-sm font-black text-black">N</span>
+        </div>
+        <div>
+          <div className="text-sm font-black text-text-primary tracking-tight">NECTAR</div>
+          <div className="text-[9px] text-text-muted uppercase tracking-widest">Ecosystem</div>
+        </div>
+        <button className="ml-auto relative">
+          <Bell className="h-4 w-4 text-text-muted hover:text-text-primary transition-colors" />
+          <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-nectar-400" />
+        </button>
+      </div>
+
+      {/* User tier card */}
+      <div className="border-b border-border p-3">
+        <div className="rounded-xl p-3" style={{ background: tierCfg.bg, border: `1px solid ${tierCfg.color}30` }}>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-base-overlay text-xs font-bold text-text-primary">
+              {DEMO_USER.avatarInitials}
+            </div>
+            <div>
+              <div className="text-xs font-semibold text-text-primary">{DEMO_USER.displayName}</div>
+              <div className="text-[10px] font-bold uppercase tracking-widest" style={{ color: tierCfg.color }}>
+                {tierCfg.name}
+              </div>
+            </div>
+          </div>
+          {/* XP progress */}
+          <div className="space-y-1">
+            <div className="flex justify-between text-[10px]">
+              <span className="text-text-muted">{DEMO_PROGRESSION.lifetimeXp.toLocaleString()} XP</span>
+              <span style={{ color: tierCfg.color }}>{xpPct.toFixed(0)}% → {DEMO_PROGRESSION.nextTier}</span>
+            </div>
+            <div className="h-1.5 w-full rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+              <div
+                className="h-full rounded-full transition-all duration-1000"
+                style={{ width: `${xpPct}%`, background: `linear-gradient(90deg, ${tierCfg.color}90, ${tierCfg.color})`, boxShadow: `0 0 6px ${tierCfg.color}80` }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Nav */}
+      <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-0.5">
+        {NAV.map(item => {
+          const active = pathname === item.href || (item.href !== '/dashboard/overview' && pathname.startsWith(item.href));
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn('portal-nav-item', active && 'active')}
+            >
+              <Icon className={cn('h-4 w-4 shrink-0', active ? 'opacity-100' : 'opacity-60')}
+                style={active ? { color: 'currentColor' } : {}} />
+              <span className="flex-1">{item.label}</span>
+              {active && <ChevronRight className="h-3 w-3 opacity-40" />}
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Wallet footer */}
+      <div className="border-t border-border p-3">
+        <div className="rounded-xl bg-base-overlay border border-border px-3 py-2.5">
+          <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">NECTAR Points</div>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-xl font-bold text-nectar-400 tabular-nums">
+              {DEMO_WALLET.nectarPoints.toLocaleString()}
+            </span>
+            <span className="text-[10px] text-text-muted">pts</span>
+          </div>
+          {DEMO_WALLET.pendingPoints > 0 && (
+            <div className="flex items-center gap-1 mt-1 text-[10px] text-status-success">
+              <Zap className="h-2.5 w-2.5" />
+              +{DEMO_WALLET.pendingPoints.toLocaleString()} pending
+            </div>
+          )}
+        </div>
+      </div>
+    </aside>
+  );
+}

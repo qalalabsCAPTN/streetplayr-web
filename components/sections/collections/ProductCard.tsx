@@ -53,7 +53,7 @@ export default function ProductCard({ product, index }: ProductCardProps) {
     >
       <Link href={`/product/${product.slug}`} className="block w-full outline-none">
         <div 
-          className={`relative w-full overflow-hidden bg-[#111] ${aspectClass}`}
+          className={`relative w-full overflow-hidden rounded-xl bg-[#111] ${aspectClass}`}
           data-cursor="product"
         >
           {/* Default Image */}
@@ -81,22 +81,7 @@ export default function ProductCard({ product, index }: ProductCardProps) {
             />
           </div>
 
-          {/* Gradient overlay for better text readability on mobile/hover */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-          
-          {/* Top Metadata Badges - Embedded, no UI chrome */}
-          <div className="absolute top-0 left-0 flex w-full justify-between p-4 md:p-6 z-10 pointer-events-none mix-blend-overlay">
-            {product.metadata.drop && (
-              <span className="font-mono text-[10px] tracking-[0.2em] text-white/70">
-                {product.metadata.drop}
-              </span>
-            )}
-            {product.metadata.fabric && (
-              <span className="hidden font-mono text-[10px] tracking-[0.2em] text-white/50 md:block">
-                {product.metadata.fabric}
-              </span>
-            )}
-          </div>
+          {/* metadata/subtext removed */}
         </div>
       </Link>
 
@@ -112,9 +97,6 @@ export default function ProductCard({ product, index }: ProductCardProps) {
             {product.price}
           </span>
         </div>
-        <p className="font-mono text-[11px] text-[#4a4a4a] tracking-wider uppercase md:hidden mt-1">
-          {product.metadata.fabric}
-        </p>
       </div>
     </motion.div>
   );

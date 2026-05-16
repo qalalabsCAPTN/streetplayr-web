@@ -6,19 +6,6 @@ import ProductInfo from "@/components/product/ProductInfo";
 import MobilePurchaseBar from "@/components/product/MobilePurchaseBar";
 import ProductGallery from "@/components/product/ProductGallery";
 
-type DropMetadata = {
-  dropNumber: string;
-  releaseType: string;
-  fabricDetails: string;
-  gsmInfo: string;
-};
-
-type FitIntelligence = {
-  modelInfo: string;
-  fitType: string;
-  trueToSize: boolean;
-};
-
 type Color = { id: string; name: string; hex: string };
 
 type VariantInfo = {
@@ -31,13 +18,11 @@ type VariantInfo = {
 type ProductDetailClientProps = {
   productId: string;
   title: string;
-  tagline: string;
   price: string;
   description: string;
+  points: string;
   image: string;
   images: string[];
-  dropMetadata: DropMetadata;
-  fitIntelligence: FitIntelligence;
   colors: Color[];
   sizes: string[];
   variants: VariantInfo[];
@@ -81,11 +66,9 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
               <ProductInfo
                 productId={props.productId}
                 title={props.title}
-                tagline={props.tagline}
                 price={props.price}
                 description={props.description}
-                dropMetadata={props.dropMetadata}
-                fitIntelligence={props.fitIntelligence}
+                points={props.points}
                 colors={props.colors}
                 sizes={props.sizes}
                 variants={liveVariants}

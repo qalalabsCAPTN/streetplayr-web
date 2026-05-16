@@ -118,14 +118,7 @@ export default function Loader() {
               ))}
             </div>
 
-            <motion.p
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-4 text-sm text-white/56"
-              initial={{ opacity: 0, y: 12 }}
-              transition={{ delay: 1.02, duration: 0.24 }}
-            >
-              Let me put you in a better outfit.
-            </motion.p>
+            {/* tagline removed per Step 2 */}
           </div>
 
           <motion.div

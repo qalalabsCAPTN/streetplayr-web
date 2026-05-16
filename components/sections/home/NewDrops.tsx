@@ -53,7 +53,7 @@ export default function NewDrops({ products }: NewDropsProps) {
           </motion.div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
+        <div className="product-grid">
            {products.map((product, index) => {
             const href = product.slug ? `/product/${product.slug}` : "/collections";
             return (
@@ -75,12 +75,9 @@ export default function NewDrops({ products }: NewDropsProps) {
                     />
                     <div className="absolute inset-0 bg-black/10 transition-colors duration-700 group-hover:bg-transparent" />
                   </div>
-                  <div className="mt-6 flex justify-between items-start">
-                    <div className="flex flex-col">
-                      <span className="font-mono text-[10px] text-white/40 tracking-[0.2em] mb-2 uppercase">{product.category}</span>
-                      <h4 className="font-body text-lg font-light tracking-wide text-white/90">{formatProductTitle(product.name)}</h4>
-                    </div>
-                    <span className="font-mono text-sm tracking-wider text-white/70">{formatPrice(Number(product.price))}</span>
+                  <div className="mt-4 flex flex-col gap-1">
+                    <h4 className="product-name">{formatProductTitle(product.name)}</h4>
+                    <span className="product-price">{formatPrice(Number(product.price))}</span>
                   </div>
                 </motion.div>
               </Link>
