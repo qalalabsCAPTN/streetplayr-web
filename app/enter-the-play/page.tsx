@@ -1,116 +1,104 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import Image from "next/image";
-import { useEffect, useState } from "react";
-import EnterButton from "@/components/ui/EnterButton";
-import ThreeStarScene from "@/components/ui/ThreeStarScene";
+import { useState, useEffect, useMemo } from "react";
+import dynamic from "next/dynamic";
+import styles from "@/styles/enter-the-play.module.css";
 
-export default function EnterThePlayPage() {
+const GLBStar = dynamic(() => import("@/components/ui/GLBStar"), {
+  ssr: false,
+  loading: () => <div className={styles["star-loader"]} />,
+});
+
+export default function EnterThePlay() {
   const router = useRouter();
-  const [show, setShow] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [ready, setReady] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
-    const t = setTimeout(() => setShow(true), 50);
-    return () => clearTimeout(t);
+    let p = 0;
+    const id = setInterval(() => {
+      p += Math.random() * 14 + 4;
+      if (p >= 100) {
+        p = 100;
+        setReady(true);
+        clearInterval(id);
+      }
+      setProgress(p);
+    }, 180);
+    return () => clearInterval(id);
   }, []);
 
-  const handleEnter = async () => {
-    if (isExiting) return;
+  const particles = useMemo(() =>
+    Array.from({ length: 28 }, (_, i) => ({
+      left: Math.random() * 100,
+      delay: Math.random() * 5,
+      dur: 4 + Math.random() * 6,
+      size: 1 + Math.random() * 2,
+    })),
+  []);
+
+  const handleEnter = () => {
     setIsExiting(true);
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    router.push("/entering-street-playR");
+    setTimeout(() => router.push("/entering-street-playR"), 600);
   };
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "#0a0015",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "60px 20px 80px",
-        overflow: "hidden",
-        opacity: isExiting ? 0 : 1,
-        transition: "opacity 0.6s ease-out",
-      }}
-    >
-      {/* Particle field */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          pointerEvents: "none",
-          overflow: "hidden",
-          opacity: 0.1,
-        }}
-      >
-        {Array.from({ length: 20 }).map((_, i) => (
+    <div className={`${styles["container"]} ${isExiting ? styles["exit"] : ""}`}>
+      {/* Background layers */}
+      <div className={styles["bg-stage"]}>
+        <div className={styles["bg-grid"]} />
+        <div className={styles["bg-blob-purple"]} />
+        <div className={styles["bg-blob-green"]} />
+        <div className={styles["bg-noise"]} />
+        <div className={styles["bg-scanline"]} />
+      </div>
+
+      {/* Particles */}
+      <div className={styles["particles"]}>
+        {particles.map((p, i) => (
           <span
             key={i}
-            className="entry-particle"
+            className={styles["particle"]}
             style={{
-              left: `${(i * 37 + 11) % 100}%`,
-              animationDelay: `${(i * 0.7) % 5}s`,
-              animationDuration: `${4 + (i % 6)}s`,
-              width: 2,
-              height: 2,
-              background: "#c77dff",
-            }}
+              left: `${p.left}%`,
+              bottom: "-10px",
+              width: p.size,
+              height: p.size,
+              "--dur": `${p.dur}s`,
+              "--delay": `${p.delay}s`,
+            } as React.CSSProperties}
           />
         ))}
       </div>
 
-      {/* Layer 1: Logo */}
-      <div
-        style={{
-          opacity: show ? 1 : 0,
-          transition: "opacity 0.6s ease-out",
-        }}
-      >
-        <Image
-          src="/assets/streetplayr-logo.png"
-          alt="StreetplayR"
-          width={280}
-          height={80}
-          style={{
-            width: "280px",
-            maxWidth: "90vw",
-            height: "auto",
-          }}
-          priority
-        />
-      </div>
+      {/* Content */}
+      <div className={styles["content"]}>
+        <div className={styles["star-container"]}>
+          <GLBStar modelPath="/models/streetplayr-star/starchrome.glb" />
+        </div>
 
-      {/* Layer 2: 3D Star */}
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          opacity: show ? 1 : 0,
-          transition: "opacity 0.8s ease-out 0.2s",
-        }}
-      >
-        <ThreeStarScene size={340} />
-      </div>
+        <div className={styles["brand"]}>
+          <h1 className={styles["brand-title"]}>StreetplayR</h1>
+        </div>
 
-      {/* Layer 3: Enter Button */}
-      <div
-        style={{
-          opacity: show ? 1 : 0,
-          transition: "opacity 0.6s ease-out 0.4s",
-        }}
-      >
-        <EnterButton
-          label="ENTER THE PLAY"
-          onClick={handleEnter}
-        />
+        {ready ? (
+          <button className={styles["enter-button"]} onClick={handleEnter}>
+            <span className={styles["dot-pulse"]} />
+            <span>Click to Enter</span>
+            <span className={styles["arrow-icon"]}>→</span>
+          </button>
+        ) : (
+          <div className={styles["loading-state"]}>
+            <div className={styles["loading-bar"]}>
+              <div
+                className={styles["loading-bar-fill"]}
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

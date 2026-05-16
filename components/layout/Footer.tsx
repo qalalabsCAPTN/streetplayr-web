@@ -1,45 +1,79 @@
-import Link from "next/link";
-
-const footerLinks = [
-  { label: "Terms", href: "#" },
-  { label: "Privacy", href: "#" },
-  { label: "Logistics", href: "#" },
-  { label: "Contact", href: "#" },
-];
-
 export default function Footer() {
   return (
-    <footer className="bg-[var(--sp-bg-surface)] w-full py-12 px-4 md:px-16 border-t border-grid-line">
-      <div className="flex flex-col md:flex-row justify-between items-center gap-6 max-w-[1440px] mx-auto">
-        <div className="flex flex-col items-center md:items-start gap-4">
-          <Link href="/" className="font-display text-[48px] leading-none text-[var(--sp-accent)]" style={{ fontFamily: "'Anton', sans-serif", letterSpacing: "0.02em" }}>
-            StreetplayR
-          </Link>
-          <p className="font-hud text-[var(--sp-text-muted)] opacity-80">© 2024 STREETPLAYR // CORE_OS_V1.0</p>
+    <footer className="foot w-full bg-[#050505] border-t border-[rgba(255,255,255,0.10)] px-6 md:px-[6vw]">
+      <div className="foot-brand py-12 border-b border-[rgba(255,255,255,0.10)]">
+        <span
+          className="font-gothic text-[28px] text-white"
+          style={{ fontFamily: "'Anton', sans-serif", letterSpacing: "0.02em" }}
+        >
+          StreetplayR
+        </span>
+        <p className="text-[13px] text-[#7a7a7a] leading-relaxed max-w-[480px] mt-3 font-mono text-[10px] tracking-[0.3em] uppercase">
+          Designed in Mumbai. Engineered for the universe. Part of the iCorETS
+          ecosystem &mdash; one wallet, one identity, every drop.
+        </p>
+        <span className="font-mono text-[10px] tracking-[0.3em] text-[#7a7a7a] uppercase mt-3 block">
+          &copy; 2026 STREETPLAYR PVT LTD
+        </span>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-8 py-12">
+        <div className="flex flex-col gap-3">
+          <h5 className="font-mono text-[10px] tracking-[0.5em] text-[#c77dff] uppercase mb-2">
+            Shop
+          </h5>
+          <a href="#" className="font-mono text-[10px] tracking-[0.3em] text-[#7a7a7a] hover:text-white transition-colors uppercase">
+            Collection
+          </a>
+          <a href="#" className="font-mono text-[10px] tracking-[0.3em] text-[#7a7a7a] hover:text-white transition-colors uppercase">
+            Lookbook
+          </a>
+          <a href="#" className="font-mono text-[10px] tracking-[0.3em] text-[#7a7a7a] hover:text-white transition-colors uppercase">
+            Archive
+          </a>
+          <a href="#" className="font-mono text-[10px] tracking-[0.3em] text-[#7a7a7a] hover:text-white transition-colors uppercase">
+            Gift Cards
+          </a>
         </div>
-        <div className="flex gap-8">
-          {footerLinks.map((link) => (
-            <Link
-              key={link.label}
-              href={link.href}
-              className="font-hud text-[var(--sp-text-secondary)] hover:text-[var(--sp-accent-2)] opacity-80 hover:opacity-100 transition-all"
-            >
-              {link.label}
-            </Link>
-          ))}
+        <div className="flex flex-col gap-3">
+          <h5 className="font-mono text-[10px] tracking-[0.5em] text-[#c77dff] uppercase mb-2">
+            Universe
+          </h5>
+          <a href="#" className="font-mono text-[10px] tracking-[0.3em] text-[#7a7a7a] hover:text-white transition-colors uppercase">
+            iCorETS
+          </a>
+          <a href="#" className="font-mono text-[10px] tracking-[0.3em] text-[#7a7a7a] hover:text-white transition-colors uppercase">
+            Universal Wallet
+          </a>
+          <a href="#" className="font-mono text-[10px] tracking-[0.3em] text-[#7a7a7a] hover:text-white transition-colors uppercase">
+            Apex Pass
+          </a>
+          <a href="#" className="font-mono text-[10px] tracking-[0.3em] text-[#7a7a7a] hover:text-white transition-colors uppercase">
+            Referrals
+          </a>
         </div>
-        <div className="flex gap-4">
-          <button className="w-10 h-10 flex items-center justify-center border border-[var(--sp-border-subtle)] hover:border-[var(--sp-accent)] transition-colors text-[var(--sp-text-secondary)] hover:text-[var(--sp-accent)]">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-            </svg>
-          </button>
-          <button className="w-10 h-10 flex items-center justify-center border border-[var(--sp-border-subtle)] hover:border-[var(--sp-accent)] transition-colors text-[var(--sp-text-secondary)] hover:text-[var(--sp-accent)]">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>
-            </svg>
-          </button>
+        <div className="flex flex-col gap-3">
+          <h5 className="font-mono text-[10px] tracking-[0.5em] text-[#c77dff] uppercase mb-2">
+            Support
+          </h5>
+          <a href="#" className="font-mono text-[10px] tracking-[0.3em] text-[#7a7a7a] hover:text-white transition-colors uppercase">
+            Sizing
+          </a>
+          <a href="#" className="font-mono text-[10px] tracking-[0.3em] text-[#7a7a7a] hover:text-white transition-colors uppercase">
+            Shipping
+          </a>
+          <a href="#" className="font-mono text-[10px] tracking-[0.3em] text-[#7a7a7a] hover:text-white transition-colors uppercase">
+            Returns
+          </a>
+          <a href="#" className="font-mono text-[10px] tracking-[0.3em] text-[#7a7a7a] hover:text-white transition-colors uppercase">
+            Contact
+          </a>
         </div>
+      </div>
+
+      <div className="foot-legal border-t border-[rgba(255,255,255,0.10)] py-6 flex flex-col md:flex-row justify-between gap-2 font-mono text-[10px] tracking-[0.3em] text-[#4d4d4d] uppercase">
+        <span>FW26 &middot; DROP 01 &middot; v1.0.0</span>
+        <span>SYSTEM ONLINE &middot; MUMBAI 04:18 IST</span>
       </div>
     </footer>
   );
