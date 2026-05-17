@@ -18,40 +18,43 @@ export default function BestSellers({ products }: BestSellersProps) {
   const best = products.slice(0, 3);
 
   return (
-    <section className="py-24 px-4 md:px-16 max-w-[1440px] mx-auto">
-      <div className="flex justify-between items-end mb-12 border-l-4 border-[var(--sp-accent)] pl-6">
+    <section className="py-28 px-4 md:px-16 max-w-[1440px] mx-auto">
+      <div className="flex justify-between items-end mb-14">
         <div>
-          <span className="font-hud text-[var(--sp-accent)] block mb-2">TOP_RATED_V1.0</span>
-          <h2 className="font-display text-[42px] md:text-[64px] uppercase leading-none" style={{ fontFamily: "'Anton', sans-serif" }}>
+          <span className="font-mono text-[10px] tracking-[0.28em] uppercase text-[rgba(234,223,237,0.52)] block mb-3">Most Worn</span>
+          <h2 className="font-display text-[42px] md:text-[64px] uppercase leading-[0.92] text-[#eadfed]">
             Best Sellers
           </h2>
+          <h3 className="font-display text-[clamp(1.1rem,1.6vw,1.4rem)] uppercase tracking-[0.18em] text-[rgba(234,223,237,0.30)] mt-4 max-w-[55ch] leading-relaxed">
+            &ldquo;Create The Things You Wish Existed&rdquo;
+          </h3>
         </div>
-        <Link href="/collections" className="font-hud text-[var(--sp-text-secondary)] hover:text-[var(--sp-accent)] transition-colors hidden md:block">
-          [ VIEW_ALL ]
+        <Link href="/collections" className="font-mono text-[10px] tracking-[0.24em] uppercase text-[rgba(234,223,237,0.52)] hover:text-[#eadfed] transition-colors hidden md:block">
+          View All
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {best.map((product, i) => (
           <Link
             key={product.id}
             href={product.slug ? `/product/${product.slug}` : "/collections"}
-            className="group relative aspect-[4/5] bg-[var(--sp-bg-elevated)] overflow-hidden border border-[var(--sp-border-subtle)]"
+            className="group relative aspect-[4/5] bg-[#231e27] overflow-hidden border border-white/[0.10] shadow-[0_22px_70px_rgba(12,6,18,0.30)]"
           >
             <img
               src={product.image}
               alt={product.name}
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 group-hover:opacity-40"
+              className="w-full h-full object-cover saturate-[0.92] transition-transform duration-700 group-hover:scale-[1.025] group-hover:saturate-100"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent p-8 flex flex-col justify-end">
-              <span className="font-hud text-[var(--sp-accent-2)] mb-2">
-                BEST_SELLER_0{i + 1}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#16111b]/90 via-[#16111b]/15 to-transparent p-8 flex flex-col justify-end">
+              <span className="font-mono text-[10px] tracking-[0.22em] uppercase text-[rgba(234,223,237,0.54)] mb-2">
+                Piece 0{i + 1}
               </span>
-              <h3 className="font-display text-[28px] text-white uppercase" style={{ fontFamily: "'Anton', sans-serif" }}>
+              <h3 className="font-display text-[28px] text-[#eadfed] uppercase leading-none">
                 {product.name}
               </h3>
               <div className="flex justify-between items-center mt-3">
-                <span className="font-hud text-[var(--sp-accent)]">
+                <span className="font-mono text-[11px] tracking-[0.18em] uppercase text-[rgba(234,223,237,0.64)]">
                   {typeof product.price === "number" ? `Rs. ${product.price}` : product.price}
                 </span>
               </div>

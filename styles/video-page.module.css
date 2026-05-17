@@ -30,23 +30,25 @@
   position: fixed;
   bottom: 20px;
   right: 20px;
-  border: 1px solid #c77dff;
+  border: 1px solid rgba(221,183,255,0.25);
   background: transparent;
-  color: #c77dff;
-  padding: 10px 24px;
-  border-radius: 8px;
+  color: rgba(234,223,237,0.6);
+  padding: 14px 36px;
+  border-radius: 0;
   cursor: pointer;
   font-size: 12px;
-  font-weight: bold;
+  font-weight: 400;
+  letter-spacing: 0.5em;
   text-transform: uppercase;
-  opacity: 0.7;
-  text-shadow: 0 0 8px #9d4edd;
+  font-family: var(--font-sp-mono), 'Space Mono', monospace;
+  text-shadow: 0 0 8px rgba(221,183,255,0.12);
   transition: all 0.3s ease;
   z-index: 1000;
 }
 
 .skip-button:hover {
-  opacity: 1;
-  text-shadow: 0 0 16px #9d4edd;
-  box-shadow: 0 4px 20px rgba(157, 78, 221, 0.3);
+  color: rgba(234,223,237,0.9);
+  border-color: rgba(221,183,255,0.4);
+  text-shadow: 0 0 16px rgba(221,183,255,0.2);
+  box-shadow: 0 4px 20px rgba(221,183,255,0.08);
 }

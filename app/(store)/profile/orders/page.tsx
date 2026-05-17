@@ -31,6 +31,16 @@ const STATUS_LABELS: Record<string, string> = {
   refunded: 'Refunded',
 };
 
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString('en-IN', {
+    day: 'numeric', month: 'long', year: 'numeric',
+  });
+}
+
+function formatPrice(n: number) {
+  return '₹' + n.toLocaleString('en-IN');
+}
+
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,7 +59,6 @@ export default function OrdersPage() {
           .order('created_at', { ascending: false });
 
         if (data) {
-          // Fetch product names for all referenced product_ids
           const productIds = data.flatMap((o: any) =>
             (o.order_items ?? []).map((i: any) => i.product_id)
           );
@@ -85,10 +94,10 @@ export default function OrdersPage() {
 
   if (loading) {
     return (
-      <div className="profile-page-root">
-        <div className="profile-page-header">
-          <p className="profile-page-eyebrow">Your acquisitions</p>
-          <h1 className="profile-page-title">Orders</h1>
+      <div className="max-w-[1200px]">
+        <div className="mb-10 border-l-4 border-[#ddb7ff] pl-6">
+          <div className="h-3 w-48 bg-white/[0.04] mb-2" />
+          <div className="h-12 w-64 bg-white/[0.03]" />
         </div>
         <div className="flex h-[30vh] items-center justify-center">
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/30">Loading...</p>
@@ -98,74 +107,99 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="profile-page-root">
-      <motion.div
-        className="profile-page-header"
-        initial={{ opacity: 0, y: 12 }}
+    <div className="max-w-[1200px]">
+      {/* ═══ HEADER ═══ */}
+      <motion.header
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        className="mb-10 border-l-4 border-[#ddb7ff] pl-6"
       >
-        <p className="profile-page-eyebrow">Your acquisitions</p>
-        <h1 className="profile-page-title">Orders</h1>
-      </motion.div>
+        <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#ddb7ff] block mb-2">
+          [ ACQUISITION // ARCHIVE ]
+        </span>
+        <h1 className="font-display text-5xl sm:text-6xl md:text-7xl uppercase tracking-tight text-[#eadfed] leading-none">
+          Orders
+        </h1>
+      </motion.header>
 
       {orders.length > 0 ? (
-        <div className="orders-list">
+        <div className="space-y-4">
           {orders.map((order, i) => (
-            <motion.article
+            <motion.div
               key={order.id}
-              className="order-card"
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 + i * 0.1, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ delay: 0.1 + i * 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              className="bg-[#1f1a23] border border-white/[0.06] p-6 md:p-8 hover:border-white/[0.1] transition-colors"
             >
-              <div className="order-card-header">
+              {/* Order header */}
+              <div className="flex items-start justify-between mb-5 pb-5 border-b border-white/[0.05]">
                 <div>
-                  <p className="order-card-id">#{order.id.slice(0, 8)}</p>
-                  <p className="order-card-date">
-                    {new Date(order.createdAt).toLocaleDateString('en-IN', {
-                      day: 'numeric', month: 'long', year: 'numeric',
-                    })}
+                  <p className="font-mono text-[11px] text-white/80 uppercase tracking-[0.1em]">
+                    #{order.id.slice(0, 8)}
+                  </p>
+                  <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/30 mt-1">
+                    {formatDate(order.createdAt)}
                   </p>
                 </div>
-                <span className="order-card-status">
+                <span className={`font-mono text-[9px] uppercase tracking-[0.15em] px-3 py-1 border ${
+                  order.status === 'delivered' ? 'text-green-400 border-green-500/30' :
+                  order.status === 'cancelled' ? 'text-red-400 border-red-500/30' :
+                  order.status === 'shipped' ? 'text-[#ddb7ff] border-[#ddb7ff]/30' :
+                  'text-white/40 border-white/[0.15]'
+                }`}>
                   {STATUS_LABELS[order.status] || order.status}
                 </span>
               </div>
 
-              <div className="order-card-items">
-                {order.items.map((item, i) => (
-                  <div key={i} className="order-card-item">
-                    <span className="order-card-item-name">{item.name}</span>
-                    <span className="order-card-item-meta">Qty: {item.quantity} · ₹{item.price.toLocaleString('en-IN')}</span>
+              {/* Order items */}
+              <div className="space-y-3 mb-5">
+                {order.items.map((item, idx) => (
+                  <div key={idx} className="flex justify-between items-center gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-8 h-8 bg-[#231e27] border border-white/[0.06] flex items-center justify-center shrink-0">
+                        <span className="font-mono text-[8px] text-white/30">{item.quantity}</span>
+                      </div>
+                      <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-white/60 truncate">
+                        {item.name}
+                      </span>
+                    </div>
+                    <span className="font-mono text-[10px] text-white/40 shrink-0">Qty: {item.quantity}</span>
                   </div>
                 ))}
               </div>
 
-              <div className="order-card-footer">
-                <span className="order-card-total">₹{order.total.toLocaleString('en-IN')}</span>
+              {/* Order footer */}
+              <div className="flex items-center justify-between pt-4 border-t border-white/[0.05]">
+                <span className="font-display text-2xl uppercase text-[#eadfed]">{formatPrice(order.total)}</span>
                 <button
-                  className="order-card-action"
-                  id={`order-details-${order.id}`}
                   type="button"
+                  className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/30 hover:text-white transition-colors"
                 >
                   View Details →
                 </button>
               </div>
-            </motion.article>
+            </motion.div>
           ))}
         </div>
       ) : (
         <motion.div
-          className="profile-empty-state"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: 0.2 }}
+          className="border border-white/[0.06] p-12 text-center"
         >
-          <p className="profile-empty-headline">Nothing acquired yet.</p>
-          <p className="profile-empty-sub">
+          <p className="font-display text-3xl uppercase text-white/15 mb-3">Nothing acquired yet.</p>
+          <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/20 mb-6">
             When you place your first order, it will appear here.
           </p>
+          <a
+            href="/collections"
+            className="inline-block border border-white/[0.2] px-8 py-3 font-mono text-[10px] uppercase tracking-[0.2em] text-white/60 hover:bg-white hover:text-[#16111b] transition-all"
+          >
+            Explore Collection
+          </a>
         </motion.div>
       )}
     </div>

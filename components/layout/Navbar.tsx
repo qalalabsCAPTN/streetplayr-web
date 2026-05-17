@@ -1,16 +1,14 @@
 "use client";
 
-import { motion } from "framer-motion";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useCartStore } from "../../store/cartStore";
 import { useAuthStore } from "../../store/authStore";
 
 const navLinks = [
-  { label: "Drops", href: "/collections" },
+  { label: "Shop", href: "/collections" },
   { label: "Archive", href: "/collections?category=ALL" },
-  { label: "Lab", href: "/about" },
-  { label: "Intel", href: "/about" },
+  { label: "About", href: "/about" },
 ];
 
 export default function Navbar() {
@@ -36,21 +34,21 @@ export default function Navbar() {
     <header
       className={`fixed top-0 w-full z-50 transition-all duration-300 ${
         isScrolled
-          ? "bg-background/80 backdrop-blur-md border-b border-outline-variant"
+          ? "bg-[#16111b]/84 backdrop-blur-xl border-b border-white/[0.10] shadow-[0_16px_60px_rgba(12,6,18,0.24)]"
           : "bg-transparent"
       }`}
     >
-      <nav className="flex justify-between items-center px-4 md:px-16 h-20 w-full max-w-[1440px] mx-auto">
-        <div className="flex items-center gap-8">
+      <nav className="flex justify-between items-center px-4 md:px-14 xl:px-20 h-20 w-full max-w-[1680px] mx-auto">
+        <div className="flex items-center gap-10">
           <Link href="/">
-            <img src="/assets/streetplayr-logo.png" alt="StreetplayR" className="h-12 w-auto object-contain" />
+            <img src="/assets/streetplayr-logo.png" alt="StreetplayR" className="h-10 w-auto object-contain opacity-95" />
           </Link>
-          <div className="hidden md:flex gap-6">
+          <div className="hidden md:flex gap-8">
             {navLinks.map((link) => (
               <Link
                 key={link.label}
                 href={link.href}
-                className="font-hud text-[var(--sp-accent)] border-b-2 border-[var(--sp-accent)] pb-1 transition-all duration-300 hover:glow-sm"
+                className="font-mono text-[10px] uppercase tracking-[0.28em] text-[rgba(234,223,237,0.55)] transition-colors duration-300 hover:text-[#eadfed]"
               >
                 {link.label}
               </Link>
@@ -60,7 +58,7 @@ export default function Navbar() {
         <div className="flex items-center gap-6">
           <Link
             href="/cart"
-            className="hover:text-[var(--sp-accent)] transition-colors text-[var(--sp-text-secondary)]"
+            className="hover:text-[#eadfed] transition-colors text-[rgba(234,223,237,0.58)]"
             aria-label={`Cart${mounted ? ` (${cartCount})` : ''}`}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -70,7 +68,7 @@ export default function Navbar() {
           </Link>
           <Link
             href={isAuthenticated ? "/profile/wallet" : "/login"}
-            className="hover:text-[var(--sp-accent)] transition-colors text-[var(--sp-text-secondary)]"
+            className="hover:text-[#eadfed] transition-colors text-[rgba(234,223,237,0.58)]"
             aria-label="Wallet"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -80,13 +78,13 @@ export default function Navbar() {
           {mounted && isHydrated && isAuthenticated && user && (
             <Link
               href="/profile"
-              className="grid h-8 w-8 place-items-center rounded-full bg-[var(--sp-accent-dim)] border border-[var(--sp-accent)] text-xs font-bold text-[var(--sp-accent)]"
+              className="grid h-8 w-8 place-items-center rounded-full bg-[#231e27]/80 border border-white/[0.12] text-xs font-bold text-[rgba(234,223,237,0.72)]"
               aria-label="Profile"
             >
               {user.name?.charAt(0).toUpperCase() || "U"}
             </Link>
           )}
-          <button className="md:hidden hover:text-[var(--sp-accent)] transition-colors text-[var(--sp-text-secondary)]">
+          <button className="md:hidden hover:text-white transition-colors text-white/60">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
             </svg>

@@ -111,15 +111,17 @@ export default function ProductInfo({
   };
 
   return (
-    <div className="bg-[var(--surface-container-low)] border-l border-white/10 p-8">
+    <div className="bg-[#1f1a23] border border-white/[0.10] p-8 shadow-[0_28px_72px_-20px_rgba(0,0,0,0.6)]">
       <div className="space-y-8">
         {/* Pricing */}
         <div>
-          <p className="font-display text-5xl text-white">{price}</p>
+          <p className="font-display text-5xl text-white tracking-tight">{price}</p>
+          <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[rgba(234,223,237,0.35)] mt-1">Limited Release</p>
           {isLowStock && (
-            <div className="flex items-center gap-2 mt-3 py-2 border-y border-white/10">
-              <span className="material-symbols-outlined text-[var(--sp-accent)] animate-pulse text-sm">warning</span>
-              <p className="font-mono text-[10px] uppercase text-[var(--sp-accent)]">Limited Stock Available</p>
+            <div className="mt-5 pt-4 border-t border-white/[0.06]">
+              <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[rgba(234,223,237,0.4)]">
+                Only {selectedStock} units remaining
+              </p>
             </div>
           )}
         </div>
@@ -127,7 +129,7 @@ export default function ProductInfo({
         {/* Color Selector */}
         {colors.length > 0 && (
           <div>
-            <label className="font-mono text-xs text-white/40 uppercase mb-4 block">Colorway</label>
+            <label className="font-mono text-[10px] uppercase tracking-[0.15em] text-[rgba(234,223,237,0.4)] mb-4 block">Colorway</label>
             <div className="flex flex-wrap gap-3">
               {colors.map((color) => {
                 const isSelected = (controlledColor ?? colors[0]?.id) === color.id;
@@ -135,9 +137,9 @@ export default function ProductInfo({
                   <button
                     key={color.id}
                     onClick={() => onColorSelect?.(color.id)}
-                    className="group relative flex h-10 w-10 items-center justify-center border transition-colors duration-300"
+                    className="group relative flex h-10 w-10 items-center justify-center transition-colors duration-300"
                     style={{
-                      borderColor: isSelected ? "rgba(255,255,255,1)" : "rgba(255,255,255,0.2)",
+                      border: isSelected ? "1px solid rgba(255,255,255,0.9)" : "1px solid rgba(255,255,255,0.12)",
                     }}
                     aria-label={`Select color ${color.name}`}
                   >
@@ -155,8 +157,8 @@ export default function ProductInfo({
         {/* Sizing */}
         <div>
           <div className="flex justify-between mb-4">
-            <label className="font-mono text-xs text-white/40 uppercase">Matrix_Sizing</label>
-            <button className="font-mono text-[10px] text-white underline underline-offset-4 uppercase">GUIDE</button>
+            <label className="font-mono text-[10px] uppercase tracking-[0.15em] text-[rgba(234,223,237,0.4)]">Select Size</label>
+            <button className="font-mono text-[10px] uppercase tracking-[0.1em] text-white/40 hover:text-white/70 transition-colors underline underline-offset-4">Size Guide</button>
           </div>
           <div className="grid grid-cols-4 gap-2">
             {sizes.map((size) => {
@@ -167,8 +169,8 @@ export default function ProductInfo({
                   onClick={() => handleSizeSelect(size)}
                   className={`py-3 font-mono text-xs transition-all ${
                     isSelected
-                      ? "border-2 border-white bg-white/5 text-white"
-                      : "border border-white/20 hover:bg-white/10 text-white/60"
+                      ? "border border-white/80 bg-white/5 text-white"
+                      : "border border-white/[0.10] hover:border-white/30 hover:bg-white/[0.04] text-white/50"
                   }`}
                 >
                   {size}
@@ -178,11 +180,11 @@ export default function ProductInfo({
           </div>
         </div>
 
-        {/* SP Credits */}
-        <div className="p-4 bg-[var(--surface-container-lowest)] border border-white/10">
-          <div className="flex justify-between mb-2">
-            <span className="font-mono text-[10px] uppercase text-white/40">SP_CREDITS_APPLIED</span>
-            <span className="font-mono text-[10px] text-white">{spCredits} / 2500</span>
+        {/* Credits */}
+        <div className="p-5 bg-[#16111b] border border-white/[0.06]">
+          <div className="flex justify-between items-center mb-3">
+            <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-[rgba(234,223,237,0.4)]">Member Credits</span>
+            <span className="font-mono text-[10px] text-white/60">{spCredits} / 2500</span>
           </div>
           <input
             type="range"
@@ -190,7 +192,7 @@ export default function ProductInfo({
             max="2500"
             value={spCredits}
             onChange={(e) => setSpCredits(Number(e.target.value))}
-            className="w-full h-1 bg-white/20 appearance-none cursor-pointer accent-white"
+            className="w-full h-[3px] bg-white/[0.08] appearance-none cursor-pointer accent-white/80 rounded-none"
           />
         </div>
 
@@ -198,40 +200,34 @@ export default function ProductInfo({
         <div className="flex flex-col gap-3">
           <button
             onClick={handleAddToCart}
-            className="bg-white text-black font-bold py-4 hover:bg-[var(--sp-accent)] hover:shadow-[0_0_20px_rgba(255,183,77,0.4)] transition-all flex items-center justify-center gap-3 group uppercase font-mono text-xs tracking-widest"
+            className="rounded-none bg-white text-black font-semibold py-4 hover:bg-[#ddb7ff] hover:text-[#16111b] transition-all flex items-center justify-center uppercase font-mono text-xs tracking-[0.2em]"
           >
-            {isAdded ? "SECURED" : "INITIALIZE_PURCHASE"}
-            {!isAdded && (
-              <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">bolt</span>
-            )}
+            {isAdded ? "Added" : "Add To Cart"}
           </button>
-          <button className="border border-white/20 text-white font-mono text-[10px] uppercase tracking-[0.3em] py-3 hover:bg-white/10 transition-colors flex items-center justify-center gap-3">
-            <span className="material-symbols-outlined text-sm">center_focus_strong</span>
-            AI_VIRTUAL_TRY_ON
+          <button className="rounded-none border border-white/[0.12] text-white/50 hover:text-white/80 font-mono text-[10px] uppercase tracking-[0.18em] py-3 hover:bg-white/[0.04] transition-colors">
+            Virtual Try-On
           </button>
         </div>
 
-        {/* Technical Specs — Accordion */}
-        <div className="border-t border-white/10 pt-2">
+        {/* Accordion */}
+        <div className="border-t border-white/[0.06] pt-2">
           {[
-            { id: "material", label: "[01] MATERIAL_COMPOSITION", content: description || "Tri-layer GORE-TEX membrane with liquid-chrome finish. Reinforced 500D Cordura panels." },
-            { id: "shipping", label: "[02] SHIP_LOGISTICS", content: "Standard delivery: 5-7 business days. Express: 2-3 business days. International shipping available." },
-            { id: "care", label: "[03] CARE_INSTRUCTIONS", content: "Machine wash cold, gentle cycle. Hang to dry. Do not bleach, iron, or dry clean." },
+            { id: "details", label: "Product Details", content: description || "Tri-layer GORE-TEX membrane with liquid-chrome finish. Reinforced 500D Cordura panels." },
+            { id: "shipping", label: "Delivery & Returns", content: "Standard delivery: 5-7 business days. Express: 2-3 business days. International shipping available." },
+            { id: "care", label: "Care Instructions", content: "Machine wash cold, gentle cycle. Hang to dry. Do not bleach, iron, or dry clean." },
           ].map((spec) => (
-            <div key={spec.id} className="border-b border-white/10">
+            <div key={spec.id} className="border-b border-white/[0.06]">
               <button
                 onClick={() => setExpandedSpec(expandedSpec === spec.id ? null : spec.id)}
-                className="w-full flex justify-between items-center py-4 font-mono text-[10px] uppercase text-white/40 hover:text-white transition-colors"
+                className="w-full flex justify-between items-center py-5 font-mono text-[10px] uppercase tracking-[0.15em] text-white/35 hover:text-white/65 transition-colors"
               >
                 <span>{spec.label}</span>
-                <span className="material-symbols-outlined text-sm transition-transform duration-300"
-                  style={{ transform: expandedSpec === spec.id ? "rotate(45deg)" : "rotate(0)" }}
-                >
-                  add
+                <span className="font-mono text-xs transition-opacity duration-300">
+                  {expandedSpec === spec.id ? "[-]" : "[+]"}
                 </span>
               </button>
               {expandedSpec === spec.id && (
-                <div className="pb-4 text-white/60 text-xs leading-relaxed">
+                <div className="pb-6 text-white/50 text-xs leading-relaxed pr-8">
                   {spec.content}
                 </div>
               )}

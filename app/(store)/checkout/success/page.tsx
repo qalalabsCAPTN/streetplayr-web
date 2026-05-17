@@ -94,7 +94,7 @@ export default function CheckoutSuccessPage() {
   if (!mounted) return null;
 
   return (
-    <div className="relative min-h-screen bg-[#050505] overflow-hidden flex items-center justify-center">
+    <div className="relative min-h-screen bg-[#16111b] overflow-hidden flex items-center justify-center">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.2 }}
@@ -108,7 +108,7 @@ export default function CheckoutSuccessPage() {
           className="object-cover object-center grayscale opacity-50"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/80 to-[#050505]/30" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#16111b] via-[#16111b]/80 to-[#16111b]/30" />
       </motion.div>
 
       <div className="relative z-10 w-full px-6 sm:px-12 flex flex-col items-center text-center py-32">
@@ -142,7 +142,7 @@ export default function CheckoutSuccessPage() {
             <div className="pt-16">
               <Link
                 href="/profile/orders"
-                className="border border-white/20 px-8 py-4 font-mono text-xs uppercase tracking-[0.3em] text-white hover:bg-white hover:text-black transition-all"
+                className="rounded-none border border-white/[0.14] px-8 py-4 font-mono text-xs uppercase tracking-[0.3em] text-[#eadfed] hover:bg-[#ddb7ff] hover:text-[#16111b] transition-all"
               >
                 View Orders
               </Link>
@@ -167,7 +167,7 @@ export default function CheckoutSuccessPage() {
             <div className="mt-16">
               <Link
                 href="/checkout"
-                className="border border-white/20 px-8 py-4 font-mono text-xs uppercase tracking-[0.3em] text-white hover:bg-white hover:text-black transition-all"
+                className="rounded-none border border-white/[0.14] px-8 py-4 font-mono text-xs uppercase tracking-[0.3em] text-[#eadfed] hover:bg-[#ddb7ff] hover:text-[#16111b] transition-all"
               >
                 Retry Payment
               </Link>
@@ -192,7 +192,7 @@ export default function CheckoutSuccessPage() {
             <div className="mt-16">
               <Link
                 href="/"
-                className="border border-white/20 px-8 py-4 font-mono text-xs uppercase tracking-[0.3em] text-white hover:bg-white hover:text-black transition-all"
+                className="rounded-none border border-white/[0.14] px-8 py-4 font-mono text-xs uppercase tracking-[0.3em] text-[#eadfed] hover:bg-[#ddb7ff] hover:text-[#16111b] transition-all"
               >
                 Return to Surface
               </Link>

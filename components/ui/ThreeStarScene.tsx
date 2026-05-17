@@ -51,11 +51,11 @@ export default function ThreeStarScene({ size = 340 }: { size?: number }) {
     keyLight.castShadow = true;
     scene.add(keyLight);
 
-    const fillLight = new THREE.DirectionalLight(0x9d4edd, 0.8);
+    const fillLight = new THREE.DirectionalLight(0xb8a1ff, 0.45);
     fillLight.position.set(-2, -1, 2);
     scene.add(fillLight);
 
-    const rimLight = new THREE.DirectionalLight(0xc77dff, 1.5);
+    const rimLight = new THREE.DirectionalLight(0xb8a1ff, 0.7);
     rimLight.position.set(0, -2, -3);
     scene.add(rimLight);
 

@@ -1,5 +1,8 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 
 export default function ProtoCoreCollection() {
   const [activeFilter, setActiveFilter] = useState("all");
@@ -7,48 +10,75 @@ export default function ProtoCoreCollection() {
   const products = [
     {
       id: 1,
-      name: "GRAVITY PARKA",
-      model: "MODEL: XR-70_V1",
-      price: "$840",
-      image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCex3zLQuAGXutv2Z9MVCRc5vuwGvV0a74So0cbw_dZfZHvU3pH_YjowL_xBrGY7H2yzFibN3CRVvO4S99oCu32BSLKfo2DW_dulSczrEBGsz6V-XmCiHmVjNCqqZIetD8w-JcrqSNKTggts-ybUVGS7ZEpzcAH1HmiBx0YpzYnxUsi6fBseb2Tv4uSWOYzcmvcbmndbWbnBPBO0q-Oz4yXqC9tw5a4xWxyTIFHx0xTTZrXy1OZ_LblQ8kV27UbGmG-u0pcLGs3ag",
-      imageAlt: "A high-fashion techwear parka displayed against a gritty, industrial concrete backdrop with moody purple neon lighting. The parka features intricate straps, waterproof zippers, and a matte black finish, reflecting a futuristic urban aesthetic.",
-      altImage: "https://lh3.googleusercontent.com/aida-public/AB6AXuDxhRmkbnPzQBKA1elKycVoq9V4CDyRWOFBkcYm_bagVaSqzsKlArIVjPmOEcRh1T__HQmEzu69SYJdErGA0XipaoibC42L6MYHSw6BsBaHfMO-903PAHlOBugoc4fk5THwSk5LOZk2cd29-dawu-Aqv6BB2lhxbMDuFBL6aLMETXPA7XFVXbZXuXJU4bO4GpfVKc2F4gAjQS7gxGb_p4NHfMnNu1M8Wnh9epLEmnZl4DReeahnF5mZg73A3u_JCk7fyrkRK_cyiw",
-      altImageAlt: "Close-up technical detail of a techwear garment showing the internal mesh lining and specialized waterproof pocket construction.",
-      badge: "New Arrival",
+      name: "Triple Tee Set",
+      model: "Essential",
+      price: "Rs. 1,499",
+      image: "/assets/hero-tees.png",
+      altImage: "/assets/polo-editorial.png",
+      badge: "New",
       altIsImage: true,
-      icon: "radar",
-      coord: "COORD: 40.7128° N",
-      filter: "outer",
+      filter: "tops",
+      slug: "triple-tee-set",
     },
     {
       id: 2,
-      name: "OS-IRIS HELMET",
-      model: "MODEL: HELM_CORE",
-      price: "$1,200",
-      image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDw8otXMt6K2cgvkuBcYoYDjo4bXLLUX8V_Hxq5T34_geVcLRyPQsy0OLER2TtoWa0v_MKoQbQlddtqNXCV4NA01mbQRzcsAmy-z8JhVnc5WZ0mtxlRzxYvAhLj0_xq-OO3Ky-9qFHzNdZZNv3nNVnPc6x4i2A2JnjQakilflEGWkQtHkqr_VMNw-8sYOZl6xBnSrj2qBHVVYrW2D1k0NUxabxy3k7BHu5kWHCeazR5Gqpsu0WOXNuXjJhIaVDjBbokgVGbctAT_w",
-      imageAlt: "A sleek, aerodynamic futuristic helmet with a chrome-finished visor and matte charcoal carbon fiber shell. It is staged in a dark laboratory setting with flickering amber warning lights and light scanline effects across the image.",
-      altImage: null,
-      altImageAlt: null,
+      name: "Court Polo Pack",
+      model: "Outerwear",
+      price: "Rs. 1,799",
+      image: "/assets/polo-editorial.png",
+      altImage: "/assets/hero-tees.png",
       badge: null,
-      altIsImage: false,
-      icon: "memory",
-      coord: "KERN: 2.0.44",
-      filter: "tops",
+      altIsImage: true,
+      filter: "outer",
+      slug: "court-polo-pack",
     },
     {
       id: 3,
-      name: "GRID CHRONO",
-      model: "MODEL: TIME_SYNC",
-      price: "$310",
-      image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCG-3-shoxluGO1noj8N84BfqKLiPDM-gM_KiIaIFzFZVJVgEc-Pj91F1llwLotwggkPo2oXgLH_t0o29C6CVpjYIw7nxP3TtsRmU4VO1631NslLbFfUG27zj7KDjfhaLdE3ba1GwRKA_Q0qDYBCrXKsjPAWWw35NaEbLZFOL_TJEfUg_Vrss1WTbvw-f1Ofc8Ba_UUbuvelndBmvCqTKR378CWKxrhM5FrNxnE7jqlfKZJ3szOxTzllmCth-xxjoJ8XgqwhNcDVw",
-      imageAlt: "A minimalist yet rugged tactical smartwatch with a monochrome E-ink display showing complex topographic maps. The watch is placed on a bed of dark, crushed glass reflecting cyan and magenta neon hues from an unseen source.",
-      altImage: "https://lh3.googleusercontent.com/aida-public/AB6AXuC-UTmZXjJQaEEW2oBOAoFbEtPo2KxxXIN-zQAqeTwrWtRDafkg7KxaIIMfY-LOb_3WZF1KmP9j66_abf6TbVRRjtOf0IwJjBibrVewTTzAS1cMDJ2h2oHnOsMF1rGhx1Ctz1ssVnsfvBy7HPEt0UN0nWg7aDbRyaJlo517hAASz_eDW92x8Zqo5RJEhCoVFZQLOp5nbeI_8iwaUgT9DVYgcSte00unO2KP75gtgs1-r9HMI4P0tXP9OCoPoWdRSV6NU-4_PMVuog",
-      altImageAlt: "Macro photography of the watch dial showing a glowing neon orange interface with grid lines and technical coordinate system.",
-      badge: "Limited Intel",
+      name: "Run Short",
+      model: "Bottoms",
+      price: "Rs. 999",
+      image: "/assets/run-shorts.jpeg",
+      altImage: "/assets/srh-jersey.jpg",
+      badge: "Drop",
       altIsImage: true,
-      icon: "explore",
-      coord: "SIGNAL: WEAK",
       filter: "bottoms",
+      slug: "run-short",
+    },
+    {
+      id: 4,
+      name: "Waffle Tee",
+      model: "Essential",
+      price: "Rs. 1,299",
+      image: "/assets/hero-tees.png",
+      altImage: "/assets/run-shorts.jpeg",
+      badge: null,
+      altIsImage: true,
+      filter: "tops",
+      slug: "waffle-tee",
+    },
+    {
+      id: 5,
+      name: "Tech Jersey",
+      model: "Performance",
+      price: "Rs. 1,999",
+      image: "/assets/srh-jersey.jpg",
+      altImage: "/assets/polo-editorial.png",
+      badge: "Limited",
+      altIsImage: true,
+      filter: "outer",
+      slug: "tech-jersey",
+    },
+    {
+      id: 6,
+      name: "Miles Short",
+      model: "Bottoms",
+      price: "Rs. 999",
+      image: "/assets/run-shorts.jpeg",
+      altImage: "/assets/hero-tees.png",
+      badge: null,
+      altIsImage: true,
+      filter: "bottoms",
+      slug: "miles-short",
     },
   ];
 
@@ -58,111 +88,71 @@ export default function ProtoCoreCollection() {
       : products.filter((p) => p.filter === activeFilter);
 
   return (
-    <div className="min-h-screen bg-[#16111b] text-[#eadfed] selection:bg-[#ddb7ff] selection:text-[#490080]">
-      <link
-        rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+    <div className="min-h-screen bg-[#16111b] text-[#eadfed] selection:bg-[#ddb7ff] selection:text-[#16111b] relative overflow-hidden">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(0,0,0,0.65)_100%)]" />
+      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.25)_0%,transparent_10%,transparent_90%,rgba(0,0,0,0.25)_100%)]" />
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_50%_30%,rgba(221,183,255,0.05)_0%,transparent_55%)]" />
+      <div
+        className="pointer-events-none fixed inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
+        }}
       />
-      <link
-        rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Archivo+Black&family=Anton&display=swap"
-      />
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(255,87,26,0.03)_0%,transparent_60%)]" />
+      <div className="fixed left-0 top-0 bottom-0 w-px bg-white/[0.04] z-20 pointer-events-none" />
+      <div className="fixed left-0 top-0 bottom-0 w-px bg-white/[0.02] translate-x-[7px] z-20 pointer-events-none" />
       <style>{`
-        .material-symbols-outlined {
-          font-family: "Material Symbols Outlined";
-          font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 48;
-        }
-        .scanlines {
-          background: linear-gradient(
-            to bottom,
-            rgba(255, 255, 255, 0.03) 50%,
-            rgba(0, 0, 0, 0.03) 50%
-          );
-          background-size: 100% 4px;
-          pointer-events: none;
-        }
-        .glow-sm:hover {
-          text-shadow: 0 0 10px rgba(221, 183, 255, 0.8);
-        }
         .product-card:hover .alt-face {
           opacity: 1;
         }
-        .pulse-slow {
-          animation: pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
-        }
       `}</style>
 
-      {/* The Void Layers */}
-      <div className="fixed inset-0 z-[-1] overflow-hidden">
-        <div className="absolute inset-0 scanlines opacity-30" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(221,183,255,0.05)_0%,transparent_70%)]" />
-        <div
-          className="absolute inset-0 opacity-[0.03] pointer-events-none"
-          style={{
-            backgroundImage: "url(https://lh3.googleusercontent.com/aida-public/AB6AXuBmPfyxWVZDV_Kcc55aTYSf3h4LnHxl2zkXIcDh7KZVa9wJNrHzHoab3inYObM_R3VCR_RzIN2a3_eV_p4m-C8K6DVbkKpo4iG9cZSE7EpWF2C-6-S7TuNaKKT7gRHcK3FVrifXWn2eDo2CBE2Cc2F8URgctvM0xJWDTQIyTphqViL1ytSDRhv8UHUWnnA3GjmGlhV2Hz34o9Zw1I6Af31ZJBn0olFqADAv7yrSV5sv32eGokn9o1IPUOX-eAk6TqOvcxoeGUh4Sg)",
-          }}
-        />
-      </div>
+      <Navbar />
 
-      {/* TopNavBar */}
-      <header className="fixed top-0 w-full z-50 bg-[#16111b]/80 backdrop-blur-md border-b border-[#4d4354]">
-        <div className="flex justify-between items-center px-4 md:px-16 h-20 w-full max-w-[1440px] mx-auto">
-          <img src="/assets/streetplayr-logo.png" alt="StreetplayR" className="h-12 w-auto object-contain" />
-          <nav className="hidden md:flex gap-8">
-            <a href="/collections" className="text-[12px] tracking-[0.1em] uppercase text-[#ddb7ff] border-b-2 border-[#ddb7ff] pb-1" style={{ fontFamily: "'Space Mono', monospace" }}>Drops</a>
-            <a href="#" className="text-[12px] tracking-[0.1em] uppercase text-[#cfc2d6] hover:text-[#ddb7ff] transition-colors hover:glow-sm" style={{ fontFamily: "'Space Mono', monospace" }}>Archive</a>
-            <a href="#" className="text-[12px] tracking-[0.1em] uppercase text-[#cfc2d6] hover:text-[#ddb7ff] transition-colors hover:glow-sm" style={{ fontFamily: "'Space Mono', monospace" }}>Lab</a>
-            <a href="#" className="text-[12px] tracking-[0.1em] uppercase text-[#cfc2d6] hover:text-[#ddb7ff] transition-colors hover:glow-sm" style={{ fontFamily: "'Space Mono', monospace" }}>Intel</a>
-          </nav>
-          <div className="flex items-center gap-6">
-            <button className="material-symbols-outlined text-[#ddb7ff] hover:glow-sm transition-all text-2xl">shopping_cart</button>
-            <button className="material-symbols-outlined text-[#ddb7ff] hover:glow-sm transition-all text-2xl">account_balance_wallet</button>
-          </div>
-        </div>
-      </header>
-
-      {/* Hero Section */}
-      <section className="relative w-full h-[400px] overflow-hidden border-b border-[#4d4354] mt-20">
+      <section className="relative z-[1] w-full h-[460px] overflow-hidden border-b border-white/[0.10] mt-20">
         <img
-          alt="Techwear Visual"
-          src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQwxk6WaG7B2wtf0dse8OeaBRBbaH0xgfwjQ9A4d7xXYZJ5rJNOQEZVQTnj48M1U872rC4vQ3ow--ru3bFnPnsTKvRK-KWBdxku4XriW0UMDpsQJMwoqbxSlVRq0qNbMwZk_OpjU-Bh9luqjCf_ptcqpCuxgqH88frx5qsRn0pmpIGNobaULYIy5hKSGv7LsDPj7GYBWN-Gkm4SmBpFSAd4sZU1a3u9q6-RTl8_UvBAXbrMvDQW5VKUBm7Uyi1fZvPLEEfqz2OPA"
-          className="absolute inset-0 w-full h-full object-cover"
+          alt="Collection visual"
+          src="/assets/hero-tees.png"
+          className="absolute inset-0 w-full h-full object-cover opacity-60 saturate-[0.85]"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#16111b] via-transparent to-[#16111b]/40" />
-        <div className="absolute inset-0 scanlines opacity-25" />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-[12px] tracking-[0.5em] text-[#ddb7ff] uppercase pulse-slow" style={{ fontFamily: "'Space Mono', monospace", textShadow: "0 0 20px rgba(221, 183, 255, 0.6)" }}>
-              Initializing Core Protocol
-            </p>
+        <div className="absolute inset-0 bg-gradient-to-t from-[#16111b] via-[#16111b]/25 to-[#16111b]/55" />
+        <div className="absolute inset-0 bg-[radial-gradient(700px_360px_at_18%_10%,rgba(221,183,255,0.13),transparent_62%),radial-gradient(560px_340px_at_86%_82%,rgba(255,87,26,0.10),transparent_64%)]" />
+        <div className="absolute inset-0 flex items-end justify-start px-4 md:px-16 pb-14">
+          <div className="max-w-[760px]">
+            <div className="flex items-center gap-3 mb-4">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#ff3b30] animate-pulse shadow-[0_0_6px_rgba(255,59,48,0.5)]" />
+                <span className="font-mono text-[8px] uppercase tracking-[0.15em] text-[rgba(234,223,237,0.3)]">LIVE</span>
+              </span>
+              <span className="w-px h-3 bg-white/[0.08]" />
+              <span className="font-mono text-[10px] tracking-[0.28em] text-[rgba(234,223,237,0.52)] uppercase">Drop 001</span>
+            </div>
+            <h1 className="font-display text-[clamp(56px,8vw,128px)] uppercase leading-[0.88] text-[#eadfed]">
+              Current Release
+            </h1>
           </div>
         </div>
       </section>
 
-      {/* Main Content */}
-      <main className="pb-24 w-full max-w-[1440px] mx-auto px-4 md:px-16 pt-12">
-        {/* HUD Header */}
-        <div className="mb-12 border-l-4 border-[#ddb7ff] pl-6 flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <main className="relative z-[1] pb-24 w-full max-w-[1440px] mx-auto px-4 md:px-16 pt-14">
+        <div className="mb-14 flex flex-col md:flex-row md:items-end justify-between gap-8">
           <div>
-            <h1 className="text-[42px] md:text-[64px] uppercase leading-none tracking-tighter" style={{ fontFamily: "'Anton', sans-serif" }}>
-              PROTO_CORE / 2024
-            </h1>
+            <h2 className="font-display text-[42px] md:text-[64px] uppercase leading-[0.92] tracking-tight text-[#eadfed]">
+              The Archive
+            </h2>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {["all", "tops", "outer", "bottoms", "lab"].map((filter) => (
+          <div className="flex flex-wrap gap-1.5">
+            {["all", "tops", "outer", "bottoms"].map((filter) => (
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
-                className={`px-4 py-2 text-[14px] tracking-[0.05em] uppercase transition-all duration-200 ${
+                className={`px-4 py-2 font-mono text-[10px] tracking-[0.22em] uppercase transition-colors duration-200 border rounded-none ${
                   activeFilter === filter
-                    ? "bg-[#ddb7ff]/15 border border-[#ddb7ff] text-[#ddb7ff]"
-                    : "border border-[#4d4354] text-[#ddb7ff]/60 hover:border-[#ddb7ff]/40"
-                } ${filter === "lab" && activeFilter !== "lab" ? "text-[#ffb59e] border-[#ffb59e]/40 hover:border-[#ffb59e]" : ""}`}
-                style={{ fontFamily: "'Archivo Black', sans-serif" }}
+                    ? "bg-[#eadfed] border-[#eadfed] text-[#16111b]"
+                    : "border-white/[0.10] text-[rgba(234,223,237,0.52)] hover:border-white/[0.24] hover:text-[#eadfed] hover:bg-white/[0.06]"
+                }`}
               >
                 {filter === "all" ? "All" : filter.charAt(0).toUpperCase() + filter.slice(1)}
               </button>
@@ -170,145 +160,90 @@ export default function ProtoCoreCollection() {
           </div>
         </div>
 
-        {/* High-Impact Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProducts.map((product) => (
-            <div
+            <Link
               key={product.id}
-              className="group product-card relative border border-[#4d4354] bg-[#110c15] transition-all duration-300 hover:border-[#ddb7ff]"
+              href={product.slug ? `/product/${product.slug}` : "/collections"}
+              className="group product-card relative border border-white/[0.10] bg-[#1f1a23] transition-all duration-300 hover:border-white/[0.20]"
             >
-              {/* Badge */}
               {product.badge && (
                 <div className="absolute top-4 left-4 z-10">
-                  <span
-                    className={`px-2 py-1 text-[10px] uppercase ${
-                      product.badge === "New Arrival"
-                        ? "bg-[#ddb7ff] text-[#490080]"
-                        : "bg-[#ffb59e] text-[#521300]"
-                    }`}
-                    style={{ fontFamily: "'Space Mono', monospace" }}
-                  >
+                  <span className="px-3 py-1.5 font-mono text-[9px] tracking-[0.22em] uppercase bg-[#16111b]/70 text-[rgba(234,223,237,0.7)] border border-white/[0.08]">
                     {product.badge}
                   </span>
                 </div>
               )}
 
-              {/* Image Container */}
-              <div className="relative aspect-[4/5] overflow-hidden bg-[#16111b]">
+              <div className="relative aspect-[4/5] overflow-hidden bg-[#211c26]">
                 <img
-                  alt={product.imageAlt || product.name}
+                  alt={product.name}
                   src={product.image}
-                  className="w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-0"
+                  className="w-full h-full object-cover saturate-[0.92] transition-all duration-700 group-hover:opacity-0"
                 />
 
-                {/* Alt Face */}
-                {product.altIsImage && product.altImage ? (
-                  <div className="alt-face absolute inset-0 opacity-0 transition-opacity duration-300">
+                {/* Alt Face — image crossfade on hover */}
+                {product.altImage && (
+                  <div className="alt-face absolute inset-0 opacity-0 transition-opacity duration-500">
                     <img
-                      alt={product.altImageAlt || `${product.name} detail`}
+                      alt={`${product.name} detail`}
                       src={product.altImage}
                       className="w-full h-full object-cover"
                     />
                   </div>
-                ) : (
-                  <div className="alt-face absolute inset-0 opacity-0 transition-opacity duration-300 bg-[#ffb59e]/10 flex items-center justify-center backdrop-blur-sm">
-                    <div className="text-center p-8 border border-[#ffb59e]/40">
-                      <p className="mb-2 text-[#ffb59e] text-[12px] tracking-[0.1em]" style={{ fontFamily: "'Space Mono', monospace" }}>
-                        SENSORS: ACTIVE
-                      </p>
-                      <p className="text-xs" style={{ fontFamily: "'Space Mono', monospace" }}>
-                        INTEGRATED HEAD-UP DISPLAY<br />
-                        THERMAL IMAGING V2.0<br />
-                        OXYGEN RECYCLER
-                      </p>
-                    </div>
-                  </div>
                 )}
               </div>
 
-              {/* Product Details */}
-              <div className="p-6 border-t border-[#4d4354]">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <p className="text-[12px] tracking-[0.1em] text-[#ddb7ff] uppercase" style={{ fontFamily: "'Space Mono', monospace" }}>
+              <div className="p-5 border-t border-white/[0.08]">
+                <div className="flex justify-between items-start mb-3">
+                  <div className="min-w-0 mr-4">
+                    <p className="font-mono text-[10px] tracking-[0.22em] text-[rgba(234,223,237,0.45)] uppercase truncate">
                       {product.model}
                     </p>
-                    <h3 className="text-2xl uppercase mt-1" style={{ fontFamily: "'Anton', sans-serif" }}>
+                    <h3 className="font-display text-xl uppercase mt-1.5 leading-tight text-[#eadfed]">
                       {product.name}
                     </h3>
                   </div>
-                  <span className="text-2xl text-[#ffb59e]" style={{ fontFamily: "'Anton', sans-serif" }}>
+                  <span className="font-mono text-[11px] tracking-[0.16em] text-[rgba(234,223,237,0.6)] whitespace-nowrap flex-shrink-0">
                     {product.price}
                   </span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex gap-2">
-                    <span className="material-symbols-outlined text-sm opacity-50">{product.icon}</span>
-                    <span className="text-[10px] opacity-50" style={{ fontFamily: "'Space Mono', monospace" }}>
-                      {product.coord}
-                    </span>
-                  </div>
-                  <button className="inline-flex items-center gap-2 px-4 py-2 border border-[#4d4354] text-[#ddb7ff]/80 hover:bg-[#ddb7ff]/5 hover:border-[#ddb7ff] hover:text-[#ddb7ff] text-[14px] tracking-[0.05em] uppercase transition-all duration-200" style={{ fontFamily: "'Archivo Black', sans-serif" }}>
-                    <span className="material-symbols-outlined text-base">tune</span>
-                    Select
-                  </button>
+                <div className="flex justify-end">
+                  <span className="font-mono text-[9px] tracking-[0.22em] uppercase text-[rgba(234,223,237,0.3)] group-hover:text-[rgba(234,223,237,0.6)] transition-colors duration-300">
+                    View Product →
+                  </span>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
 
-        {/* Pagination HUD */}
         <div className="mt-20 flex flex-col items-center gap-6">
           <div className="flex items-center gap-4">
-            <button className="w-10 h-10 border border-[#4d4354] flex items-center justify-center hover:border-[#ddb7ff] group transition-all">
-              <span className="material-symbols-outlined text-[#cfc2d6] group-hover:text-[#ddb7ff]">chevron_left</span>
+            <button className="w-10 h-10 border border-white/[0.10] flex items-center justify-center hover:bg-white/[0.06] group transition-colors rounded-none">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-white/40 group-hover:text-white/70 transition-colors">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
             </button>
-            <div className="text-[12px] tracking-[0.1em] flex gap-4" style={{ fontFamily: "'Space Mono', monospace" }}>
-              <span className="text-[#ddb7ff]">01</span>
+            <div className="font-mono text-[10px] tracking-[0.22em] flex items-center gap-3 text-white/45">
+              <span className="font-mono text-[10px] tracking-[0.25em] text-white/25">[</span>
+              <span className="text-white/70">01</span>
               <span className="opacity-30">/</span>
-              <span className="hover:text-[#ddb7ff] transition-all cursor-pointer">02</span>
+              <span className="hover:text-white/70 transition-colors cursor-pointer">02</span>
               <span className="opacity-30">/</span>
-              <span className="hover:text-[#ddb7ff] transition-all cursor-pointer">03</span>
+              <span className="hover:text-white/70 transition-colors cursor-pointer">03</span>
+              <span className="font-mono text-[10px] tracking-[0.25em] text-white/25">]</span>
             </div>
-            <button className="w-10 h-10 border border-[#4d4354] flex items-center justify-center hover:border-[#ddb7ff] group transition-all">
-              <span className="material-symbols-outlined text-[#cfc2d6] group-hover:text-[#ddb7ff]">chevron_right</span>
+            <button className="w-10 h-10 border border-white/[0.10] flex items-center justify-center hover:bg-white/[0.06] group transition-colors rounded-none">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-white/40 group-hover:text-white/70 transition-colors">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
             </button>
-          </div>
-          <div className="w-full max-w-xs h-px bg-[#4d4354] relative">
-            <div className="absolute left-0 top-0 h-full w-1/3 bg-[#ddb7ff]" />
           </div>
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="w-full py-12 px-4 md:px-16 border-t border-[rgba(255,255,255,0.05)] bg-[#110c15]">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-6 max-w-[1440px] mx-auto">
-          <img src="/assets/streetplayr-logo.png" alt="StreetplayR" className="h-12 w-auto object-contain brightness-75" />
-          <div className="flex gap-8">
-            <a href="#" className="text-[12px] tracking-[0.1em] text-[#cfc2d6] hover:text-[#ffb59e] transition-all opacity-80 hover:opacity-100" style={{ fontFamily: "'Space Mono', monospace" }}>Terms</a>
-            <a href="#" className="text-[12px] tracking-[0.1em] text-[#cfc2d6] hover:text-[#ffb59e] transition-all opacity-80 hover:opacity-100" style={{ fontFamily: "'Space Mono', monospace" }}>Privacy</a>
-            <a href="#" className="text-[12px] tracking-[0.1em] text-[#cfc2d6] hover:text-[#ffb59e] transition-all opacity-80 hover:opacity-100" style={{ fontFamily: "'Space Mono', monospace" }}>Logistics</a>
-            <a href="#" className="text-[12px] tracking-[0.1em] text-[#cfc2d6] hover:text-[#ffb59e] transition-all opacity-80 hover:opacity-100" style={{ fontFamily: "'Space Mono', monospace" }}>Contact</a>
-          </div>
-          <div className="text-[12px] tracking-[0.1em] opacity-60" style={{ fontFamily: "'Space Mono', monospace" }}>
-            &copy; 2024 STREETPLAYR // CORE_OS_V1.0
-          </div>
-        </div>
-      </footer>
-
-      {/* Decorative HUD Elements */}
-      <div className="fixed top-24 left-6 hidden xl:block pointer-events-none z-40">
-        <div className="text-[10px] opacity-20 rotate-90 origin-left" style={{ fontFamily: "'Space Mono', monospace" }}>
-          SCAN_MODE: ACTIVE // FRAME_RATE: 60FPS // GRID_X: 144.22
-        </div>
-      </div>
-      <div className="fixed bottom-24 right-6 hidden xl:block pointer-events-none text-right z-40">
-        <div className="text-[10px] opacity-20" style={{ fontFamily: "'Space Mono', monospace" }}>
-          [ REC ] SYSTEM_STATUS_OK<br />
-          LAT: 35.6895 N / LONG: 139.6917 E
-        </div>
-      </div>
+      <Footer />
     </div>
   );
 }

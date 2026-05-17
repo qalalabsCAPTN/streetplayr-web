@@ -60,7 +60,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
   return (
     <main className="pt-24">
       {/* ===== DESKTOP: 3-column grid ===== */}
-      <section className="hidden lg:grid lg:grid-cols-[minmax(420px,0.9fr)_minmax(420px,0.9fr)_420px] lg:gap-6 lg:items-start lg:mx-auto lg:max-w-[1800px] lg:px-6">
+      <section className="hidden lg:grid lg:grid-cols-[minmax(420px,1fr)_minmax(420px,1fr)_minmax(0,420px)] lg:gap-6 lg:items-start lg:mx-auto lg:max-w-[1800px] lg:px-6">
 
         {/* LEFT — Static Hero Image (sticky) */}
         <div className="lg:sticky lg:top-24">
@@ -103,7 +103,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
         </div>
 
         {/* CENTER — Scrolling Gallery (natural document flow) */}
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6 pt-[88px]">
           {allImages.slice(1).map((src, i) => (
             <div key={i} className="relative aspect-[4/5] bg-[#050505] overflow-hidden border border-white/5">
               <Image

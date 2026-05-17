@@ -16,7 +16,7 @@ export default function FeaturedCollections() {
   const textY = useTransform(scrollYProgress, [0, 1], ["10%", "-10%"]);
 
   return (
-    <section ref={containerRef} className="relative w-full bg-[#050505] py-40 px-4 md:px-8 lg:px-16 overflow-hidden">
+    <section ref={containerRef} className="relative w-full bg-[#16111b] py-40 px-4 md:px-8 lg:px-16 overflow-hidden">
       {/* Background oversized typography watermark */}
       <motion.div 
         style={{ y: textY }}
@@ -69,7 +69,7 @@ export default function FeaturedCollections() {
               />
               <div className="absolute inset-0 bg-black/20 mix-blend-overlay transition-opacity duration-1000 group-hover:opacity-0" />
             </div>
-            <div className="absolute -bottom-16 left-8 md:left-12 flex flex-col bg-[#050505]/80 backdrop-blur-md p-6 border border-white/10">
+            <div className="absolute -bottom-16 left-8 md:left-12 flex flex-col bg-[#231e27]/80 backdrop-blur-md p-6 border border-white/10">
               <span className="font-mono text-xs text-white/50 tracking-[0.2em] mb-2 uppercase">Editorial</span>
               <h3 className="font-display text-3xl tracking-wider">Heritage Polo</h3>
             </div>

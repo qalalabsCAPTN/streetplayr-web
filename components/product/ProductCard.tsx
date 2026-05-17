@@ -32,7 +32,7 @@ export default function ProductCard({
 }: ProductCardProps) {
   return (
     <motion.article
-      className={`group relative overflow-hidden rounded-xl border border-white/10 bg-[var(--sp-bg-surface)] ${className}`}
+      className={`group relative overflow-hidden border border-white/[0.10] bg-[#231e27] shadow-[0_18px_60px_rgba(12,6,18,0.24)] ${className}`}
       transition={{ duration: 0.22, ease: [0, 0, 0.2, 1] }}
       whileHover={{ y: -4 }}
     >
@@ -44,7 +44,7 @@ export default function ProductCard({
         >
           <Image
             alt={product.imageAlt}
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.045]"
+            className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.025]"
             fill
             priority={priority}
             sizes={
@@ -54,7 +54,7 @@ export default function ProductCard({
             }
             src={product.image}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/[0.78] via-black/10 to-transparent opacity-[0.88] transition-opacity duration-300 group-hover:opacity-70" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/[0.74] via-black/10 to-transparent opacity-[0.88] transition-opacity duration-300 group-hover:opacity-70" />
         </div>
 
         <div className="p-4">

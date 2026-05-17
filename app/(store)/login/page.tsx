@@ -31,7 +31,7 @@ function GoogleIcon() {
   );
 }
 
-// ─── Google Auth Button ───────────────────────────────────────────────────────
+// ─── Google Auth Button ─────────────────────────────────────────────────────
 function GoogleAuthButton() {
   const searchParams = useSearchParams();
   const [isPending, setIsPending] = useState(false);
@@ -43,7 +43,7 @@ function GoogleAuthButton() {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
     const redirectTo = `${siteUrl}/auth/callback${params}`;
     const { data, error } = await signInWithGoogleAction(redirectTo);
-    
+
     if (error) {
       console.error('Google login error:', error);
       setIsPending(false);
@@ -57,52 +57,109 @@ function GoogleAuthButton() {
 
   return (
     <button
-      onClick={handleGoogleLogin}
-      className="auth-google-btn"
-      id="google-login-btn"
       type="button"
+      onClick={handleGoogleLogin}
       disabled={isPending}
+      className="rounded-none group relative w-full py-5 text-center overflow-hidden transition-all active:scale-[0.98] disabled:opacity-40"
     >
-      <GoogleIcon />
-      <span>{isPending ? 'Connecting…' : 'Continue with Google'}</span>
+      <span className="absolute inset-0 bg-[#ddb7ff] transition-transform duration-500 group-hover:scale-y-0 origin-bottom" />
+      <span className="absolute inset-0 bg-[#eadfed] scale-y-0 group-hover:scale-y-100 transition-transform duration-500 origin-top" />
+      <span className="relative z-10 flex items-center justify-center gap-3 text-sm uppercase tracking-[0.2em] text-[#16111b] font-light">
+        <GoogleIcon />
+        <span>{isPending ? 'Connecting…' : 'Initialize Session'}</span>
+      </span>
     </button>
   );
 }
 
-// ─── Left Editorial Panel ─────────────────────────────────────────────────────
-function EditorialPanel() {
+// ─── Left Visual Panel ───────────────────────────────────────────────────────
+function VisualPanel() {
   return (
-    <div className="auth-panel-left" aria-hidden="true">
-      <div className="auth-panel-noise" />
-      <div className="auth-panel-gradient" />
+    <div className="w-full md:w-1/2 min-h-screen flex flex-col justify-between p-8 md:p-12 border-b md:border-b-0 md:border-r border-white/[0.06] relative overflow-hidden">
+      {/* Panel ambient glow */}
+      <div className="pointer-events-none absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#ddb7ff]/[0.03] blur-[120px] rounded-full" />
 
-      <div className="auth-panel-content">
-        <Link href="/" className="auth-logo-mark">
-          <span className="auth-logo-box">SP</span>
-          <span className="auth-logo-text">STREET PLAYR</span>
-        </Link>
-
-        <div className="auth-panel-copy">
-          <p className="auth-panel-eyebrow">SS25 Collection</p>
-          <h2 className="auth-panel-headline">
-            Style is<br />
-            identity.<br />
-            Own yours.
-          </h2>
-          <p className="auth-panel-sub">
-            Exclusive membership.<br />Limited drops. No waitlists.
-          </p>
-        </div>
-
-        <div className="auth-panel-bottom">
-          <div className="auth-panel-stat">
-            <span className="auth-panel-stat-num">4,200+</span>
-            <span className="auth-panel-stat-label">Members</span>
+      {/* ── Header ── */}
+      <div className="relative z-10">
+        <div className="flex items-center gap-2.5 mb-4">
+          <div className="w-8 h-8 bg-white flex items-center justify-center">
+            <span className="font-display text-sm text-black tracking-wide">SP</span>
           </div>
-          <div className="auth-panel-stat-divider" />
-          <div className="auth-panel-stat">
-            <span className="auth-panel-stat-num">SS25</span>
-            <span className="auth-panel-stat-label">Current Season</span>
+          <div>
+            <span className="block font-display text-base uppercase tracking-wider text-[#eadfed] leading-tight">Street PlayR</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-white/30">Member Access</span>
+          <span className="w-px h-3 bg-white/[0.1]" />
+          <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/20">V2.0</span>
+        </div>
+      </div>
+
+      {/* ── Central Framed Visual ── */}
+      <div className="relative z-10 flex-1 flex items-center justify-center py-8 md:py-12">
+        <div className="relative w-full max-w-[420px] border border-white/[0.08] bg-[#1f1a23]/40">
+          {/* Corner decorations */}
+          <div className="absolute top-0 left-0 w-8 h-8 border-t border-l border-white/[0.12] pointer-events-none" />
+          <div className="absolute top-0 right-0 w-8 h-8 border-t border-r border-white/[0.12] pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-8 h-8 border-b border-l border-white/[0.12] pointer-events-none" />
+          <div className="absolute bottom-0 right-0 w-8 h-8 border-b border-r border-white/[0.12] pointer-events-none" />
+
+          {/* Content area */}
+          <div className="p-6 md:p-10">
+            {/* Brand monogram hero */}
+            <div className="aspect-[4/5] bg-[#231e27] border border-white/[0.04] flex items-center justify-center relative overflow-hidden">
+              {/* Grid texture */}
+              <div
+                className="absolute inset-0 opacity-[0.04]"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
+                  backgroundSize: "30px 30px",
+                }}
+              />
+              {/* Accent glow */}
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(221,183,255,0.08)_0%,transparent_60%)]" />
+
+              {/* Large brand lettering */}
+              <span className="relative z-10 font-display text-7xl md:text-8xl uppercase tracking-[0.1em] text-[#eadfed]/15 select-none">
+                SP
+              </span>
+
+              {/* REC overlay — top left */}
+              <div className="absolute top-3 left-3 flex items-center gap-2 z-20">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#ff3b30] animate-pulse" />
+                <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/[0.45]">00:18:42</span>
+              </div>
+
+              {/* Tier metadata — bottom left */}
+              <div className="absolute bottom-3 left-3 z-20">
+                <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-[#ddb7ff]/[0.5]">
+                  ACCESS TIER: MEMBER
+                </span>
+              </div>
+
+              {/* Bottom-right bracket */}
+              <div className="absolute bottom-3 right-3 z-20 font-mono text-[10px] text-white/[0.12]">
+                {'>_'}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Footer ── */}
+      <div className="relative z-10 pt-4 border-t border-white/[0.05]">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="inline-block w-1.5 h-1.5 rounded-full border border-white/20" />
+            <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/30">
+              Authorization: Pending
+            </span>
+          </div>
+          <div className="flex gap-4">
+            <span className="font-mono text-[8px] uppercase tracking-[0.15em] text-white/15">ID: STR-24</span>
+            <span className="font-mono text-[8px] uppercase tracking-[0.15em] text-white/15">TERM: 0x7A</span>
           </div>
         </div>
       </div>
@@ -110,7 +167,96 @@ function EditorialPanel() {
   );
 }
 
-// ─── Inner Login Page (reads searchParams) ────────────────────────────────────
+// ─── Right Form Panel ────────────────────────────────────────────────────────
+function FormPanel() {
+  return (
+    <div className="w-full md:w-1/2 min-h-screen flex flex-col items-center justify-center p-8 md:p-12 relative overflow-hidden">
+      {/* Panel ambient glow */}
+      <div className="pointer-events-none absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[#ddb7ff]/[0.02] blur-[100px] rounded-full" />
+
+      <div className="relative z-10 w-full max-w-[440px]">
+        {/* ── Heading ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="mb-10"
+        >
+          <div className="flex items-center gap-3 mb-2">
+            <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#ddb7ff]">[</span>
+            <h1 className="font-display text-4xl md:text-5xl uppercase tracking-wide text-[#eadfed]">Security Entry</h1>
+            <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#ddb7ff]">]</span>
+          </div>
+          <div className="w-full h-px bg-gradient-to-r from-[#ddb7ff]/30 via-white/[0.06] to-transparent" />
+        </motion.div>
+
+        {/* ── Auth Content ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          className="space-y-8"
+        >
+          {/* Intro */}
+          <div className="space-y-3 pb-6 border-b border-white/[0.05]">
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">
+              Terminal Authentication Required
+            </p>
+            <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-white/20 leading-relaxed">
+              Authorize via Google OAuth to access your dashboard, manage orders, and claim exclusive drops.
+            </p>
+          </div>
+
+          {/* Google Auth */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">Authentication</span>
+              <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-[#ddb7ff]/[0.4]">REQ_OAUTH</span>
+            </div>
+            <GoogleAuthButton />
+          </div>
+
+          {/* Secondary actions */}
+          <div className="flex pt-2">
+            <Link
+              href="/contact"
+              className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/25 hover:text-white/50 transition-colors"
+            >
+              Recovery Mode
+            </Link>
+          </div>
+        </motion.div>
+
+        {/* ── Footer ── */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.6 }}
+          className="mt-12 pt-6 border-t border-white/[0.05] space-y-4"
+        >
+          <div className="flex items-center gap-3">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500/60" />
+            <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/30">Connection: Secure</span>
+          </div>
+
+          <p className="font-mono text-[8px] uppercase tracking-[0.15em] text-white/15 leading-relaxed">
+            By continuing, you agree to our{' '}
+            <Link href="/terms" className="text-white/30 hover:text-white/50 transition-colors">Terms</Link>
+            {' '}&amp;{' '}
+            <Link href="/privacy" className="text-white/30 hover:text-white/50 transition-colors">Privacy Policy</Link>.
+          </p>
+
+          <div className="pt-1 flex items-center gap-4">
+            <span className="font-mono text-[7px] uppercase tracking-[0.2em] text-white/10">ENCRYPTION: TLS 1.3</span>
+            <span className="font-mono text-[7px] uppercase tracking-[0.2em] text-white/10">SYS: ONLINE</span>
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Inner Login Page ────────────────────────────────────────────────────────
 function LoginInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -128,38 +274,29 @@ function LoginInner() {
   if (!isHydrated || isAuthenticated) return null;
 
   return (
-    <main className="auth-root" id="auth-main">
-      <EditorialPanel />
+    <main className="relative min-h-screen bg-[#16111b]">
+      {/* ── Environmental background layers ── */}
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(0,0,0,0.65)_100%)]" />
+      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.25)_0%,transparent_10%,transparent_90%,rgba(0,0,0,0.25)_100%)]" />
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_50%_30%,rgba(221,183,255,0.05)_0%,transparent_55%)]" />
+      <div
+        className="pointer-events-none fixed inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
+        }}
+      />
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(255,87,26,0.03)_0%,transparent_60%)]" />
 
-      <div className="auth-panel-right">
-        {/* Mobile logo */}
-        <Link href="/" className="auth-logo-mark auth-logo-mobile">
-          <span className="auth-logo-box">SP</span>
-          <span className="auth-logo-text">STREET PLAYR</span>
-        </Link>
+      {/* ── Left vertical framing rail ── */}
+      <div className="fixed left-0 top-0 bottom-0 w-px bg-white/[0.04] z-20 pointer-events-none" />
+      <div className="fixed left-0 top-0 bottom-0 w-px bg-white/[0.02] translate-x-[7px] z-20 pointer-events-none" />
 
-        <div className="auth-form-container">
-          <motion.div
-            key="google-auth"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <p className="auth-overline">Member Access</p>
-            <h1 className="auth-headline">Welcome<br />back.</h1>
-            <p className="auth-subtext">
-              Sign in with Google to enter.<br />No passwords. No noise.
-            </p>
-
-            <GoogleAuthButton />
-
-            <p className="auth-fine-print">
-              By continuing, you agree to our{' '}
-              <Link href="/terms" className="auth-link">Terms</Link> &amp;{' '}
-              <Link href="/privacy" className="auth-link">Privacy Policy</Link>.
-            </p>
-          </motion.div>
-        </div>
+      {/* ── Split layout ── */}
+      <div className="relative z-10 flex flex-col md:flex-row min-h-screen">
+        <VisualPanel />
+        <FormPanel />
       </div>
     </main>
   );

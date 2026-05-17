@@ -142,23 +142,23 @@ export default function Loader() {
                 style={{
                   fontSize: "11px",
                   letterSpacing: "0.6em",
-                  color: "#C77DFF",
+                  color: "rgba(255,255,255,0.55)",
                 }}
               >
                 ★ {cur.eyebrow} · STREETPLAYR FILM
               </div>
               <div
-                className="text-center font-gothic"
+                className="text-center font-display"
                 style={{
                   fontSize: "clamp(64px, 12vw, 180px)",
                   lineHeight: 0.9,
                   letterSpacing: "0.02em",
                   textTransform: "uppercase",
-                  background: "linear-gradient(180deg, #fff 30%, #C77DFF 100%)",
+                  background: "linear-gradient(180deg, #fff 30%, #9a9a9a 100%)",
                   WebkitBackgroundClip: "text",
                   backgroundClip: "text",
                   color: "transparent",
-                  textShadow: "0 0 60px rgba(157,78,221,0.5)",
+                  textShadow: "none",
                 }}
               >
                 {cur.title}
@@ -181,16 +181,16 @@ export default function Loader() {
             className="absolute top-7 left-7 flex flex-col gap-[6px] z-[3] font-hud"
             style={{ fontSize: "10px", letterSpacing: "0.3em", color: "rgba(255,255,255,0.55)" }}
           >
-            <span className="inline-flex items-center gap-2" style={{ color: "#FF4D00" }}>
+              <span className="inline-flex items-center gap-2" style={{ color: "rgba(255,255,255,0.55)" }}>
               <span
                 className="w-2 h-2 rounded-full"
                 style={{
-                  background: "#FF4D00",
-                  boxShadow: "0 0 10px #FF4D00",
+                  background: "rgba(255,255,255,0.55)",
+                  boxShadow: "none",
                   animation: "filmRec 1s ease-in-out infinite",
                 }}
               />
-              REC
+              Film
             </span>
             <span>STREETPLAYR · DROP 001</span>
           </div>
@@ -213,7 +213,7 @@ export default function Loader() {
             style={{ fontSize: "10px", letterSpacing: "0.3em", color: "rgba(255,255,255,0.55)" }}
           >
             <span>MUMBAI · 04:18 IST</span>
-            <span>LAT 19.07 · LON 72.87</span>
+            <span>FW26 · Mumbai</span>
           </div>
 
           {/* HUD bottom-right */}

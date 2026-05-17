@@ -53,7 +53,7 @@ export default function ProductCard({ product, index }: ProductCardProps) {
     >
       <Link href={`/product/${product.slug}`} className="block w-full outline-none">
         <div 
-          className={`relative w-full overflow-hidden rounded-xl bg-[#111] ${aspectClass}`}
+          className={`relative w-full overflow-hidden bg-[#111111] border border-white/[0.08] ${aspectClass}`}
           data-cursor="product"
         >
           {/* Default Image */}
@@ -63,7 +63,7 @@ export default function ProductCard({ product, index }: ProductCardProps) {
             fill
             priority={index < 2}
             className={`object-cover transition-transform duration-[2s] ease-[cubic-bezier(0.16,1,0.3,1)] ${
-              isHovered ? "scale-[1.03]" : "scale-100"
+              isHovered ? "scale-[1.025]" : "scale-100"
             }`}
           />
           
@@ -86,14 +86,14 @@ export default function ProductCard({ product, index }: ProductCardProps) {
       </Link>
 
       {/* Product Info: Mobile recomposed for breathing room */}
-      <div className="flex flex-col gap-2 px-6 md:px-2 mt-4 md:mt-2">
+      <div className="flex flex-col gap-2 px-1 mt-5">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-1 md:gap-0">
           <Link href={`/product/${product.slug}`} className="outline-none">
-            <h3 className="font-body text-base font-medium leading-relaxed text-white transition-colors duration-300 group-hover:text-[#8c8c8c] md:text-lg">
+            <h3 className="font-body text-base font-medium leading-relaxed text-white transition-colors duration-300 group-hover:text-white/60 md:text-lg">
               {product.title}
             </h3>
           </Link>
-          <span className="font-mono text-sm tracking-widest text-[#8c8c8c]">
+          <span className="font-mono text-[11px] tracking-[0.16em] text-white/55">
             {product.price}
           </span>
         </div>

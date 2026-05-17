@@ -13,7 +13,7 @@ export default function BrandStory() {
   });
 
   return (
-    <section ref={containerRef} className="relative w-full h-[200vh] bg-[#020202]">
+    <section ref={containerRef} className="relative w-full h-[200vh] bg-[#16111b]">
       <div className="sticky top-0 h-screen w-full flex items-center justify-center px-4 md:px-16 overflow-hidden">
         {/* Grunge typography watermark (SEAKOFF accent) */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5 z-0 select-none overflow-hidden">

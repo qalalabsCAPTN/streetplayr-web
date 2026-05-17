@@ -15,7 +15,7 @@ export default function FeaturedProductBanner() {
   const y = useTransform(scrollYProgress, [0, 1], ["-10%", "10%"]);
 
   return (
-    <section ref={containerRef} className="relative w-full h-[100vh] min-h-[700px] overflow-hidden bg-[#020202]">
+    <section ref={containerRef} className="relative w-full h-[100vh] min-h-[700px] overflow-hidden bg-[#16111b]">
       <motion.div style={{ scale, y }} className="absolute inset-0 h-full w-full">
         <Image
           src="/assets/hero-tees.png"
@@ -25,7 +25,7 @@ export default function FeaturedProductBanner() {
         />
         {/* Deep luxury gradients */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#9D4EDD]/10 via-black/60 to-black/90 mix-blend-multiply" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-[#050505]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#16111b] via-transparent to-[#16111b]" />
       </motion.div>
 
       <div className="relative z-10 flex h-full items-center justify-center">

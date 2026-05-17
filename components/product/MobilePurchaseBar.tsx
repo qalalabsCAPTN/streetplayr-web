@@ -71,7 +71,7 @@ export default function MobilePurchaseBar({ price, productId, title, image, sele
       initial={{ y: "100%" }}
       animate={{ y: isVisible ? "0%" : "100%" }}
       transition={{ type: "tween", duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-      className="fixed bottom-0 left-0 z-50 flex w-full items-center justify-between bg-gradient-to-t from-[#050505] to-[#050505]/80 px-6 py-6 pb-8 backdrop-blur-xl lg:hidden"
+      className="fixed bottom-0 left-0 z-50 flex w-full items-center justify-between bg-gradient-to-t from-[#16111b] to-[#16111b]/80 px-6 py-6 pb-8 backdrop-blur-xl lg:hidden"
     >
       <div className="flex flex-col">
         <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-white/30">
@@ -81,10 +81,10 @@ export default function MobilePurchaseBar({ price, productId, title, image, sele
       </div>
       <button
         onClick={handleAddToCart}
-        className={`h-12 px-8 font-mono text-[9px] uppercase tracking-[0.3em] transition-colors ${
+        className={`rounded-none h-12 px-8 font-mono text-[9px] uppercase tracking-[0.3em] transition-colors ${
           isAdded 
             ? "bg-white/10 text-white/60" 
-            : "bg-white/5 text-white hover:bg-[var(--sp-accent)] hover:text-black"
+            : "bg-white/5 text-white hover:bg-[#ddb7ff] hover:text-[#16111b]"
         }`}
       >
         {isAdded ? "Secured" : "Acquire"}

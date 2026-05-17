@@ -155,8 +155,7 @@ export default function EntryGate() {
                 fontSize: "clamp(64px, 11vw, 140px)",
                 color: "#fff",
                 letterSpacing: "0.04em",
-                textShadow:
-                  "0 0 30px rgba(157,78,221,0.7), 0 0 60px rgba(157,78,221,0.4), 4px 4px 0 rgba(123,47,190,0.5), 8px 8px 0 rgba(123,47,190,0.25)",
+                textShadow: "none",
                 animation: "preFloat 5s ease-in-out infinite",
               }}
             >
@@ -169,7 +168,7 @@ export default function EntryGate() {
               style={{
                 fontSize: "10px",
                 letterSpacing: "0.6em",
-                color: "#C77DFF",
+                color: "rgba(255,255,255,0.55)",
                 textTransform: "uppercase",
                 marginTop: "-32px",
               }}
@@ -181,7 +180,7 @@ export default function EntryGate() {
               <button
                 onClick={(e) => { e.stopPropagation(); handleEnter(); }}
                 style={{ pointerEvents: "auto" }}
-                className="group relative overflow-hidden inline-flex items-center gap-[18px] px-14 py-[22px] border border-[rgba(157,78,221,0.5)] bg-transparent text-white transition-all duration-300 hover:border-[#C77DFF] hover:tracking-[0.7em] hover:shadow-[0_0_40px_rgba(157,78,221,0.5),inset_0_0_40px_rgba(157,78,221,0.1)]"
+                className="group relative overflow-hidden inline-flex items-center gap-[18px] px-14 py-[22px] border border-white/[0.14] bg-transparent text-white transition-colors duration-300 hover:bg-white/[0.08]"
               >
                 <span className="relative z-10 flex items-center gap-[18px] font-hud text-[12px] tracking-[0.6em] uppercase">
                   <span
@@ -199,7 +198,7 @@ export default function EntryGate() {
               <div className="flex flex-col items-center gap-3">
                 <div
                   className="font-hud text-[10px] tracking-[0.3em] uppercase"
-                  style={{ color: "#C77DFF" }}
+                  style={{ color: "rgba(255,255,255,0.55)" }}
                 >
                   LOADING DROP · {Math.floor(progress).toString().padStart(2, "0")}%
                 </div>
@@ -211,7 +210,7 @@ export default function EntryGate() {
                     className="absolute inset-0"
                     style={{
                       width: `${progress}%`,
-                      background: "linear-gradient(90deg, #7B2FBE, #C77DFF)",
+                      background: "#b8a1ff",
                       transition: "width 0.18s ease",
                     }}
                   />
@@ -226,7 +225,7 @@ export default function EntryGate() {
             style={{ color: "rgba(122,122,122,1)" }}
           >
             <span>v1.0.0 · STREETPLAYR.COM</span>
-            <span>SYSTEM READY {ready ? "★" : " "}</span>
+            <span>READY {ready ? "★" : " "}</span>
             <span>MUMBAI · 04:18 IST</span>
           </div>
         </motion.div>

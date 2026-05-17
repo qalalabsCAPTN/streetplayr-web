@@ -5,44 +5,44 @@
 :root {
   /* ── Backgrounds ────────────────────────────────────────────── */
   --sp-bg-base:     #16111b;
-  --sp-bg-surface:  #1f1a23;
-  --sp-bg-elevated: #231e27;
-  --sp-bg-overlay: rgba(22, 17, 27, 0.9);
-  --sp-border-subtle: #4d4354;
-  --sp-border-strong: #6d6374;
+  --sp-bg-surface:  #1b1620;
+  --sp-bg-elevated: #211c26;
+  --sp-bg-overlay: rgba(22, 17, 27, 0.92);
+  --sp-border-subtle: rgba(255, 255, 255, 0.10);
+  --sp-border-strong: rgba(255, 255, 255, 0.16);
   --sp-border-focus: #ddb7ff;
 
   /* ── Text ───────────────────────────────────────────────────── */
   --sp-text-primary:   #eadfed;
-  --sp-text-secondary: #cfc2d6;
-  --sp-text-muted:     #988d9f;
-  --sp-text-subtle:    #6d6374;
+  --sp-text-secondary: rgba(234, 223, 237, 0.62);
+  --sp-text-muted:     rgba(234, 223, 237, 0.42);
+  --sp-text-subtle:    rgba(234, 223, 237, 0.28);
   --sp-text-inverse: #000000;
 
   /* ── CTA ────────────────────────────────────────────────────── */
-  --sp-cta-bg: #ddb7ff;
-  --sp-cta-text: #490080;
-  --sp-cta-hover-bg: #f0dbff;
+  --sp-cta-bg: #eadfed;
+  --sp-cta-text: #16111b;
+  --sp-cta-hover-bg: #ddb7ff;
 
   /* ── Brand Accent — purple palette ─────────────────────────── */
   --sp-accent:         #ddb7ff;
-  --sp-accent-dim:     rgba(221, 183, 255, 0.14);
-  --sp-accent-glow:    rgba(221, 183, 255, 0.4);
+  --sp-accent-dim:     rgba(221, 183, 255, 0.10);
+  --sp-accent-glow:    rgba(221, 183, 255, 0.16);
 
-  --sp-accent-2:       #ffb59e;
-  --sp-accent-2-dim:   rgba(255, 181, 158, 0.14);
-  --sp-accent-2-glow:  rgba(255, 181, 158, 0.4);
+  --sp-accent-2:       #ff571a;
+  --sp-accent-2-dim:   rgba(255, 87, 26, 0.12);
+  --sp-accent-2-glow:  rgba(255, 87, 26, 0.18);
 
-  --sp-accent-deep:    #b76dff;
+  --sp-accent-deep:    #c792ff;
 
   /* ── Status ─────────────────────────────────────────────────── */
   --sp-error: #ff3b30;
   --sp-success: #30d158;
 
   /* ── Glows ──────────────────────────────────────────────────── */
-  --glow-accent:   0 0 24px rgba(157, 78, 221, 0.45);
-  --glow-accent-2: 0 0 18px rgba(45, 198, 83, 0.35);
-  --glow-white:    0 0 18px rgba(255, 255, 255, 0.09);
+  --glow-accent:   0 24px 90px rgba(12, 6, 18, 0.42);
+  --glow-accent-2: 0 22px 80px rgba(255, 87, 26, 0.10);
+  --glow-white:    0 18px 70px rgba(0, 0, 0, 0.24);
 
   /* ── Border Radius ──────────────────────────────────────────── */
   --br-sm: 4px;
@@ -60,9 +60,6 @@
   --sp-8:  32px;
   --sp-12: 48px;
   --sp-16: 64px;
-
-  /* ── Gothic font (replaced UnifrakturMaguntia with Anton) */
-  --font-sp-gothic: 'Anton', sans-serif;
 
   --ease-out: cubic-bezier(0, 0, 0.2, 1);
   --ease-snap: cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -101,7 +98,10 @@ body {
   min-height: 100%;
   margin: 0;
   font-size: 16px;
-  background: var(--sp-bg-base);
+  background:
+    radial-gradient(900px 520px at 12% -8%, rgba(221, 183, 255, 0.12), transparent 62%),
+    radial-gradient(760px 460px at 90% 8%, rgba(255, 87, 26, 0.08), transparent 60%),
+    linear-gradient(180deg, #16111b 0%, #1b1620 38%, #16111b 100%);
   color: var(--sp-text-primary);
   font-family: var(--font-sp-body), system-ui, sans-serif;
   text-rendering: optimizeLegibility;
@@ -115,8 +115,20 @@ body::before {
   z-index: 9999;
   pointer-events: none;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-  opacity: 0.035;
+  opacity: 0.045;
   mix-blend-mode: overlay;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(900px 520px at 18% 18%, rgba(221, 183, 255, 0.08), transparent 62%),
+    radial-gradient(700px 500px at 88% 72%, rgba(255, 87, 26, 0.06), transparent 65%),
+    linear-gradient(135deg, rgba(255,255,255,0.025), transparent 42%);
 }
 
 body::selection {
@@ -141,12 +153,12 @@ a {
 
 .font-display {
   font-family: var(--font-sp-display), Impact, sans-serif;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.015em;
 }
 
 .font-gothic {
-  font-family: var(--font-sp-gothic), var(--font-sp-display), Impact, sans-serif;
-  letter-spacing: 0.06em;
+  font-family: var(--font-sp-display), Impact, sans-serif;
+  letter-spacing: 0.015em;
 }
 
 .font-body {
@@ -155,7 +167,7 @@ a {
 
 .font-mono {
   font-family: var(--font-sp-mono), "Courier New", monospace;
-  font-size: max(11px, 0.6875rem);
+  font-size: max(10px, 0.625rem);
 }
 
 .text-balance {
@@ -165,7 +177,7 @@ a {
 .hero-sweep {
   background:
     linear-gradient(110deg, transparent 0%, rgba(255, 255, 255, 0.14) 45%, transparent 70%),
-    linear-gradient(90deg, rgba(157, 78, 221, 0.08), transparent 32%, rgba(255, 255, 255, 0.04));
+    linear-gradient(90deg, rgba(221, 183, 255, 0.08), transparent 32%, rgba(255, 87, 26, 0.04));
   background-size: 220% 100%, 100% 100%;
   mix-blend-mode: screen;
 }
@@ -470,7 +482,7 @@ a {
 .product-price {
   font-family: 'Inter', sans-serif;
   font-size: 16px;
-  color: var(--sp-accent);
+  color: var(--sp-text-secondary);
   margin-top: 4px;
 }
 
@@ -619,7 +631,7 @@ a {
 .review-rating {
   display: flex;
   gap: 4px;
-  color: var(--sp-accent-2);
+  color: var(--sp-text-secondary);
 }
 
 .review-text {
@@ -693,7 +705,7 @@ select {
 
 /* ── Glow sm ───────────────────────────────────────────────── */
 .glow-sm:hover {
-  box-shadow: 0 0 15px rgba(221, 183, 255, 0.4);
+  box-shadow: none;
 }
 
 /* ── Marquee animation ─────────────────────────────────────── */
@@ -714,12 +726,13 @@ select {
   scrollbar-width: none;
 }
 
-/* ── HUD text style ────────────────────────────────────────── */
+/* ── Metadata text style ───────────────────────────────────── */
 .font-hud {
   font-family: var(--font-sp-mono), 'Courier New', monospace;
-  font-size: 11px;
-  letter-spacing: 0.1em;
+  font-size: 10px;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
+  color: var(--sp-text-secondary);
 }
 
 /* ── Claude Preloader Animations ─────────────────────────── */
@@ -826,9 +839,9 @@ select {
   position: absolute;
   bottom: 20px;
   right: 20px;
-  border: 1px solid #c77dff;
+  border: 1px solid rgba(255,255,255,0.14);
   background: transparent;
-  color: #c77dff;
+  color: #f5f5f5;
   padding: 10px 24px;
   border-radius: 8px;
   cursor: pointer;
@@ -836,14 +849,15 @@ select {
   font-weight: 700;
   text-transform: uppercase;
   opacity: 0.7;
-  text-shadow: 0 0 8px #9d4edd;
+  text-shadow: none;
   transition: all 0.3s ease;
   z-index: 10;
 }
 .skip-button:hover {
   opacity: 1;
-  text-shadow: 0 0 16px #9d4edd;
-  box-shadow: 0 4px 20px rgba(157, 78, 221, 0.3);
+  text-shadow: none;
+  box-shadow: none;
+  background: rgba(255,255,255,0.08);
 }
 @keyframes starFloat {
   0%,100% { transform: translateY(0); }

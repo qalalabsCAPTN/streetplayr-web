@@ -15,102 +15,223 @@ export default function CartPage() {
     setMounted(true);
   }, []);
 
-  if (!mounted) return null; // Avoid hydration mismatch
+  if (!mounted) return null;
+
+  const total = getCartTotal();
+  const itemCount = items.length;
 
   return (
-    <div className="min-h-screen bg-[#050505] pt-32 pb-24 px-6 sm:px-12 lg:px-24">
+    <div className="relative min-h-screen bg-[#16111b] pt-32 pb-24 px-6 sm:px-12 lg:px-16">
+      {/* ── Environmental background layers ── */}
+      {/* Vignette */}
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(0,0,0,0.65)_100%)]" />
+      {/* Side columns */}
+      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.25)_0%,transparent_10%,transparent_90%,rgba(0,0,0,0.25)_100%)]" />
+      {/* Center atmosphere */}
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_50%_30%,rgba(221,183,255,0.05)_0%,transparent_55%)]" />
+      {/* Surface grid */}
+      <div
+        className="pointer-events-none fixed inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
+        }}
+      />
+      {/* Warm lower accent */}
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(255,87,26,0.03)_0%,transparent_60%)]" />
+
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-        className="max-w-[1400px] mx-auto"
+        className="max-w-[1440px] mx-auto relative z-10"
       >
-        <div className="mb-16">
-          <motion.h1 
+        {/* ── Left vertical framing rail ── */}
+        <div className="absolute left-0 top-0 bottom-0 w-px bg-white/[0.04]" />
+        <div className="absolute left-0 top-0 bottom-0 w-px bg-white/[0.02] translate-x-[7px]" />
+
+        {/* ── Header — reference-matching structure ── */}
+        <div className="flex flex-col md:flex-row justify-between items-end mb-12 border-l-2 border-[#ddb7ff] pl-6">
+          <div>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#ddb7ff] mb-2"
+            >
+              / CART / {itemCount} {itemCount === 1 ? "ITEM" : "ITEMS"}
+            </motion.p>
+            <motion.h1
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+              className="font-display text-8xl sm:text-9xl uppercase tracking-tight text-[#eadfed] leading-none"
+            >
+              Shopping Cart
+            </motion.h1>
+          </div>
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 1.5, ease: "easeOut" }}
-            className="font-display text-5xl sm:text-7xl uppercase tracking-wide text-white"
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="hidden md:block font-mono text-[10px] uppercase tracking-[0.2em] text-white/30 text-right leading-relaxed"
           >
-            Cart
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 0.4 }}
-            className="mt-6 font-mono text-sm uppercase tracking-[0.3em] text-white/40"
-          >
-            {items.length} {items.length === 1 ? 'Item' : 'Items'}
-          </motion.p>
+            <span className="block">Free shipping over {formatPrice(50000)}</span>
+            <span className="block text-white/20">Estimated delivery 5–8 business days</span>
+            <span className="block text-white/20">Secure checkout</span>
+          </motion.div>
         </div>
 
-        {items.length === 0 ? (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 0.5 }}
-            className="flex flex-col items-start justify-center py-24 border-t border-white/5"
+        {itemCount === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            className="flex flex-col items-start py-36 border-t border-white/[0.05]"
           >
-            <p className="font-mono text-lg text-white/60 mb-8 uppercase tracking-widest">
+            <p className="text-3xl text-white/40 font-light mb-12 tracking-wider leading-relaxed">
               Your cart is empty.
             </p>
-            <Link 
+            <Link
               href="/collections"
-              className="group inline-flex items-center gap-4 border border-white/20 px-8 py-4 font-mono text-xs uppercase tracking-widest text-white transition-all hover:bg-white hover:text-black"
+              className="rounded-none inline-flex items-center justify-center border border-white/[0.14] px-14 py-5 text-sm uppercase tracking-[0.15em] text-[#eadfed] transition-all duration-500 hover:bg-[#ddb7ff] hover:text-[#16111b] hover:border-[#ddb7ff]"
             >
-              <span>Explore Collection</span>
+              Explore Collection
             </Link>
           </motion.div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-16 lg:gap-24 items-start">
-            {/* Items List */}
-            <div className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* ── Left Column — Cart Items ── */}
+            <div className="lg:col-span-8 space-y-6">
               {items.map((item, index) => (
                 <CartItem key={item.id} item={item} index={index} />
               ))}
             </div>
 
-            {/* Embedded Order Summary */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 3, delay: 0.8, ease: "easeOut" }}
-              className="lg:sticky lg:top-32 space-y-12"
-            >
-              <div className="pb-6 space-y-6">
-                <div className="flex justify-between font-mono text-[9px] uppercase tracking-[0.3em] text-white/30">
-                  <span>Subtotal</span>
-                  <span>{formatPrice(getCartTotal())}</span>
-                </div>
-                <div className="flex justify-between font-mono text-[9px] uppercase tracking-[0.3em] text-white/30">
-                  <span>Shipping</span>
-                  <span>Calculated at checkout</span>
-                </div>
-              </div>
-
-              <div className="flex justify-between items-end">
-                <span className="font-mono text-[10px] uppercase tracking-widest text-white/20">Value</span>
-                <span className="font-mono text-sm tracking-widest text-white/70">{formatPrice(getCartTotal())}</span>
-              </div>
-
-              <Link
-                href="/checkout"
-                data-cursor="checkout"
-                className="group relative flex w-full h-16 items-center justify-center overflow-hidden bg-white text-black transition-transform active:scale-[0.98]"
+            {/* ── Right Column — Summary Module ── */}
+            <div className="lg:col-span-4 space-y-6">
+              {/* Primary summary panel */}
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1.2, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                className="lg:sticky lg:top-32"
               >
-                <span className="relative z-10 font-mono text-xs uppercase tracking-[0.2em] text-white mix-blend-difference">
-                  Secure Allocation
-                </span>
-                <div className="absolute inset-0 z-0 bg-white transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-y-0 origin-bottom" />
-              </Link>
-              
-              <p className="font-mono text-[10px] uppercase tracking-widest text-white/30 text-center">
-                Complimentary shipping on orders over {formatPrice(50000)}
-              </p>
-            </motion.div>
+                <div className="bg-[#2e2832] border border-white/[0.06] p-8 shadow-[0_32px_100px_rgba(0,0,0,0.4)] relative overflow-hidden">
+                  {/* Blur accent */}
+                  <div className="pointer-events-none absolute -top-20 -right-20 w-40 h-40 bg-[#ddb7ff]/5 blur-[100px] rounded-full" />
+
+                  <div className="relative z-10">
+                    {/* Heading */}
+                    <div className="flex items-center gap-3 mb-8 pb-6 border-b border-white/[0.06]">
+                      <div className="w-4 h-4 border border-[#ddb7ff]/60 flex items-center justify-center">
+                        <div className="w-1.5 h-1.5 bg-[#ddb7ff]/80" />
+                      </div>
+                      <h2 className="font-display text-2xl uppercase tracking-wide text-[#eadfed]">Summary</h2>
+                    </div>
+
+                    {/* Rows */}
+                    <div className="space-y-5 mb-8">
+                      <div className="flex justify-between items-baseline font-mono text-xs uppercase tracking-[0.15em]">
+                        <span className="text-white/40">Subtotal</span>
+                        <span className="text-white/70 tabular-nums">{formatPrice(total)}</span>
+                      </div>
+                      <div className="flex justify-between items-baseline font-mono text-xs uppercase tracking-[0.15em]">
+                        <span className="text-white/40">Shipping</span>
+                        <span className="text-white/30">Calculated at checkout</span>
+                      </div>
+                    </div>
+
+                    {/* Total */}
+                    <div className="pt-6 border-t border-white/[0.06] mb-8">
+                      <div className="flex justify-between items-end">
+                        <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40 mb-1">Total</span>
+                        <span className="font-display text-5xl tracking-wide text-[#eadfed] tabular-nums leading-none">
+                          {formatPrice(total)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* CTA */}
+                    <Link
+                      href="/checkout"
+                      className="rounded-none group relative block w-full py-6 text-center overflow-hidden transition-all active:scale-[0.98]"
+                    >
+                      <span className="absolute inset-0 bg-[#ddb7ff] transition-transform duration-500 group-hover:scale-y-0 origin-bottom" />
+                      <span className="absolute inset-0 bg-[#eadfed] scale-y-0 group-hover:scale-y-100 transition-transform duration-500 origin-top" />
+                      <span className="relative z-10 text-sm uppercase tracking-[0.2em] text-[#16111b] font-light">
+                        Complete Order
+                      </span>
+                    </Link>
+
+                    {/* Footer metadata */}
+                    <div className="mt-6 space-y-2">
+                      <p className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.2em] text-white/20">
+                        <span className="inline-block w-2 h-2 rounded-full border border-white/20" />
+                        Secured checkout
+                      </p>
+                      <p className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.2em] text-white/20">
+                        <span className="inline-block w-2 h-2 rounded-full border border-white/20" />
+                        Estimated arrival: 5–8 business days
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Secondary info module */}
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1.2, delay: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                className="border border-white/[0.06] p-5"
+              >
+                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/30 mb-3 flex items-center gap-2">
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-white/20" />
+                  Shipping & Returns
+                </p>
+                <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/20 leading-relaxed">
+                  Free complimentary shipping on all orders over {formatPrice(50000)}.<br />
+                  Easy returns within 14 days of delivery.
+                </p>
+              </motion.div>
+            </div>
           </div>
         )}
       </motion.div>
+
+      {/* ── Footer architecture ── */}
+      <footer className="relative z-10 max-w-[1440px] mx-auto mt-32 pt-12 pb-12 border-t border-white/[0.05]">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+          {/* Brand */}
+          <div className="flex flex-col items-center md:items-start">
+            <span className="font-display text-lg uppercase tracking-wide text-white/60">Street PlayR</span>
+            <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-white/15 mt-2">
+              &copy; 2024 Street PlayR
+            </span>
+          </div>
+          {/* Nav links */}
+          <div className="flex gap-8 font-mono text-[9px] uppercase tracking-[0.2em]">
+            <Link href="/collections" className="text-white/30 hover:text-white/60 transition-colors">Collections</Link>
+            <Link href="/about" className="text-white/30 hover:text-white/60 transition-colors">About</Link>
+            <Link href="/contact" className="text-white/30 hover:text-white/60 transition-colors">Contact</Link>
+            <Link href="/faq" className="text-white/30 hover:text-white/60 transition-colors">FAQ</Link>
+          </div>
+          {/* Social */}
+          <div className="flex gap-3">
+            <div className="w-7 h-7 border border-white/[0.1] flex items-center justify-center hover:border-[#ddb7ff]/40 transition-colors cursor-pointer">
+              <span className="text-[10px] text-white/40">IG</span>
+            </div>
+            <div className="w-7 h-7 border border-white/[0.1] flex items-center justify-center hover:border-[#ddb7ff]/40 transition-colors cursor-pointer">
+              <span className="text-[10px] text-white/40">X</span>
+            </div>
+            <div className="w-7 h-7 border border-white/[0.1] flex items-center justify-center hover:border-[#ddb7ff]/40 transition-colors cursor-pointer">
+              <span className="text-[10px] text-white/40">YT</span>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
 
-// ─── Toggle Switch ────────────────────────────────────────────────────────────
+// ─── Toggle Switch ───────────────────────────────────────────────────────
 function ToggleSwitch({
   id,
   checked,
@@ -18,19 +18,21 @@ function ToggleSwitch({
   label: string;
 }) {
   return (
-    <label htmlFor={id} className="settings-toggle-row" aria-label={label}>
-      <span className="settings-toggle-label">{label}</span>
+    <label htmlFor={id} className="flex items-center justify-between py-3 cursor-pointer group">
+      <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/50 group-hover:text-white/70 transition-colors">{label}</span>
       <button
         id={id}
         role="switch"
         type="button"
         aria-checked={checked}
         onClick={() => onChange(!checked)}
-        className={`settings-toggle ${checked ? 'settings-toggle--on' : ''}`}
+        className={`relative w-11 h-6 border transition-colors duration-300 ${
+          checked ? 'bg-[#ddb7ff]/20 border-[#ddb7ff]/40' : 'bg-white/[0.04] border-white/[0.1]'
+        }`}
       >
         <motion.span
-          className="settings-toggle-thumb"
-          layout
+          className="absolute top-0.5 left-0.5 w-[18px] h-[18px] bg-white/60"
+          animate={{ left: checked ? 'calc(100% - 20px)' : '2px' }}
           transition={{ type: 'spring', stiffness: 600, damping: 40 }}
         />
       </button>
@@ -38,7 +40,7 @@ function ToggleSwitch({
   );
 }
 
-// ─── Section ─────────────────────────────────────────────────────────────────
+// ─── Section ─────────────────────────────────────────────────────────────
 function SettingsSection({
   title,
   children,
@@ -48,17 +50,38 @@ function SettingsSection({
 }) {
   return (
     <motion.section
-      className="settings-section"
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
+      className="pb-6 mb-6 border-b border-white/[0.05] last:border-b-0 last:mb-0 last:pb-0"
     >
-      <h2 className="settings-section-title">{title}</h2>
-      <div className="settings-section-body">{children}</div>
+      <h2 className="font-mono text-[9px] uppercase tracking-[0.2em] text-[#ddb7ff]/[0.6] mb-4">{title}</h2>
+      <div className="space-y-1">{children}</div>
     </motion.section>
   );
 }
 
+// ─── Settings Field ──────────────────────────────────────────────────────
+function SettingsField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-1.5 py-2">
+      <label className="block font-mono text-[9px] uppercase tracking-[0.2em] text-white/30">{label}</label>
+      {children}
+    </div>
+  );
+}
+
+// ─── Info Row ────────────────────────────────────────────────────────────
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between py-2.5">
+      <span className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/30">{label}</span>
+      <span className="font-mono text-[10px] text-white/50">{value}</span>
+    </div>
+  );
+}
+
+// ─── Page ────────────────────────────────────────────────────────────────
 export default function SettingsPage() {
   const user = useAuthStore((s) => s.user);
   const updateProfile = useAuthStore((s) => s.updateProfile);
@@ -93,218 +116,187 @@ export default function SettingsPage() {
   if (!user) return null;
 
   return (
-    <div className="profile-page-root">
-      <motion.div
-        className="profile-page-header"
-        initial={{ opacity: 0, y: 12 }}
+    <div className="max-w-[1200px]">
+      {/* ═══ HEADER ═══ */}
+      <motion.header
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        className="mb-10 border-l-4 border-[#ddb7ff] pl-6"
       >
-        <p className="profile-page-eyebrow">Preferences</p>
-        <h1 className="profile-page-title">Settings</h1>
-      </motion.div>
+        <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#ddb7ff] block mb-2">
+          [ SYSTEM // PREFERENCES ]
+        </span>
+        <h1 className="font-display text-5xl sm:text-6xl md:text-7xl uppercase tracking-tight text-[#eadfed] leading-none">
+          Settings
+        </h1>
+      </motion.header>
 
-      {/* ── Profile Info ─────────────────────────────────────────────── */}
-      <SettingsSection title="Identity">
-        <form onSubmit={handleSaveName} className="settings-form" noValidate>
-          <div className="auth-field">
-            <label htmlFor="settings-name" className="auth-label">Display Name</label>
-            <input
-              id="settings-name"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="auth-input"
-              placeholder="Your name"
-            />
-          </div>
-          <div className="auth-field">
-            <label htmlFor="settings-email" className="auth-label">Email (optional)</label>
-            <input
-              id="settings-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="auth-input"
-              placeholder="your@email.com"
-            />
-          </div>
-          <div className="auth-field">
-            <label className="auth-label">Mobile</label>
-            <input
-              type="tel"
-              value={user.phone}
-              className="auth-input auth-input--readonly"
-              readOnly
-              aria-readonly="true"
-              tabIndex={-1}
-            />
-            <p className="settings-readonly-hint">Mobile number cannot be changed</p>
-          </div>
+      {/* ═══ MAIN CONTENT ═══ */}
+      <div className="max-w-[640px]">
+        {/* ── Identity ── */}
+        <SettingsSection title="Identity">
+          <form onSubmit={handleSaveName} noValidate>
+            <div className="space-y-4">
+              <SettingsField label="Display Name">
+                <input
+                  id="settings-name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full bg-transparent border border-white/[0.08] px-4 py-2.5 font-mono text-xs text-white/70 outline-none transition-colors placeholder:text-white/20 focus:border-[#ddb7ff]/40"
+                  placeholder="Your name"
+                />
+              </SettingsField>
 
-          <div className="settings-save-row">
-            <button type="submit" className="auth-cta" id="save-profile-btn">
-              Save Changes
-            </button>
-            <AnimatePresence>
-              {nameSaved && (
-                <motion.span
-                  className="settings-saved-badge"
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0 }}
-                >
-                  ✓ Saved
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </div>
-        </form>
-      </SettingsSection>
+              <SettingsField label="Email">
+                <input
+                  id="settings-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-transparent border border-white/[0.08] px-4 py-2.5 font-mono text-xs text-white/70 outline-none transition-colors placeholder:text-white/20 focus:border-[#ddb7ff]/40"
+                  placeholder="your@email.com"
+                />
+              </SettingsField>
 
-      {/* ── Notifications ────────────────────────────────────────────── */}
-      <SettingsSection title="Notifications">
-        <ToggleSwitch
-          id="notif-drops"
-          checked={notifDrops}
-          onChange={setNotifDrops}
-          label="Drop alerts"
-        />
-        <ToggleSwitch
-          id="notif-orders"
-          checked={notifOrders}
-          onChange={setNotifOrders}
-          label="Order updates"
-        />
-        <ToggleSwitch
-          id="notif-rewards"
-          checked={notifRewards}
-          onChange={setNotifRewards}
-          label="SP-RR rewards"
-        />
-      </SettingsSection>
+              <SettingsField label="Mobile">
+                <div className="flex items-center h-[42px] px-4 border border-white/[0.05] bg-white/[0.02]">
+                  <span className="font-mono text-xs text-white/30">{user.phone}</span>
+                </div>
+                <p className="font-mono text-[7px] uppercase tracking-[0.2em] text-white/15 mt-1">Cannot be changed</p>
+              </SettingsField>
 
-      {/* ── Auth Info ────────────────────────────────────────────────── */}
-      <SettingsSection title="Account">
-        <div className="settings-info-row">
-          <span className="settings-info-label">Auth method</span>
-          <span className="settings-info-value">
-            {user.authProvider === 'google' ? 'Google' : 'Phone OTP'}
-          </span>
-        </div>
-        <div className="settings-info-row">
-          <span className="settings-info-label">Member since</span>
-          <span className="settings-info-value">
-            {new Date(user.memberSince).toLocaleDateString('en-IN', {
-              month: 'long', year: 'numeric',
-            })}
-          </span>
-        </div>
-        <div className="settings-info-row">
-          <span className="settings-info-label">Referral code</span>
-          <span className="settings-info-value" style={{ color: 'var(--sp-accent)', fontFamily: 'var(--font-sp-mono)' }}>
-            {user.referralCode}
-          </span>
-        </div>
-      </SettingsSection>
-
-      {/* ── Sign Out ─────────────────────────────────────────────────── */}
-      <SettingsSection title="Session">
-        <AnimatePresence mode="wait">
-          {!showSignOutConfirm ? (
-            <motion.button
-              key="signout-btn"
-              type="button"
-              onClick={() => setShowSignOutConfirm(true)}
-              className="settings-danger-btn"
-              id="sign-out-btn"
-              initial={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              Sign Out
-            </motion.button>
-          ) : (
-            <motion.div
-              key="signout-confirm"
-              className="settings-confirm-row"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-            >
-              <p className="settings-confirm-text">Are you sure you want to sign out?</p>
-              <div className="settings-confirm-actions">
+              <div className="flex items-center gap-3 pt-2">
                 <button
-                  type="button"
-                  onClick={handleSignOut}
-                  className="settings-danger-btn"
-                  id="confirm-sign-out-btn"
+                  type="submit"
+                  className="px-6 py-3 bg-[#ddb7ff] text-[#16111b] font-mono text-[10px] uppercase tracking-[0.2em] hover:bg-white transition-colors"
                 >
-                  Yes, sign out
+                  Save Changes
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setShowSignOutConfirm(false)}
-                  className="settings-cancel-btn"
-                  id="cancel-sign-out-btn"
-                >
-                  Cancel
-                </button>
+                <AnimatePresence>
+                  {nameSaved && (
+                    <motion.span
+                      initial={{ opacity: 0, x: -8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0 }}
+                      className="font-mono text-[9px] uppercase tracking-[0.15em] text-green-400"
+                    >
+                      ✓ Saved
+                    </motion.span>
+                  )}
+                </AnimatePresence>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </SettingsSection>
+            </div>
+          </form>
+        </SettingsSection>
 
-      {/* ── Delete Account ────────────────────────────────────────────── */}
-      <SettingsSection title="Danger Zone">
-        <AnimatePresence mode="wait">
-          {!showDeleteConfirm ? (
-            <motion.div key="delete-initial" exit={{ opacity: 0 }}>
-              <p className="settings-danger-hint">
-                Permanently remove your account, membership, and SP-RR balance.
-              </p>
-              <button
+        {/* ── Notifications ── */}
+        <SettingsSection title="Notifications">
+          <ToggleSwitch id="notif-drops" checked={notifDrops} onChange={setNotifDrops} label="Drop alerts" />
+          <ToggleSwitch id="notif-orders" checked={notifOrders} onChange={setNotifOrders} label="Order updates" />
+          <ToggleSwitch id="notif-rewards" checked={notifRewards} onChange={setNotifRewards} label="SP-RR rewards" />
+        </SettingsSection>
+
+        {/* ── Account ── */}
+        <SettingsSection title="Account">
+          <InfoRow label="Auth method" value={user.authProvider === 'google' ? 'Google' : 'Phone OTP'} />
+          <InfoRow label="Member since" value={new Date(user.memberSince).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })} />
+          <InfoRow label="Referral code" value={user.referralCode} />
+        </SettingsSection>
+
+        {/* ── Session ── */}
+        <SettingsSection title="Session">
+          <AnimatePresence mode="wait">
+            {!showSignOutConfirm ? (
+              <motion.button
+                key="signout-btn"
                 type="button"
-                onClick={() => setShowDeleteConfirm(true)}
-                className="settings-delete-btn"
-                id="delete-account-btn"
+                onClick={() => setShowSignOutConfirm(true)}
+                initial={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="border border-white/[0.12] px-6 py-3 font-mono text-[10px] uppercase tracking-[0.2em] text-white/50 hover:bg-white/[0.04] hover:text-white transition-all"
               >
-                Delete Account
-              </button>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="delete-confirm"
-              className="settings-confirm-row"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-            >
-              <p className="settings-confirm-text" style={{ color: 'var(--sp-error)' }}>
-                This cannot be undone. All data will be permanently erased.
-              </p>
-              <div className="settings-confirm-actions">
+                Sign Out
+              </motion.button>
+            ) : (
+              <motion.div
+                key="signout-confirm"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="space-y-3"
+              >
+                <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/40">Are you sure you want to sign out?</p>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={handleSignOut}
+                    className="border border-white/[0.12] px-6 py-3 font-mono text-[10px] uppercase tracking-[0.2em] text-white/70 hover:bg-white/[0.06] transition-all"
+                  >
+                    Yes, sign out
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowSignOutConfirm(false)}
+                    className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/30 hover:text-white transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </SettingsSection>
+
+        {/* ── Danger Zone ── */}
+        <SettingsSection title="Danger Zone">
+          <AnimatePresence mode="wait">
+            {!showDeleteConfirm ? (
+              <motion.div key="delete-initial" exit={{ opacity: 0 }}>
+                <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-red-400/50 mb-3">
+                  Permanently remove your account, membership, and SP-RR balance.
+                </p>
                 <button
                   type="button"
-                  onClick={() => { logout(); router.push('/'); }}
-                  className="settings-delete-btn"
-                  id="confirm-delete-btn"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="border border-red-500/30 px-6 py-3 font-mono text-[10px] uppercase tracking-[0.2em] text-red-400/70 hover:bg-red-500/10 hover:text-red-400 transition-all"
                 >
-                  Yes, delete everything
+                  Delete Account
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setShowDeleteConfirm(false)}
-                  className="settings-cancel-btn"
-                  id="cancel-delete-btn"
-                >
-                  Keep my account
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </SettingsSection>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="delete-confirm"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="space-y-3"
+              >
+                <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-red-400/70">
+                  This cannot be undone. All data will be permanently erased.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => { logout(); router.push('/'); }}
+                    className="border border-red-500/40 px-6 py-3 font-mono text-[10px] uppercase tracking-[0.2em] text-red-400 hover:bg-red-500/10 transition-all"
+                  >
+                    Yes, delete everything
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowDeleteConfirm(false)}
+                    className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/30 hover:text-white transition-colors"
+                  >
+                    Keep my account
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </SettingsSection>
+      </div>
     </div>
   );
 }
