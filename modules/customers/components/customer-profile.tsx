@@ -140,7 +140,7 @@ export function CustomerProfile({ userId }: CustomerProfileProps) {
 
       <div className="flex gap-0.5 border-b border-border px-3 py-2 shrink-0 overflow-x-auto">
         {sections.map(s => {
-          const Icon = s.icon;
+          const Icon: any = s.icon;
           return (
             <button
               key={s.key}
@@ -170,7 +170,7 @@ export function CustomerProfile({ userId }: CustomerProfileProps) {
                 { label: 'Referrals',   value: String(customer.referralCount), icon: GitBranch },
                 { label: 'Risk Score',  value: `${customer.riskScore}/100`, icon: AlertTriangle },
               ].map(stat => {
-                const Icon = stat.icon;
+                const Icon: any = stat.icon;
                 return (
                   <div key={stat.label} className="surface-elevated rounded-xl p-4 flex items-center gap-3">
                     <div className="h-8 w-8 rounded-lg bg-base-surface border border-border flex items-center justify-center">

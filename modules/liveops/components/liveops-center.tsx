@@ -51,7 +51,7 @@ export function LiveOpsCenter() {
     <div className="flex flex-col gap-5 flex-1">
       <div className="grid grid-cols-4 gap-4">
         {liveMetrics.map(m => {
-          const Icon = m.icon;
+          const Icon: any = m.icon;
           return (
             <div key={m.label} className="surface p-4 flex items-center gap-4">
               <div className="h-10 w-10 rounded-xl bg-base-elevated border border-border flex items-center justify-center">

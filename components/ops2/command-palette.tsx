@@ -108,7 +108,7 @@ export function CommandPalette() {
                   {group}
                 </div>
                 {NAV_COMMANDS.filter(c => c.group === group).map(item => {
-                  const Icon = item.icon;
+                  const Icon: any = item.icon;
                   return (
                     <Command.Item
                       key={item.id}

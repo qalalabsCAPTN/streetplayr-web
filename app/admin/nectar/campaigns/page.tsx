@@ -54,7 +54,7 @@ function BudgetBar({ used, total }: { used: number; total?: number }) {
 
 function CampaignCard({ campaign, onClick }: { campaign: Campaign; onClick: () => void }) {
   const cfg = STATUS_CONFIG[campaign.status];
-  const StatusIcon = cfg.icon;
+  const StatusIcon: any = cfg.icon;
   const isLive = campaign.status === 'active';
 
   return (

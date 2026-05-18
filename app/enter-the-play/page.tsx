@@ -1,11 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
+import Image from "next/image";
 import dynamic from "next/dynamic";
 import styles from "@/styles/enter-the-play.module.css";
 
-const GLBStar = dynamic(() => import("@/components/ui/GLBStar"), {
+const NinjaStar = dynamic(() => import("@/components/ui/NinjaStar"), {
   ssr: false,
   loading: () => <div className={styles["star-loader"]} />,
 });
@@ -30,14 +31,18 @@ export default function EnterThePlay() {
     return () => clearInterval(id);
   }, []);
 
-  const particles = useMemo(() =>
-    Array.from({ length: 28 }, (_, i) => ({
-      left: Math.random() * 100,
-      delay: Math.random() * 5,
-      dur: 4 + Math.random() * 6,
-      size: 1 + Math.random() * 2,
-    })),
-  []);
+  const [particles, setParticles] = useState<Array<{ left: number; delay: number; dur: number; size: number }>>([]);
+
+  useEffect(() => {
+    setParticles(
+      Array.from({ length: 28 }, () => ({
+        left: Math.random() * 100,
+        delay: Math.random() * 5,
+        dur: 4 + Math.random() * 6,
+        size: 1 + Math.random() * 2,
+      })),
+    );
+  }, []);
 
   const handleEnter = () => {
     setIsExiting(true);
@@ -76,11 +81,18 @@ export default function EnterThePlay() {
       {/* Content */}
       <div className={styles["content"]}>
         <div className={styles["star-container"]}>
-          <GLBStar modelPath="/models/streetplayr-star/starchrome.glb" />
+          <NinjaStar size={340} />
         </div>
 
         <div className={styles["brand"]}>
-          <h1 className={styles["brand-title"]}>StreetplayR</h1>
+          <Image
+            src="/assets/streetplayr-logo.png"
+            alt="StreetplayR"
+            width={540}
+            height={100}
+            className={styles["brand-logo"]}
+            priority
+          />
         </div>
 
         {ready ? (

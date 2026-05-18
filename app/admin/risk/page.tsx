@@ -45,7 +45,7 @@ function ScoreMeter({ score }: { score: number }) {
 function RiskFlagRow({ flag }: { flag: RiskFlag }) {
   const [expanded, setExpanded] = useState(false);
   const lvl = LEVEL_CONFIG[flag.level];
-  const LvlIcon = lvl.icon;
+  const LvlIcon: any = lvl.icon;
 
   return (
     <div className={cn('border rounded-xl overflow-hidden transition-all', lvl.border, expanded && 'shadow-md')}>

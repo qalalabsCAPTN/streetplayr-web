@@ -56,7 +56,7 @@ function XpRing({ pct, tier }: { pct: number; tier: keyof typeof TIER_CONFIG }) 
 
 function StatCard({ label, value, sub, color, icon: Icon, delay = 0 }: {
   label: string; value: React.ReactNode; sub?: string;
-  color: string; icon: React.ElementType; delay?: number;
+  color: string; icon: any; delay?: number;
 }) {
   return (
     <div

@@ -124,7 +124,7 @@ const STATUS_CONFIG: Record<DropStatus, { label: string; variant: string; icon: 
 
 function DropCard({ drop }: { drop: Drop }) {
   const cfg = STATUS_CONFIG[drop.status];
-  const StatusIcon = cfg.icon;
+  const StatusIcon: any = cfg.icon;
   const claimPct = drop.totalSupply ? (drop.claimed / drop.totalSupply) * 100 : null;
   const isSoldOut = claimPct !== null && claimPct >= 100;
 

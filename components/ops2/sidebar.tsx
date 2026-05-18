@@ -103,7 +103,7 @@ export function Sidebar() {
             <div className="nav-item-section">{section.title}</div>
             {section.items.map((item) => {
               const active = isActive(item);
-              const Icon = item.icon;
+              const Icon: any = item.icon;
               return (
                 <Link
                   key={item.href}

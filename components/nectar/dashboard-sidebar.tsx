@@ -80,7 +80,7 @@ export function DashboardSidebar() {
       <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-0.5">
         {NAV.map(item => {
           const active = pathname === item.href || (item.href !== '/dashboard/overview' && pathname.startsWith(item.href));
-          const Icon = item.icon;
+          const Icon: any = item.icon;
           return (
             <Link
               key={item.href}

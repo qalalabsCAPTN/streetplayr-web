@@ -130,37 +130,38 @@
 }
 
 .star-container {
-  width: 200px;
-  height: 200px;
+  width: 340px;
+  height: 340px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: -20px 0;
 }
 
 .star-loader {
-  width: 200px;
-  height: 200px;
+  width: 340px;
+  height: 340px;
   background: transparent;
 }
 
 .brand {
   text-align: center;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
-.brand-title {
-  font-family: var(--font-sp-display), 'Anton', sans-serif;
-  font-size: clamp(64px, 11vw, 140px);
-  color: #fff;
-  letter-spacing: 0.02em;
-  text-align: center;
-  text-shadow:
-    0 0 30px rgba(221,183,255,0.20),
-    0 0 60px rgba(221,183,255,0.08);
-  animation: preFloat 5s ease-in-out infinite;
-  line-height: 1;
-  margin: 0;
+.brand-logo {
+  width: clamp(280px, 38vw, 540px);
+  height: auto;
+  object-fit: contain;
+  animation: logoFloat 5s ease-in-out infinite;
+  filter: drop-shadow(0 0 40px rgba(221,183,255,0.12));
 }
 
-@keyframes preFloat {
-  0%,100% { transform: translateY(0) rotate(-0.4deg); }
-  50%     { transform: translateY(-10px) rotate(0.4deg); }
+@keyframes logoFloat {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(-8px); }
 }
 
 /* Loading state */
@@ -287,8 +288,13 @@
   }
 
   .star-container {
-    width: 140px;
-    height: 140px;
+    width: 220px;
+    height: 220px;
+    margin: -10px 0;
+  }
+
+  .brand-logo {
+    width: clamp(200px, 55vw, 340px);
   }
 
   .enter-button {
