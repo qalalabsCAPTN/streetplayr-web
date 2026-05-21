@@ -1,8 +1,8 @@
 import HomeHero from "@/components/sections/home/HomeHero";
-import MarqueeStrip from "@/components/sections/home/MarqueeStrip";
 import BestSellers from "@/components/sections/home/BestSellers";
-import NewDrops from "@/components/sections/home/NewDrops";
-import DiscoveryFeed from "@/components/sections/home/DiscoveryFeed";
+import BrandStory from "@/components/sections/home/BrandStory";
+import CollectionTiles from "@/components/sections/home/CollectionTiles";
+import Lookbook from "@/components/sections/home/Lookbook";
 import ReviewsSection from "@/components/sections/home/ReviewsSection";
 import { ProductQueries } from "@/lib/products/queries";
 
@@ -17,10 +17,10 @@ export default async function HomePage() {
           Uniforms for the City After Dark
         </h3>
       </section>
-      <MarqueeStrip />
       <BestSellers products={latestDrops} />
-      <NewDrops products={latestDrops} />
-      <DiscoveryFeed />
+      <BrandStory />
+      <CollectionTiles />
+      <Lookbook />
       <ReviewsSection />
     </div>
   );

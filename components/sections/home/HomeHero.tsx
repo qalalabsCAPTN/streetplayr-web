@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 
 export default function HomeHero() {
@@ -11,6 +12,17 @@ export default function HomeHero() {
     const timer = setTimeout(() => setJoinOpen(true), 6000);
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (joinOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [joinOpen]);
 
   const scrollToNext = () => {
     window.scrollTo({ top: window.innerHeight, behavior: "smooth" });
@@ -97,8 +109,8 @@ export default function HomeHero() {
         </svg>
       </div>
 
-      {/* Join the Drop Modal */}
-      {joinOpen && (
+      {/* Join the Drop Modal — portal to body to escape Hero's isolate stacking context */}
+      {joinOpen && createPortal(
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xl p-6"
           onClick={() => setJoinOpen(false)}
@@ -191,7 +203,8 @@ export default function HomeHero() {
               </form>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </section>
   );

@@ -2,47 +2,10 @@ import ProductDetailClient from "./ProductDetailClient";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProductQueries } from "@/lib/products/queries";
-import { createClient } from "@/lib/supabase/server";
+import { getLocalProductBySlug } from "@/lib/products/data";
 import { formatPrice, formatProductTitle } from "@/lib/utils/format";
 
 export const dynamic = "force-dynamic";
-
-const MOCK_PRODUCT = {
-  id: "mock-gravity-parka",
-  name: "Gravity Parka",
-  price: 2499,
-  description:
-    "Tri-layer GORE-TEX membrane with liquid-chrome finish. Reinforced 500D Cordura panels. A study in suspended animation — the Gravity Parka distills utility into its most essential form.",
-  image_url:
-    "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?q=80&w=2000&auto=format&fit=crop",
-  slug: "gravity-parka",
-  metadata: {
-    points: "420",
-    gallery_images: [
-      "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?q=80&w=2000&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1544441893-675973e31985?q=80&w=2000&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1603252109303-2751441dd157?q=80&w=2000&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2000&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1608236426742-0b656403b250?q=80&w=2000&auto=format&fit=crop",
-    ],
-    colors: [
-      { id: "black", name: "Onyx Black", hex: "#0a0a0a" },
-      { id: "olive", name: "Olive Drab", hex: "#4a5d23" },
-      { id: "ash", name: "Ash Grey", hex: "#8a8a8a" },
-    ],
-  },
-  variants: [
-    { id: "v-gp-s", size: "S", color: "black", stock_quantity: 12 },
-    { id: "v-gp-m", size: "M", color: "black", stock_quantity: 8 },
-    { id: "v-gp-l", size: "L", color: "black", stock_quantity: 15 },
-    { id: "v-gp-xl", size: "XL", color: "black", stock_quantity: 5 },
-    { id: "v-gp-s-olive", size: "S", color: "olive", stock_quantity: 6 },
-    { id: "v-gp-m-olive", size: "M", color: "olive", stock_quantity: 10 },
-    { id: "v-gp-l-olive", size: "L", color: "olive", stock_quantity: 4 },
-    { id: "v-gp-s-ash", size: "S", color: "ash", stock_quantity: 3 },
-    { id: "v-gp-m-ash", size: "M", color: "ash", stock_quantity: 7 },
-  ],
-};
 
 async function resolveProduct(slug: string) {
   let product = await ProductQueries.getProductBySlug(slug);
@@ -51,38 +14,15 @@ async function resolveProduct(slug: string) {
   product = await ProductQueries.getProductBySlug(slug.toLowerCase());
   if (product) return product;
 
-  try {
-    const supabase = await createClient();
-    const { data: allProducts } = await supabase
-      .from("products")
-      .select("slug")
-      .limit(50);
-
-    if (allProducts && allProducts.length > 0) {
-      const match = allProducts.find(
-        (p) =>
-          p.slug?.toLowerCase().includes(slug.toLowerCase()) ||
-          slug.toLowerCase().includes(p.slug?.toLowerCase() || ""),
-      );
-      if (match) {
-        product = await ProductQueries.getProductBySlug(match.slug!);
-        if (product) return product;
-      }
-    }
-  } catch {}
+  const local = getLocalProductBySlug(slug);
+  if (local) return local;
 
   return null;
 }
 
-async function getProduct(slug: string) {
-  const fromDb = await resolveProduct(slug);
-  if (fromDb) return fromDb;
-  return MOCK_PRODUCT;
-}
-
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const { slug } = await params;
-  const product = await getProduct(slug);
+  const product = await resolveProduct(slug);
   if (!product) return { title: "Product Not Found — Street PlayR" };
   const title = formatProductTitle(product.name);
   return {
@@ -98,23 +38,21 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 
 export default async function ProductDetailPage({ params }: { params: { slug: string } }) {
   const { slug } = await params;
-  const product = await getProduct(slug);
+  const product = await resolveProduct(slug);
   if (!product) notFound();
 
-  const variants = (product as any).variants ?? [];
+  type ProductVariant = { id: string; size: string; color: string; stock_quantity?: number; price_override?: number | null };
+  const variants: ProductVariant[] = (product as { variants?: ProductVariant[] }).variants ?? [];
   const displayData = {
     title: formatProductTitle(product.name),
     price: formatPrice(product.price),
     description: product.description ?? "",
-    points: product.metadata?.points ?? "100",
+    points: (product as { metadata?: { points?: string } }).metadata?.points ?? "100",
     image: product.image_url,
-    images: product.metadata?.gallery_images || (product.image_url ? [product.image_url] : []),
-    colors: product.metadata?.colors ?? [],
-    sizes:
-      variants
-        ?.map((v: any) => v.size)
-        .filter((v: any, i: number, a: any[]) => a.indexOf(v) === i) ?? [],
-    variants: variants.map((v: any) => ({
+    images: (product as { metadata?: { gallery_images?: string[]; colors?: { id: string; name: string; hex: string }[] } }).metadata?.gallery_images || (product.image_url ? [product.image_url] : []),
+    colors: (product as { metadata?: { colors?: { id: string; name: string; hex: string }[] } }).metadata?.colors ?? [],
+    sizes: [...new Set(variants.map((v) => v.size))],
+    variants: variants.map((v) => ({
       id: v.id,
       size: v.size,
       color: v.color,
@@ -134,6 +72,7 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
       colors={displayData.colors}
       sizes={displayData.sizes}
       variants={displayData.variants}
+      slug={product.slug}
     />
   );
 }

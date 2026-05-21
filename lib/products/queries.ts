@@ -1,13 +1,14 @@
 import { createClient } from '@/lib/supabase/server';
+import {
+  getLocalProductBySlug,
+  getLocalActiveProducts,
+  getLocalLatestDrops,
+} from '@/lib/products/data';
 
 /**
  * Product Query Layer — centralized DB access.
  *
- * These functions call createClient() which reads cookies for auth context,
- * so they CANNOT be wrapped in unstable_cache (cookies() requires request
- * context and is not available during static generation).
- *
- * Caching is handled by Next.js at the page level via dynamic/static rendering.
+ * Falls back to local product data when Supabase is not configured.
  */
 /**
  * Editorial feed item types shared with the client component.
@@ -29,7 +30,6 @@ export interface FeedItemData {
 
 /**
  * Editorial campaign/typography items (static — not product data).
- * These are brand content, not commerce data.
  */
 const EDITORIAL_ITEMS: FeedItemData[] = [
   {
@@ -62,8 +62,7 @@ export const ProductQueries = {
    */
   async getLatestDrops() {
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
-      console.warn('[Queries] NEXT_PUBLIC_SUPABASE_URL is missing. Skipping fetch.');
-      return [];
+      return getLocalLatestDrops();
     }
     const supabase = await createClient();
 
@@ -83,7 +82,7 @@ export const ProductQueries = {
 
     if (error) {
       console.error('Error fetching drops:', error);
-      return [];
+      return getLocalLatestDrops();
     }
 
     return data.map((p, idx) => ({
@@ -92,7 +91,7 @@ export const ProductQueries = {
       price: p.price,
       image: p.image_url,
       slug: p.slug,
-      category: (p.category as any)?.name || 'Street',
+      category: (p.category as { name?: string })?.name || 'Street',
       className: p.metadata?.className || getDefaultClassName(idx),
     }));
   },
@@ -101,7 +100,7 @@ export const ProductQueries = {
    * Fetches all active products for the collections feed.
    */
   async getActiveProducts() {
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return [];
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return getLocalActiveProducts();
     const supabase = await createClient();
     const { data, error } = await supabase
       .from('products')
@@ -119,7 +118,7 @@ export const ProductQueries = {
 
     if (error) {
       console.error('Error fetching active products:', error);
-      return [];
+      return getLocalActiveProducts();
     }
 
     return data.map((p) => ({
@@ -128,14 +127,12 @@ export const ProductQueries = {
       price: p.price,
       slug: p.slug,
       image: p.image_url,
-      category: (p.category as any)?.name || 'Street',
+      category: (p.category as { name?: string })?.name || 'Street',
     }));
   },
 
   /**
    * Fetches editorial feed data — merges active products with editorial content.
-   * Products are transformed into FeedItemData for the editorial grid layout.
-   * Falls back to static editorial items only when no products exist in DB.
    */
   async getEditorialFeed(): Promise<FeedItemData[]> {
     const products = await this.getActiveProducts();
@@ -161,7 +158,9 @@ export const ProductQueries = {
    * Fetches a single product by slug.
    */
   async getProductBySlug(slug: string) {
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return null;
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+      return getLocalProductBySlug(slug) || null;
+    }
     const supabase = await createClient();
     const { data, error } = await supabase
       .from('products')
@@ -179,7 +178,7 @@ export const ProductQueries = {
       .eq('slug', slug)
       .single();
 
-    if (error) return null;
+    if (error) return getLocalProductBySlug(slug) || null;
     return data;
   },
 };

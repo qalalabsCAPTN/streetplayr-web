@@ -8,6 +8,7 @@ interface Product {
   price: string | number;
   image: string;
   slug?: string;
+  category?: string;
 }
 
 interface BestSellersProps {
@@ -25,9 +26,6 @@ export default function BestSellers({ products }: BestSellersProps) {
           <h2 className="font-display text-[42px] md:text-[64px] uppercase leading-[0.92] text-[#eadfed]">
             Best Sellers
           </h2>
-          <h3 className="font-display text-[clamp(1.1rem,1.6vw,1.4rem)] uppercase tracking-[0.18em] text-[rgba(234,223,237,0.30)] mt-4 max-w-[55ch] leading-relaxed">
-            &ldquo;Create The Things You Wish Existed&rdquo;
-          </h3>
         </div>
         <Link href="/collections" className="font-mono text-[10px] tracking-[0.24em] uppercase text-[rgba(234,223,237,0.52)] hover:text-[#eadfed] transition-colors hidden md:block">
           View All

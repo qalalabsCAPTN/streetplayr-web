@@ -3,84 +3,22 @@ import { useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import { LOCAL_PRODUCTS } from "@/lib/products/data";
 
 export default function ProtoCoreCollection() {
   const [activeFilter, setActiveFilter] = useState("all");
 
-  const products = [
-    {
-      id: 1,
-      name: "Triple Tee Set",
-      model: "Essential",
-      price: "Rs. 1,499",
-      image: "/assets/hero-tees.png",
-      altImage: "/assets/polo-editorial.png",
-      badge: "New",
-      altIsImage: true,
-      filter: "tops",
-      slug: "triple-tee-set",
-    },
-    {
-      id: 2,
-      name: "Court Polo Pack",
-      model: "Outerwear",
-      price: "Rs. 1,799",
-      image: "/assets/polo-editorial.png",
-      altImage: "/assets/hero-tees.png",
-      badge: null,
-      altIsImage: true,
-      filter: "outer",
-      slug: "court-polo-pack",
-    },
-    {
-      id: 3,
-      name: "Run Short",
-      model: "Bottoms",
-      price: "Rs. 999",
-      image: "/assets/run-shorts.jpeg",
-      altImage: "/assets/srh-jersey.jpg",
-      badge: "Drop",
-      altIsImage: true,
-      filter: "bottoms",
-      slug: "run-short",
-    },
-    {
-      id: 4,
-      name: "Waffle Tee",
-      model: "Essential",
-      price: "Rs. 1,299",
-      image: "/assets/hero-tees.png",
-      altImage: "/assets/run-shorts.jpeg",
-      badge: null,
-      altIsImage: true,
-      filter: "tops",
-      slug: "waffle-tee",
-    },
-    {
-      id: 5,
-      name: "Tech Jersey",
-      model: "Performance",
-      price: "Rs. 1,999",
-      image: "/assets/srh-jersey.jpg",
-      altImage: "/assets/polo-editorial.png",
-      badge: "Limited",
-      altIsImage: true,
-      filter: "outer",
-      slug: "tech-jersey",
-    },
-    {
-      id: 6,
-      name: "Miles Short",
-      model: "Bottoms",
-      price: "Rs. 999",
-      image: "/assets/run-shorts.jpeg",
-      altImage: "/assets/hero-tees.png",
-      badge: null,
-      altIsImage: true,
-      filter: "bottoms",
-      slug: "miles-short",
-    },
-  ];
+  const products = LOCAL_PRODUCTS.map((p) => ({
+    id: p.id,
+    name: p.name,
+    model: p.category.name,
+    price: `Rs. ${p.price.toLocaleString("en-IN")}`,
+    image: p.metadata.gallery_images[0],
+    altImage: p.metadata.gallery_images[1],
+    badge: p.price >= 5000 ? "Limited" : p.price >= 1500 ? "New" : null,
+    filter: "tops",
+    slug: p.slug,
+  }));
 
   const filteredProducts =
     activeFilter === "all"
@@ -114,7 +52,7 @@ export default function ProtoCoreCollection() {
       <section className="relative z-[1] w-full h-[460px] overflow-hidden border-b border-white/[0.10] mt-20">
         <img
           alt="Collection visual"
-          src="/assets/hero-tees.png"
+          src={products[0]?.image || "/assets/hero-tees.png"}
           className="absolute inset-0 w-full h-full object-cover opacity-60 saturate-[0.85]"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#16111b] via-[#16111b]/25 to-[#16111b]/55" />
@@ -144,7 +82,7 @@ export default function ProtoCoreCollection() {
             </h2>
           </div>
           <div className="flex flex-wrap gap-1.5">
-            {["all", "tops", "outer", "bottoms"].map((filter) => (
+            {["all", "tops"].map((filter) => (
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
@@ -182,7 +120,6 @@ export default function ProtoCoreCollection() {
                   className="w-full h-full object-cover saturate-[0.92] transition-all duration-700 group-hover:opacity-0"
                 />
 
-                {/* Alt Face — image crossfade on hover */}
                 {product.altImage && (
                   <div className="alt-face absolute inset-0 opacity-0 transition-opacity duration-500">
                     <img
@@ -216,30 +153,6 @@ export default function ProtoCoreCollection() {
               </div>
             </Link>
           ))}
-        </div>
-
-        <div className="mt-20 flex flex-col items-center gap-6">
-          <div className="flex items-center gap-4">
-            <button className="w-10 h-10 border border-white/[0.10] flex items-center justify-center hover:bg-white/[0.06] group transition-colors rounded-none">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-white/40 group-hover:text-white/70 transition-colors">
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
-            </button>
-            <div className="font-mono text-[10px] tracking-[0.22em] flex items-center gap-3 text-white/45">
-              <span className="font-mono text-[10px] tracking-[0.25em] text-white/25">[</span>
-              <span className="text-white/70">01</span>
-              <span className="opacity-30">/</span>
-              <span className="hover:text-white/70 transition-colors cursor-pointer">02</span>
-              <span className="opacity-30">/</span>
-              <span className="hover:text-white/70 transition-colors cursor-pointer">03</span>
-              <span className="font-mono text-[10px] tracking-[0.25em] text-white/25">]</span>
-            </div>
-            <button className="w-10 h-10 border border-white/[0.10] flex items-center justify-center hover:bg-white/[0.06] group transition-colors rounded-none">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-white/40 group-hover:text-white/70 transition-colors">
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </button>
-          </div>
         </div>
       </main>
 

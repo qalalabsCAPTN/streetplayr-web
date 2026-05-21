@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { RealtimeSubscriptions } from "@/lib/realtime/subscriptions";
 import ProductInfo from "@/components/product/ProductInfo";
+import RecommendedProducts from "@/components/product/RecommendedProducts";
 
 type Color = { id: string; name: string; hex: string };
 
@@ -25,6 +26,7 @@ type ProductDetailClientProps = {
   colors: Color[];
   sizes: string[];
   variants: VariantInfo[];
+  slug: string;
 };
 
 export default function ProductDetailClient(props: ProductDetailClientProps) {
@@ -33,9 +35,6 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
   const [quantity, setQuantity] = useState(1);
   const [heroHovered, setHeroHovered] = useState(false);
   const [liveStock, setLiveStock] = useState<Record<string, number>>({});
-
-  const colorName =
-    props.colors.find((c) => c.id === selectedColor)?.name || selectedColor;
 
   useEffect(() => {
     const unsubs: (() => void)[] = [];
@@ -114,7 +113,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
                 className="object-cover opacity-80 hover:opacity-100 transition-opacity"
               />
               <div className="absolute top-4 left-4 font-mono text-[10px] text-white bg-black/60 p-1 border border-white/20 backdrop-blur-sm">
-                FRAME_{String(i + 2).padStart(2, "0")} // SYSTEM_DETAIL
+                FRAME_{String(i + 2).padStart(2, "0")} / SYSTEM_DETAIL
               </div>
             </div>
           ))}
@@ -199,6 +198,8 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
           />
         </div>
       </section>
+
+      <RecommendedProducts currentSlug={props.slug} />
     </main>
   );
 }
