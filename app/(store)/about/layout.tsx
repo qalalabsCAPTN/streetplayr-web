@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import CustomCursor from "@/components/ui/CustomCursor";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
@@ -15,15 +14,7 @@ export default function AboutLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="about-layout min-h-screen">
-      <style dangerouslySetInnerHTML={{
-        __html: `
-          .about-layout, .about-layout * {
-            cursor: none !important;
-          }
-        `
-      }} />
-      <CustomCursor />
+    <div className="min-h-screen bg-[#16111b]">
       <Navbar />
       <main>{children}</main>
       <Footer />

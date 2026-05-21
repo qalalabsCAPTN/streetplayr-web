@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000">
+  <defs>
+    <filter id="noise">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="6" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>
+    <radialGradient id="vignette" cx="50%" cy="50%" r="70%">
+      <stop offset="30%" stop-color="#1f1520" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#080608" stop-opacity="0.9"/>
+    </radialGradient>
+    <linearGradient id="fabric" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#252028"/>
+      <stop offset="25%" stop-color="#1c1720"/>
+      <stop offset="50%" stop-color="#201a24"/>
+      <stop offset="75%" stop-color="#18131c"/>
+      <stop offset="100%" stop-color="#140e18"/>
+    </linearGradient>
+    <pattern id="rib" width="8" height="4" patternUnits="userSpaceOnUse">
+      <rect width="8" height="2" fill="#ffffff" fill-opacity="0.03"/>
+    </pattern>
+  </defs>
+  <rect width="800" height="1000" fill="url(#fabric)"/>
+  <rect width="800" height="1000" fill="url(#rib)"/>
+  <rect width="800" height="1000" filter="url(#noise)" opacity="0.055"/>
+  <rect width="800" height="1000" fill="url(#vignette)"/>
+  <rect x="0" y="300" width="800" height="1" fill="#ffffff" fill-opacity="0.03"/>
+  <rect x="0" y="600" width="800" height="1" fill="#ffffff" fill-opacity="0.02"/>
+</svg>

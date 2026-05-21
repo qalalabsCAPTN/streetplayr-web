@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000">
+  <defs>
+    <filter id="noise">
+      <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="7" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>
+    <radialGradient id="vignette" cx="50%" cy="45%" r="75%">
+      <stop offset="35%" stop-color="#1a141e" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#060408" stop-opacity="0.92"/>
+    </radialGradient>
+    <linearGradient id="fabric" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2e262a"/>
+      <stop offset="40%" stop-color="#201a22"/>
+      <stop offset="100%" stop-color="#120e16"/>
+    </linearGradient>
+    <pattern id="cross" width="10" height="10" patternUnits="userSpaceOnUse">
+      <path d="M0 5h10M5 0v10" stroke="#ffffff" stroke-width="0.2" stroke-opacity="0.025"/>
+    </pattern>
+  </defs>
+  <rect width="800" height="1000" fill="url(#fabric)"/>
+  <rect width="800" height="1000" fill="url(#cross)"/>
+  <rect width="800" height="1000" filter="url(#noise)" opacity="0.065"/>
+  <rect width="800" height="1000" fill="url(#vignette)"/>
+  <circle cx="400" cy="500" r="250" fill="none" stroke="#ffffff" stroke-opacity="0.015" stroke-width="0.5"/>
+  <circle cx="400" cy="500" r="180" fill="none" stroke="#ffffff" stroke-opacity="0.01" stroke-width="0.3"/>
+</svg>
