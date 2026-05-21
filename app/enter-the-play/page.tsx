@@ -81,7 +81,7 @@ export default function EnterThePlay() {
       {/* Content */}
       <div className={styles["content"]}>
         <div className={styles["star-container"]}>
-          <NinjaStar size={340} />
+          <NinjaStar />
         </div>
 
         <div className={styles["brand"]}>
