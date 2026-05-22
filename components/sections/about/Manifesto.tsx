@@ -51,16 +51,7 @@ export default function Manifesto() {
             </p>
           </FadeIn>
 
-          <FadeIn delay={0.6}>
-            <div className="mt-20 pt-10 border-t border-white/[0.04] max-w-[600px]">
-              <span className="font-display text-[clamp(40px,5vw,80px)] uppercase text-[#ddb7ff] leading-[0.9] block tracking-[-0.01em]">
-                &ldquo;Dress for pressure.&rdquo;
-              </span>
-              <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-white/20 mt-4 block">
-                Core Tenet // Since 2024
-              </span>
-            </div>
-          </FadeIn>
+          
         </div>
       </div>
     </section>

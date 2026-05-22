@@ -64,11 +64,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
         {/* LEFT — Static Hero Image (sticky) */}
         <div className="lg:sticky lg:top-24">
           <div className="mb-4">
-            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--sp-accent)] flex items-center gap-2">
-              <span className="w-2 h-2 bg-[var(--sp-accent)] animate-pulse rounded-full" />
-              LIVE_DROP // SESSION_774
-            </span>
-            <h1 className="font-display text-5xl uppercase text-white leading-none mt-2">
+            <h1 className="font-display text-5xl uppercase text-white leading-none">
               {props.title}
             </h1>
           </div>
@@ -87,9 +83,6 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
               }`}
               priority
             />
-            <div className="absolute top-4 left-4 font-mono text-[10px] text-white bg-black/60 p-1 border border-white/20 backdrop-blur-sm">
-              FRAME_01 // MAIN_VIEW
-            </div>
             <div className="absolute inset-0 border-[20px] border-transparent pointer-events-none">
               <div className="w-full h-full border border-white/10 flex items-center justify-center">
                 <div className="w-12 h-12 border-t-2 border-l-2 border-white/40 absolute top-0 left-0" />
@@ -112,9 +105,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
                 sizes="(min-width: 1024px) 30vw, 100vw"
                 className="object-cover opacity-80 hover:opacity-100 transition-opacity"
               />
-              <div className="absolute top-4 left-4 font-mono text-[10px] text-white bg-black/60 p-1 border border-white/20 backdrop-blur-sm">
-                FRAME_{String(i + 2).padStart(2, "0")} / SYSTEM_DETAIL
-              </div>
+              
             </div>
           ))}
         </div>
@@ -145,11 +136,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
       <section className="lg:hidden flex flex-col">
         {/* Hero */}
         <div className="px-4 pt-8 pb-4">
-          <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--sp-accent)] flex items-center gap-2">
-            <span className="w-2 h-2 bg-[var(--sp-accent)] animate-pulse rounded-full" />
-            LIVE_DROP // SESSION_774
-          </span>
-          <h1 className="font-display text-4xl uppercase text-white leading-none mt-2">
+          <h1 className="font-display text-4xl uppercase text-white leading-none">
             {props.title}
           </h1>
         </div>

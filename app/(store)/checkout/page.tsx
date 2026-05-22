@@ -9,6 +9,7 @@ import { useCartStore } from "@/store/cartStore";
 import Image from "next/image";
 import Link from "next/link";
 import { formatPrice, formatProductTitle } from "@/lib/utils/format";
+import Navbar from "@/components/layout/Navbar";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -420,7 +421,9 @@ export default function CheckoutPage() {
   const itemCount = items.length;
 
   return (
-    <div className="relative min-h-screen bg-[#16111b] pt-32 pb-24 px-6 sm:px-12 lg:px-16">
+    <>
+      <Navbar />
+      <div className="relative min-h-screen bg-[#16111b] pt-32 pb-24 px-6 sm:px-12 lg:px-16">
       {/* ── Environmental background layers ── */}
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(0,0,0,0.65)_100%)]" />
       <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.25)_0%,transparent_10%,transparent_90%,rgba(0,0,0,0.25)_100%)]" />
@@ -540,5 +543,6 @@ export default function CheckoutPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

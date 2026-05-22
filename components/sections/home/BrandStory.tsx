@@ -67,9 +67,7 @@ export default function BrandStory() {
             />
             <div className="absolute inset-0 pointer-events-none border border-white/[0.04]" />
             <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_60px_rgba(0,0,0,0.5)]" />
-            <div className="absolute bottom-4 left-5 z-30">
-              <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-white/25">Brand_Protocol // Manifesto</span>
-            </div>
+            
           </div>
         </FadeIn>
 
@@ -94,15 +92,7 @@ export default function BrandStory() {
               </p>
             </div>
           </FadeIn>
-          <FadeIn delay={0.25}>
-            <div className="flex items-center gap-4 pt-2">
-              <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-[#ddb7ff]/60">Decentralized</span>
-              <span className="w-px h-3 bg-white/[0.1]" />
-              <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-[#ddb7ff]/60">Limited Drops</span>
-              <span className="w-px h-3 bg-white/[0.1]" />
-              <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-[#ddb7ff]/60">No Restock</span>
-            </div>
-          </FadeIn>
+          
         </div>
       </div>
     </section>

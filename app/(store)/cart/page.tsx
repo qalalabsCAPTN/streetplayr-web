@@ -6,6 +6,7 @@ import { useCartStore } from "@/store/cartStore";
 import CartItem from "@/components/cart/CartItem";
 import { useEffect, useState } from "react";
 import { formatPrice } from "@/lib/utils/format";
+import Navbar from "@/components/layout/Navbar";
 
 export default function CartPage() {
   const { items, getCartTotal } = useCartStore();
@@ -21,7 +22,9 @@ export default function CartPage() {
   const itemCount = items.length;
 
   return (
-    <div className="relative min-h-screen bg-[#16111b] pt-32 pb-24 px-6 sm:px-12 lg:px-16">
+    <>
+      <Navbar />
+      <div className="relative min-h-screen bg-[#16111b] pt-32 pb-24 px-6 sm:px-12 lg:px-16">
       {/* ── Environmental background layers ── */}
       {/* Vignette */}
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(0,0,0,0.65)_100%)]" />
@@ -233,5 +236,6 @@ export default function CartPage() {
         </div>
       </footer>
     </div>
+    </>
   );
 }

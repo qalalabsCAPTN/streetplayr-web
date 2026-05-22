@@ -56,11 +56,8 @@ export default function Lookbook() {
             <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/30">Lookbook</span>
           </div>
           <h2 className="font-display text-[clamp(32px,4.5vw,64px)] uppercase leading-[0.92] text-[#eadfed]">
-            FW26 Editorial
+            Lookbook
           </h2>
-          <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#ffb59e] mt-2 relative pl-4 before:content-['['] before:absolute before:left-0 before:opacity-50 after:content-[']'] after:ml-1 after:opacity-50">
-            Visual Index // Motion Studies
-          </p>
         </FadeIn>
       </div>
 

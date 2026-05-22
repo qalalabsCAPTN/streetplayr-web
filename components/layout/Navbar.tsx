@@ -6,14 +6,16 @@ import { useCartStore } from "../../store/cartStore";
 import { useAuthStore } from "../../store/authStore";
 
 const navLinks = [
-  { label: "Shop", href: "/collections" },
-  { label: "Archive", href: "/collections?category=ALL" },
-  { label: "About", href: "/about" },
+  { label: "Home", href: "/home" },
+  { label: "Collection", href: "/collections" },
+  { label: "About Us", href: "/about" },
+  { label: "Contact Us", href: "/contact" },
 ];
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const items = useCartStore((state) => state.items);
   const cartCount = items.reduce((count, item) => count + item.quantity, 0);
@@ -84,13 +86,44 @@ export default function Navbar() {
               {user.name?.charAt(0).toUpperCase() || "U"}
             </Link>
           )}
-          <button className="md:hidden hover:text-white transition-colors text-white/60">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
-            </svg>
+          <button
+            className="md:hidden hover:text-white transition-colors text-white/60 relative z-50"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label="Toggle menu"
+          >
+            {mobileOpen ? (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+              </svg>
+            )}
           </button>
         </div>
       </nav>
+
+      {/* Mobile drawer */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-40 md:hidden">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
+          <div className="absolute right-0 top-0 h-full w-72 bg-[#16111b] border-l border-white/[0.10] p-8 pt-28 shadow-[-16px_0_60px_rgba(12,6,18,0.5)]">
+            <div className="flex flex-col gap-6">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  onClick={() => setMobileOpen(false)}
+                  className="font-mono text-[13px] uppercase tracking-[0.28em] text-[rgba(234,223,237,0.65)] transition-colors duration-300 hover:text-[#eadfed]"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

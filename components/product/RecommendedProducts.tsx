@@ -15,7 +15,7 @@ export default function RecommendedProducts({ currentSlug }: { currentSlug: stri
           You May Also Like
         </h2>
         <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-[rgba(234,223,237,0.42)] mt-2">
-          Other artifacts from the archive
+          
         </p>
       </div>
 
