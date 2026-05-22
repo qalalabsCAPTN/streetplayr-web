@@ -70,14 +70,14 @@ export default function CartItem({ item, index = 0 }: CartItemProps) {
               <button
                 onClick={() => updateQuantity(item.id, item.quantity - 1)}
                 disabled={item.quantity <= 1}
-                className="w-11 h-11 flex items-center justify-center font-mono text-sm text-white/40 hover:text-white hover:bg-white/[0.05] transition-colors disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-white/40"
+                className="w-11 h-11 flex items-center justify-center font-mono text-3xl text-white hover:text-white/60 hover:bg-white/[0.05] transition-colors disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-white/40"
               >
                 −
               </button>
               <span className="w-12 text-center font-mono text-sm text-white/80 tabular-nums">{item.quantity}</span>
               <button
                 onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                className="w-11 h-11 flex items-center justify-center font-mono text-sm text-white/40 hover:text-white hover:bg-white/[0.05] transition-colors"
+                className="w-11 h-11 flex items-center justify-center font-mono text-3xl text-white hover:text-white/60 hover:bg-white/[0.05] transition-colors"
               >
                 +
               </button>

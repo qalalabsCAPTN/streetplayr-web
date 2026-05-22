@@ -139,7 +139,7 @@ export function getLocalActiveProducts() {
 }
 
 export function getLocalLatestDrops() {
-  return LOCAL_PRODUCTS.slice(0, 3).map((p, idx) => ({
+  return LOCAL_PRODUCTS.map((p, idx) => ({
     id: p.id,
     name: p.name,
     price: p.price,

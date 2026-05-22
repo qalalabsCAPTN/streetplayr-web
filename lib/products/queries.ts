@@ -79,10 +79,14 @@ export const ProductQueries = {
       `)
       .eq('status', 'active')
       .order('created_at', { ascending: false })
-      .limit(3);
+      .limit(10);
 
     if (error) {
       console.error('Error fetching drops:', error);
+      return getLocalLatestDrops();
+    }
+
+    if (!data || data.length === 0) {
       return getLocalLatestDrops();
     }
 
@@ -123,6 +127,10 @@ export const ProductQueries = {
 
     if (error) {
       console.error('Error fetching active products:', error);
+      return getLocalActiveProducts();
+    }
+
+    if (!data || data.length === 0) {
       return getLocalActiveProducts();
     }
 

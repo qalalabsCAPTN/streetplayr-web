@@ -1,34 +1,54 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { motion, useMotionValue, useSpring } from "framer-motion";
+import { useEffect, useState, useRef } from "react";
+
+type CursorType = "default" | "button" | "product" | "video" | "drag" | "cart" | "zoom";
+
+const LABELS: Partial<Record<CursorType, string>> = {
+  product: "VIEW",
+  video: "PLAY",
+  drag: "DRAG",
+  cart: "ADD TO CART",
+  zoom: "ZOOM",
+};
+
+const CURSOR_STYLES: Record<CursorType, string> = {
+  default: "w-3 h-3 bg-white/100",
+  button:
+    "w-8 h-8 border border-purple-400 bg-purple-500/10 backdrop-blur-sm",
+  product:
+    "w-16 h-16 border border-white/30 bg-white/5 backdrop-blur-md",
+  video:
+    "w-16 h-16 bg-purple-500/90 border-none",
+  drag:
+    "w-[72px] h-[72px] border border-white/40 bg-white/5 backdrop-blur-lg",
+  cart:
+    "w-[86px] h-[86px] bg-purple-500/90 border-none",
+  zoom:
+    "w-16 h-16 border border-white/30 bg-white/5 backdrop-blur-md",
+};
 
 export default function CustomCursor() {
-  const [cursorType, setCursorType] = useState("default");
-  
+  const [cursorType, setCursorType] = useState<CursorType>("default");
   const [isVisible, setIsVisible] = useState(false);
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-
-  // Softer, heavier easing for luxury feel
-  const springConfig = { damping: 45, stiffness: 120, mass: 1.5 };
-  const cursorX = useSpring(mouseX, springConfig);
-  const cursorY = useSpring(mouseY, springConfig);
+  const dotRef = useRef<HTMLDivElement>(null);
+  const rafId = useRef<number>(0);
+  const pos = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isVisible) setIsVisible(true);
-      mouseX.set(e.clientX);
-      mouseY.set(e.clientY);
+      pos.current.x = e.clientX;
+      pos.current.y = e.clientY;
 
+      // Determine cursor type
       const target = e.target as HTMLElement;
-      // Traverse up to find data-cursor attribute
-      const elementWithCursor = target.closest("[data-cursor]");
-      if (elementWithCursor) {
-        setCursorType(elementWithCursor.getAttribute("data-cursor") || "default");
+      const el = target.closest("[data-cursor]");
+      if (el) {
+        setCursorType((el.getAttribute("data-cursor") || "default") as CursorType);
       } else if (
-        target.tagName.toLowerCase() === "button" ||
-        target.tagName.toLowerCase() === "a" ||
+        target.tagName === "BUTTON" ||
+        target.tagName === "A" ||
         target.closest("button") ||
         target.closest("a")
       ) {
@@ -39,125 +59,37 @@ export default function CustomCursor() {
     };
 
     window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, [isVisible]);
 
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
+  // Direct RAF for zero-lag position sync
+  useEffect(() => {
+    const tick = () => {
+      if (dotRef.current) {
+        dotRef.current.style.transform = `translate(${pos.current.x}px, ${pos.current.y}px) translate(-50%, -50%)`;
+      }
+      rafId.current = requestAnimationFrame(tick);
     };
-  }, [mouseX, mouseY, isVisible]);
+    rafId.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId.current);
+  }, []);
 
-  // Define variants for different cursor states
-  const variants = {
-    default: {
-      width: 12,
-      height: 12,
-      backgroundColor: "rgba(255, 255, 255, 1)",
-      border: "0px solid rgba(255,255,255,0)",
-      backdropFilter: "blur(0px)",
-      x: "-50%",
-      y: "-50%",
-      opacity: 1,
-    },
-    button: {
-      width: 32,
-      height: 32,
-      backgroundColor: "rgba(157, 78, 221, 0.1)",
-      border: "1px solid rgba(157, 78, 221, 0.8)",
-      backdropFilter: "blur(2px)",
-      x: "-50%",
-      y: "-50%",
-      opacity: 1,
-    },
-    product: {
-      width: 64,
-      height: 64,
-      backgroundColor: "rgba(255, 255, 255, 0.05)",
-      backdropFilter: "blur(6px)",
-      border: "1px solid rgba(255, 255, 255, 0.3)",
-      x: "-50%",
-      y: "-50%",
-      opacity: 1,
-    },
-    video: {
-      width: 64,
-      height: 64,
-      backgroundColor: "rgba(157, 78, 221, 0.9)",
-      backdropFilter: "blur(0px)",
-      border: "none",
-      x: "-50%",
-      y: "-50%",
-      opacity: 1,
-      color: "#000",
-    },
-    drag: {
-      width: 72,
-      height: 72,
-      backgroundColor: "rgba(255, 255, 255, 0.05)",
-      backdropFilter: "blur(8px)",
-      border: "1px solid rgba(255, 255, 255, 0.4)",
-      x: "-50%",
-      y: "-50%",
-      opacity: 1,
-    },
-    cart: {
-      width: 86,
-      height: 86,
-      backgroundColor: "rgba(157, 78, 221, 0.9)",
-      backdropFilter: "blur(0px)",
-      border: "none",
-      x: "-50%",
-      y: "-50%",
-      opacity: 1,
-    },
-    zoom: {
-      width: 64,
-      height: 64,
-      backgroundColor: "rgba(255, 255, 255, 0.05)",
-      backdropFilter: "blur(6px)",
-      border: "1px solid rgba(255, 255, 255, 0.3)",
-      x: "-50%",
-      y: "-50%",
-      opacity: 1,
-    },
-  };
-
-  const getCursorText = () => {
-    switch (cursorType) {
-      case "product":
-        return "VIEW";
-      case "video":
-        return "PLAY";
-      case "drag":
-        return "DRAG";
-      case "cart":
-        return "ADD TO CART";
-      case "zoom":
-        return "ZOOM";
-      default:
-        return null;
-    }
-  };
+  const label = LABELS[cursorType];
+  const labelDark = cursorType === "video" || cursorType === "cart";
 
   return (
-    <motion.div
-      className="pointer-events-none fixed left-0 top-0 z-[9999] flex items-center justify-center rounded-full text-[10px] font-bold tracking-wider mix-blend-difference sm:mix-blend-normal"
-      style={{
-        left: cursorX,
-        top: cursorY,
-        opacity: isVisible ? 1 : 0,
-      }}
-      variants={variants}
-      animate={cursorType}
-      initial="default"
-      transition={{ type: "spring", stiffness: 200, damping: 35, mass: 0.8 }}
+    <div
+      ref={dotRef}
+      className={`pointer-events-none fixed left-0 top-0 z-[9999] flex items-center justify-center rounded-full mix-blend-difference transition-[width,height,background,border,backdrop-filter] duration-150 ease-out will-change-transform ${CURSOR_STYLES[cursorType]}`}
+      style={{ opacity: isVisible ? 1 : 0 }}
     >
-      <motion.span
-        initial={{ opacity: 0 }}
-        animate={{ opacity: getCursorText() ? 1 : 0 }}
-        className="pointer-events-none"
-        style={{ color: (cursorType === "video" || cursorType === "cart") ? "#000" : "#fff", textAlign: "center", lineHeight: "1.2" }}
-      >
-        {getCursorText()}
-      </motion.span>
-    </motion.div>
+      {label && (
+        <span
+          className={`pointer-events-none text-[10px] font-bold tracking-wider ${labelDark ? "text-black" : "text-white"}`}
+        >
+          {label}
+        </span>
+      )}
+    </div>
   );
 }

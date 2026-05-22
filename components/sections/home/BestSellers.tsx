@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import ProductCarousel from "@/components/ui/ProductCarousel";
 
 interface Product {
   id: string | number;
@@ -16,11 +17,10 @@ interface BestSellersProps {
 }
 
 export default function BestSellers({ products }: BestSellersProps) {
-  const best = products.slice(0, 3);
 
   return (
     <section className="py-28 px-4 md:px-16 max-w-[1440px] mx-auto">
-      <div className="flex justify-between items-end mb-14">
+      <div className="flex justify-between items-end mb-10 md:mb-14">
         <div>
           <h2 className="font-display text-[42px] md:text-[64px] uppercase leading-[0.92] text-[#eadfed]">
             Best Sellers
@@ -31,8 +31,14 @@ export default function BestSellers({ products }: BestSellersProps) {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {best.map((product) => (
+      {/* Mobile carousel */}
+      <div className="md:hidden">
+        <ProductCarousel products={products} />
+      </div>
+
+      {/* Desktop grid */}
+      <div className="hidden md:grid md:grid-cols-3 gap-8">
+        {products.map((product) => (
           <Link
             key={product.id}
             href={product.slug ? `/product/${product.slug}` : "/collections"}

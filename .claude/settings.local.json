@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir /a .env*)",
+      "Bash(dir /a .env)",
+      "PowerShell($env:NEXT_PUBLIC_SUPABASE_URL; $env:NEXT_PUBLIC_SUPABASE_ANON_KEY)",
+      "PowerShell($env:NEXT_PUBLIC_SUPABASE_URL)",
+      "PowerShell($env:NEXT_PUBLIC_SUPABASE_ANON_KEY)",
+      "mcp__Claude_Preview__preview_start",
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "Bash(taskkill /PID 23132 /F)",
+      "Bash(ffmpeg -version)",
+      "PowerShell(Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing; $screen = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds; $bmp = New-Object System.Drawing.Bitmap\\($screen.Width, $screen.Height\\); $g = [System.Drawing.Graphics]::FromImage\\($bmp\\); $g.CopyFromScreen\\($screen.Location, [System.Drawing.Point]::Empty, $screen.Size\\); $bmp.Save\\(\"C:\\\\Users\\\\pc\\\\Desktop\\\\screen_cap.png\"\\); $g.Dispose\\(\\); $bmp.Dispose\\(\\); Write-Output \"saved\")",
+      "Bash(git add *)"
+    ]
+  }
+}
