@@ -39,14 +39,12 @@ export interface InventoryReservation {
 // ─── Order ────────────────────────────────────────────────────────────────
 
 export type OrderStatus =
-  | 'draft'
-  | 'pending_payment'
+  | 'pending'
   | 'confirmed'
   | 'processing'
   | 'shipped'
   | 'delivered'
   | 'cancelled'
-  | 'on_hold'
   | 'refunded';
 
 export interface Order {

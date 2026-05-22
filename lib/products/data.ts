@@ -49,7 +49,7 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
       "A statement tee for those who refuse to be ignored. Bold graphics meet heavyweight cotton — built for the streets that don't sleep.",
     image_url: `/assets/products/stick-no-bills/image-1.jpg`,
     slug: "stick-no-bills",
-    category: { name: "T-Shirt" },
+    category: { name: "TEES" },
     metadata: {
       points: "200",
       gallery_images: GALLERY_IMAGES("stick-no-bills"),
@@ -65,7 +65,7 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
       "Inspired by the rhythm of the city. A premium tee with a clean cut, archival-grade stitching, and a fit that moves with you.",
     image_url: `/assets/products/inspired/image-1.jpg`,
     slug: "inspired",
-    category: { name: "T-Shirt" },
+    category: { name: "TEES" },
     metadata: {
       points: "250",
       gallery_images: GALLERY_IMAGES("inspired"),
@@ -81,7 +81,7 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
       "Waffle-knit texture engineered for depth and dimension. Heavyweight build, breathable structure — the daily uniform for the discerning.",
     image_url: `/assets/products/ctt-waffle/image-1.jpg`,
     slug: "ctt-waffle",
-    category: { name: "T-Shirt" },
+    category: { name: "HOODIES" },
     metadata: {
       points: "300",
       gallery_images: GALLERY_IMAGES("ctt-waffle"),
@@ -97,7 +97,7 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
       "Earthy tones meet urban durability. The Brown Warrior is a rugged essential built for layering and daily rotation. No pretense. Just presence.",
     image_url: `/assets/products/brown-warrior/image-1.jpg`,
     slug: "brown-warrior",
-    category: { name: "T-Shirt" },
+    category: { name: "OUTERWEAR" },
     metadata: {
       points: "100",
       gallery_images: GALLERY_IMAGES("brown-warrior"),
@@ -113,7 +113,7 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
       "The apex of the Warrior line. Precision-cut black fabric with a weight that commands attention. Limited-release archival piece.",
     image_url: `/assets/products/black-warrior/image-1.jpg`,
     slug: "black-warrior",
-    category: { name: "T-Shirt" },
+    category: { name: "OUTERWEAR" },
     metadata: {
       points: "500",
       gallery_images: GALLERY_IMAGES("black-warrior"),

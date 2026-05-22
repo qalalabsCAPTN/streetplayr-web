@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 
-const categories = ["ALL", "TEES", "WAFFLE", "TANKS", "TRACKS", "LIMITED DROP"];
+const categories = ["ALL", "TEES", "HOODIES", "OUTERWEAR"];
 
 interface CategoryFilterProps {
   activeCategory: string;

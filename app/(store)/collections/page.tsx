@@ -1,29 +1,49 @@
 "use client";
-import { useState } from "react";
+
+import { useState, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import CategoryFilter from "@/components/sections/collections/CategoryFilter";
 import { LOCAL_PRODUCTS } from "@/lib/products/data";
 
-export default function ProtoCoreCollection() {
-  const [activeFilter, setActiveFilter] = useState("all");
+function CollectionsInner() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const initialCategory = searchParams.get("category")?.toUpperCase() || "ALL";
+  const validCategories = ["ALL", "TEES", "HOODIES", "OUTERWEAR"];
+  const [activeFilter, setActiveFilter] = useState(
+    validCategories.includes(initialCategory) ? initialCategory : "ALL"
+  );
 
   const products = LOCAL_PRODUCTS.map((p) => ({
     id: p.id,
     name: p.name,
-    model: p.category.name,
+    category: p.category.name,
     price: `Rs. ${p.price.toLocaleString("en-IN")}`,
     image: p.metadata.gallery_images[0],
     altImage: p.metadata.gallery_images[1],
     badge: p.price >= 5000 ? "Limited" : p.price >= 1500 ? "New" : null,
-    filter: "tops",
     slug: p.slug,
   }));
 
   const filteredProducts =
-    activeFilter === "all"
+    activeFilter === "ALL"
       ? products
-      : products.filter((p) => p.filter === activeFilter);
+      : products.filter((p) => p.category === activeFilter);
+
+  const handleFilterChange = (category: string) => {
+    setActiveFilter(category);
+    const params = new URLSearchParams(searchParams.toString());
+    if (category === "ALL") {
+      params.delete("category");
+    } else {
+      params.set("category", category);
+    }
+    const qs = params.toString();
+    router.replace(qs ? `/collections?${qs}` : "/collections", { scroll: false });
+  };
 
   return (
     <div className="min-h-screen bg-[#16111b] text-[#eadfed] selection:bg-[#ddb7ff] selection:text-[#16111b] relative overflow-hidden">
@@ -74,89 +94,90 @@ export default function ProtoCoreCollection() {
         </div>
       </section>
 
+      <CategoryFilter activeCategory={activeFilter} onSelect={handleFilterChange} />
+
       <main className="relative z-[1] pb-24 w-full max-w-[1440px] mx-auto px-4 md:px-16 pt-14">
-        <div className="mb-14 flex flex-col md:flex-row md:items-end justify-between gap-8">
-          <div>
-            <h2 className="font-display text-[42px] md:text-[64px] uppercase leading-[0.92] tracking-tight text-[#eadfed]">
-              The Archive
-            </h2>
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            {["all", "tops"].map((filter) => (
-              <button
-                key={filter}
-                onClick={() => setActiveFilter(filter)}
-                className={`px-4 py-2 font-mono text-[10px] tracking-[0.22em] uppercase transition-colors duration-200 border rounded-none ${
-                  activeFilter === filter
-                    ? "bg-[#eadfed] border-[#eadfed] text-[#16111b]"
-                    : "border-white/[0.10] text-[rgba(234,223,237,0.52)] hover:border-white/[0.24] hover:text-[#eadfed] hover:bg-white/[0.06]"
-                }`}
-              >
-                {filter === "all" ? "All" : filter.charAt(0).toUpperCase() + filter.slice(1)}
-              </button>
-            ))}
-          </div>
+        <div className="mb-14">
+          <h2 className="font-display text-[42px] md:text-[64px] uppercase leading-[0.92] tracking-tight text-[#eadfed]">
+            The Archive
+          </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProducts.map((product) => (
-            <Link
-              key={product.id}
-              href={product.slug ? `/product/${product.slug}` : "/collections"}
-              className="group product-card relative border border-white/[0.10] bg-[#1f1a23] transition-all duration-300 hover:border-white/[0.20]"
-            >
-              {product.badge && (
-                <div className="absolute top-4 left-4 z-10">
-                  <span className="px-3 py-1.5 font-mono text-[9px] tracking-[0.22em] uppercase bg-[#16111b]/70 text-[rgba(234,223,237,0.7)] border border-white/[0.08]">
-                    {product.badge}
-                  </span>
-                </div>
-              )}
-
-              <div className="relative aspect-[4/5] overflow-hidden bg-[#211c26]">
-                <img
-                  alt={product.name}
-                  src={product.image}
-                  className="w-full h-full object-cover saturate-[0.92] transition-all duration-700 group-hover:opacity-0"
-                />
-
-                {product.altImage && (
-                  <div className="alt-face absolute inset-0 opacity-0 transition-opacity duration-500">
-                    <img
-                      alt={`${product.name} detail`}
-                      src={product.altImage}
-                      className="w-full h-full object-cover"
-                    />
+        {filteredProducts.length === 0 ? (
+          <div className="py-24 text-center">
+            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/25">
+              No products in this category
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredProducts.map((product) => (
+              <Link
+                key={product.id}
+                href={product.slug ? `/product/${product.slug}` : "/collections"}
+                className="group product-card relative border border-white/[0.10] bg-[#1f1a23] transition-all duration-300 hover:border-white/[0.20]"
+              >
+                {product.badge && (
+                  <div className="absolute top-4 left-4 z-10">
+                    <span className="px-3 py-1.5 font-mono text-[9px] tracking-[0.22em] uppercase bg-[#16111b]/70 text-[rgba(234,223,237,0.7)] border border-white/[0.08]">
+                      {product.badge}
+                    </span>
                   </div>
                 )}
-              </div>
 
-              <div className="p-5 border-t border-white/[0.08]">
-                <div className="flex justify-between items-start mb-3">
-                  <div className="min-w-0 mr-4">
-                    <p className="font-mono text-[10px] tracking-[0.22em] text-[rgba(234,223,237,0.45)] uppercase truncate">
-                      {product.model}
-                    </p>
-                    <h3 className="font-display text-xl uppercase mt-1.5 leading-tight text-[#eadfed]">
-                      {product.name}
-                    </h3>
+                <div className="relative aspect-[4/5] overflow-hidden bg-[#211c26]">
+                  <img
+                    alt={product.name}
+                    src={product.image}
+                    className="w-full h-full object-cover saturate-[0.92] transition-all duration-700 group-hover:opacity-0"
+                  />
+
+                  {product.altImage && (
+                    <div className="alt-face absolute inset-0 opacity-0 transition-opacity duration-500">
+                      <img
+                        alt={`${product.name} detail`}
+                        src={product.altImage}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-5 border-t border-white/[0.08]">
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="min-w-0 mr-4">
+                      <p className="font-mono text-[10px] tracking-[0.22em] text-[rgba(234,223,237,0.45)] uppercase truncate">
+                        {product.category}
+                      </p>
+                      <h3 className="font-display text-xl uppercase mt-1.5 leading-tight text-[#eadfed]">
+                        {product.name}
+                      </h3>
+                    </div>
+                    <span className="font-mono text-[11px] tracking-[0.16em] text-[rgba(234,223,237,0.6)] whitespace-nowrap flex-shrink-0">
+                      {product.price}
+                    </span>
                   </div>
-                  <span className="font-mono text-[11px] tracking-[0.16em] text-[rgba(234,223,237,0.6)] whitespace-nowrap flex-shrink-0">
-                    {product.price}
-                  </span>
+                  <div className="flex justify-end">
+                    <span className="font-mono text-[9px] tracking-[0.22em] uppercase text-[rgba(234,223,237,0.3)] group-hover:text-[rgba(234,223,237,0.6)] transition-colors duration-300">
+                      View Product →
+                    </span>
+                  </div>
                 </div>
-                <div className="flex justify-end">
-                  <span className="font-mono text-[9px] tracking-[0.22em] uppercase text-[rgba(234,223,237,0.3)] group-hover:text-[rgba(234,223,237,0.6)] transition-colors duration-300">
-                    View Product →
-                  </span>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </main>
 
       <Footer />
     </div>
+  );
+}
+
+export default function CollectionsPage() {
+  return (
+    <Suspense>
+      <CollectionsInner />
+    </Suspense>
   );
 }

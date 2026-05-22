@@ -11,6 +11,7 @@ import type {
   ReservationSource,
   OrchestrationResponse,
 } from './types';
+import { getAvailableInventory } from '@/lib/inventory';
 import { recordEvent } from './events';
 
 const DEFAULT_TTL_MINUTES = 15;
@@ -220,31 +221,12 @@ export const ReservationService = {
   },
 
   /**
-   * Get available stock for a variant (total - active reservations - confirmed orders).
+   * Get available stock for a variant.
+   * Delegates to the inventory abstraction layer — DEMO_INVENTORY_MODE safe.
    */
   async getAvailableStock(variantId: string): Promise<number> {
     try {
-      const admin = createAdminClient();
-      const { data: variant } = await admin
-        .from('product_variants')
-        .select('stock_quantity')
-        .eq('id', variantId)
-        .single();
-
-      if (!variant) return 0;
-
-      const { data: reserved } = await admin
-        .from('inventory_reservations')
-        .select('reserved_quantity')
-        .eq('variant_id', variantId)
-        .in('reservation_state', ['pending', 'held']);
-
-      const reservedTotal = (reserved ?? []).reduce(
-        (sum, r) => sum + (r.reserved_quantity ?? 0),
-        0
-      );
-
-      return Math.max(0, (variant.stock_quantity ?? 0) - reservedTotal);
+      return await getAvailableInventory(variantId);
     } catch {
       return 0;
     }

@@ -65,20 +65,21 @@ export default function CartItem({ item, index = 0 }: CartItemProps) {
           </div>
 
           {/* Controls */}
-          <div className="flex items-center justify-between mt-2">
+          <div className="flex items-center justify-between mt-4 md:mt-2">
             <div className="flex items-center border border-white/[0.1]">
               <button
                 onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                className="w-10 h-10 flex items-center justify-center font-mono text-xs text-white/40 hover:text-white hover:bg-white/[0.05] transition-colors"
+                disabled={item.quantity <= 1}
+                className="w-11 h-11 flex items-center justify-center font-mono text-sm text-white/40 hover:text-white hover:bg-white/[0.05] transition-colors disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-white/40"
               >
-                [ − ]
+                −
               </button>
-              <span className="w-12 text-center font-mono text-sm text-white/80 tabular-nums">{String(item.quantity).padStart(2, "0")}</span>
+              <span className="w-12 text-center font-mono text-sm text-white/80 tabular-nums">{item.quantity}</span>
               <button
                 onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                className="w-10 h-10 flex items-center justify-center font-mono text-xs text-white/40 hover:text-white hover:bg-white/[0.05] transition-colors"
+                className="w-11 h-11 flex items-center justify-center font-mono text-sm text-white/40 hover:text-white hover:bg-white/[0.05] transition-colors"
               >
-                [ + ]
+                +
               </button>
             </div>
             <button

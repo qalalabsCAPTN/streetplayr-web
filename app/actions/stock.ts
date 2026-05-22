@@ -1,5 +1,6 @@
 'use server';
 
+import { getAvailableInventory } from '@/lib/inventory';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { recordEvent } from '@/lib/orchestration/events';
 import type { OrchestrationResponse } from '@/lib/orchestration/types';
@@ -19,8 +20,8 @@ interface CartStockCheck {
 }
 
 /**
- * Get available stock for a specific variant (total - active reservations).
- * Used for realtime stock display on PDP.
+ * Get available stock for a specific variant.
+ * Uses the inventory abstraction layer — DEMO_INVENTORY_MODE safe.
  */
 export async function getVariantStockAction(
   variantId: string
@@ -45,6 +46,7 @@ export async function getVariantStockAction(
       .in('reservation_state', ['pending', 'held']);
 
     const reserved = (reservations ?? []).reduce((sum: number, r: any) => sum + (r.reserved_quantity ?? 0), 0);
+    const available = await getAvailableInventory(variantId);
 
     return {
       success: true,
@@ -52,7 +54,7 @@ export async function getVariantStockAction(
         variantId: variant.id,
         stockQuantity: variant.stock_quantity ?? 0,
         reservedQuantity: reserved,
-        available: Math.max(0, (variant.stock_quantity ?? 0) - reserved),
+        available,
       },
     };
   } catch (e: any) {
@@ -63,39 +65,16 @@ export async function getVariantStockAction(
 /**
  * Validate all items in a cart against available stock.
  * Called before initiating checkout to prevent oversell.
+ * Uses the inventory abstraction layer.
  */
 export async function validateCartStockAction(
   items: { variantId: string; quantity: number }[]
 ): Promise<OrchestrationResponse<{ valid: boolean; failures: CartStockCheck[] }>> {
   try {
-    const admin = createAdminClient();
     const failures: CartStockCheck[] = [];
 
     for (const item of items) {
-      const { data: variant } = await admin
-        .from('product_variants')
-        .select('stock_quantity')
-        .eq('id', item.variantId)
-        .single();
-
-      if (!variant) {
-        failures.push({
-          variantId: item.variantId,
-          requested: item.quantity,
-          available: 0,
-          sufficient: false,
-        });
-        continue;
-      }
-
-      const { data: reservations } = await admin
-        .from('inventory_reservations')
-        .select('reserved_quantity')
-        .eq('variant_id', item.variantId)
-        .in('reservation_state', ['pending', 'held']);
-
-      const reserved = (reservations ?? []).reduce((sum: number, r: any) => sum + (r.reserved_quantity ?? 0), 0);
-      const available = Math.max(0, (variant.stock_quantity ?? 0) - reserved);
+      const available = await getAvailableInventory(item.variantId);
 
       if (available < item.quantity) {
         failures.push({

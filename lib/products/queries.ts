@@ -70,13 +70,14 @@ export const ProductQueries = {
       .from('products')
       .select(`
         id,
-        name,
-        price,
-        image_url,
+        title,
         slug,
-        category:categories(name),
-        metadata
+        featured_image_url,
+        metadata,
+        status,
+        product_variants(id, price)
       `)
+      .eq('status', 'active')
       .order('created_at', { ascending: false })
       .limit(3);
 
@@ -85,15 +86,19 @@ export const ProductQueries = {
       return getLocalLatestDrops();
     }
 
-    return data.map((p, idx) => ({
-      id: p.id,
-      name: p.name,
-      price: p.price,
-      image: p.image_url,
-      slug: p.slug,
-      category: (p.category as { name?: string })?.name || 'Street',
-      className: p.metadata?.className || getDefaultClassName(idx),
-    }));
+    return data.map((p, idx) => {
+      const prices = (p.product_variants ?? []).map((v: any) => v.price).filter(Boolean);
+      const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+      return {
+        id: p.id,
+        name: p.title,
+        price: minPrice,
+        image: p.featured_image_url,
+        slug: p.slug,
+        category: 'Street',
+        className: p.metadata?.className || getDefaultClassName(idx),
+      };
+    });
   },
 
   /**
@@ -106,14 +111,14 @@ export const ProductQueries = {
       .from('products')
       .select(`
         id,
-        name,
-        price,
-        image_url,
+        title,
         slug,
-        category:categories(name),
-        metadata
+        featured_image_url,
+        metadata,
+        status,
+        product_variants(id, price)
       `)
-      .eq('is_active', true)
+      .eq('status', 'active')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -121,14 +126,18 @@ export const ProductQueries = {
       return getLocalActiveProducts();
     }
 
-    return data.map((p) => ({
-      id: p.id,
-      name: p.name,
-      price: p.price,
-      slug: p.slug,
-      image: p.image_url,
-      category: (p.category as { name?: string })?.name || 'Street',
-    }));
+    return data.map((p) => {
+      const prices = (p.product_variants ?? []).map((v: any) => v.price).filter(Boolean);
+      const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+      return {
+        id: p.id,
+        name: p.title,
+        price: minPrice,
+        slug: p.slug,
+        image: p.featured_image_url,
+        category: 'Street',
+      };
+    });
   },
 
   /**
@@ -166,20 +175,44 @@ export const ProductQueries = {
       .from('products')
       .select(`
         id,
-        name,
-        price,
-        description,
-        image_url,
+        title,
         slug,
-        category:categories(name),
-        variants:product_variants(id, color, size, stock_quantity, price_override),
-        metadata
+        description,
+        featured_image_url,
+        metadata,
+        status,
+        product_variants(id, sku, title, price, attributes)
       `)
       .eq('slug', slug)
+      .eq('status', 'active')
       .single();
 
-    if (error) return getLocalProductBySlug(slug) || null;
-    return data;
+    if (error || !data) return getLocalProductBySlug(slug) || null;
+
+    const variants = (data.product_variants ?? []).map((v: any) => ({
+      id: v.id,
+      size: v.title,
+      color: v.attributes?.color ?? 'Default',
+      stock_quantity: 999,
+      price_override: v.price,
+    }));
+
+    const minPrice = variants.length > 0
+      ? Math.min(...variants.map((v: any) => v.price_override))
+      : 0;
+
+    return {
+      id: data.id,
+      name: data.title,
+      slug: data.slug,
+      price: minPrice,
+      description: data.description ?? '',
+      image_url: data.featured_image_url,
+      category: '',
+      variants,
+      metadata: data.metadata ?? {},
+      is_active: data.status === 'active',
+    };
   },
 };
 

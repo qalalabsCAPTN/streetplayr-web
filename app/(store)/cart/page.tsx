@@ -54,7 +54,7 @@ export default function CartPage() {
         <div className="absolute left-0 top-0 bottom-0 w-px bg-white/[0.04]" />
         <div className="absolute left-0 top-0 bottom-0 w-px bg-white/[0.02] translate-x-[7px]" />
 
-        {/* ── Header — reference-matching structure ── */}
+        {/* ── Header ── */}
         <div className="flex flex-col md:flex-row justify-between items-end mb-12 border-l-2 border-[#ddb7ff] pl-6">
           <div>
             <motion.p
@@ -74,16 +74,6 @@ export default function CartPage() {
               Shopping Cart
             </motion.h1>
           </div>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="hidden md:block font-mono text-[10px] uppercase tracking-[0.2em] text-white/30 text-right leading-relaxed"
-          >
-            <span className="block">Free shipping over {formatPrice(50000)}</span>
-            <span className="block text-white/20">Estimated delivery 5–8 business days</span>
-            <span className="block text-white/20">Secure checkout</span>
-          </motion.div>
         </div>
 
         {itemCount === 0 ? (
@@ -168,37 +158,12 @@ export default function CartPage() {
                       </span>
                     </Link>
 
-                    {/* Footer metadata */}
-                    <div className="mt-6 space-y-2">
-                      <p className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.2em] text-white/20">
-                        <span className="inline-block w-2 h-2 rounded-full border border-white/20" />
-                        Secured checkout
-                      </p>
-                      <p className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.2em] text-white/20">
-                        <span className="inline-block w-2 h-2 rounded-full border border-white/20" />
-                        Estimated arrival: 5–8 business days
-                      </p>
-                    </div>
+
                   </div>
                 </div>
               </motion.div>
 
-              {/* Secondary info module */}
-              <motion.div
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1.2, delay: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                className="border border-white/[0.06] p-5"
-              >
-                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/30 mb-3 flex items-center gap-2">
-                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-white/20" />
-                  Shipping & Returns
-                </p>
-                <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/20 leading-relaxed">
-                  Free complimentary shipping on all orders over {formatPrice(50000)}.<br />
-                  Easy returns within 14 days of delivery.
-                </p>
-              </motion.div>
+
             </div>
           </div>
         )}

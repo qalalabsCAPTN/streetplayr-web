@@ -3,7 +3,6 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useAuthStore, deriveTier, TIER_THRESHOLDS, selectTierProgress } from '@/store/authStore';
-import WalletHistoryItem from '@/components/profile/WalletHistoryItem';
 
 function formatBalance(n: number) {
   return n.toLocaleString('en-IN');
@@ -15,7 +14,6 @@ function formatDate(iso: string) {
 
 export default function ProfilePage() {
   const user = useAuthStore((s) => s.user);
-  const transactions = useAuthStore((s) => s.transactions);
   const progress = useAuthStore(selectTierProgress);
 
   if (!user) {
@@ -29,7 +27,6 @@ export default function ProfilePage() {
 
   const tier = deriveTier(user.sprrBalance);
   const tierInfo = TIER_THRESHOLDS[tier];
-  const recent = transactions.slice(0, 4);
   const greetingHour = new Date().getHours();
   const greeting = greetingHour < 12 ? 'Good morning' : greetingHour < 18 ? 'Good afternoon' : 'Good evening';
 
@@ -42,9 +39,6 @@ export default function ProfilePage() {
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         className="mb-10 border-l-4 border-[#ddb7ff] pl-6"
       >
-        <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#ddb7ff] block mb-2">
-          [ DATA_STREAM // IDENTITY ]
-        </span>
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
           <h1 className="font-display text-5xl sm:text-6xl md:text-7xl uppercase tracking-tight text-[#eadfed] leading-none">
             {greeting}, {user.name.split(' ')[0]}.
@@ -58,20 +52,18 @@ export default function ProfilePage() {
       {/* ═══ BENTO GRID ═══ */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-10">
 
-        {/* ── Main Identity Card (8 cols) ── */}
+        {/* ── IDENTITY (8 cols) ── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
           className="lg:col-span-8 bg-[#1f1a23] border border-white/[0.06] p-6 md:p-8 relative overflow-hidden"
         >
-          {/* Large tier watermark */}
           <div className="absolute top-0 right-0 p-4 opacity-[0.04] pointer-events-none select-none">
             <span className="font-display text-[120px] text-white leading-none">{tier === 'LEGEND' ? 'L' : tier === 'PLAYER' ? 'P' : 'S'}</span>
           </div>
 
           <div className="relative z-10">
-            {/* Top row: name + tier badge */}
             <div className="flex items-start justify-between mb-6">
               <div>
                 <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/30 block mb-1">Member Profile</span>
@@ -82,7 +74,6 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* XP Progression */}
             <div className="mb-6 pb-6 border-b border-white/[0.05]">
               <div className="flex justify-between items-end mb-3">
                 <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/30">
@@ -107,7 +98,6 @@ export default function ProfilePage() {
               )}
             </div>
 
-            {/* Stats grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div>
                 <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/25 block mb-1">SP-RR Balance</span>
@@ -129,7 +119,7 @@ export default function ProfilePage() {
           </div>
         </motion.div>
 
-        {/* ── Wallet Snapshot (4 cols) ── */}
+        {/* ── WALLET (4 cols) ── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -153,32 +143,55 @@ export default function ProfilePage() {
           </Link>
         </motion.div>
 
-        {/* ── Quick Actions (4 cols) ── */}
+        {/* ── YOUR ORDERS (4 cols) ── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
-          className="lg:col-span-4 bg-[#231e27] border border-white/[0.06] p-6 relative group hover:border-[#ddb7ff]/30 transition-colors"
+          className="lg:col-span-4 bg-[#231e27] border border-white/[0.06] p-6 group hover:border-[#ddb7ff]/30 transition-colors"
         >
-          <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/25 block mb-4">Quick Actions</span>
-          <div className="space-y-3">
-            <Link href="/profile/orders" className="flex items-center justify-between px-3 py-2.5 border border-white/[0.06] hover:border-[#ddb7ff]/30 transition-colors font-mono text-[9px] uppercase tracking-[0.15em] text-white/40 hover:text-[#ddb7ff]/70">
-              Acquisition Archive <span>→</span>
-            </Link>
-            <Link href="/profile/addresses" className="flex items-center justify-between px-3 py-2.5 border border-white/[0.06] hover:border-[#ddb7ff]/30 transition-colors font-mono text-[9px] uppercase tracking-[0.15em] text-white/40 hover:text-[#ddb7ff]/70">
-              Delivery Nodes <span>→</span>
-            </Link>
-            <Link href="/profile/settings" className="flex items-center justify-between px-3 py-2.5 border border-white/[0.06] hover:border-[#ddb7ff]/30 transition-colors font-mono text-[9px] uppercase tracking-[0.15em] text-white/40 hover:text-[#ddb7ff]/70">
-              System Preferences <span>→</span>
+          <div className="h-full flex flex-col justify-between">
+            <div>
+              <span className="font-mono text-2xl text-[#ddb7ff] block mb-3 group-hover:scale-110 transition-transform">◆</span>
+              <h3 className="font-display text-xl uppercase text-[#eadfed] mb-2">Your Orders</h3>
+              <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/30">Track your latest acquisitions</p>
+            </div>
+            <Link
+              href="/profile/orders"
+              className="inline-block mt-6 font-mono text-[9px] uppercase tracking-[0.15em] text-[#ddb7ff] border-b border-[#ddb7ff]/40 pb-0.5 hover:text-white hover:border-white transition-colors"
+            >
+              View Archive →
             </Link>
           </div>
         </motion.div>
 
-        {/* ── Earning Methods (4 cols) ── */}
+        {/* ── ADDRESSES (4 cols) ── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          className="lg:col-span-4 bg-[#231e27] border border-white/[0.06] p-6 group hover:border-[#ddb7ff]/30 transition-colors"
+        >
+          <div className="h-full flex flex-col justify-between">
+            <div>
+              <span className="font-mono text-2xl text-[#ddb7ff] block mb-3 group-hover:scale-110 transition-transform">⊞</span>
+              <h3 className="font-display text-xl uppercase text-[#eadfed] mb-2">Addresses</h3>
+              <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/30">Manage your delivery nodes</p>
+            </div>
+            <Link
+              href="/profile/addresses"
+              className="inline-block mt-6 font-mono text-[9px] uppercase tracking-[0.15em] text-[#ddb7ff] border-b border-[#ddb7ff]/40 pb-0.5 hover:text-white hover:border-white transition-colors"
+            >
+              Manage Nodes →
+            </Link>
+          </div>
+        </motion.div>
+
+        {/* ── EARN REWARDS (4 cols) ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
           className="lg:col-span-4 bg-[#231e27] border border-white/[0.06] p-6 text-center group hover:border-[#ddb7ff]/30 transition-colors"
         >
           <span className="font-mono text-3xl text-[#ddb7ff] block mb-3 group-hover:scale-110 transition-transform">✦</span>
@@ -188,59 +201,53 @@ export default function ProfilePage() {
             View Campaigns →
           </Link>
         </motion.div>
-
-        {/* ── Activity Stats (4 cols) ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
-          className="lg:col-span-4 bg-[#231e27] border border-white/[0.06] p-6 text-center group hover:border-[#ddb7ff]/30 transition-colors"
-        >
-          <span className="font-mono text-3xl text-[#ddb7ff] block mb-3 group-hover:scale-110 transition-transform">◆</span>
-          <h3 className="font-display text-xl uppercase text-[#eadfed] mb-2">Recent Orders</h3>
-          <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/30 mb-4">Track your latest acquisitions</p>
-          <Link href="/profile/orders" className="inline-block font-mono text-[9px] uppercase tracking-[0.15em] text-[#ddb7ff] border-b border-[#ddb7ff]/40 pb-0.5 hover:text-white hover:border-white transition-colors">
-            View Archive →
-          </Link>
-        </motion.div>
       </div>
 
-      {/* ═══ ACTIVITY LOGS ═══ */}
+      {/* ═══ YOUR STREETS ═══ */}
       <motion.section
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
       >
         <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/[0.05]">
-          <h2 className="font-display text-3xl sm:text-4xl uppercase text-[#ddb7ff]">Activity Logs</h2>
-          <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/20">SESSION_ID: STR-24-AX</span>
+          <h2 className="font-display text-3xl sm:text-4xl uppercase text-[#ddb7ff]">Your Streets</h2>
+          <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/20">COMMUNITY</span>
         </div>
 
-        {recent.length > 0 ? (
-          <div className="space-y-3">
-            {recent.map((tx, i) => (
-              <WalletHistoryItem key={tx.id} tx={tx} index={i} />
-            ))}
-          </div>
-        ) : (
-          <div className="border border-white/[0.06] p-8 text-center">
-            <p className="font-display text-2xl uppercase text-white/15 mb-2">No Activity Yet</p>
-            <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/20">
-              Transactions will appear here as you earn and spend.
-            </p>
-          </div>
-        )}
-
-        {recent.length > 0 && (
-          <div className="mt-4 text-right">
-            <Link
-              href="/profile/wallet"
-              className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/30 hover:text-white transition-colors"
-            >
-              View All Transactions →
-            </Link>
-          </div>
-        )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Link
+            href="/dashboard/leaderboards"
+            className="bg-[#1f1a23] border border-white/[0.06] p-6 hover:border-[#ddb7ff]/30 transition-colors group"
+          >
+            <span className="font-mono text-lg text-[#ddb7ff] block mb-2 group-hover:scale-110 transition-transform">≡</span>
+            <h3 className="font-display text-lg uppercase text-[#eadfed] mb-1">Leaderboards</h3>
+            <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/25">Compete for the top</p>
+          </Link>
+          <Link
+            href="/dashboard/drops"
+            className="bg-[#1f1a23] border border-white/[0.06] p-6 hover:border-[#ddb7ff]/30 transition-colors group"
+          >
+            <span className="font-mono text-lg text-[#ddb7ff] block mb-2 group-hover:scale-110 transition-transform">⊕</span>
+            <h3 className="font-display text-lg uppercase text-[#eadfed] mb-1">Drops</h3>
+            <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/25">Upcoming releases</p>
+          </Link>
+          <Link
+            href="/dashboard/referrals"
+            className="bg-[#1f1a23] border border-white/[0.06] p-6 hover:border-[#ddb7ff]/30 transition-colors group"
+          >
+            <span className="font-mono text-lg text-[#ddb7ff] block mb-2 group-hover:scale-110 transition-transform">↗</span>
+            <h3 className="font-display text-lg uppercase text-[#eadfed] mb-1">Referrals</h3>
+            <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/25">Invite your crew</p>
+          </Link>
+          <Link
+            href="/dashboard/quests"
+            className="bg-[#1f1a23] border border-white/[0.06] p-6 hover:border-[#ddb7ff]/30 transition-colors group"
+          >
+            <span className="font-mono text-lg text-[#ddb7ff] block mb-2 group-hover:scale-110 transition-transform">◉</span>
+            <h3 className="font-display text-lg uppercase text-[#eadfed] mb-1">Quests</h3>
+            <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/25">Complete missions</p>
+          </Link>
+        </div>
       </motion.section>
     </div>
   );

@@ -2,7 +2,6 @@
 
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
 
 interface OrderItem {
   id: string;
@@ -20,14 +19,12 @@ interface Order {
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  draft: 'Draft',
-  pending_payment: 'Pending Payment',
+  pending: 'Pending',
   confirmed: 'Confirmed',
   processing: 'Processing',
   shipped: 'Shipped',
   delivered: 'Delivered',
   cancelled: 'Cancelled',
-  on_hold: 'On Hold',
   refunded: 'Refunded',
 };
 
@@ -48,49 +45,28 @@ export default function OrdersPage() {
   useEffect(() => {
     async function loadOrders() {
       try {
-        const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) { setLoading(false); return; }
+        const { getMyOrdersAction } = await import('@/app/actions/order');
+        const result = await getMyOrdersAction();
 
-        const { data } = await supabase
-          .from('orders')
-          .select('id, created_at, status, total, order_items(id, product_id, variant_id, quantity, price)')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
-
-        if (data) {
-          const productIds = data.flatMap((o: any) =>
-            (o.order_items ?? []).map((i: any) => i.product_id)
-          );
-          const productNames: Record<string, string> = {};
-          if (productIds.length > 0) {
-            const { data: products } = await supabase
-              .from('products')
-              .select('id, name')
-              .in('id', productIds);
-            if (products) {
-              for (const p of products) productNames[p.id] = p.name;
-            }
-          }
-
-          setOrders(data.map((o: any) => ({
+        if (result.success && result.data) {
+          const mapped: Order[] = result.data.map((o: any) => ({
             id: o.id,
-            createdAt: o.created_at,
+            createdAt: o.createdAt,
             status: o.status,
             total: o.total,
-            items: (o.order_items ?? []).map((i: any) => ({
-              id: i.id,
-              name: productNames[i.product_id] ?? i.product_id.slice(0, 8),
-              quantity: i.quantity,
-              price: i.price,
-            })),
-          })));
+            items: [],
+          }));
+          setOrders(mapped);
         }
       } catch {}
       setLoading(false);
     }
     loadOrders();
   }, []);
+
+  const totalSpent = orders.reduce((sum, o) => sum + o.total, 0);
+  const deliveredCount = orders.filter((o) => o.status === 'delivered').length;
+  const cancelledCount = orders.filter((o) => o.status === 'cancelled').length;
 
   if (loading) {
     return (
@@ -108,23 +84,44 @@ export default function OrdersPage() {
 
   return (
     <div className="max-w-[1200px]">
-      {/* ═══ HEADER ═══ */}
       <motion.header
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         className="mb-10 border-l-4 border-[#ddb7ff] pl-6"
       >
-        <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#ddb7ff] block mb-2">
-          [ ACQUISITION // ARCHIVE ]
-        </span>
         <h1 className="font-display text-5xl sm:text-6xl md:text-7xl uppercase tracking-tight text-[#eadfed] leading-none">
           Orders
         </h1>
       </motion.header>
 
       {orders.length > 0 ? (
-        <div className="space-y-4">
+        <>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10"
+          >
+            <div className="bg-[#1f1a23] border border-white/[0.06] p-5">
+              <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/25 block mb-2">Total Orders</span>
+              <span className="font-display text-3xl text-[#eadfed]">{orders.length}</span>
+            </div>
+            <div className="bg-[#1f1a23] border border-white/[0.06] p-5">
+              <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/25 block mb-2">Total Spent</span>
+              <span className="font-display text-3xl text-[#eadfed]">{formatPrice(totalSpent)}</span>
+            </div>
+            <div className="bg-[#1f1a23] border border-white/[0.06] p-5">
+              <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/25 block mb-2">Delivered</span>
+              <span className="font-display text-3xl text-green-400">{deliveredCount}</span>
+            </div>
+            <div className="bg-[#1f1a23] border border-white/[0.06] p-5">
+              <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/25 block mb-2">Cancelled</span>
+              <span className="font-display text-3xl text-red-400">{cancelledCount}</span>
+            </div>
+          </motion.div>
+
+          <div className="space-y-4">
           {orders.map((order, i) => (
             <motion.div
               key={order.id}
@@ -133,7 +130,6 @@ export default function OrdersPage() {
               transition={{ delay: 0.1 + i * 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
               className="bg-[#1f1a23] border border-white/[0.06] p-6 md:p-8 hover:border-white/[0.1] transition-colors"
             >
-              {/* Order header */}
               <div className="flex items-start justify-between mb-5 pb-5 border-b border-white/[0.05]">
                 <div>
                   <p className="font-mono text-[11px] text-white/80 uppercase tracking-[0.1em]">
@@ -153,24 +149,6 @@ export default function OrdersPage() {
                 </span>
               </div>
 
-              {/* Order items */}
-              <div className="space-y-3 mb-5">
-                {order.items.map((item, idx) => (
-                  <div key={idx} className="flex justify-between items-center gap-3">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-8 h-8 bg-[#231e27] border border-white/[0.06] flex items-center justify-center shrink-0">
-                        <span className="font-mono text-[8px] text-white/30">{item.quantity}</span>
-                      </div>
-                      <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-white/60 truncate">
-                        {item.name}
-                      </span>
-                    </div>
-                    <span className="font-mono text-[10px] text-white/40 shrink-0">Qty: {item.quantity}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Order footer */}
               <div className="flex items-center justify-between pt-4 border-t border-white/[0.05]">
                 <span className="font-display text-2xl uppercase text-[#eadfed]">{formatPrice(order.total)}</span>
                 <button
@@ -182,7 +160,8 @@ export default function OrdersPage() {
               </div>
             </motion.div>
           ))}
-        </div>
+          </div>
+        </>
       ) : (
         <motion.div
           initial={{ opacity: 0 }}

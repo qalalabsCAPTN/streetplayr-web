@@ -3,93 +3,68 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useCartStore } from "@/store/cartStore";
+import { formatPrice } from "@/lib/utils/format";
 
-type VerificationState = 'verifying' | 'succeeded' | 'failed' | 'pending' | 'not_found';
+interface OrderData {
+  id: string;
+  total: number;
+  status: string;
+}
 
 export default function CheckoutSuccessPage() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const { clearCart } = useCartStore();
   const [mounted, setMounted] = useState(false);
-  const [verification, setVerification] = useState<VerificationState>('verifying');
+  const [state, setState] = useState<'verifying' | 'confirmed' | 'not_found'>('verifying');
+  const [order, setOrder] = useState<OrderData | null>(null);
 
   const orderId = searchParams.get('order_id');
-  const redirectStatus = searchParams.get('redirect_status');
 
   useEffect(() => {
     setMounted(true);
 
     if (!orderId) {
-      setVerification('not_found');
+      setState('not_found');
       return;
     }
 
     const resolvedOrderId: string = orderId;
 
-    // Verify payment by checking order status from DB
     async function verify() {
       try {
         const { getOrderAction } = await import('@/app/actions/order');
         const result = await getOrderAction(resolvedOrderId);
 
         if (!result.success || !result.data) {
-          setVerification('not_found');
+          setState('not_found');
           return;
         }
 
-        const status = result.data.status;
+        setOrder({
+          id: result.data.id,
+          total: result.data.total,
+          status: result.data.status,
+        });
 
-        if (status === 'confirmed' || status === 'processing' || status === 'shipped' || status === 'delivered') {
-          setVerification('succeeded');
+        if (result.data.status === 'confirmed' || result.data.status === 'processing') {
+          setState('confirmed');
           clearCart();
-          return;
-        }
-
-        if (status === 'cancelled' || status === 'refunded') {
-          setVerification('failed');
-          return;
-        }
-
-        if (status === 'pending_payment') {
-          // Payment was initiated but may still be processing.
-          // Check redirect_status for more context.
-          if (redirectStatus === 'succeeded') {
-            setVerification('succeeded');
-            clearCart();
-          } else if (redirectStatus === 'failed') {
-            setVerification('failed');
-          } else {
-            setVerification('pending');
-          }
-          return;
-        }
-
-        // draft or on_hold — unexpected at this point
-        if (status === 'draft') {
-          setVerification('failed');
-          return;
-        }
-
-        setVerification('succeeded');
-        clearCart();
-      } catch {
-        // If verification fails (e.g. network), trust redirect_status
-        if (redirectStatus === 'succeeded') {
-          setVerification('succeeded');
-          clearCart();
-        } else if (redirectStatus === 'failed') {
-          setVerification('failed');
+        } else if (result.data.status === 'cancelled') {
+          setState('not_found');
         } else {
-          setVerification('pending');
+          setState('confirmed');
+          clearCart();
         }
+      } catch {
+        setState('not_found');
       }
     }
 
     verify();
-  }, [orderId, redirectStatus, clearCart]);
+  }, [orderId, clearCart]);
 
   if (!mounted) return null;
 
@@ -112,7 +87,7 @@ export default function CheckoutSuccessPage() {
       </motion.div>
 
       <div className="relative z-10 w-full px-6 sm:px-12 flex flex-col items-center text-center py-32">
-        {verification === 'verifying' && (
+        {state === 'verifying' && (
           <motion.div
             animate={{ opacity: [0.3, 1, 0.3] }}
             transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
@@ -122,60 +97,7 @@ export default function CheckoutSuccessPage() {
           </motion.div>
         )}
 
-        {verification === 'pending' && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 2, ease: "easeOut" }}
-            className="space-y-16"
-          >
-            <p className="font-mono text-[9px] uppercase tracking-[0.5em] text-white/30">
-              Processing
-            </p>
-            <h1 className="font-display text-5xl sm:text-7xl uppercase tracking-[0.1em] text-white/90 leading-[1.1]">
-              Allocation <br />
-              <span className="text-white/40">Pending</span>
-            </h1>
-            <p className="font-mono text-[10px] tracking-[0.1em] text-white/30 max-w-sm">
-              Your payment is being processed. This typically completes within a few minutes.
-            </p>
-            <div className="pt-16">
-              <Link
-                href="/profile/orders"
-                className="rounded-none border border-white/[0.14] px-8 py-4 font-mono text-xs uppercase tracking-[0.3em] text-[#eadfed] hover:bg-[#ddb7ff] hover:text-[#16111b] transition-all"
-              >
-                View Orders
-              </Link>
-            </div>
-          </motion.div>
-        )}
-
-        {verification === 'failed' && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 2, ease: "easeOut" }}
-            className="space-y-16"
-          >
-            <p className="font-mono text-[9px] uppercase tracking-[0.5em] text-sp-error">
-              Payment Failed
-            </p>
-            <h1 className="font-display text-5xl sm:text-7xl uppercase tracking-[0.1em] text-white/90 leading-[1.1]">
-              Allocation <br />
-              <span className="text-white/40">Declined</span>
-            </h1>
-            <div className="mt-16">
-              <Link
-                href="/checkout"
-                className="rounded-none border border-white/[0.14] px-8 py-4 font-mono text-xs uppercase tracking-[0.3em] text-[#eadfed] hover:bg-[#ddb7ff] hover:text-[#16111b] transition-all"
-              >
-                Retry Payment
-              </Link>
-            </div>
-          </motion.div>
-        )}
-
-        {verification === 'not_found' && (
+        {state === 'not_found' && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -189,7 +111,7 @@ export default function CheckoutSuccessPage() {
               No <br />
               <span className="text-white/40">Dossier</span>
             </h1>
-            <div className="mt-16">
+            <div className="pt-8">
               <Link
                 href="/"
                 className="rounded-none border border-white/[0.14] px-8 py-4 font-mono text-xs uppercase tracking-[0.3em] text-[#eadfed] hover:bg-[#ddb7ff] hover:text-[#16111b] transition-all"
@@ -200,13 +122,13 @@ export default function CheckoutSuccessPage() {
           </motion.div>
         )}
 
-        {verification === 'succeeded' && (
+        {state === 'confirmed' && (
           <>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 3, delay: 1, ease: "easeOut" }}
-              className="space-y-16"
+              className="space-y-12"
             >
               <p className="font-mono text-[9px] uppercase tracking-[0.5em] text-white/20">
                 Acquisition Complete
@@ -221,37 +143,46 @@ export default function CheckoutSuccessPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 3, delay: 2.5, ease: "easeOut" }}
-              className="mt-32 space-y-6 max-w-sm mx-auto"
+              className="mt-16 space-y-8 max-w-sm mx-auto"
             >
-              {orderId && (
-                <p className="font-mono text-[10px] tracking-[0.1em] text-white/20">
-                  Order #{orderId.slice(0, 8)}
-                </p>
+              {order && (
+                <div className="border border-white/[0.06] bg-[#1f1a23]/50 p-6 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/30">Order</span>
+                    <span className="font-mono text-[10px] text-white/60">#{order.id.slice(0, 8)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/30">Total</span>
+                    <span className="font-display text-2xl text-[#eadfed]">{formatPrice(order.total)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/30">Status</span>
+                    <span className="font-mono text-[9px] uppercase tracking-[0.15em] text-green-400 border border-green-500/30 px-2 py-0.5">
+                      {order.status}
+                    </span>
+                  </div>
+                </div>
               )}
-              <p className="font-mono text-[10px] leading-relaxed tracking-[0.1em] text-white/30">
-                A dossier detailing your acquisition has been transmitted.
-              </p>
 
-              <div className="pt-24">
+              <div className="pt-8 space-y-6">
                 <Link
                   href="/profile/orders"
-                  data-cursor="hover"
                   className="group inline-flex flex-col items-center gap-2"
                 >
                   <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/40 group-hover:text-white transition-colors duration-700">
-                    View Order History
+                    View Orders
                   </span>
                   <div className="w-px h-12 bg-white/20 group-hover:bg-white group-hover:h-16 transition-all duration-700" />
                 </Link>
-              </div>
 
-              <div className="pt-8">
-                <Link
-                  href="/"
-                  className="font-mono text-[9px] uppercase tracking-[0.3em] text-white/20 hover:text-white/60 transition-colors"
-                >
-                  Return to Surface
-                </Link>
+                <div className="pt-4">
+                  <Link
+                    href="/collections"
+                    className="font-mono text-[9px] uppercase tracking-[0.3em] text-white/20 hover:text-white/60 transition-colors"
+                  >
+                    Continue Shopping
+                  </Link>
+                </div>
               </div>
             </motion.div>
           </>

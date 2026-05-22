@@ -2,8 +2,15 @@
 
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
+import { getAvailableInventory } from '@/lib/inventory';
 import { recordEvent } from '@/lib/orchestration/events';
 import type { OrchestrationResponse } from '@/lib/orchestration/types';
+
+const DEMO_MODE = process.env.DEMO_INVENTORY_MODE === 'true';
+const ORG_ID = '00000000-0000-0000-0000-000000000001';
+const BRAND_ID = 'e56b72a5-3746-4c01-a054-885ed3e55c0f';
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export interface CheckoutItem {
   productId: string;
@@ -33,19 +40,39 @@ export interface CheckoutResult {
   reservationIds: string[];
 }
 
-/**
- * Initiate checkout — atomic orchestration step.
- *
- * Flow:
- *   1. Authenticate user
- *   2. Verify prices server-side against product_variant table
- *   3. Call initiate_checkout RPC (creates order + order_items + reservations)
- *   4. Log orchestration event
- *   5. Return order info and reservation IDs
- *
- * This is the ONLY entry point for starting a checkout.
- * Stripe PaymentIntent creation is a separate step after this.
- */
+async function resolveCustomerId(admin: any, userId: string, email?: string): Promise<string | null> {
+  if (!email) return null;
+
+  const { data: existing } = await admin
+    .from('customers')
+    .select('id')
+    .eq('email', email)
+    .maybeSingle();
+
+  if (existing) return existing.id;
+
+  const profile = await admin
+    .from('profiles')
+    .select('full_name')
+    .eq('id', userId)
+    .maybeSingle();
+
+  const name = profile?.full_name?.split(' ') ?? ['', ''];
+  const { data: created } = await admin
+    .from('customers')
+    .insert({
+      organization_id: ORG_ID,
+      brand_id: BRAND_ID,
+      email,
+      first_name: name[0] ?? '',
+      last_name: name.slice(1).join(' ') ?? '',
+    })
+    .select('id')
+    .single();
+
+  return created?.id ?? null;
+}
+
 export async function initiateCheckoutAction(
   items: CheckoutItem[],
   shippingAddress: CheckoutAddress,
@@ -60,73 +87,147 @@ export async function initiateCheckoutAction(
       return { success: false, error: 'Cart is empty.', code: 'EMPTY_CART' };
     }
 
-    // Server-authoritative price verification
     const admin = createAdminClient();
+    let usedSupabaseFallback = false;
+
     for (const item of items) {
       const { data: variant } = await admin
         .from('product_variants')
-        .select('price_override, stock_quantity, product_id')
+        .select('price, product_id')
         .eq('id', item.variantId)
         .single();
 
       if (!variant) {
+        if (DEMO_MODE) {
+          usedSupabaseFallback = true;
+          const available = await getAvailableInventory(item.variantId);
+          if (available < item.quantity) {
+            return { success: false, error: `Insufficient stock for variant ${item.variantId}.`, code: 'INSUFFICIENT_STOCK' };
+          }
+          continue;
+        }
         return { success: false, error: `Variant ${item.variantId} not found.`, code: 'VARIANT_NOT_FOUND' };
       }
 
-      // Reject if insufficient stock (first line of defense — RPC also checks)
-      if ((variant.stock_quantity ?? 0) < item.quantity) {
+      const available = await getAvailableInventory(item.variantId);
+      if (available < item.quantity) {
         return { success: false, error: `Insufficient stock for variant ${item.variantId}.`, code: 'INSUFFICIENT_STOCK' };
       }
 
-      // Authoritative price: use price_override if set, otherwise product base price
-      let authorizedPrice = variant.price_override;
-      if (authorizedPrice === null) {
-        const { data: product } = await admin
-          .from('products')
-          .select('price')
-          .eq('id', variant.product_id)
-          .single();
-        if (!product) {
-          return { success: false, error: `Product for variant ${item.variantId} not found.`, code: 'PRODUCT_NOT_FOUND' };
-        }
-        authorizedPrice = product.price;
-      }
-
-      if (item.price !== authorizedPrice) {
+      if (item.price !== variant.price) {
         return {
           success: false,
-          error: `Price mismatch for variant ${item.variantId}: expected ${authorizedPrice}, got ${item.price}`,
+          error: `Price mismatch for variant ${item.variantId}: expected ${variant.price}, got ${item.price}`,
           code: 'PRICE_MISMATCH',
         };
       }
     }
 
-    // Prepare address with shipping cost and tax
     const addressWithMeta = {
       ...shippingAddress,
       shipping_cost: shippingAddress.shippingCost ?? 0,
       tax_amount: shippingAddress.taxAmount ?? 0,
     };
 
-    // Call atomic checkout RPC
-    const { data: result, error } = await admin.rpc('initiate_checkout', {
-      p_user_id: user.id,
-      p_items: JSON.stringify(items),
-      p_shipping_address: addressWithMeta,
-      p_payment_intent_id: paymentIntentId ?? null,
-      p_reservation_ttl_minutes: 15,
-    });
-
-    if (error) {
-      const isStock = error.message?.includes('Insufficient stock');
-      return {
-        success: false,
-        error: isStock ? 'Insufficient stock available.' : error.message,
-        code: isStock ? 'INSUFFICIENT_STOCK' : 'CHECKOUT_FAILED',
-      };
+    const customerId = await resolveCustomerId(admin, user.id, user.email);
+    if (!customerId) {
+      return { success: false, error: 'Could not resolve customer record.', code: 'CUSTOMER_NOT_FOUND' };
     }
 
-    const checkoutResult = result as CheckoutResult;
+    const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+    const shipping = shippingAddress.shippingCost ?? 0;
+    const tax = shippingAddress.taxAmount ?? 0;
+    const grandTotal = subtotal + shipping + tax;
+    const orderNumber = `DEMO-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+
+    const { data: order, error: orderError } = await admin
+      .from('orders')
+      .insert({
+        organization_id: ORG_ID,
+        brand_id: BRAND_ID,
+        order_number: orderNumber,
+        customer_id: customerId,
+        status: 'pending',
+        fulfillment_status: 'unfulfilled',
+        payment_status: 'pending',
+        subtotal,
+        shipping_total: shipping,
+        tax_total: tax,
+        discount_total: 0,
+        grand_total: grandTotal,
+        currency: 'INR',
+        source: 'streetplayr',
+        shipping_address: addressWithMeta as Record<string, unknown>,
+        notes: user.id,
+      })
+      .select('id, order_number, status, grand_total, subtotal, shipping_total, tax_total, created_at')
+      .single();
+
+    if (orderError) {
+      return { success: false, error: orderError.message, code: 'ORDER_CREATE_FAILED' };
+    }
+
+    const orderItemRows: any[] = [];
+    for (const item of items) {
+      if (UUID_RE.test(item.productId) && UUID_RE.test(item.variantId)) {
+        const { data: pv } = await admin
+          .from('product_variants')
+          .select('sku, title, product_id, product:products(title)')
+          .eq('id', item.variantId)
+          .single();
+
+        const productArr = pv?.product as { title?: string }[] | undefined;
+        orderItemRows.push({
+          order_id: order.id,
+          variant_id: item.variantId,
+          product_id: item.productId,
+          product_title: productArr?.[0]?.title ?? item.productId,
+          variant_title: pv?.title ?? item.variantId,
+          sku: pv?.sku ?? null,
+          quantity: item.quantity,
+          unit_price: item.price,
+          total_price: item.price * item.quantity,
+        });
+      } else if (usedSupabaseFallback) {
+        const { data: pv } = await admin
+          .from('product_variants')
+          .select('id, sku, title, product_id, product:products(title)')
+          .eq('product_id', item.productId)
+          .maybeSingle();
+
+        if (pv && UUID_RE.test(pv.product_id)) {
+          const fbProductArr = pv.product as { title?: string }[] | undefined;
+          orderItemRows.push({
+            order_id: order.id,
+            product_id: pv.product_id,
+            variant_id: pv.id,
+            product_title: fbProductArr?.[0]?.title ?? item.variantId,
+            variant_title: pv.title ?? item.variantId,
+            sku: pv.sku ?? null,
+            quantity: item.quantity,
+            unit_price: item.price,
+            total_price: item.price * item.quantity,
+          });
+        }
+      }
+    }
+
+    if (orderItemRows.length > 0) {
+      const { error: oiError } = await admin.from('order_items').insert(orderItemRows);
+      if (oiError) {
+        return { success: false, error: oiError.message, code: 'ORDER_ITEMS_FAILED' };
+      }
+    }
+
+    const checkoutResult: CheckoutResult = {
+      orderId: order.id,
+      status: 'pending',
+      total: grandTotal,
+      subtotal,
+      shippingCost: shipping,
+      taxAmount: tax,
+      reservationIds: [],
+    };
 
     await recordEvent({
       domain: 'order',
@@ -135,16 +236,14 @@ export async function initiateCheckoutAction(
       actorId: user.id,
       resourceType: 'orders',
       resourceId: checkoutResult.orderId,
-      message: `Checkout initiated — ${checkoutResult.total} USD, ${items.length} items`,
+      message: `Checkout initiated — ${checkoutResult.total} INR, ${items.length} items`,
       metadata: {
         itemCount: items.length,
         total: checkoutResult.total,
         hasPaymentIntent: !!paymentIntentId,
-        reservationCount: checkoutResult.reservationIds?.length ?? 0,
       },
     });
 
-    // Emit cart.checked_out commerce event
     await recordEvent({
       domain: 'order',
       severity: 'info',
@@ -152,12 +251,11 @@ export async function initiateCheckoutAction(
       actorId: user.id,
       resourceType: 'orders',
       resourceId: checkoutResult.orderId,
-      message: `Cart checked out — ${items.length} items, ${checkoutResult.total} USD`,
+      message: `Cart checked out — ${items.length} items, ${checkoutResult.total} INR`,
       metadata: {
         itemCount: items.length,
         orderTotal: checkoutResult.total,
         orderId: checkoutResult.orderId,
-        reservationIds: checkoutResult.reservationIds,
       },
     });
 
@@ -166,5 +264,3 @@ export async function initiateCheckoutAction(
     return { success: false, error: e.message, code: 'CHECKOUT_ACTION_ERROR' };
   }
 }
-
-

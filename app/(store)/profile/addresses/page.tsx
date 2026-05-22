@@ -240,6 +240,8 @@ export default function AddressesPage() {
   }, []);
 
   const editingAddress = addresses.find((a) => a.id === editingId);
+  const primaryAddress = addresses.find((a) => a.is_primary);
+  const otherAddresses = addresses.filter((a) => !a.is_primary);
 
   if (loading) {
     return (
@@ -264,57 +266,107 @@ export default function AddressesPage() {
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         className="mb-10 border-l-4 border-[#ddb7ff] pl-6"
       >
-        <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#ddb7ff] block mb-2">
-          [ DELIVERY // NODES ]
-        </span>
         <h1 className="font-display text-5xl sm:text-6xl md:text-7xl uppercase tracking-tight text-[#eadfed] leading-none">
-          Addresses
+          Saved Nodes
         </h1>
       </motion.header>
 
-      <div className="space-y-4">
-        <AnimatePresence mode="popLayout">
-          {addresses.map((addr) =>
-            editingId === addr.id ? (
+      {/* ═══ PRIMARY NODE ═══ */}
+      {primaryAddress && (
+        <section className="mb-10">
+          <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/[0.05]">
+            <h2 className="font-display text-xl uppercase text-[#ddb7ff]">Primary Node</h2>
+            <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/20">ACTIVE</span>
+          </div>
+          <AnimatePresence mode="popLayout">
+            {editingId === primaryAddress.id ? (
               <AddressForm
-                key={`form-${addr.id}`}
-                initial={addr}
-                onSave={(data) => handleEdit(addr.id, data)}
+                key={`form-${primaryAddress.id}`}
+                initial={primaryAddress}
+                onSave={(data) => handleEdit(primaryAddress.id, data)}
                 onCancel={() => setEditingId(null)}
               />
             ) : (
               <AddressCard
-                key={addr.id}
-                address={addr}
+                key={primaryAddress.id}
+                address={primaryAddress}
                 onEdit={setEditingId}
                 onDelete={handleDelete}
                 onSetPrimary={handleSetPrimary}
               />
-            )
-          )}
-        </AnimatePresence>
+            )}
+          </AnimatePresence>
+        </section>
+      )}
 
-        {isAdding && (
+      {/* ═══ OTHER NODES ═══ */}
+      {otherAddresses.length > 0 && (
+        <section className="mb-10">
+          <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/[0.05]">
+            <h2 className="font-display text-xl uppercase text-[#ddb7ff]">Saved Nodes</h2>
+            <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/20">{otherAddresses.length} NODE{otherAddresses.length !== 1 ? 'S' : ''}</span>
+          </div>
+          <div className="space-y-4">
+            <AnimatePresence mode="popLayout">
+              {otherAddresses.map((addr) =>
+                editingId === addr.id ? (
+                  <AddressForm
+                    key={`form-${addr.id}`}
+                    initial={addr}
+                    onSave={(data) => handleEdit(addr.id, data)}
+                    onCancel={() => setEditingId(null)}
+                  />
+                ) : (
+                  <AddressCard
+                    key={addr.id}
+                    address={addr}
+                    onEdit={setEditingId}
+                    onDelete={handleDelete}
+                    onSetPrimary={handleSetPrimary}
+                  />
+                )
+              )}
+            </AnimatePresence>
+          </div>
+        </section>
+      )}
+
+      {/* ═══ ADD NEW NODE ═══ */}
+      {isAdding && (
+        <div className="mb-10">
           <AddressForm
-            key="new-form"
             onSave={handleAdd}
             onCancel={() => setIsAdding(false)}
           />
-        )}
+        </div>
+      )}
 
-        {!isAdding && !editingId && (
-          <motion.button
-            type="button"
-            onClick={() => setIsAdding(true)}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="w-full py-5 border border-dashed border-white/[0.1] hover:border-[#ddb7ff]/30 bg-transparent font-mono text-[10px] uppercase tracking-[0.2em] text-white/30 hover:text-[#ddb7ff]/70 transition-all"
-          >
-            + Add New Node
-          </motion.button>
-        )}
-      </div>
+      {!addresses.length && !isAdding && !editingId && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="border border-white/[0.06] p-12 text-center mb-10"
+        >
+          <p className="font-display text-3xl uppercase text-white/15 mb-3">No nodes registered.</p>
+          <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/20 mb-6">
+            Add a delivery node to get started.
+          </p>
+        </motion.div>
+      )}
+
+      {!isAdding && !editingId && addresses.length > 0 && (
+        <motion.button
+          type="button"
+          onClick={() => setIsAdding(true)}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="w-full py-5 border border-dashed border-white/[0.1] hover:border-[#ddb7ff]/30 bg-transparent font-mono text-[10px] uppercase tracking-[0.2em] text-white/30 hover:text-[#ddb7ff]/70 transition-all"
+        >
+          + Add New Node
+        </motion.button>
+      )}
     </div>
   );
 }
