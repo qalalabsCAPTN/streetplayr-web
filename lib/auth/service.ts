@@ -149,6 +149,20 @@ export const AuthService = {
   },
 
   /**
+   * Starts the Facebook Auth flow.
+   */
+  async signInWithFacebook(redirectTo: string) {
+    const supabase = await createClient();
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'facebook',
+      options: {
+        redirectTo,
+      },
+    });
+    return { data, error };
+  },
+
+  /**
    * Signs out the current user.
    */
   async signOut() {

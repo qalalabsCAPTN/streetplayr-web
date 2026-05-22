@@ -115,3 +115,16 @@ export async function signInWithGoogleAction(redirectTo: string): Promise<Action
     return { success: false, error: 'Google login failed.' };
   }
 }
+
+/**
+ * Server Action: Start Facebook Login
+ */
+export async function signInWithFacebookAction(redirectTo: string): Promise<ActionResponse> {
+  try {
+    const result = await AuthService.signInWithFacebook(redirectTo);
+    if (result.error) return { success: false, error: result.error.message };
+    return { success: true, data: result.data };
+  } catch (e: any) {
+    return { success: false, error: 'Facebook login failed.' };
+  }
+}

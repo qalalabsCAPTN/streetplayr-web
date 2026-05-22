@@ -204,9 +204,17 @@ export default function ProductInfo({
           >
             {isAdded ? "Added" : "Add To Cart"}
           </button>
-          <button className="rounded-none border border-white/[0.12] text-white/50 hover:text-white/80 font-mono text-[10px] uppercase tracking-[0.18em] py-3 hover:bg-white/[0.04] transition-colors">
-            Virtual Try-On
-          </button>
+        </div>
+
+        {/* AI Try-On Placeholder */}
+        <div className="border border-white/[0.06] bg-[#16111b]/60 p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="font-mono text-[8px] uppercase tracking-[0.25em] text-[#ddb7ff]/40">AI Try-On</span>
+            <span className="px-2 py-0.5 border border-white/[0.06] font-mono text-[7px] uppercase tracking-[0.15em] text-white/20">Coming Soon</span>
+          </div>
+          <p className="font-body text-[10px] leading-relaxed text-white/25">
+            Virtual fitting experience. Preview this piece in real-time before committing.
+          </p>
         </div>
 
         {/* Accordion */}

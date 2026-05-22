@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Sign In | Street PlayR',
-  description: 'Sign in to your Street PlayR membership.',
+  title: 'Member Access | StreetPlayR',
+  description: 'Restricted access terminal.',
 };
 
 export default function LoginLayout({
