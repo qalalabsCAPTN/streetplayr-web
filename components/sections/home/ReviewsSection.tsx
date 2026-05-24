@@ -1,4 +1,14 @@
-const reviews = [
+interface Testimonial {
+  text: string;
+  author: string;
+}
+
+interface ReviewsSectionProps {
+  heading?: string;
+  reviews?: Testimonial[];
+}
+
+const defaultReviews = [
   {
     text: "The quality is unreal. You can feel the weight of the fabric the moment you put it on. Definitely worth every rupee.",
     author: "Arjun M.",
@@ -13,7 +23,12 @@ const reviews = [
   },
 ];
 
-export default function ReviewsSection() {
+export default function ReviewsSection({
+  heading = "What The Streets Say",
+  reviews,
+}: ReviewsSectionProps = {}) {
+  const activeReviews = reviews && reviews.length > 0 ? reviews : defaultReviews;
+
   return (
     <section className="py-14 md:py-24 pb-20 md:pb-[inherit] px-4 md:px-8 lg:px-12 w-full max-w-[min(98vw,2560px)] mx-auto">
       <div className="mb-4 md:mb-12">
@@ -22,18 +37,18 @@ export default function ReviewsSection() {
           <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/30">Testimonials</span>
         </div>
         <h2 className="font-display text-[clamp(32px,4.5vw,64px)] uppercase leading-[0.92] text-[#eadfed]">
-          What The Streets Say
+          {heading}
         </h2>
       </div>
 
       <div className="hidden md:grid md:grid-cols-3 gap-6">
-        {reviews.map((review, i) => (
+        {activeReviews.map((review, i) => (
           <ReviewCard key={i} review={review} />
         ))}
       </div>
 
       <div className="md:hidden flex gap-4 overflow-x-auto snap-x snap-mandatory no-scrollbar pb-0">
-        {reviews.map((review, i) => (
+        {activeReviews.map((review, i) => (
           <div key={i} className="min-w-[92vw] snap-center shrink-0">
             <div className="border border-white/[0.08] p-6 flex flex-col gap-4 rounded-xl bg-transparent">
               <div className="flex items-center gap-2">

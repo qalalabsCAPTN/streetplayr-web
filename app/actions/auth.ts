@@ -4,6 +4,8 @@ import { AuthService } from '@/lib/auth/service';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { grantWelcomeBonus } from '@/lib/nectar/engine';
+import { attributeSignup } from '@/lib/nectar/referrals';
 
 /**
  * Standardized Response Wrapper
@@ -78,22 +80,18 @@ export async function verifyOTPAction(phone: string, token: string, referredBy?:
           .from('profiles')
           .update({ referred_by: referredBy, joined_from: 'referral' })
           .eq('id', result.data.user.id);
-        // Create pending referral claim
-        const { data: referrer } = await admin
-          .from('profiles')
-          .select('id')
-          .eq('referral_code', referredBy)
-          .single();
-        if (referrer) {
-          await admin.from('referral_claims').insert({
-            referrer_id: referrer.id,
-            referred_id: result.data.user.id,
-            bonus_sprr: 0,
-            bonus_xp: 0,
-            status: 'pending',
-          });
-        }
+        // Wire: attributeSignup creates the referral_claim + referral_edges row
+        await attributeSignup(referredBy, result.data.user.id).catch(err =>
+          console.error('[auth] attributeSignup failed:', err)
+        );
       }
+    }
+
+    // Grant welcome bonus to new user (idempotent)
+    if (result.data?.user?.id) {
+      await grantWelcomeBonus(result.data.user.id).catch(err =>
+        console.error('[auth] grantWelcomeBonus failed:', err)
+      );
     }
 
     revalidatePath('/');
@@ -122,11 +120,29 @@ export async function signInWithEmailAction(email: string, password: string): Pr
 export async function signUpWithEmailAction(
   email: string,
   password: string,
-  fullName?: string
+  fullName?: string,
+  referredBy?: string
 ): Promise<ActionResponse> {
   try {
     const result = await AuthService.signUpWithEmail(email, password, fullName);
     if (result.error) return { success: false, error: result.error.message };
+
+    const userId = result.data?.user?.id;
+
+    if (userId) {
+      // Grant welcome bonus (idempotent)
+      await grantWelcomeBonus(userId).catch(err =>
+        console.error('[auth] grantWelcomeBonus failed:', err)
+      );
+
+      // Wire referral attribution (adapted from NECTAR 2.0 attributeSignup)
+      if (referredBy) {
+        await attributeSignup(referredBy, userId).catch(err =>
+          console.error('[auth] attributeSignup (email) failed:', err)
+        );
+      }
+    }
+
     return { success: true, data: result.data };
   } catch (e: any) {
     return { success: false, error: 'Sign up failed. Please try again.' };

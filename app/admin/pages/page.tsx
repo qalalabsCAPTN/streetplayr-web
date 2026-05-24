@@ -51,9 +51,58 @@ export default function PagesEditorPage() {
   const [selectedBlock, setSelectedBlock] = useState<Block | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [publishing, setPublishing] = useState(false);
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [siteId, setSiteId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'preview'>('preview');
+
+  const handleBlockChange = (updatedBlock: Block) => {
+    setBlocks(prev => prev.map(b => b.id === updatedBlock.id ? updatedBlock : b));
+    setSelectedBlock(updatedBlock);
+  };
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+
+    const reordered = [...blocks];
+    const draggedItem = reordered[draggedIndex];
+    reordered.splice(draggedIndex, 1);
+    reordered.splice(index, 0, draggedItem);
+    setBlocks(reordered);
+    setDraggedIndex(index);
+  };
+
+  const handleDragEnd = async () => {
+    if (draggedIndex === null || !siteId) return;
+    setDraggedIndex(null);
+
+    try {
+      const db = getSupabaseClient();
+      const orderedIds = blocks.map(b => b.id);
+      const { error } = await db.rpc('reorder_page_blocks', {
+        p_site_id: siteId,
+        p_page_slug: selectedPage,
+        p_block_ids: orderedIds,
+      });
+
+      if (error) {
+        showToast('Error saving block order');
+      } else {
+        showToast('Block order saved');
+        await loadBlocks();
+      }
+    } catch {
+      showToast('Error reordering blocks');
+    }
+  };
 
   // Resolve siteId for active platform
   useEffect(() => {
@@ -85,6 +134,43 @@ export default function PagesEditorPage() {
   function showToast(msg: string) {
     setToast(msg);
     setTimeout(() => setToast(null), 2500);
+  }
+
+  async function publishPage() {
+    if (!siteId) return;
+    setPublishing(true);
+    try {
+      const db = getSupabaseClient();
+      const { error } = await db.rpc('publish_page_blocks', {
+        p_site_id: siteId,
+        p_page_slug: selectedPage,
+      });
+
+      if (error) {
+        showToast('Error publishing page: ' + error.message);
+      } else {
+        // Trigger on-demand cache revalidation for the storefront homepage routes
+        try {
+          await fetch('/api/revalidate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ path: '/home' }),
+          });
+          await fetch('/api/revalidate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ path: '/' }),
+          });
+        } catch (err) {
+          console.error('[Publish Revalidate] on-demand trigger failed:', err);
+        }
+        showToast('Page published & CDN cache invalidated!');
+      }
+    } catch (err) {
+      showToast('Error publishing page');
+    } finally {
+      setPublishing(false);
+    }
   }
 
   async function addBlock(type: BlockType) {
@@ -184,90 +270,145 @@ export default function PagesEditorPage() {
               <span className="text-sm font-semibold text-text-primary capitalize">{selectedPage}</span>
               <span className="text-xs text-text-muted ml-2">{blocks.length} block{blocks.length !== 1 ? 's' : ''}</span>
             </div>
-            <div className="relative">
+
+            {/* View switcher toggle */}
+            <div className="flex items-center bg-base-overlay border border-border rounded-lg p-0.5 ml-4">
               <button
-                onClick={() => setShowAddMenu(!showAddMenu)}
-                className="btn-primary text-xs gap-1.5"
+                onClick={() => setViewMode('preview')}
+                className={cn(
+                  'px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all',
+                  viewMode === 'preview'
+                    ? 'bg-nectar-400 text-black shadow'
+                    : 'text-text-muted hover:text-text-primary'
+                )}
               >
-                <Plus className="h-3.5 w-3.5" />
-                Add Block
+                Live Preview
               </button>
-              {showAddMenu && (
-                <>
-                  <div className="fixed inset-0 z-10" onClick={() => setShowAddMenu(false)} />
-                  <div className="absolute right-0 top-full mt-1 z-20 w-72 bg-base-elevated border border-border rounded-xl shadow-overlay overflow-hidden animate-slide-in-up">
-                    <div className="p-2 max-h-80 overflow-y-auto">
-                      {BLOCK_TYPES.map(bt => (
-                        <button
-                          key={bt.type}
-                          onClick={() => addBlock(bt.type)}
-                          className="w-full flex items-start gap-3 px-3 py-2.5 rounded-lg hover:bg-base-overlay transition-colors text-left"
-                        >
-                          <span className="text-lg shrink-0 mt-0.5">{bt.icon}</span>
-                          <div>
-                            <div className="text-sm font-medium text-text-primary">{bt.label}</div>
-                            <div className="text-xs text-text-muted">{bt.description}</div>
-                          </div>
-                        </button>
-                      ))}
+              <button
+                onClick={() => setViewMode('list')}
+                className={cn(
+                  'px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all',
+                  viewMode === 'list'
+                    ? 'bg-nectar-400 text-black shadow'
+                    : 'text-text-muted hover:text-text-primary'
+                )}
+              >
+                List View
+              </button>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              {/* Atomic Publish button */}
+              <button
+                onClick={publishPage}
+                disabled={publishing || blocks.length === 0}
+                className={cn(
+                  "btn-secondary text-xs gap-1.5 border-[#ddb7ff]/20 text-[#ddb7ff] hover:bg-[#ddb7ff]/10 hover:text-white shrink-0",
+                  (publishing || blocks.length === 0) && "opacity-50 cursor-not-allowed"
+                )}
+              >
+                <Save className="h-3.5 w-3.5" />
+                {publishing ? 'Publishing…' : 'Publish Page'}
+              </button>
+
+              <div className="relative">
+                <button
+                  onClick={() => setShowAddMenu(!showAddMenu)}
+                  className="btn-primary text-xs gap-1.5"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Add Block
+                </button>
+                {showAddMenu && (
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={() => setShowAddMenu(false)} />
+                    <div className="absolute right-0 top-full mt-1 z-20 w-72 bg-base-elevated border border-border rounded-xl shadow-overlay overflow-hidden animate-slide-in-up">
+                      <div className="p-2 max-h-80 overflow-y-auto">
+                        {BLOCK_TYPES.map(bt => (
+                          <button
+                            key={bt.type}
+                            onClick={() => addBlock(bt.type)}
+                            className="w-full flex items-start gap-3 px-3 py-2.5 rounded-lg hover:bg-base-overlay transition-colors text-left"
+                          >
+                            <span className="text-lg shrink-0 mt-0.5">{bt.icon}</span>
+                            <div>
+                              <div className="text-sm font-medium text-text-primary">{bt.label}</div>
+                              <div className="text-xs text-text-muted">{bt.description}</div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                </>
-              )}
+                  </>
+                )}
+              </div>
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-2">
-            {loading && (
-              <div className="text-center py-12 text-text-muted text-sm">Loading blocks…</div>
-            )}
-            {!loading && blocks.length === 0 && (
-              <div className="text-center py-16 border border-dashed border-border rounded-xl">
-                <div className="text-3xl mb-3">📄</div>
-                <p className="text-sm text-text-muted">No blocks yet.</p>
-                <p className="text-xs text-text-muted mt-1">Click "Add Block" to start building this page.</p>
-              </div>
-            )}
-            {blocks.map((block, idx) => {
-              const bt = BLOCK_TYPES.find(b => b.type === block.block_type);
-              const isSelected = selectedBlock?.id === block.id;
-              return (
-                <div
-                  key={block.id}
-                  onClick={() => setSelectedBlock(block)}
-                  className={cn(
-                    'flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all',
-                    isSelected
-                      ? 'border-nectar-400/40 bg-nectar-400/5'
-                      : 'border-border bg-base-elevated hover:border-border-strong hover:bg-base-overlay',
-                    !block.is_visible && 'opacity-50'
-                  )}
-                >
-                  <GripVertical className="h-4 w-4 text-text-muted shrink-0 cursor-grab" />
-                  <span className="text-base shrink-0">{bt?.icon ?? '□'}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-text-primary">{bt?.label ?? block.block_type}</div>
-                    <div className="text-xs text-text-muted truncate">
-                      {block.content.title as string
-                        || block.content.text as string
-                        || block.content.heading as string
-                        || 'No content yet'}
+          {viewMode === 'preview' ? (
+            <InteractivePreview
+              blocks={blocks}
+              selectedBlockId={selectedBlock?.id}
+              onSelectBlock={setSelectedBlock}
+            />
+          ) : (
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              {loading && (
+                <div className="text-center py-12 text-text-muted text-sm">Loading blocks…</div>
+              )}
+              {!loading && blocks.length === 0 && (
+                <div className="text-center py-16 border border-dashed border-border rounded-xl">
+                  <div className="text-3xl mb-3">📄</div>
+                  <p className="text-sm text-text-muted">No blocks yet.</p>
+                  <p className="text-xs text-text-muted mt-1">Click "Add Block" to start building this page.</p>
+                </div>
+              )}
+              {blocks.map((block, idx) => {
+                const bt = BLOCK_TYPES.find(b => b.type === block.block_type);
+                const isSelected = selectedBlock?.id === block.id;
+                return (
+                  <div
+                    key={block.id}
+                    onClick={() => setSelectedBlock(block)}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, idx)}
+                    onDragOver={(e) => handleDragOver(e, idx)}
+                    onDragEnd={handleDragEnd}
+                    className={cn(
+                      'flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all',
+                      isSelected
+                        ? 'border-nectar-400/40 bg-nectar-400/5'
+                        : 'border-border bg-base-elevated hover:border-border-strong hover:bg-base-overlay',
+                      !block.is_visible && 'opacity-50',
+                      draggedIndex === idx && 'border-dashed border-nectar-400/60 opacity-30 bg-base-overlay'
+                    )}
+                  >
+                    <GripVertical className="h-4 w-4 text-text-muted shrink-0 cursor-grab" />
+                    <span className="text-base shrink-0">{bt?.icon ?? '□'}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-text-primary">{bt?.label ?? block.block_type}</div>
+                      <div className="text-xs text-text-muted truncate">
+                        {block.content.title as string
+                          || block.content.text as string
+                          || block.content.heading as string
+                          || 'No content yet'}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <span className="text-xs text-text-muted">#{idx + 1}</span>
+                      <button
+                        onClick={e => { e.stopPropagation(); toggleVisible(block); }}
+                        className="p-1 rounded hover:bg-base-overlay text-text-muted hover:text-text-secondary"
+                      >
+                        {block.is_visible ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+                      </button>
+                      {isSelected && <ChevronRight className="h-3.5 w-3.5 text-nectar-400" />}
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <span className="text-xs text-text-muted">#{idx + 1}</span>
-                    <button
-                      onClick={e => { e.stopPropagation(); toggleVisible(block); }}
-                      className="p-1 rounded hover:bg-base-overlay text-text-muted hover:text-text-secondary"
-                    >
-                      {block.is_visible ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
-                    </button>
-                    {isSelected && <ChevronRight className="h-3.5 w-3.5 text-nectar-400" />}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Right: block content editor */}
@@ -278,6 +419,7 @@ export default function PagesEditorPage() {
               block={selectedBlock}
               onSave={saveBlock}
               onDelete={deleteBlock}
+              onChange={handleBlockChange}
               saving={saving}
             />
           ) : (
@@ -300,18 +442,23 @@ function BlockContentEditor({
   block,
   onSave,
   onDelete,
+  onChange,
   saving,
 }: {
   block: Block;
   onSave: (b: Block) => void;
   onDelete: (id: string) => void;
+  onChange: (b: Block) => void;
   saving: boolean;
 }) {
-  const [content, setContent] = useState<Record<string, unknown>>(block.content);
-  const [isVisible, setIsVisible] = useState(block.is_visible);
+  const content = block.content;
+  const isVisible = block.is_visible;
 
   function setField(key: string, value: unknown) {
-    setContent(c => ({ ...c, [key]: value }));
+    onChange({
+      ...block,
+      content: { ...block.content, [key]: value },
+    });
   }
 
   const FIELDS: Record<BlockType, { key: string; label: string; type: 'text' | 'textarea' | 'url' | 'color' | 'number' | 'toggle' }[]> = {
@@ -374,6 +521,23 @@ function BlockContentEditor({
       { key: 'style', label: 'Style (solid/dashed)', type: 'text' },
       { key: 'color', label: 'Color',                type: 'color' },
     ],
+    brand_story: [
+      { key: 'heading',    label: 'Heading (HTML/Text)', type: 'text' },
+      { key: 'subheading', label: 'Subheading',          type: 'text' },
+      { key: 'cta_label',  label: 'CTA Button Label',    type: 'text' },
+      { key: 'cta_href',   label: 'CTA Link',            type: 'url' },
+      { key: 'video_url',  label: 'Background Video URL', type: 'url' },
+    ],
+    lookbook: [
+      { key: 'title',       label: 'Lookbook Title',     type: 'text' },
+      { key: 'description', label: 'Description',        type: 'textarea' },
+      { key: 'cta_label',   label: 'CTA Button Label',   type: 'text' },
+      { key: 'cta_href',    label: 'CTA Link',           type: 'url' },
+      { key: 'image_url',   label: 'Promo Cover Image URL', type: 'url' },
+    ],
+    reviews: [
+      { key: 'heading', label: 'Testimonials Title', type: 'text' },
+    ],
   };
 
   const fields = FIELDS[block.block_type] ?? [];
@@ -411,7 +575,7 @@ function BlockContentEditor({
         <div className="flex items-center justify-between bg-base-elevated rounded-lg px-4 py-3">
           <span className="text-sm text-text-primary">Visible on page</span>
           <button
-            onClick={() => setIsVisible(v => !v)}
+            onClick={() => onChange({ ...block, is_visible: !block.is_visible })}
             className={cn(
               'relative w-10 h-5 rounded-full transition-colors',
               isVisible ? 'bg-nectar-400' : 'bg-base-overlay border border-border'
@@ -470,5 +634,272 @@ function BlockContentEditor({
       </div>
     </div>
   );
+}
+
+// ── Interactive Preview Sub-component ──────────────────────────
+
+function InteractivePreview({
+  blocks,
+  selectedBlockId,
+  onSelectBlock,
+}: {
+  blocks: Block[];
+  selectedBlockId?: string;
+  onSelectBlock: (b: Block) => void;
+}) {
+  if (!blocks.length) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-8 text-text-muted text-sm">
+        No blocks to preview. Add blocks to see them here.
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 bg-[#120e17] overflow-y-auto p-5 flex justify-center">
+      {/* Device wrapper / Browser Window frame */}
+      <div className="w-full max-w-4xl bg-[#16111b] border border-white/[0.08] rounded-2xl shadow-[0_30px_100px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col aspect-[16/10] min-h-[500px]">
+        {/* Browser header tab bar */}
+        <div className="bg-[#1c1622] border-b border-white/[0.06] px-4 py-2.5 flex items-center gap-3 shrink-0 select-none">
+          <div className="flex gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-rose-500/80" />
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
+          </div>
+          <div className="flex-1 max-w-xs mx-auto bg-base-overlay/40 border border-white/[0.04] rounded-lg py-0.5 px-3 text-[10px] text-text-muted font-mono truncate text-center">
+            streetplayr.com/preview
+          </div>
+        </div>
+
+        {/* Dynamic page container */}
+        <div className="flex-1 overflow-y-auto bg-[#16111b] text-[#eadfed] divide-y divide-white/[0.02]">
+          {blocks.map((block) => {
+            const isSelected = selectedBlockId === block.id;
+            return (
+              <div
+                key={block.id}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSelectBlock(block);
+                }}
+                className={cn(
+                  'relative group cursor-pointer border-2 transition-all',
+                  isSelected
+                    ? 'border-nectar-400/80 ring-4 ring-nectar-400/10 z-10'
+                    : 'border-transparent hover:border-white/10',
+                  !block.is_visible && 'opacity-30'
+                )}
+              >
+                {/* Block hover label */}
+                <div className="absolute top-2 left-2 z-30 bg-nectar-400 text-black text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded shadow opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                  {block.block_type.replace('_', ' ')}
+                </div>
+
+                {/* Actual rendering of block in preview */}
+                <PreviewBlockSwitch block={block} />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PreviewBlockSwitch({ block }: { block: Block }) {
+  const c = block.content as Record<string, any>;
+
+  switch (block.block_type) {
+    case 'announcement_bar':
+      return (
+        <div
+          className="w-full py-2 px-4 text-center text-[10px] font-semibold"
+          style={{
+            backgroundColor: (c.bg_color as string) ?? '#F5A800',
+            color: (c.text_color as string) ?? '#000000',
+          }}
+        >
+          {c.text as string || 'FREE SHIPPING ON ORDERS ABOVE ₹999'}
+        </div>
+      );
+
+    case 'hero':
+      return (
+        <div
+          className="relative min-h-[200px] flex items-center justify-center overflow-hidden bg-base-elevated py-8"
+          style={
+            Boolean(c.bg_image_url)
+              ? { backgroundImage: `url(${c.bg_image_url})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+              : {}
+          }
+        >
+          {Boolean(c.bg_image_url) && (
+            <div
+              className="absolute inset-0 bg-black"
+              style={{ opacity: (c.overlay_opacity as number) ?? 0.4 }}
+            />
+          )}
+          <div className="relative z-10 text-center px-4">
+            <h1 className="text-xl md:text-2xl font-black uppercase tracking-tight text-white mb-2">
+              {c.title as string || 'Enter The Play'}
+            </h1>
+            <p className="text-[10px] text-white/80 max-w-sm mx-auto leading-relaxed">
+              {c.subtitle as string || 'Streetwear for the ones who move different.'}
+            </p>
+            {c.cta_label && (
+              <span className="inline-block mt-3 px-4 py-1.5 bg-white text-black text-[9px] font-bold uppercase tracking-wider rounded">
+                {c.cta_label as string}
+              </span>
+            )}
+          </div>
+        </div>
+      );
+
+    case 'text_rich':
+      return (
+        <div className="max-w-xl mx-auto px-4 py-8 text-center">
+          {c.heading && <h3 className="text-sm font-bold mb-2 text-white">{c.heading as string}</h3>}
+          <div
+            className="text-[11px] text-text-muted leading-relaxed"
+            dangerouslySetInnerHTML={{ __html: (c.body_html as string) || 'Rich HTML content goes here.' }}
+          />
+        </div>
+      );
+
+    case 'image_full':
+      return (
+        <div className="w-full">
+          {c.image_url ? (
+            <img src={c.image_url as string} alt="" className="w-full h-32 object-cover" />
+          ) : (
+            <div className="w-full h-24 bg-base-overlay border border-border flex items-center justify-center text-[10px] text-text-muted">
+              [Full Width Image]
+            </div>
+          )}
+        </div>
+      );
+
+    case 'cta_banner':
+      return (
+        <div
+          className="py-8 px-4 text-center"
+          style={{ backgroundColor: (c.bg_color as string) ?? '#111111' }}
+        >
+          <h3 className="text-sm font-bold text-white mb-1">{c.heading as string || 'CTA Heading'}</h3>
+          <p className="text-[10px] text-white/70 mb-4 max-w-xs mx-auto leading-relaxed">{c.subtext as string || 'Description text'}</p>
+          {c.cta_label && (
+            <span
+              className="inline-block px-4 py-1.5 text-[9px] font-bold uppercase tracking-wider rounded"
+              style={{
+                backgroundColor: (c.accent_color as string) ?? '#F5A800',
+                color: '#000000',
+              }}
+            >
+              {c.cta_label as string}
+            </span>
+          )}
+        </div>
+      );
+
+    case 'countdown_timer':
+      return (
+        <div className="py-8 px-4 text-center bg-base-overlay border-y border-border">
+          <h3 className="text-xs font-semibold text-text-primary mb-3">{c.heading as string || 'New Drop Countdown'}</h3>
+          <div className="flex justify-center gap-4">
+            {['Days', 'Hours', 'Mins', 'Secs'].map((unit) => (
+              <div key={unit} className="flex flex-col items-center">
+                <span className="text-base font-black text-nectar-400">00</span>
+                <span className="text-[8px] text-text-muted uppercase tracking-widest">{unit}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+
+    case 'product_carousel':
+      return (
+        <div className="py-8 px-4 bg-base-surface">
+          <h3 className="text-xs font-semibold text-text-primary mb-3">{c.heading as string || 'New Drops'}</h3>
+          <div className="grid grid-cols-3 gap-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="aspect-[3/4] bg-base-elevated rounded-xl p-2 border border-border flex flex-col justify-end">
+                <div className="h-2 w-12 bg-white/10 rounded mb-1" />
+                <div className="h-2 w-8 bg-nectar-400/20 rounded" />
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+
+    case 'collection_grid':
+      return (
+        <div className="py-8 px-4 bg-base-surface border-t border-border">
+          <h3 className="text-xs font-semibold text-text-primary mb-3">{c.heading as string || 'Shop Collections'}</h3>
+          <div className="grid grid-cols-2 gap-3">
+            {Array.from({ length: 2 }).map((_, i) => (
+              <div key={i} className="aspect-video bg-base-elevated rounded-xl border border-border flex items-center justify-center text-[10px] text-text-muted">
+                [Collection Tile]
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+
+    case 'video_embed':
+      return (
+        <div className="px-4 py-6">
+          <div className="aspect-video bg-black rounded-xl border border-border flex items-center justify-center text-xs text-text-muted">
+            🎥 Embedded Video Player
+          </div>
+        </div>
+      );
+
+    case 'spacer':
+      return <div style={{ height: `${Math.min(100, (c.height_px as number) ?? 40)}px` }} className="bg-white/[0.02]" />;
+
+    case 'divider':
+      return (
+        <div className="px-4 py-2">
+          <hr
+            className="border-t"
+            style={{
+              borderStyle: (c.style as string) ?? 'solid',
+              borderColor: (c.color as string) ?? 'rgba(255,255,255,0.1)',
+            }}
+          />
+        </div>
+      );
+
+    case 'brand_story':
+      return (
+        <div className="py-6 px-4 bg-base-surface border-t border-border">
+          <h3 className="text-xs font-semibold text-text-primary mb-2">{c.heading as string || 'Brand Story'}</h3>
+          <p className="text-[10px] text-[#ddb7ff]/80">Dynamic Brand Vision & narrative blocks</p>
+        </div>
+      );
+
+    case 'lookbook':
+      return (
+        <div className="py-6 px-4 bg-base-surface border-t border-border">
+          <h3 className="text-xs font-semibold text-text-primary mb-2">{c.title as string || 'Lookbook Collection'}</h3>
+          <p className="text-[10px] text-[#ddb7ff]/80">SS26 Visual Grid Slider</p>
+        </div>
+      );
+
+    case 'reviews':
+      return (
+        <div className="py-6 px-4 bg-base-surface border-t border-border">
+          <h3 className="text-xs font-semibold text-text-primary mb-2">{c.heading as string || 'What The Streets Say'}</h3>
+          <p className="text-[10px] text-[#ddb7ff]/80">Customer Testimonials & Ratings</p>
+        </div>
+      );
+
+    default:
+      return (
+        <div className="py-4 text-center text-xs text-text-muted border border-dashed border-border bg-base-elevated">
+          [{block.block_type}]
+        </div>
+      );
+  }
 }
 

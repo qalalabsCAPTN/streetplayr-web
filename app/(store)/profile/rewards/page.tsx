@@ -6,6 +6,7 @@ import { deriveTier, TIER_THRESHOLDS, getActiveCampaigns, getStreakLabel, getTie
 import { getProgression } from '@/lib/nectar/progression';
 import { getReferralStats } from '@/lib/nectar/referrals';
 import { ReferralShare } from '@/components/profile/ReferralShare';
+import { RedeemButton } from '@/components/profile/RedeemButton';
 
 function formatNumber(n: number): string {
   return n.toLocaleString('en-IN');
@@ -154,10 +155,18 @@ export default async function RewardsPage() {
               <div key={c.id} className="bg-[#1f1a23] border border-white/[0.06] p-5 hover:border-[#ddb7ff]/30 transition-colors">
                 <h3 className="font-display text-xl uppercase text-[#eadfed]">{c.name}</h3>
                 {c.description && <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/30 mt-2">{c.description}</p>}
-                <div className="flex gap-4 mt-4">
+                <div className="flex gap-4 mt-4 mb-5">
                   {c.sprr_reward > 0 && <span className="font-mono text-[9px] text-[#ddb7ff]">+{formatNumber(c.sprr_reward)} SP-RR</span>}
                   {c.xp_reward > 0 && <span className="font-mono text-[9px] text-white/40">+{formatNumber(c.xp_reward)} XP</span>}
                 </div>
+                {c.sprr_reward > 0 && (
+                  <RedeemButton
+                    currentBalance={sprr}
+                    campaignName={c.name}
+                    campaignId={c.id}
+                    sprrCost={c.sprr_reward}
+                  />
+                )}
               </div>
             ))}
           </div>

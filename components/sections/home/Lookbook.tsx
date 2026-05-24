@@ -21,7 +21,22 @@ function FadeIn({ children, delay = 0, className = "" }: { children: React.React
   );
 }
 
-const lookbookItems = [
+interface LookbookItem {
+  id: string;
+  type: "video" | "youtube" | "placeholder";
+  src: string;
+  label: string;
+  href: string;
+  widthClass?: string;
+}
+
+interface LookbookProps {
+  title?: string;
+  description?: string;
+  items?: LookbookItem[];
+}
+
+const defaultLookbookItems = [
   {
     id: "vid-1",
     type: "video" as const,
@@ -56,7 +71,13 @@ const lookbookItems = [
   },
 ];
 
-export default function Lookbook() {
+export default function Lookbook({
+  title = "Lookbook",
+  description = "Lookbook",
+  items,
+}: LookbookProps = {}) {
+  const activeItems = items && items.length > 0 ? items : defaultLookbookItems;
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const { needsNavigation, canScrollPrev, canScrollNext } = useScrollNavigation(scrollRef);
 
@@ -79,7 +100,7 @@ export default function Lookbook() {
             <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/30">Lookbook</span>
           </div>
           <h2 className="font-display text-[clamp(32px,4.5vw,64px)] uppercase leading-[0.92] text-[#eadfed]">
-            Lookbook
+            {title}
           </h2>
         </FadeIn>
       </div>
@@ -99,8 +120,10 @@ export default function Lookbook() {
           ref={scrollRef}
           className="flex items-stretch gap-3 px-4 md:px-8 lg:px-12 max-w-[min(98vw,2560px)] mx-auto overflow-x-auto pb-6 no-scrollbar h-[52vw] min-h-[320px] max-h-[580px]"
         >
-          {lookbookItems.map((item, i) => (
-            <FadeIn key={item.id} delay={0.1 * i} className={`${item.widthClass} shrink-0 h-full`}>
+          {activeItems.map((item, i) => {
+            const widthClass = item.widthClass || ['w-[36vw] min-w-[220px] max-w-[560px]', 'w-[22vw] min-w-[160px] max-w-[340px]', 'w-[28vw] min-w-[180px] max-w-[440px]', 'w-[32vw] min-w-[200px] max-w-[500px]'][i % 4];
+            return (
+              <FadeIn key={item.id} delay={0.1 * i} className={`${widthClass} shrink-0 h-full`}>
               <Link
                 href={item.href}
                 data-card
@@ -190,8 +213,9 @@ export default function Lookbook() {
                 </div>
               </Link>
             </FadeIn>
-          ))}
-        </div>
+          );
+        })}
+      </div>
 
         <button
           onClick={() => scroll("next")}

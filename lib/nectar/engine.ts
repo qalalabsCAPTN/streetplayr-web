@@ -115,6 +115,50 @@ export async function claimBonus(userId: string, campaignId: string): Promise<{ 
 }
 
 /**
+ * Grant a welcome bonus to a new user.
+ * Idempotent — checks welcome_bonus_granted before granting.
+ * Adapted from NECTAR 2.0 ReferralService convertReferral welcome bonus pattern.
+ */
+export const WELCOME_BONUS_SPRR = 50;
+export const WELCOME_BONUS_XP = 25;
+
+export async function grantWelcomeBonus(userId: string): Promise<void> {
+  const admin = createAdminClient();
+
+  // Idempotency check — only grant once
+  const { data: profile } = await admin
+    .from('profiles')
+    .select('welcome_bonus_granted, sprr_balance, xp')
+    .eq('id', userId)
+    .single();
+
+  if (!profile || profile.welcome_bonus_granted) return;
+
+  const newSprr = (profile.sprr_balance ?? 0) + WELCOME_BONUS_SPRR;
+  const newXp = (profile.xp ?? 0) + WELCOME_BONUS_XP;
+
+  // Atomic update: balance + flag in single query
+  await admin.from('profiles').update({
+    sprr_balance: newSprr,
+    xp: newXp,
+    welcome_bonus_granted: true,
+  }).eq('id', userId);
+
+  // Log wallet transaction
+  try {
+    await admin.from('wallet_transactions').insert({
+      user_id: userId,
+      type: 'earned',
+      delta: WELCOME_BONUS_SPRR,
+      source: 'welcome_bonus',
+      description: 'Welcome bonus — thanks for joining StreetPlayR',
+    });
+  } catch (err) {
+    console.error('[welcome_bonus] wallet_transactions insert failed:', err);
+  }
+}
+
+/**
  * Process a referral: award the referrer when the referred user completes their first order.
  */
 export async function processReferral(referredUserId: string): Promise<void> {

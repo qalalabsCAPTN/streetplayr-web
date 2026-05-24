@@ -4,7 +4,25 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 
-export default function HomeHero() {
+interface HomeHeroProps {
+  title?: string;
+  subtitle?: string;
+  ctaLabel?: string;
+  ctaHref?: string;
+  bgImageUrl?: string;
+  bgVideoUrl?: string;
+  overlayOpacity?: number;
+}
+
+export default function HomeHero({
+  title = "Dress for\npressure.",
+  subtitle,
+  ctaLabel = "Enter the Drop",
+  ctaHref = "/collection",
+  bgImageUrl,
+  bgVideoUrl = "/assets/home-page-banner.mp4",
+  overlayOpacity = 0.4,
+}: HomeHeroProps = {}) {
   const router = useRouter();
   const [joinOpen, setJoinOpen] = useState(false);
 
@@ -31,15 +49,35 @@ export default function HomeHero() {
   return (
     <section className="relative min-h-screen w-full flex flex-col justify-end overflow-hidden bg-[#16111b] isolate">
       {/* Video Background */}
-      <video
-        className="absolute inset-0 w-full h-full object-cover z-[-3]"
-        src="/assets/home-page-banner.mp4"
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="auto"
-      />
+      {bgVideoUrl && !bgImageUrl && (
+        <video
+          className="absolute inset-0 w-full h-full object-cover z-[-3]"
+          src={bgVideoUrl}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+        />
+      )}
+
+      {/* Image Background */}
+      {bgImageUrl && (
+        <img
+          className="absolute inset-0 w-full h-full object-cover z-[-3]"
+          src={bgImageUrl}
+          alt={title}
+        />
+      )}
+
+      {/* Dynamic Overlay Dark Tint if Image background is present */}
+      {bgImageUrl && (
+        <div
+          className="absolute inset-0 bg-black z-[-2] pointer-events-none"
+          style={{ opacity: overlayOpacity }}
+        />
+      )}
+
       <div className="absolute inset-0 z-[-2] pointer-events-none"
         style={{
           background:
@@ -62,17 +100,20 @@ export default function HomeHero() {
 
       {/* Hero Content */}
       <div className="relative z-[2] flex flex-col items-start gap-4 px-[6vw] pb-16 max-w-[880px]">
-        <h1 className="font-display text-[clamp(64px,10vw,168px)] leading-[0.88] tracking-[0.01em] uppercase text-[#eadfed] m-0 max-w-[7.8ch]">
-          Dress for
-          <br />
-          pressure.
+        <h1 className="font-display text-[clamp(64px,10vw,168px)] leading-[0.88] tracking-[0.01em] uppercase text-[#eadfed] m-0 max-w-[7.8ch] whitespace-pre-line">
+          {title}
         </h1>
+        {subtitle && (
+          <p className="font-body text-base text-white/70 max-w-md mt-2">
+            {subtitle}
+          </p>
+        )}
         <div className="flex gap-3 mt-4">
           <button
             className="inline-flex items-center gap-3 px-7 py-4 bg-[#eadfed] text-[#16111b] border border-[#eadfed] font-mono text-[11px] tracking-[0.24em] font-bold uppercase transition-colors hover:bg-[#ddb7ff] rounded-xl"
-            onClick={() => router.push("/collection")}
+            onClick={() => router.push(ctaHref)}
           >
-            Enter the Drop
+            {ctaLabel}
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="5" y1="12" x2="19" y2="12" />
               <polyline points="12 5 19 12 12 19" />

@@ -17,7 +17,10 @@ export type BlockType =
   | 'collection_grid'
   | 'video_embed'
   | 'spacer'
-  | 'divider';
+  | 'divider'
+  | 'brand_story'
+  | 'lookbook'
+  | 'reviews';
 
 export interface PageBlock {
   id: string;
@@ -29,10 +32,11 @@ export interface PageBlock {
   is_visible: boolean;
 }
 
-/** Fetch all visible blocks for a page, ordered. Returns [] on error. */
+/** Fetch all visible blocks for a page, ordered. Supports preview draft vs published content. */
 export async function getPageBlocks(
   pageSlug: string,
-  siteSlug: string = 'streetplayr'
+  siteSlug: string = 'streetplayr',
+  isPreview: boolean = false
 ): Promise<PageBlock[]> {
   const supabase = createClient();
 
@@ -45,9 +49,10 @@ export async function getPageBlocks(
 
   if (!site) return [];
 
+  // Query both content and published_content to support robust preview fallback
   const { data, error } = await supabase
     .from('page_blocks')
-    .select('id, site_id, page_slug, block_type, content, block_order, is_visible')
+    .select('id, site_id, page_slug, block_type, content, published_content, block_order, is_visible')
     .eq('site_id', site.id)
     .eq('page_slug', pageSlug)
     .eq('is_visible', true)
@@ -58,5 +63,20 @@ export async function getPageBlocks(
     return [];
   }
 
-  return (data ?? []) as PageBlock[];
+  return (data ?? []).map((b: any) => {
+    // Staging Preview serves content (draft); Production serves published_content (falling back to draft)
+    const activeContent = isPreview
+      ? b.content
+      : (b.published_content ?? b.content ?? {});
+
+    return {
+      id: b.id,
+      site_id: b.site_id,
+      page_slug: b.page_slug,
+      block_type: b.block_type,
+      content: activeContent,
+      block_order: b.block_order,
+      is_visible: b.is_visible
+    };
+  }) as PageBlock[];
 }
