@@ -48,14 +48,14 @@ function AddressCard({
           <button
             type="button"
             onClick={() => onEdit(address.id)}
-            className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/30 hover:text-white transition-colors"
+            className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/30 hover:text-white transition-colors py-2"
           >
             Edit
           </button>
           <button
             type="button"
             onClick={() => onDelete(address.id)}
-            className="font-mono text-[9px] uppercase tracking-[0.15em] text-red-400/50 hover:text-red-400 transition-colors"
+            className="font-mono text-[10px] uppercase tracking-[0.15em] text-red-400/50 hover:text-red-400 transition-colors py-2"
           >
             Remove
           </button>
@@ -82,7 +82,7 @@ function AddressCard({
           <button
             type="button"
             onClick={() => onSetPrimary(address.id)}
-            className="font-mono text-[8px] uppercase tracking-[0.15em] text-[#ddb7ff]/[0.5] hover:text-[#ddb7ff] transition-colors"
+            className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#ddb7ff]/[0.5] hover:text-[#ddb7ff] transition-colors py-2"
           >
             Set as Primary
           </button>
@@ -180,7 +180,7 @@ function AddressForm({
           type="button"
           onClick={onCancel}
           disabled={saving}
-          className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/30 hover:text-white transition-colors"
+          className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/30 hover:text-white transition-colors py-2"
         >
           Cancel
         </button>

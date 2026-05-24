@@ -9,7 +9,7 @@ const NinjaStar = dynamic(() => import("@/components/ui/NinjaStar"), {
 
 export default function Footer() {
   return (
-    <footer className="w-full bg-[#16111b] border-t border-white/[0.10] px-4 md:px-6 relative overflow-hidden">
+    <footer className="w-full bg-[#16111b] border-t border-white/[0.10] px-4 md:px-6 pb-20 md:pb-0 relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(700px_360px_at_8%_0%,rgba(221,183,255,0.08),transparent_60%),radial-gradient(520px_320px_at_92%_100%,rgba(255,87,26,0.07),transparent_62%)]" />
 
       <div className="relative py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 md:gap-8 lg:gap-6">

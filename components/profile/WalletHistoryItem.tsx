@@ -33,31 +33,30 @@ export default function WalletHistoryItem({ tx, index = 0 }: WalletHistoryItemPr
 
   return (
     <motion.div
-      className="wallet-tx-item"
+      className="flex items-center gap-4 px-4 py-4 bg-[#1f1a23] border border-white/[0.06] rounded-xl"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.06, ease: [0.16, 1, 0.3, 1] }}
     >
       <div
-        className="wallet-tx-icon"
+        className="w-8 h-8 flex items-center justify-center font-mono text-lg shrink-0"
         aria-hidden="true"
         style={{ color: cfg.color }}
       >
         {cfg.symbol}
       </div>
 
-      <div className="wallet-tx-meta">
-        <p className="wallet-tx-source">{tx.source}</p>
-        <p className="wallet-tx-date">{formatDate(tx.createdAt)}</p>
+      <div className="flex-1 min-w-0">
+        <p className="font-mono text-[11px] uppercase tracking-[0.15em] text-white/60 truncate">{tx.source}</p>
+        <p className="font-mono text-[9px] text-white/30 mt-0.5">{formatDate(tx.createdAt)}</p>
       </div>
 
       <div
-        className="wallet-tx-delta"
-        style={{ color: isPositive ? 'var(--sp-text-primary)' : 'var(--sp-text-secondary)' }}
+        className="text-right shrink-0"
         aria-label={`${formatDelta(tx.delta)} SP-RR`}
       >
-        <span className="wallet-tx-delta-num">{formatDelta(tx.delta)}</span>
-        <span className="wallet-tx-delta-unit">SP-RR</span>
+        <span className="font-mono text-sm tabular-nums" style={{ color: isPositive ? 'var(--sp-text-primary)' : 'var(--sp-text-secondary)' }}>{formatDelta(tx.delta)}</span>
+        <span className="font-mono text-[9px] text-white/35 block">SP-RR</span>
       </div>
     </motion.div>
   );

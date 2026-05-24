@@ -58,7 +58,7 @@ function SocialAuthButton({ provider, icon, label, action, isPending: externalPe
       type="button"
       onClick={handleLogin}
       disabled={externalPending}
-      className="flex items-center justify-center gap-2.5 w-full py-3 border border-white/[0.10] font-mono text-[10px] uppercase tracking-[0.22em] text-white/55 hover:text-[#eadfed] hover:border-white/[0.20] transition-all duration-300 disabled:opacity-40"
+      className="flex items-center justify-center gap-2.5 w-full py-3.5 border border-white/[0.10] font-mono text-[10px] uppercase tracking-[0.22em] text-white/55 hover:text-[#eadfed] hover:border-white/[0.20] transition-all duration-300 disabled:opacity-40"
     >
       {icon}
       <span>{label}</span>
@@ -76,7 +76,7 @@ function LoginForm() {
       <div className="border border-white/[0.08] bg-[#1b1620]/60">
         <div className="p-6 sm:p-8">
           <div className="flex justify-center mb-8">
-            <img src="/assets/streetplayr-logo.png" alt="StreetPlayR" className="h-10 w-auto object-contain opacity-90" />
+            <img src="/assets/streetplayr-logo.png" alt="StreetPlayR" width="160" height="40" className="h-10 w-auto object-contain opacity-90" />
           </div>
 
           <div className="text-center mb-8">
@@ -96,7 +96,7 @@ function LoginForm() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder=""
-                className="w-full bg-transparent border-b border-white/[0.10] py-3 font-mono text-[13px] text-[#eadfed] outline-none focus:border-[#ddb7ff]/40 transition-colors placeholder:text-white/[0.08]"
+                className="w-full bg-transparent border-b border-white/[0.10] py-4 font-mono text-[13px] text-[#eadfed] outline-none focus:border-[#ddb7ff]/40 transition-colors placeholder:text-white/[0.08]"
               />
             </div>
 
@@ -109,14 +109,14 @@ function LoginForm() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder=""
-                className="w-full bg-transparent border-b border-white/[0.10] py-3 font-mono text-[13px] text-[#eadfed] outline-none focus:border-[#ddb7ff]/40 transition-colors placeholder:text-white/[0.08]"
+                className="w-full bg-transparent border-b border-white/[0.10] py-4 font-mono text-[13px] text-[#eadfed] outline-none focus:border-[#ddb7ff]/40 transition-colors placeholder:text-white/[0.08]"
               />
             </div>
 
             <div className="flex justify-end pt-1">
               <Link
                 href="#"
-                className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/45 hover:text-[#ddb7ff]/60 transition-colors"
+                className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/45 hover:text-[#ddb7ff]/60 transition-colors py-2 inline-block"
               >
                 Forgot Password
               </Link>

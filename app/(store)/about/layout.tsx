@@ -16,7 +16,7 @@ export default function AboutLayout({
   return (
     <div className="min-h-screen bg-[#16111b]">
       <Navbar />
-      <main>{children}</main>
+      <main className="pb-28 md:pb-0">{children}</main>
       <Footer />
     </div>
   );

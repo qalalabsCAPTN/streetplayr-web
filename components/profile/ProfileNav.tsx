@@ -157,7 +157,7 @@ export function ProfileTopTabs() {
               key={href}
               href={href}
               id={`profile-pill-${label.toLowerCase()}`}
-              className={`flex items-center gap-2 py-1.5 px-4 rounded-full border font-mono text-[9px] uppercase tracking-[0.15em] whitespace-nowrap transition-all ${
+              className={`flex items-center gap-2 py-2.5 px-4 rounded-full border font-mono text-[10px] uppercase tracking-[0.15em] whitespace-nowrap transition-all ${
                 active
                   ? 'bg-[#ddb7ff]/20 border-[#ddb7ff]/40 text-[#ddb7ff]'
                   : 'border-white/[0.08] text-white/35 hover:text-white/60 hover:border-white/[0.15]'

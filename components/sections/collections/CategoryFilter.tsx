@@ -21,7 +21,7 @@ export default function CategoryFilter({ activeCategory, onSelect }: CategoryFil
                 <button
                   key={category}
                   onClick={() => onSelect(category)}
-                  className="group relative whitespace-nowrap pb-2 outline-none"
+                  className="group relative whitespace-nowrap py-2 outline-none min-h-[44px]"
                   data-cursor="button"
                 >
                   <span

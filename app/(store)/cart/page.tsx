@@ -172,7 +172,7 @@ export default function CartPage() {
       </motion.div>
 
       {/* Mobile sticky checkout bar */}
-      <div className="md:hidden fixed bottom-20 left-0 right-0 z-40 px-4 pointer-events-none">
+      <div className="md:hidden fixed bottom-28 left-0 right-0 z-40 px-4 pointer-events-none">
         <div className="bg-[#2e2832] border border-white/[0.08] rounded-xl px-4 py-3 shadow-[0_8px_32px_rgba(0,0,0,0.5)] pointer-events-auto">
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -181,7 +181,7 @@ export default function CartPage() {
             </div>
             <Link
               href="/checkout"
-              className="inline-flex items-center gap-1.5 bg-[#ddb7ff] text-[#16111b] rounded-lg px-5 py-2.5 text-xs uppercase tracking-[0.15em] font-medium hover:opacity-90 transition-opacity"
+              className="inline-flex items-center gap-1.5 bg-[#ddb7ff] text-[#16111b] rounded-lg px-5 py-3.5 text-xs uppercase tracking-[0.15em] font-medium hover:opacity-90 transition-opacity"
             >
               Checkout
               <span className="text-sm">→</span>

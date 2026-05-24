@@ -53,8 +53,8 @@ export default function CartItem({ item, index = 0 }: CartItemProps) {
 
           {/* Tags */}
           <div className="flex flex-wrap gap-1 md:gap-2 mt-0.5 md:mt-3 mb-0 md:mb-5">
-            <span className="px-1.5 py-[1px] md:px-2 md:py-0.5 border border-white/[0.12] font-mono text-[9px] md:text-[10px] uppercase text-white/45">{item.color}</span>
-            <span className="px-1.5 py-[1px] md:px-2 md:py-0.5 border border-white/[0.12] font-mono text-[9px] md:text-[10px] uppercase text-white/45">{item.size}</span>
+            <span className="px-1.5 py-[1px] md:px-2 md:py-0.5 border border-white/[0.12] font-mono text-[10px] uppercase text-white/45">{item.color}</span>
+            <span className="px-1.5 py-[1px] md:px-2 md:py-0.5 border border-white/[0.12] font-mono text-[10px] uppercase text-white/45">{item.size}</span>
           </div>
 
           {/* Controls — pushed to bottom */}
@@ -63,23 +63,23 @@ export default function CartItem({ item, index = 0 }: CartItemProps) {
               <button
                 onClick={() => updateQuantity(item.id, item.quantity - 1)}
                 disabled={item.quantity <= 1}
-                className="w-7 h-7 md:w-11 md:h-11 flex items-center justify-center font-mono text-sm md:text-3xl text-white hover:text-white/60 hover:bg-white/[0.05] transition-colors disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-white/40"
+                className="w-11 h-11 flex items-center justify-center font-mono text-sm md:text-3xl text-white hover:text-white/60 hover:bg-white/[0.05] transition-colors disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-white/40"
               >
                 −
               </button>
-              <span className="w-7 md:w-12 text-center font-mono text-[11px] md:text-sm text-white/80 tabular-nums">{item.quantity}</span>
+              <span className="w-12 text-center font-mono text-[11px] md:text-sm text-white/80 tabular-nums">{item.quantity}</span>
               <button
                 onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                className="w-7 h-7 md:w-11 md:h-11 flex items-center justify-center font-mono text-sm md:text-3xl text-white hover:text-white/60 hover:bg-white/[0.05] transition-colors"
+                className="w-11 h-11 flex items-center justify-center font-mono text-sm md:text-3xl text-white hover:text-white/60 hover:bg-white/[0.05] transition-colors"
               >
                 +
               </button>
             </div>
             <button
               onClick={() => removeItem(item.id)}
-              className="font-mono text-[9px] md:text-[10px] uppercase tracking-[0.15em] text-white/30 hover:text-[#ff3b30] transition-colors flex items-center gap-1.5"
+              className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/30 hover:text-[#ff3b30] transition-colors flex items-center gap-1.5"
             >
-              <span className="text-[7px] md:text-[8px]">✕</span>
+              <span className="text-[8px]">✕</span>
               Discard
             </button>
           </div>

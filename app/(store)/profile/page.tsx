@@ -158,7 +158,7 @@ export default function ProfilePage() {
             </div>
             <Link
               href="/profile/orders"
-              className="inline-block mt-6 font-mono text-[9px] uppercase tracking-[0.15em] text-[#ddb7ff] border-b border-[#ddb7ff]/40 pb-0.5 hover:text-white hover:border-white transition-colors"
+              className="inline-block mt-6 font-mono text-[10px] uppercase tracking-[0.15em] text-[#ddb7ff] border-b border-[#ddb7ff]/40 pb-0.5 hover:text-white hover:border-white transition-colors py-1"
             >
               View Archive →
             </Link>
@@ -180,7 +180,7 @@ export default function ProfilePage() {
             </div>
             <Link
               href="/profile/addresses"
-              className="inline-block mt-6 font-mono text-[9px] uppercase tracking-[0.15em] text-[#ddb7ff] border-b border-[#ddb7ff]/40 pb-0.5 hover:text-white hover:border-white transition-colors"
+              className="inline-block mt-6 font-mono text-[10px] uppercase tracking-[0.15em] text-[#ddb7ff] border-b border-[#ddb7ff]/40 pb-0.5 hover:text-white hover:border-white transition-colors py-2"
             >
               Manage Addresses →
             </Link>
@@ -197,7 +197,7 @@ export default function ProfilePage() {
           <span className="font-mono text-3xl text-[#ddb7ff] block mb-3 group-hover:scale-110 transition-transform">✦</span>
           <h3 className="font-display text-xl uppercase text-[#eadfed] mb-2">Earn Rewards</h3>
           <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/30 mb-4">Refer friends and earn 500 points each</p>
-          <Link href="/profile/rewards" className="inline-block font-mono text-[9px] uppercase tracking-[0.15em] text-[#ddb7ff] border-b border-[#ddb7ff]/40 pb-0.5 hover:text-white hover:border-white transition-colors">
+          <Link href="/profile/rewards" className="inline-block font-mono text-[10px] uppercase tracking-[0.15em] text-[#ddb7ff] border-b border-[#ddb7ff]/40 pb-0.5 hover:text-white hover:border-white transition-colors py-2">
             View Campaigns →
           </Link>
         </motion.div>

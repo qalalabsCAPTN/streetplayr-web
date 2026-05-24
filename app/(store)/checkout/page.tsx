@@ -28,7 +28,7 @@ function CheckoutInput({ label, id, type = "text", value, onChange, placeholder 
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full bg-transparent border border-white/[0.06] rounded-lg px-3 py-2.5 font-mono text-sm text-white/80 outline-none transition-colors placeholder:text-white/30 focus:border-[#ddb7ff]/60"
+        className="w-full bg-transparent border border-white/[0.06] rounded-lg px-3 py-4 font-mono text-sm text-white/80 outline-none transition-colors placeholder:text-white/30 focus:border-[#ddb7ff]/60"
       />
     </div>
   );
@@ -333,7 +333,7 @@ function PromoCode() {
         placeholder="PROMO CODE"
         className="flex-1 bg-[#1f1a23] border border-white/[0.06] px-4 py-3 font-mono text-xs text-white/60 outline-none focus:border-[#ddb7ff]/40 transition-colors placeholder:text-white/30 rounded-lg"
       />
-      <button className="rounded-xl px-6 bg-[#2e2832] border border-white/[0.06] font-mono text-xs uppercase tracking-[0.15em] text-white/50 hover:bg-[#ddb7ff] hover:text-[#16111b] hover:border-[#ddb7ff] transition-all">
+      <button className="rounded-xl px-6 py-4 bg-[#2e2832] border border-white/[0.06] font-mono text-xs uppercase tracking-[0.15em] text-white/50 hover:bg-[#ddb7ff] hover:text-[#16111b] hover:border-[#ddb7ff] transition-all">
         Apply
       </button>
     </div>

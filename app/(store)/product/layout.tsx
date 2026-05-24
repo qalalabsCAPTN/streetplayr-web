@@ -18,7 +18,7 @@ export default function ProductLayout({
       }} />
       <CustomCursor />
       <Navbar />
-      <main>{children}</main>
+      <main className="pb-28 md:pb-0">{children}</main>
       <Footer />
     </div>
   );

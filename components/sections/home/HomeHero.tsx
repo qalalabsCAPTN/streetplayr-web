@@ -92,7 +92,7 @@ export default function HomeHero() {
       </div>
 
       {/* Scroll Down Indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 cursor-pointer" onClick={scrollToNext}>
+      <div className="hidden md:flex absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex-col items-center gap-2 cursor-pointer" onClick={scrollToNext}>
         <span className="text-[10px] tracking-[0.3em] text-white/40" style={{ fontFamily: "'Space Mono', monospace" }}>SCROLL</span>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-white/40 animate-bounce">
           <line x1="12" y1="5" x2="12" y2="19" />
@@ -103,7 +103,7 @@ export default function HomeHero() {
       {/* Join the Drop Modal — portal to body to escape Hero's isolate stacking context */}
       {joinOpen && createPortal(
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xl p-6"
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-xl p-6"
           onClick={() => setJoinOpen(false)}
         >
           <div

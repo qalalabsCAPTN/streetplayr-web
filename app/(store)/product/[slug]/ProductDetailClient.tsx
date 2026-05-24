@@ -241,7 +241,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
                 priority={i === 0}
               />
               <div className="absolute bottom-3 right-3 z-10">
-                <span className="font-mono text-[8px] tracking-[0.18em] text-white/50 bg-black/40 backdrop-blur-sm px-2 py-0.5 border border-white/[0.08]">
+                <span className="font-mono text-[10px] tracking-[0.18em] text-white/50 bg-black/40 backdrop-blur-sm px-2 py-0.5 border border-white/[0.08]">
                   {String(i + 1).padStart(2, "0")} / {String(allImages.length).padStart(2, "0")}
                 </span>
               </div>

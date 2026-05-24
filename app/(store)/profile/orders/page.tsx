@@ -153,7 +153,7 @@ export default function OrdersPage() {
                 <span className="font-display text-2xl uppercase text-[#eadfed]">{formatPrice(order.total)}</span>
                 <button
                   type="button"
-                  className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/30 hover:text-white transition-colors"
+                  className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/30 hover:text-white transition-colors py-2"
                 >
                   View Details →
                 </button>
