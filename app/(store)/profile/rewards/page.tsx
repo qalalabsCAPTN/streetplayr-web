@@ -50,7 +50,7 @@ export default async function RewardsPage() {
   const redemptions = redemptionsResult.data ?? [];
 
   return (
-    <div className="max-w-[1200px]">
+    <div className="max-w-[min(98vw,2560px)]">
       {/* ═══ HEADER ═══ */}
       <header className="mb-10 border-l-4 border-[#ddb7ff] pl-6">
         <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#ddb7ff] block mb-2">

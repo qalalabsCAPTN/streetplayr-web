@@ -109,6 +109,48 @@ export const AuthService = {
   },
 
   /**
+   * Email + password sign in.
+   */
+  async signInWithEmail(email: string, password: string) {
+    const supabase = await createClient();
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    return { data, error };
+  },
+
+  /**
+   * Email + password sign up.
+   */
+  async signUpWithEmail(email: string, password: string, fullName?: string) {
+    const supabase = await createClient();
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: fullName ?? '' },
+      },
+    });
+    return { data, error };
+  },
+
+  /**
+   * Send password reset email.
+   */
+  async resetPasswordRequest(email: string, redirectTo: string) {
+    const supabase = await createClient();
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+    return { error };
+  },
+
+  /**
+   * Update password (called after reset link click).
+   */
+  async updatePassword(newPassword: string) {
+    const supabase = await createClient();
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    return { error };
+  },
+
+  /**
    * Starts the OTP flow.
    */
   async signInWithPhone(phone: string) {

@@ -63,12 +63,12 @@ function IconSettings({ active }: { active?: boolean }) {
 
 // ─── Nav Items ──────────────────────────────────────────────────────────
 const NAV_ITEMS = [
-  { label: 'Identity',    href: '/profile',         icon: IconUser },
-  { label: 'Wallet',      href: '/profile/wallet',   icon: IconWallet },
-  { label: 'Rewards',     href: '/profile/rewards',  icon: IconGift },
-  { label: 'Orders',      href: '/profile/orders',   icon: IconPackage },
-  { label: 'Addresses',   href: '/profile/addresses', icon: IconMapPin },
-  { label: 'Settings',    href: '/profile/settings',  icon: IconSettings },
+  { label: 'Identity',        href: '/profile',           icon: IconUser },
+  { label: 'Wallet',          href: '/profile/wallet',    icon: IconWallet },
+  { label: 'Rewards',         href: '/profile/rewards',   icon: IconGift },
+  { label: 'Orders',          href: '/profile/orders',    icon: IconPackage },
+  { label: 'Saved Addresses', href: '/profile/addresses', icon: IconMapPin },
+  { label: 'Settings',        href: '/profile/settings',  icon: IconSettings },
 ] as const;
 
 // ─── Desktop Identity Navigation Rail ───────────────────────────────────

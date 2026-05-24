@@ -98,7 +98,7 @@ function MaterialTile({ tile, index }: { tile: (typeof TILES)[number]; index: nu
 
 export default function MaterialSpecs() {
   return (
-    <section className="relative py-28 sm:py-36 px-4 md:px-6 w-full max-w-[min(95vw,2400px)] mx-auto border-t border-white/[0.04]">
+    <section className="relative py-28 sm:py-36 px-4 md:px-8 lg:px-12 w-full max-w-[min(98vw,2560px)] mx-auto border-t border-white/[0.04]">
       <div className="mb-16">
         <FadeIn>
           <div className="flex items-center gap-3 mb-4">

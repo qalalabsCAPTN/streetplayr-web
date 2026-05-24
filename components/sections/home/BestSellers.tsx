@@ -69,7 +69,7 @@ export default function BestSellers({ products }: BestSellersProps) {
   const topProducts = products.slice(0, 4);
 
   return (
-    <section className="py-10 md:py-14 px-4 md:px-6 w-full max-w-[min(95vw,2400px)] mx-auto">
+    <section className="py-10 md:py-14 px-4 md:px-8 lg:px-12 w-full max-w-none">
       <div className="flex justify-between items-end mb-5 md:mb-6">
         <h2 className="font-display text-[38px] md:text-[56px] uppercase leading-[0.92] text-[#eadfed]">
           Best Sellers
@@ -83,7 +83,7 @@ export default function BestSellers({ products }: BestSellersProps) {
         <ProductCarousel products={products} />
       </div>
 
-      <div className="hidden md:grid md:grid-cols-4 gap-3 lg:gap-4">
+      <div className="hidden md:grid md:grid-cols-4 gap-4 lg:gap-5">
         {topProducts.map((product) => (
           <BestSellerCard key={product.id} product={product} />
         ))}

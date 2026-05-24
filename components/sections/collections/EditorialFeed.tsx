@@ -33,7 +33,7 @@ export default function EditorialFeed({ activeCategory }: EditorialFeedProps) {
   });
 
   return (
-    <section className="mx-auto w-full max-w-[min(95vw,2400px)] px-4 md:px-6 py-12 md:py-20">
+    <section className="mx-auto w-full max-w-[min(98vw,2560px)] px-4 md:px-8 lg:px-12 py-12 md:py-20">
       <motion.div 
         layout
         className="grid grid-cols-1 gap-y-16 gap-x-8 md:grid-cols-12 md:gap-y-32 items-center"

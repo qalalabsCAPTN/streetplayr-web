@@ -24,7 +24,7 @@ export default function FooterTransition() {
         />
       </motion.div>
 
-      <div className="relative z-10 max-w-[min(95vw,2400px)] mx-auto px-4 md:px-6">
+      <div className="relative z-10 max-w-[min(98vw,2560px)] mx-auto px-4 md:px-8 lg:px-12">
         <div className="max-w-[880px] mx-auto text-center">
           <motion.div
             initial={{ opacity: 0 }}

@@ -180,19 +180,9 @@ export default function EntryGate() {
               <button
                 onClick={(e) => { e.stopPropagation(); handleEnter(); }}
                 style={{ pointerEvents: "auto" }}
-                className="group relative overflow-hidden inline-flex items-center gap-[18px] px-14 py-[22px] border border-white/[0.14] bg-transparent text-white transition-colors duration-300 hover:bg-white/[0.08]"
+                className="font-mono text-[12px] tracking-[0.6em] uppercase text-white/85 hover:text-[#ddb7ff] bg-transparent border-none transition-all duration-300 cursor-pointer hover:scale-105"
               >
-                <span className="relative z-10 flex items-center gap-[18px] font-hud text-[12px] tracking-[0.6em] uppercase">
-                  <span
-                    className="w-2 h-2 rounded-full"
-                    style={{
-                      background: "#57E389",
-                      boxShadow: "0 0 12px #57E389",
-                      animation: "pulse 1.4s ease-in-out infinite",
-                    }}
-                  />
-                  Click to Enter
-                </span>
+                [ CLICK TO ENTER ]
               </button>
             ) : (
               <div className="flex flex-col items-center gap-3">

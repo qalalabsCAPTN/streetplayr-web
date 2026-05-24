@@ -72,7 +72,7 @@ export default function Lookbook() {
 
   return (
     <section className="relative py-14 md:py-18 overflow-hidden border-t border-white/[0.04]">
-      <div className="px-4 md:px-6 max-w-[min(95vw,2400px)] mx-auto mb-6">
+      <div className="px-4 md:px-8 lg:px-12 max-w-[min(98vw,2560px)] mx-auto mb-6">
         <FadeIn>
           <div className="flex items-center gap-3 mb-4">
             <span className="h-px w-6 bg-white/20 block" />
@@ -97,7 +97,7 @@ export default function Lookbook() {
 
         <div
           ref={scrollRef}
-          className="flex items-stretch gap-3 px-4 md:px-6 max-w-[min(95vw,2400px)] mx-auto overflow-x-auto pb-6 no-scrollbar h-[52vw] min-h-[320px] max-h-[580px]"
+          className="flex items-stretch gap-3 px-4 md:px-8 lg:px-12 max-w-[min(98vw,2560px)] mx-auto overflow-x-auto pb-6 no-scrollbar h-[52vw] min-h-[320px] max-h-[580px]"
         >
           {lookbookItems.map((item, i) => (
             <FadeIn key={item.id} delay={0.1 * i} className={`${item.widthClass} shrink-0 h-full`}>

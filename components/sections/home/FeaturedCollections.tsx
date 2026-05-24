@@ -16,7 +16,7 @@ export default function FeaturedCollections() {
   const textY = useTransform(scrollYProgress, [0, 1], ["10%", "-10%"]);
 
   return (
-    <section ref={containerRef} className="relative w-full bg-[#16111b] py-32 px-4 md:px-6 overflow-hidden">
+    <section ref={containerRef} className="relative w-full bg-[#16111b] py-32 px-4 md:px-8 lg:px-12 overflow-hidden">
       {/* Background oversized typography watermark */}
       <motion.div 
         style={{ y: textY }}
@@ -25,7 +25,7 @@ export default function FeaturedCollections() {
         <span className="font-display text-[20vw] leading-none whitespace-nowrap">CURATED</span>
       </motion.div>
 
-      <div className="relative z-10 max-w-[min(95vw,2400px)] mx-auto">
+      <div className="relative z-10 max-w-[min(98vw,2560px)] mx-auto">
         <div className="mb-32 flex flex-col items-center text-center">
           <span className="font-mono text-xs tracking-[0.3em] text-[var(--sp-accent)] uppercase mb-6">Archive 001</span>
           <h2 className="font-display text-5xl md:text-8xl uppercase tracking-widest text-white leading-[0.9]">

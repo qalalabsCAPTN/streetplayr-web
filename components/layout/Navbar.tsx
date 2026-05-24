@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useCartStore } from "../../store/cartStore";
 import { useAuthStore } from "../../store/authStore";
@@ -14,6 +15,9 @@ const navLinks = [
 ];
 
 export default function Navbar() {
+  const pathname = usePathname();
+  const isHome = pathname === "/home";
+
   const [isScrolled, setIsScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -34,18 +38,12 @@ export default function Navbar() {
 
   return (
     <>
-      <header
-        className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-          isScrolled
-            ? "bg-[#16111b]/84 backdrop-blur-xl border-b border-white/[0.10] shadow-[0_16px_60px_rgba(12,6,18,0.24)]"
-            : "bg-transparent"
-        }`}
-      >
-        <nav className="grid grid-cols-3 items-center px-4 md:px-8 lg:px-16 h-20 w-full max-w-[1600px] mx-auto">
+      <header className="absolute top-0 w-full z-50 bg-transparent">
+        <nav className="grid grid-cols-3 items-center w-full mx-auto px-4 md:px-8 lg:px-12 h-20">
           {/* Logo — extreme left */}
           <div className="flex items-center">
-            <Link href="/">
-              <img src="/assets/streetplayr-logo.png" alt="StreetplayR" className="h-10 w-auto object-contain opacity-95" />
+            <Link href="/home">
+              <img src="/assets/streetplayr-logo.png" alt="StreetplayR" className="h-10 md:h-12 w-auto object-contain opacity-95 transition-all duration-300" />
             </Link>
           </div>
 

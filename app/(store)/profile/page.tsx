@@ -31,7 +31,7 @@ export default function ProfilePage() {
   const greeting = greetingHour < 12 ? 'Good morning' : greetingHour < 18 ? 'Good afternoon' : 'Good evening';
 
   return (
-    <div className="max-w-[1200px]">
+    <div className="max-w-[min(98vw,2560px)]">
       {/* ═══ HEADER ═══ */}
       <motion.header
         initial={{ opacity: 0, y: 16 }}
@@ -112,8 +112,8 @@ export default function ProfilePage() {
                 <span className="font-mono text-[10px] uppercase text-[#ddb7ff]/80">{user.referralCode}</span>
               </div>
               <div>
-                <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/25 block mb-1">Node</span>
-                <span className="font-mono text-[10px] uppercase text-white/50">MUM-01</span>
+                <span className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-white/45 block mb-1">Node</span>
+                <span className="font-mono text-[11px] font-bold uppercase text-white/80">MUM-01</span>
               </div>
             </div>
           </div>
@@ -137,7 +137,7 @@ export default function ProfilePage() {
           </div>
           <Link
             href="/profile/wallet"
-            className="rounded-xl block w-full mt-6 py-3 bg-[#16111b] text-white text-center font-mono text-[10px] uppercase tracking-[0.2em] hover:bg-[#231e27] transition-colors"
+            className="rounded-xl block w-full mt-6 py-3 bg-[#16111b] text-[#ddb7ff] text-center font-mono text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-[#231e27] transition-colors shadow-lg"
           >
             Manage Assets →
           </Link>
@@ -175,12 +175,12 @@ export default function ProfilePage() {
           <div className="h-full flex flex-col justify-between">
             <div>
               <span className="font-mono text-2xl text-[#ddb7ff] block mb-3 group-hover:scale-110 transition-transform">⊞</span>
-              <h3 className="font-display text-xl uppercase text-[#eadfed] mb-2">Addresses</h3>
-              <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/30">Manage your delivery addresses</p>
+              <h3 className="font-display text-xl uppercase text-[#eadfed] mb-2">Saved Addresses</h3>
+              <p className="font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-white/50">Manage your delivery addresses</p>
             </div>
             <Link
               href="/profile/addresses"
-              className="inline-block mt-6 font-mono text-[10px] uppercase tracking-[0.15em] text-[#ddb7ff] border-b border-[#ddb7ff]/40 pb-0.5 hover:text-white hover:border-white transition-colors py-2"
+              className="inline-block mt-6 font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-[#ddb7ff] border-b border-[#ddb7ff]/40 pb-0.5 hover:text-white hover:border-white transition-colors py-2"
             >
               Manage Addresses →
             </Link>

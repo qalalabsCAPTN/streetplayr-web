@@ -15,7 +15,7 @@ const reviews = [
 
 export default function ReviewsSection() {
   return (
-    <section className="py-14 md:py-24 pb-20 md:pb-[inherit] px-4 md:px-6 w-full max-w-[min(95vw,2400px)] mx-auto">
+    <section className="py-14 md:py-24 pb-20 md:pb-[inherit] px-4 md:px-8 lg:px-12 w-full max-w-[min(98vw,2560px)] mx-auto">
       <div className="mb-4 md:mb-12">
         <div className="flex items-center gap-3 mb-3">
           <span className="h-px w-6 bg-white/20 block" />

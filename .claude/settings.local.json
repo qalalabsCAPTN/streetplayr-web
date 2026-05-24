@@ -18,7 +18,13 @@
       "WebFetch(domain:bluorng.com)",
       "Bash(Remove-Item -Recurse -Force \"C:\\\\Users\\\\pc\\\\Desktop\\\\streetplayr - open code\\\\.next\" -ErrorAction SilentlyContinue)",
       "Bash(Write-Output \"Cache cleared\")",
-      "PowerShell(Copy-Item -Path \"C:\\\\Users\\\\pc\\\\Desktop\\\\streetplay r other files\\\\inspired.glb\" -Destination \"C:\\\\Users\\\\pc\\\\Desktop\\\\streetplayr - open code\\\\public\\\\models\\\\inspired.glb\" -Force; if \\(Test-Path \"C:\\\\Users\\\\pc\\\\Desktop\\\\streetplayr - open code\\\\public\\\\models\\\\inspired.glb\"\\) { \"Copied OK - $\\(\\([System.IO.FileInfo]'C:\\\\Users\\\\pc\\\\Desktop\\\\streetplayr - open code\\\\public\\\\models\\\\inspired.glb'\\).Length / 1MB\\) MB\" } else { \"FAILED\" })"
+      "PowerShell(Copy-Item -Path \"C:\\\\Users\\\\pc\\\\Desktop\\\\streetplay r other files\\\\inspired.glb\" -Destination \"C:\\\\Users\\\\pc\\\\Desktop\\\\streetplayr - open code\\\\public\\\\models\\\\inspired.glb\" -Force; if \\(Test-Path \"C:\\\\Users\\\\pc\\\\Desktop\\\\streetplayr - open code\\\\public\\\\models\\\\inspired.glb\"\\) { \"Copied OK - $\\(\\([System.IO.FileInfo]'C:\\\\Users\\\\pc\\\\Desktop\\\\streetplayr - open code\\\\public\\\\models\\\\inspired.glb'\\).Length / 1MB\\) MB\" } else { \"FAILED\" })",
+      "Bash(npx tsc *)",
+      "Bash(dir /s /b app\\\\*product*page.tsx)",
+      "Bash(dir /s /b app\\\\*layout.tsx)",
+      "Bash(dir /b /s app\\\\product)",
+      "Bash(dir /b app)",
+      "Bash(node -e \"const p = require\\('./lib/products/data'\\); console.log\\(JSON.stringify\\(p.getLocalProductBySlug\\('inspired'\\)\\)\\)\")"
     ]
   }
 }

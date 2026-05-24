@@ -20,7 +20,7 @@ function FadeIn({ children, delay = 0 }: { children: React.ReactNode; delay?: nu
 
 export default function QuoteSection() {
   return (
-    <section className="relative py-28 sm:py-36 px-4 md:px-6 w-full max-w-[min(95vw,2400px)] mx-auto border-t border-white/[0.04] overflow-hidden">
+    <section className="relative py-28 sm:py-36 px-4 md:px-8 lg:px-12 w-full max-w-[min(98vw,2560px)] mx-auto border-t border-white/[0.04] overflow-hidden">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_50%,rgba(221,183,255,0.04)_0%,transparent_60%)]" />
       <div className="pointer-events-none absolute inset-0 opacity-[0.02]" style={{
         backgroundImage: "linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)",

@@ -22,7 +22,7 @@ function FadeIn({ children, delay = 0, className = "" }: { children: React.React
 
 export default function BrandStory() {
   return (
-    <section className="relative py-20 sm:py-24 px-4 md:px-6 w-full max-w-[min(95vw,2400px)] mx-auto border-t border-white/[0.04]">
+    <section className="relative py-20 sm:py-24 px-4 md:px-8 lg:px-12 w-full max-w-[min(98vw,2560px)] mx-auto border-t border-white/[0.04]">
       <FadeIn>
         <div className="flex items-center gap-3 mb-6">
           <span className="h-px w-6 bg-white/20 block" />

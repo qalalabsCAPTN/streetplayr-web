@@ -18,7 +18,7 @@ export default function CollectionHero() {
         <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-[#050505]/40" />
       </div>
 
-      <div className="relative z-10 mx-auto w-full max-w-[min(95vw,2400px)] px-4 md:px-6">
+      <div className="relative z-10 mx-auto w-full max-w-[min(98vw,2560px)] px-4 md:px-8 lg:px-12">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8">
           {/* Typography Collision Area */}
           <div className="flex flex-col">

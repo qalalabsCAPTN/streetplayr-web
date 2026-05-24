@@ -116,7 +116,7 @@ export default function SettingsPage() {
   if (!user) return null;
 
   return (
-    <div className="max-w-[1200px]">
+    <div className="max-w-[min(98vw,2560px)]">
       {/* ═══ HEADER ═══ */}
       <motion.header
         initial={{ opacity: 0, y: 16 }}

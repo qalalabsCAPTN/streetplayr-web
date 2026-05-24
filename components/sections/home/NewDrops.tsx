@@ -20,7 +20,7 @@ export default function NewDrops({ products }: NewDropsProps) {
   const drops = products.slice(0, 5);
 
   return (
-    <section className="py-24 px-4 md:px-6 w-full max-w-[min(95vw,2400px)] mx-auto">
+    <section className="py-24 px-4 md:px-8 lg:px-12 w-full max-w-[min(98vw,2560px)] mx-auto">
       <div className="flex justify-between items-end mb-14">
         <div>
           <span className="font-mono text-[10px] tracking-[0.28em] uppercase text-[rgba(234,223,237,0.52)] block mb-3">Current Release</span>

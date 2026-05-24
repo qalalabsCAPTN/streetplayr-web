@@ -7,6 +7,7 @@ import {
   Zap, BarChart3, Radio, Settings, Wallet, Gift, Trophy,
   GitBranch, Star, Layers, ChevronRight, Activity,
   ClipboardList, Swords, Target, ShieldAlert, Eye,
+  FlaskConical, PanelLeft,
 } from 'lucide-react';
 import { cn } from '@/lib/ops2/cn';
 import { PlatformSwitcher } from '@/components/ops2/platform-switcher';
@@ -57,9 +58,16 @@ const NAV: NavSection[] = [
     ],
   },
   {
+    title: 'Content',
+    items: [
+      { label: 'Page Editor', href: '/admin/pages', icon: PanelLeft },
+    ],
+  },
+  {
     title: 'Intelligence',
     items: [
       { label: 'Observability', href: '/admin/observability', icon: Eye },
+      { label: 'Simulation',    href: '/admin/simulation',    icon: FlaskConical },
       { label: 'Segments',      href: '/admin/segments',      icon: Target },
       { label: 'Risk Engine',   href: '/admin/risk',          icon: ShieldAlert },
     ],

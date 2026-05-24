@@ -104,6 +104,63 @@ export async function verifyOTPAction(phone: string, token: string, referredBy?:
 }
 
 /**
+ * Server Action: Email Sign In
+ */
+export async function signInWithEmailAction(email: string, password: string): Promise<ActionResponse> {
+  try {
+    const result = await AuthService.signInWithEmail(email, password);
+    if (result.error) return { success: false, error: result.error.message };
+    return { success: true, data: result.data };
+  } catch (e: any) {
+    return { success: false, error: 'Login failed. Please try again.' };
+  }
+}
+
+/**
+ * Server Action: Email Sign Up
+ */
+export async function signUpWithEmailAction(
+  email: string,
+  password: string,
+  fullName?: string
+): Promise<ActionResponse> {
+  try {
+    const result = await AuthService.signUpWithEmail(email, password, fullName);
+    if (result.error) return { success: false, error: result.error.message };
+    return { success: true, data: result.data };
+  } catch (e: any) {
+    return { success: false, error: 'Sign up failed. Please try again.' };
+  }
+}
+
+/**
+ * Server Action: Forgot Password
+ */
+export async function forgotPasswordAction(email: string, redirectTo: string): Promise<ActionResponse> {
+  try {
+    const result = await AuthService.resetPasswordRequest(email, redirectTo);
+    if (result.error) return { success: false, error: result.error.message };
+    return { success: true };
+  } catch (e: any) {
+    return { success: false, error: 'Failed to send reset email. Please try again.' };
+  }
+}
+
+/**
+ * Server Action: Reset Password
+ */
+export async function resetPasswordAction(newPassword: string): Promise<ActionResponse> {
+  try {
+    const result = await AuthService.updatePassword(newPassword);
+    if (result.error) return { success: false, error: result.error.message };
+    revalidatePath('/');
+    return { success: true };
+  } catch (e: any) {
+    return { success: false, error: 'Password reset failed. Please try again.' };
+  }
+}
+
+/**
  * Server Action: Start Google Login
  */
 export async function signInWithGoogleAction(redirectTo: string): Promise<ActionResponse> {

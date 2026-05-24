@@ -20,7 +20,7 @@ export default function WalletPage() {
   const tierInfo = TIER_THRESHOLDS[tier];
 
   return (
-    <div className="max-w-[1200px]">
+    <div className="max-w-[min(98vw,2560px)]">
       {/* ═══ HEADER ═══ */}
       <motion.header
         initial={{ opacity: 0, y: 16 }}

@@ -27,14 +27,14 @@ const ProductViewer3D = dynamic(
           strokeWidth="1.2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="text-[#ddb7ff]/40 animate-spin"
+          className="text-[#ddb7ff]/80 animate-spin"
           style={{ animationDuration: "2s" }}
         >
           <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
           <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
           <line x1="12" y1="22.08" x2="12" y2="12" />
         </svg>
-        <span className="font-mono text-[9px] uppercase tracking-[0.28em] text-white/20">
+        <span className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-white/60">
           Loading 3D model…
         </span>
       </div>
@@ -79,7 +79,7 @@ function ViewIn3DButton({
     <button
       onClick={onClick}
       onMouseEnter={onMouseEnter}
-      className="w-full flex items-center justify-between border border-white/[0.12] px-5 py-3.5 font-mono text-[10px] uppercase tracking-[0.22em] text-white/60 hover:text-white hover:border-[#ddb7ff]/40 transition-all duration-300 group"
+      className="w-full flex items-center justify-between border border-white/[0.12] px-5 py-3.5 font-mono text-[11px] font-bold uppercase tracking-[0.22em] text-white/80 hover:text-white hover:border-[#ddb7ff]/40 transition-all duration-300 group"
     >
       <span>View in 3D</span>
       <svg
@@ -108,13 +108,13 @@ function MobileAccordion({ label, content }: { label: string; content: string })
     <div className="border-b border-white/[0.06]">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex justify-between items-center py-4 font-mono text-[10px] uppercase tracking-[0.15em] text-white/55 hover:text-white/80 transition-colors"
+        className="w-full flex justify-between items-center py-4 font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-white/80 hover:text-white transition-colors"
       >
         <span>{label}</span>
         <span className="font-mono text-xs">{open ? "[-]" : "[+]"}</span>
       </button>
       {open && (
-        <div className="pb-5 text-white/60 text-xs leading-relaxed pr-4">
+        <div className="pb-5 text-white/80 text-sm leading-relaxed pr-4">
           {content}
         </div>
       )}
@@ -244,7 +244,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
   return (
     <main className="pt-24">
       {/* ===== DESKTOP: 3-column editorial layout (UNCHANGED) ===== */}
-      <section className="hidden lg:grid lg:grid-cols-[minmax(380px,1fr)_minmax(380px,1fr)_minmax(0,460px)] lg:gap-8 lg:items-start lg:mx-auto lg:max-w-[1800px] lg:px-6">
+      <section className="hidden lg:grid lg:grid-cols-[minmax(380px,1fr)_minmax(380px,1fr)_minmax(0,460px)] lg:gap-8 lg:items-start lg:mx-auto lg:max-w-[min(98vw,2560px)] lg:px-12">
 
         {/* LEFT — Hero image (sticky) */}
         <div className="lg:sticky lg:top-24 flex flex-col gap-3">
@@ -263,7 +263,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
               priority
             />
             <div className="absolute bottom-4 right-4 z-10">
-              <span className="font-mono text-[9px] tracking-[0.2em] text-white/55 bg-black/40 backdrop-blur-sm px-2.5 py-1 border border-white/[0.10]">
+              <span className="font-mono text-[10px] font-bold tracking-[0.2em] text-white/80 bg-black/40 backdrop-blur-sm px-2.5 py-1 border border-white/[0.10]">
                 01 / {String(allImages.length).padStart(2, "0")}
               </span>
             </div>
@@ -291,7 +291,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
                 className="object-cover hover:scale-[1.02] transition-transform duration-700 ease-out"
               />
               <div className="absolute bottom-4 right-4 z-10">
-                <span className="font-mono text-[9px] tracking-[0.2em] text-white/55 bg-black/40 backdrop-blur-sm px-2.5 py-1 border border-white/[0.10]">
+                <span className="font-mono text-[10px] font-bold tracking-[0.2em] text-white/80 bg-black/40 backdrop-blur-sm px-2.5 py-1 border border-white/[0.10]">
                   {String(i + 2).padStart(2, "0")} / {String(allImages.length).padStart(2, "0")}
                 </span>
               </div>
@@ -395,7 +395,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
 
           {/* Counter — top right */}
           <div className="absolute top-3 right-3 z-10">
-            <span className="font-mono text-[8px] tracking-[0.18em] text-white/55 bg-black/50 backdrop-blur-sm px-2 py-1 border border-white/[0.08]">
+            <span className="font-mono text-[9px] font-bold tracking-[0.18em] text-white/80 bg-black/50 backdrop-blur-sm px-2 py-1 border border-white/[0.08]">
               {String(activeSlide + 1).padStart(2, "0")} / {String(allImages.length).padStart(2, "0")}
             </span>
           </div>

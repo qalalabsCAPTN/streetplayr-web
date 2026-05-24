@@ -5,9 +5,10 @@ import { useQuery } from '@tanstack/react-query';
 import { Search, ShieldCheck } from 'lucide-react';
 import { TopBar } from '@/components/ops2/top-bar';
 import { Badge } from '@/components/ops2/ui/badge';
-import { api } from '@/lib/ops2/api-client';
+import { getSupabaseClient } from '@/lib/ops2/supabase';
 import { formatPoints, formatDateTime, formatRelativeTime } from '@/lib/ops2/format';
 import { cn } from '@/lib/ops2/cn';
+import { usePlatform } from '@/hooks/ops2/use-platform';
 
 interface TxRow {
   id: string;
@@ -32,10 +33,46 @@ const TX_TYPE_BADGE: Record<string, { variant: 'success' | 'error' | 'info' | 'w
 export default function WalletsPage() {
   const [search, setSearch] = useState('');
   const [selectedTx, setSelectedTx] = useState<TxRow | null>(null);
+  const { apiParam } = usePlatform();
 
   const { data, isLoading } = useQuery({
-    queryKey: ['wallet-transactions', search],
-    queryFn: () => api.get<{ transactions: TxRow[] }>('/nectar/wallets', { q: search || undefined }),
+    queryKey: ['wallet-transactions', apiParam, search],
+    queryFn: async () => {
+      const db = getSupabaseClient();
+      let siteId: string | undefined;
+
+      if (apiParam) {
+        const { data: site } = await db.from('sites').select('id').eq('slug', apiParam).single();
+        siteId = (site as { id: string } | null)?.id;
+        if (!siteId) return { transactions: [] as TxRow[] };
+      }
+
+      let query = db
+        .from('wallet_transactions')
+        .select('id, user_id, type, source, delta, created_at')
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+      if (siteId) query = query.eq('site_id', siteId);
+      if (search.trim()) query = query.or(`user_id.ilike.%${search.trim()}%,source.ilike.%${search.trim()}%`);
+
+      const { data: rows } = await query;
+      const txRows = (rows ?? []) as Array<{ id: string; user_id: string; type: string; source: string; delta: number; created_at: string }>;
+
+      const transactions: TxRow[] = txRows.map((row) => ({
+        id: row.id,
+        user_id: row.user_id,
+        type: row.type,
+        source: row.source,
+        amount: Math.abs(row.delta ?? 0),
+        balance_after: 0,
+        description: row.source || row.type || 'Transaction',
+        created_at: row.created_at,
+        wallet_type: 'sprr',
+      }));
+
+      return { transactions };
+    },
     placeholderData: prev => prev,
   });
 

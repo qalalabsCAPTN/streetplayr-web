@@ -98,7 +98,7 @@ function IdentityContextPanel() {
 
       {/* HUD coordinates */}
       <div className="mt-8 pt-5 border-t border-white/[0.04]">
-        <div className="font-mono text-[7px] uppercase tracking-[0.2em] text-white/12 leading-relaxed">
+        <div className="font-mono text-[8px] font-bold uppercase tracking-[0.2em] text-white/50 leading-relaxed">
           <p>COORD: 19.0760°N / 72.8777°E</p>
           <p>UPTIME: 99.9%</p>
           <p>NODE: READY</p>
@@ -218,7 +218,7 @@ function SettingsContextPanel() {
 
 // ── Shared Components ───────────────────────────────────────────────────
 
-function SummaryRow({ label, value, valueColor = "text-white/60", mono = false }: {
+function SummaryRow({ label, value, valueColor = "text-white/80", mono = false }: {
   label: string;
   value: string;
   valueColor?: string;
@@ -226,8 +226,8 @@ function SummaryRow({ label, value, valueColor = "text-white/60", mono = false }
 }) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <span className="font-mono text-[8px] uppercase tracking-[0.15em] text-white/25">{label}</span>
-      <span className={`font-mono text-[9px] uppercase tracking-[0.1em] ${mono ? 'text-[#ddb7ff]/60' : valueColor}`}>
+      <span className="font-mono text-[9px] font-bold uppercase tracking-[0.15em] text-white/60">{label}</span>
+      <span className={`font-mono text-[10px] font-bold uppercase tracking-[0.1em] ${mono ? 'text-[#ddb7ff]' : valueColor}`}>
         {value}
       </span>
     </div>
@@ -238,7 +238,7 @@ function QuickAction({ href, label }: { href: string; label: string }) {
   return (
     <a
       href={href}
-      className="block px-3 py-2 border border-white/[0.06] hover:border-[#ddb7ff]/30 transition-colors font-mono text-[9px] uppercase tracking-[0.15em] text-white/30 hover:text-[#ddb7ff]/70"
+      className="block px-3 py-2 border border-white/[0.12] hover:border-[#ddb7ff]/50 transition-colors font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-white/60 hover:text-[#ddb7ff]"
     >
       {label} →
     </a>

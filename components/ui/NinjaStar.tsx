@@ -252,7 +252,7 @@ function SceneLights() {
 }
 
 // ─── Full 3-D trackball ───────────────────────────────────────────────────────
-function CompassStar() {
+function CompassStar({ scale = 0.70 }: { scale?: number }) {
   const groupRef     = useRef<THREE.Group>(null);
   const dragging     = useRef(false);
   const lastPos      = useRef({ x: 0, y: 0 });
@@ -334,7 +334,7 @@ function CompassStar() {
   });
 
   return (
-    <group ref={groupRef} scale={0.70}>
+    <group ref={groupRef} scale={scale}>
       <StarBlades />
       <CrystalCore />
     </group>
@@ -344,7 +344,7 @@ function CompassStar() {
 // ─── Export ───────────────────────────────────────────────────────────────────
 // Fills 100% of parent container — size is controlled by .star-container in CSS.
 // touch-action: none on the wrapper prevents browser scroll from hijacking drag.
-export default function NinjaStar() {
+export default function NinjaStar({ scale = 0.70 }: { scale?: number }) {
   return (
     <div style={{ width: "100%", height: "100%", touchAction: "none" }}>
       <Canvas
@@ -355,7 +355,7 @@ export default function NinjaStar() {
       >
         <Environment />
         <SceneLights />
-        <CompassStar />
+        <CompassStar scale={scale} />
       </Canvas>
     </div>
   );

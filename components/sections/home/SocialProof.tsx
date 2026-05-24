@@ -23,7 +23,7 @@ export default function SocialProof() {
   const y2 = useTransform(scrollYProgress, [0, 1], ["0%", "10%"]);
 
   return (
-    <section ref={containerRef} className="w-full bg-[#16111b] py-32 px-4 md:px-6 overflow-hidden border-t border-white/10">
+    <section ref={containerRef} className="w-full bg-[#16111b] py-32 px-4 md:px-8 lg:px-12 overflow-hidden border-t border-white/10">
       <div className="flex flex-col items-center mb-32 text-center relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -45,7 +45,7 @@ export default function SocialProof() {
         </motion.h2>
       </div>
 
-      <div className="max-w-[min(95vw,2400px)] mx-auto relative z-10">
+      <div className="max-w-[min(98vw,2560px)] mx-auto relative z-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
           {instagramPosts.map((post, index) => (
             <motion.div

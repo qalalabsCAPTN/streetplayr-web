@@ -81,7 +81,7 @@ function CollectionsInner() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#16111b] via-[#16111b]/25 to-[#16111b]/55" />
         <div className="absolute inset-0 bg-[radial-gradient(700px_360px_at_18%_10%,rgba(221,183,255,0.13),transparent_62%),radial-gradient(560px_340px_at_86%_82%,rgba(255,87,26,0.10),transparent_64%)]" />
-        <div className="absolute inset-0 flex items-end justify-start px-4 md:px-6 pb-14">
+        <div className="absolute inset-0 flex items-end justify-start px-4 md:px-8 lg:px-12 pb-14">
           <div className="max-w-[760px]">
 
             <h1 className="font-display text-[clamp(56px,8vw,128px)] uppercase leading-[0.88] text-[#eadfed]">
@@ -93,7 +93,7 @@ function CollectionsInner() {
 
       <CategoryFilter activeCategory={activeFilter} onSelect={handleFilterChange} />
 
-      <main className="relative z-[1] pb-20 w-full max-w-[min(95vw,2400px)] mx-auto px-4 md:px-6 pt-14">
+      <main className="relative z-[1] pb-20 w-full max-w-[min(98vw,2560px)] mx-auto px-4 md:px-8 lg:px-12 pt-14">
         <div className="mb-14">
           <h2 className="font-display text-[42px] md:text-[64px] uppercase leading-[0.92] tracking-tight text-[#eadfed]">
             The Archive

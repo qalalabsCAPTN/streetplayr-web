@@ -372,13 +372,13 @@ export default function CheckoutPage() {
   return (
     <>
       <Navbar />
-      <div className="relative min-h-screen bg-[#16111b] pt-20 md:pt-32 pb-24 px-4 md:px-6">
+      <div className="relative min-h-screen bg-[#16111b] pt-20 md:pt-32 pb-24 px-4 md:px-8 lg:px-12">
         <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(0,0,0,0.65)_100%)]" />
         <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.25)_0%,transparent_10%,transparent_90%,rgba(0,0,0,0.25)_100%)]" />
         <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_50%_30%,rgba(221,183,255,0.05)_0%,transparent_55%)]" />
         <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(255,87,26,0.03)_0%,transparent_60%)]" />
 
-        <div className="max-w-[min(95vw,2400px)] mx-auto relative z-10">
+        <div className="max-w-[min(98vw,2560px)] mx-auto relative z-10">
           <div className="hidden md:block absolute left-0 top-0 bottom-0 w-px bg-white/[0.04]" />
           <div className="hidden md:block absolute left-0 top-0 bottom-0 w-px bg-white/[0.02] translate-x-[7px]" />
 
@@ -434,7 +434,7 @@ export default function CheckoutPage() {
           </div>
         </div>
 
-        <footer className="relative z-10 max-w-[min(95vw,2400px)] mx-auto mt-20 pt-10 pb-10 border-t border-white/[0.05]">
+        <footer className="relative z-10 max-w-[min(98vw,2560px)] mx-auto mt-20 pt-10 pb-10 border-t border-white/[0.05]">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex flex-col items-center md:items-start">
               <span className="font-display text-lg uppercase tracking-wide text-white/60">Street PlayR</span>

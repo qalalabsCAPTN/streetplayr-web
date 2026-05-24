@@ -75,7 +75,7 @@ const collections = [
 
 export default function CollectionTiles() {
   return (
-    <section className="relative py-24 sm:py-28 px-4 md:px-6 w-full max-w-[min(95vw,2400px)] mx-auto border-t border-white/[0.04]">
+    <section className="relative py-24 sm:py-28 px-4 md:px-8 lg:px-12 w-full max-w-[min(98vw,2560px)] mx-auto border-t border-white/[0.04]">
       <FadeIn>
         <div className="flex items-center gap-3 mb-4">
           <span className="h-px w-6 bg-white/20 block" />

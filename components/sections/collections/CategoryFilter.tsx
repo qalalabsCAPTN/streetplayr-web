@@ -12,7 +12,7 @@ interface CategoryFilterProps {
 export default function CategoryFilter({ activeCategory, onSelect }: CategoryFilterProps) {
   return (
     <div className="sticky top-[72px] z-40 w-full border-b border-[#1e1e1e] bg-[#0a0a0a]/80 backdrop-blur-md md:top-[88px]">
-      <div className="mx-auto max-w-[min(95vw,2400px)] px-4 md:px-6 py-4 md:py-6">
+      <div className="mx-auto max-w-[min(98vw,2560px)] px-4 md:px-8 lg:px-12 py-4 md:py-6">
         <div className="no-scrollbar flex w-full overflow-x-auto">
           <div className="flex items-center gap-8 md:gap-12 lg:gap-16">
             {categories.map((category) => {

@@ -62,12 +62,14 @@ import { useState } from 'react';
 interface UseEventStreamOptions {
   limit?: number;
   platformFilter?: string;
+  siteIdFilter?: string;
   enabled?: boolean;
 }
 
 export function useRealtimeEventStream({
   limit = 50,
   platformFilter,
+  siteIdFilter,
   enabled = true,
 }: UseEventStreamOptions = {}) {
   const [events, setEvents] = useState<Record<string, unknown>[]>([]);
@@ -75,7 +77,7 @@ export function useRealtimeEventStream({
   useRealtimeTable({
     table: 'events',
     event: 'INSERT',
-    filter: platformFilter ? `platform=eq.${platformFilter}` : undefined,
+    filter: siteIdFilter ? `site_id=eq.${siteIdFilter}` : platformFilter ? `platform=eq.${platformFilter}` : undefined,
     enabled,
     onInsert: (record) => {
       setEvents(prev => [record as Record<string, unknown>, ...prev].slice(0, limit));

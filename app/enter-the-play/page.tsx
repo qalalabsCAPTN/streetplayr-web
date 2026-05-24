@@ -81,7 +81,7 @@ export default function EnterThePlay() {
       {/* Content */}
       <div className={styles["content"]}>
         <div className={styles["star-container"]}>
-          <NinjaStar />
+          <NinjaStar scale={1.15} />
         </div>
 
         <div className={styles["brand"]}>
@@ -96,10 +96,8 @@ export default function EnterThePlay() {
         </div>
 
         {ready ? (
-          <button className={styles["enter-button"]} onClick={handleEnter}>
-            <span className={styles["dot-pulse"]} />
-            <span>Click to Enter</span>
-            <span className={styles["arrow-icon"]}>→</span>
+          <button className={styles["enter-bracketed"]} onClick={handleEnter}>
+            [ CLICK TO ENTER ]
           </button>
         ) : (
           <div className={styles["loading-state"]}>

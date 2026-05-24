@@ -24,7 +24,7 @@ export default function CartPage() {
   return (
     <>
       <Navbar />
-      <div className="relative min-h-screen bg-[#16111b] pt-20 md:pt-32 pb-24 px-4 md:px-6">
+      <div className="relative min-h-screen bg-[#16111b] pt-20 md:pt-32 pb-24 px-4 md:px-8 lg:px-12">
       {/* ── Environmental background layers ── */}
       {/* Vignette */}
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(0,0,0,0.65)_100%)]" />
@@ -48,7 +48,7 @@ export default function CartPage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-        className="max-w-[min(95vw,2400px)] mx-auto relative z-10"
+        className="max-w-[min(98vw,2560px)] mx-auto relative z-10"
       >
         {/* ── Left vertical framing rail ── */}
         <div className="hidden md:block absolute left-0 top-0 bottom-0 w-px bg-white/[0.04]" />
@@ -191,7 +191,7 @@ export default function CartPage() {
       </div>
 
       {/* ── Footer architecture ── */}
-      <footer className="relative z-10 max-w-[min(95vw,2400px)] mx-auto mt-24 pt-12 pb-12 border-t border-white/[0.05]">
+      <footer className="relative z-10 max-w-[min(98vw,2560px)] mx-auto mt-24 pt-12 pb-12 border-t border-white/[0.05]">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           {/* Brand */}
           <div className="flex flex-col items-center md:items-start">

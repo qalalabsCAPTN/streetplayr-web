@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Play, Pause, RefreshCw, AlertTriangle, CheckCircle2, Clock, ChevronRight, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/ops2/cn';
+import { getSupabaseClient } from '@/lib/ops2/supabase';
 import { formatRelativeTime, formatDateTime } from '@/lib/ops2/format';
 import { PlatformBadge, Badge } from '@/components/ops2/ui/badge';
 import { StatusDot } from '@/components/ops2/ui/status-dot';
@@ -44,21 +45,44 @@ export function EventStreamMonitor() {
   const queryClient = useQueryClient();
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  const { data: siteId } = useQuery({
+    queryKey: ['site-id', apiParam],
+    queryFn: async () => {
+      if (!apiParam) return undefined;
+      const db = getSupabaseClient();
+      const { data } = await db.from('sites').select('id').eq('slug', apiParam).single();
+      return data?.id as string | undefined;
+    },
+  });
+
   const realtimeEvents = useRealtimeEventStream({
     limit: 100,
     platformFilter: apiParam,
+    siteIdFilter: siteId,
     enabled: !paused,
   });
 
   const { data: historicalData, isLoading } = useQuery({
-    queryKey: ['events', 'stream', apiParam],
-    queryFn: () => api.get<{ events: EventRecord[] }>('/nectar/events', { platform: apiParam, limit: 100 }),
+    queryKey: ['events', 'stream', apiParam, siteId],
+    queryFn: async () => {
+      const db = getSupabaseClient();
+      let query = db.from('events').select('id, event_type, platform, actor_user_id, status, processing_attempts, error_message, created_at, processed_at, payload').order('created_at', { ascending: false }).limit(100);
+      if (siteId) query = query.eq('site_id', siteId);
+      const { data } = await query;
+      return { events: (data ?? []) as EventRecord[] };
+    },
     refetchInterval: paused ? false : 15_000,
   });
 
   const { data: failedData } = useQuery({
-    queryKey: ['events', 'failed', apiParam],
-    queryFn: () => api.get<{ events: EventRecord[] }>('/nectar/events', { platform: apiParam, status: 'failed,dead_lettered', limit: 50 }),
+    queryKey: ['events', 'failed', apiParam, siteId],
+    queryFn: async () => {
+      const db = getSupabaseClient();
+      let query = db.from('events').select('id, event_type, platform, actor_user_id, status, processing_attempts, error_message, created_at, processed_at, payload').in('status', ['failed', 'dead_lettered']).order('created_at', { ascending: false }).limit(50);
+      if (siteId) query = query.eq('site_id', siteId);
+      const { data } = await query;
+      return { events: (data ?? []) as EventRecord[] };
+    },
     refetchInterval: 30_000,
   });
 
