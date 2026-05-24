@@ -8,10 +8,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Loads sites from DB and hydrates platform-store on mount */}
       <PlatformHydrator />
       <Sidebar />
-      <main className="ml-[240px] min-h-screen">
-        <div className="min-h-screen">
-          {children}
-        </div>
+      <main className="pl-60 flex flex-col min-h-screen">
+        {children}
       </main>
       <CommandPalette />
     </div>

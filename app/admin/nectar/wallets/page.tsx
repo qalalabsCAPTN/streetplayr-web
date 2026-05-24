@@ -175,21 +175,16 @@ export default function WalletsPage() {
                 { label: 'User',        value: selectedTx.user_id },
                 { label: 'Type',        value: selectedTx.type },
                 { label: 'Source',      value: selectedTx.source },
-                { label: 'Amount',      value: selectedTx.amount.toLocaleString() },
-                { label: 'Balance After', value: selectedTx.balance_after.toLocaleString() },
-                { label: 'Description', value: selectedTx.description },
-                { label: 'Created At',  value: formatDateTime(selectedTx.created_at) },
-              ].map(f => (
-                <div key={f.label} className="space-y-1">
-                  <div className="text-xs text-text-muted uppercase tracking-wider">{f.label}</div>
-                  <div className="code break-all">{f.value}</div>
+                { label: 'Amount',      value: formatPoints(selectedTx.amount) },
+                { label: 'Balance After', value: formatPoints(selectedTx.balance_after) },
+                { label: 'Wallet',      value: selectedTx.wallet_type },
+                { label: 'Time',        value: formatDateTime(selectedTx.created_at) },
+              ].map(({ label, value }) => (
+                <div key={label}>
+                  <div className="text-xs text-text-muted mb-0.5">{label}</div>
+                  <div className="text-sm text-text-primary font-mono break-all">{value}</div>
                 </div>
               ))}
-
-              <div className="rounded-lg border border-status-success/20 bg-status-success/5 p-3 text-xs text-status-success">
-                This transaction is immutable. It cannot be modified or deleted.
-                Manual corrections create new ledger entries.
-              </div>
             </div>
           </div>
         )}

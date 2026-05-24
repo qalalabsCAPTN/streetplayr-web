@@ -472,18 +472,3 @@ function BlockContentEditor({
   );
 }
 
-// Helper reference to BLOCK_TYPES for BlockContentEditor
-const BLOCK_TYPES = [
-  { type: 'announcement_bar' as BlockType, label: 'Announcement Bar', icon: '📢', description: '' },
-  { type: 'hero'             as BlockType, label: 'Hero',             icon: '🖼',  description: '' },
-  { type: 'text_rich'        as BlockType, label: 'Rich Text',        icon: '📝',  description: '' },
-  { type: 'image_full'       as BlockType, label: 'Full Image',       icon: '🏞',  description: '' },
-  { type: 'image_grid'       as BlockType, label: 'Image Grid',       icon: '🔲',  description: '' },
-  { type: 'cta_banner'       as BlockType, label: 'CTA Banner',       icon: '🎯',  description: '' },
-  { type: 'countdown_timer'  as BlockType, label: 'Countdown',        icon: '⏱',  description: '' },
-  { type: 'product_carousel' as BlockType, label: 'Product Carousel', icon: '🛍',  description: '' },
-  { type: 'collection_grid'  as BlockType, label: 'Collection Grid',  icon: '📦',  description: '' },
-  { type: 'video_embed'      as BlockType, label: 'Video',            icon: '🎬',  description: '' },
-  { type: 'spacer'           as BlockType, label: 'Spacer',           icon: '↕',  description: '' },
-  { type: 'divider'          as BlockType, label: 'Divider',          icon: '—',  description: '' },
-];

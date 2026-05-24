@@ -17,13 +17,13 @@ interface OrderRow {
 }
 
 const STATUS_VARIANT: Record<string, 'success' | 'error' | 'warning' | 'info' | 'muted'> = {
-  delivered: 'success',
-  cancelled: 'error',
-  refunded: 'error',
-  processing: 'warning',
+  delivered:       'success',
+  cancelled:       'error',
+  refunded:        'error',
+  processing:      'warning',
   pending_payment: 'warning',
-  shipped: 'info',
-  confirmed: 'info',
+  shipped:         'info',
+  confirmed:       'info',
 };
 
 async function fetchOrders(apiParam?: string) {
@@ -32,13 +32,13 @@ async function fetchOrders(apiParam?: string) {
 
   if (apiParam) {
     const { data: site } = await db.from('sites').select('id').eq('slug', apiParam).single();
-    siteId = site?.id;
+    siteId = (site as { id: string } | null)?.id;
     if (!siteId) return { orders: [] as OrderRow[] };
   }
 
   let query = db
     .from('orders')
-    .select('id, user_id, status, total, created_at, site_id')
+    .select('id, user_id, status, total, created_at')
     .order('created_at', { ascending: false })
     .limit(50);
 
@@ -52,7 +52,7 @@ export default function OrdersPage() {
   const { apiParam } = usePlatform();
   const { data, isLoading } = useQuery({
     queryKey: ['admin-orders', apiParam],
-    queryFn: () => fetchOrders(apiParam),
+    queryFn:  () => fetchOrders(apiParam),
     placeholderData: prev => prev,
   });
 
@@ -99,16 +99,18 @@ export default function OrdersPage() {
                     </td>
                   </tr>
                 ) : (
-                  orders.map((order) => (
+                  orders.map(order => (
                     <tr key={order.id}>
                       <td>
                         <div className="font-mono text-xs text-text-primary">{order.id.slice(0, 8)}…</div>
                       </td>
                       <td>
-                        <span className="code text-[10px]">{order.user_id.slice(0, 8)}…</span>
+                        <span className="font-mono text-[10px] text-text-muted">{order.user_id.slice(0, 8)}…</span>
                       </td>
                       <td>
-                        <Badge variant={STATUS_VARIANT[order.status] ?? 'muted'}>{order.status.replaceAll('_', ' ')}</Badge>
+                        <Badge variant={STATUS_VARIANT[order.status] ?? 'muted'}>
+                          {order.status.replaceAll('_', ' ')}
+                        </Badge>
                       </td>
                       <td className="font-medium text-text-primary">{formatCurrency(order.total)}</td>
                       <td className="text-text-muted">{formatRelativeTime(order.created_at)}</td>

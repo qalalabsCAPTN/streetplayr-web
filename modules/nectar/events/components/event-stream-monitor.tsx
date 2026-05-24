@@ -51,7 +51,7 @@ export function EventStreamMonitor() {
       if (!apiParam) return undefined;
       const db = getSupabaseClient();
       const { data } = await db.from('sites').select('id').eq('slug', apiParam).single();
-      return data?.id as string | undefined;
+      return (data as { id: string } | null)?.id;
     },
   });
 
@@ -331,27 +331,15 @@ function QueueHealth() {
       <div className="grid grid-cols-2 gap-3">
         {metrics.map(m => (
           <div key={m.label} className="surface-elevated p-4 flex flex-col gap-2">
-            <span className="text-xs text-text-muted">{m.label}</span>
             <div className="flex items-center gap-2">
-              <StatusDot status={m.status === 'success' ? 'live' : 'error'} />
-              <span className="text-lg font-bold text-text-primary">{m.value}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="surface-elevated p-4 space-y-3">
-        <div className="section-title">Worker Status</div>
-        {[
-          { id: 'worker-1', queue: 'event-processing', status: 'healthy' as const },
-          { id: 'worker-2', queue: 'event-processing', status: 'healthy' as const },
-          { id: 'worker-3', queue: 'reward-execution', status: 'healthy' as const },
-          { id: 'worker-4', queue: 'progression',      status: 'healthy' as const },
-        ].map(w => (
-          <div key={w.id} className="flex items-center gap-3">
-            <StatusDot status="live" />
-            <span className="text-sm text-text-secondary font-mono flex-1">{w.id}</span>
-            <span className="text-xs text-text-muted">{w.queue}</span>
+                <div className={cn(
+                  'h-2 w-2 rounded-full',
+                  m.status === 'success' ? 'bg-status-success' :
+                  m.status === 'error'   ? 'bg-status-error' :
+                  'bg-status-warning'
+                )} />
+                <span className="text-sm font-semibold text-text-primary">{m.value}</span>
+              </div>
           </div>
         ))}
       </div>

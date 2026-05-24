@@ -33,7 +33,7 @@ function BlockSwitch({ block }: { block: PageBlock }) {
           }}
         >
           {c.text as string}
-          {c.link_href && (
+          {Boolean(c.link_href) && (
             <a href={c.link_href as string} className="ml-2 underline">
               {(c.link_label as string) ?? 'Learn more'}
             </a>
@@ -46,29 +46,29 @@ function BlockSwitch({ block }: { block: PageBlock }) {
         <section
           className="relative min-h-[80vh] flex items-center justify-center overflow-hidden"
           style={
-            c.bg_image_url
+            Boolean(c.bg_image_url)
               ? { backgroundImage: `url(${c.bg_image_url})`, backgroundSize: 'cover', backgroundPosition: 'center' }
               : {}
           }
         >
-          {c.bg_image_url && (
+          {Boolean(c.bg_image_url) && (
             <div
               className="absolute inset-0 bg-black"
               style={{ opacity: (c.overlay_opacity as number) ?? 0.4 }}
             />
           )}
           <div className="relative z-10 text-center px-6">
-            {c.title && (
+            {Boolean(c.title) && (
               <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tighter text-white mb-4">
                 {c.title as string}
               </h1>
             )}
-            {c.subtitle && (
+            {Boolean(c.subtitle) && (
               <p className="text-lg md:text-xl text-white/80 mb-8 max-w-xl mx-auto">
                 {c.subtitle as string}
               </p>
             )}
-            {c.cta_label && c.cta_href && (
+            {Boolean(c.cta_label) && Boolean(c.cta_href) && (
               <a
                 href={c.cta_href as string}
                 className="inline-block px-8 py-3 bg-white text-black font-bold uppercase tracking-wider hover:bg-white/90 transition-colors"
@@ -83,10 +83,10 @@ function BlockSwitch({ block }: { block: PageBlock }) {
     case 'text_rich':
       return (
         <section className="max-w-3xl mx-auto px-6 py-16">
-          {c.heading && (
+          {Boolean(c.heading) && (
             <h2 className="text-3xl font-bold mb-6 text-text-primary">{c.heading as string}</h2>
           )}
-          {c.body_html && (
+          {Boolean(c.body_html) && (
             <div
               className="prose prose-invert max-w-none"
               dangerouslySetInnerHTML={{ __html: c.body_html as string }}
@@ -98,7 +98,7 @@ function BlockSwitch({ block }: { block: PageBlock }) {
     case 'image_full':
       return (
         <section className="w-full">
-          {c.link_href ? (
+          {Boolean(c.link_href) ? (
             <a href={c.link_href as string}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={c.image_url as string} alt={(c.alt_text as string) ?? ''} className="w-full object-cover" />
@@ -107,7 +107,7 @@ function BlockSwitch({ block }: { block: PageBlock }) {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={c.image_url as string} alt={(c.alt_text as string) ?? ''} className="w-full object-cover" />
           )}
-          {c.caption && (
+          {Boolean(c.caption) && (
             <p className="text-center text-sm text-text-muted mt-2 px-4">{c.caption as string}</p>
           )}
         </section>
@@ -119,13 +119,13 @@ function BlockSwitch({ block }: { block: PageBlock }) {
           className="py-16 px-6 text-center"
           style={{ backgroundColor: (c.bg_color as string) ?? '#111111' }}
         >
-          {c.heading && (
+          {Boolean(c.heading) && (
             <h2 className="text-3xl font-bold text-white mb-3">{c.heading as string}</h2>
           )}
-          {c.subtext && (
+          {Boolean(c.subtext) && (
             <p className="text-white/70 mb-8 max-w-lg mx-auto">{c.subtext as string}</p>
           )}
-          {c.cta_label && c.cta_href && (
+          {Boolean(c.cta_label) && Boolean(c.cta_href) && (
             <a
               href={c.cta_href as string}
               className="inline-block px-8 py-3 font-bold uppercase tracking-wider"
