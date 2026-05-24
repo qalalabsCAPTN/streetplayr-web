@@ -81,7 +81,7 @@ export default function MobilePurchaseBar({ price, productId, title, image, sele
       </div>
       <button
         onClick={handleAddToCart}
-        className={`rounded-none h-12 px-8 font-mono text-[9px] uppercase tracking-[0.3em] transition-colors ${
+        className={`rounded-xl h-12 px-8 font-mono text-[9px] uppercase tracking-[0.3em] transition-colors ${
           isAdded 
             ? "bg-white/10 text-white/60" 
             : "bg-white/5 text-white hover:bg-[#ddb7ff] hover:text-[#16111b]"

@@ -43,14 +43,22 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
 
   type ProductVariant = { id: string; size: string; color: string; stock_quantity?: number; price_override?: number | null };
   const variants: ProductVariant[] = (product as { variants?: ProductVariant[] }).variants ?? [];
+  type ProductMeta = {
+    points?: string;
+    gallery_images?: string[];
+    colors?: { id: string; name: string; hex: string }[];
+    model3d?: string;
+  };
+  const meta = (product as { metadata?: ProductMeta }).metadata;
+
   const displayData = {
     title: formatProductTitle(product.name),
     price: formatPrice(product.price),
     description: product.description ?? "",
-    points: (product as { metadata?: { points?: string } }).metadata?.points ?? "100",
+    points: meta?.points ?? "100",
     image: product.image_url,
-    images: (product as { metadata?: { gallery_images?: string[]; colors?: { id: string; name: string; hex: string }[] } }).metadata?.gallery_images || (product.image_url ? [product.image_url] : []),
-    colors: (product as { metadata?: { colors?: { id: string; name: string; hex: string }[] } }).metadata?.colors ?? [],
+    images: meta?.gallery_images || (product.image_url ? [product.image_url] : []),
+    colors: meta?.colors ?? [],
     sizes: [...new Set(variants.map((v) => v.size))],
     variants: variants.map((v) => ({
       id: v.id,
@@ -58,6 +66,7 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
       color: v.color,
       stockQuantity: v.stock_quantity ?? 0,
     })),
+    model3d: meta?.model3d,
   };
 
   return (
@@ -73,6 +82,7 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
       sizes={displayData.sizes}
       variants={displayData.variants}
       slug={product.slug}
+      model3d={displayData.model3d}
     />
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, forwardRef, useImperativeHandle, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/cartStore";
 import Image from "next/image";
@@ -19,7 +19,7 @@ function CheckoutInput({ label, id, type = "text", value, onChange, placeholder 
 }) {
   return (
     <div className="space-y-2">
-      <label htmlFor={id} className="block font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">
+      <label htmlFor={id} className="block font-mono text-[10px] uppercase tracking-[0.2em] text-white/55">
         {label}
       </label>
       <input
@@ -28,13 +28,13 @@ function CheckoutInput({ label, id, type = "text", value, onChange, placeholder 
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full bg-transparent border-b border-white/[0.1] py-2.5 font-mono text-sm text-white/80 outline-none transition-colors placeholder:text-white/20 focus:border-[#ddb7ff]/60"
+        className="w-full bg-transparent border border-white/[0.06] rounded-lg px-3 py-2.5 font-mono text-sm text-white/80 outline-none transition-colors placeholder:text-white/30 focus:border-[#ddb7ff]/60"
       />
     </div>
   );
 }
 
-function CheckoutFormContent() {
+const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }>(function CheckoutFormContent(props, ref) {
   const router = useRouter();
   const { items, clearCart } = useCartStore();
   const [phase, setPhase] = useState<'form' | 'processing' | 'error'>('form');
@@ -113,9 +113,11 @@ function CheckoutFormContent() {
     }
   }, [email, firstName, lastName, address, city, state, postalCode, country, items, router, clearCart]);
 
+  useImperativeHandle(ref, () => ({ completeOrder: handleCompleteOrder }), [handleCompleteOrder]);
+
   if (phase === 'processing') {
     return (
-      <div className="flex flex-col items-center justify-center py-32 border border-white/[0.06] bg-[#1f1a23]/50">
+      <div className="flex flex-col items-center justify-center py-32 border border-white/[0.06] bg-[#1f1a23]/50 rounded-xl">
         <motion.div
           animate={{ opacity: [0.3, 1, 0.3] }}
           transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
@@ -130,18 +132,10 @@ function CheckoutFormContent() {
   return (
     <div className="space-y-6">
       {/* ── Shipping Form ── */}
-      <div className="border border-white/[0.06] p-6 bg-[#1f1a23]/50 relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-2 opacity-10">
-          <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10" />
-          </svg>
-        </div>
-
+      <div className="border border-white/[0.06] p-5 bg-[#1f1a23]/50 rounded-xl">
         <div className="flex items-center gap-3 mb-8">
-          <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#ddb7ff]">[</span>
+          <span className="inline-block w-1.5 h-1.5 bg-[#ddb7ff]" />
           <h2 className="font-display text-3xl uppercase tracking-wide text-[#eadfed]">Shipping</h2>
-          <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#ddb7ff]">]</span>
         </div>
 
         <div className="space-y-6">
@@ -169,12 +163,12 @@ function CheckoutFormContent() {
             <CheckoutInput id="postalCode" label="Postal Code" placeholder="POSTAL CODE" value={postalCode} onChange={setPostalCode} />
           </div>
           <div className="space-y-2">
-            <label htmlFor="country" className="block font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">Country</label>
+            <label htmlFor="country" className="block font-mono text-[10px] uppercase tracking-[0.2em] text-white/55">Country</label>
             <select
               id="country"
               value={country}
               onChange={(e) => setCountry(e.target.value)}
-              className="w-full bg-transparent border-b border-white/[0.1] py-2.5 font-mono text-sm text-white/80 outline-none focus:border-[#ddb7ff]/60"
+              className="w-full bg-transparent border border-white/[0.06] rounded-lg px-3 py-2.5 font-mono text-sm text-white/80 outline-none focus:border-[#ddb7ff]/60"
             >
               <option value="" className="bg-[#16111b]">SELECT COUNTRY</option>
               <option value="IN" className="bg-[#16111b]">India</option>
@@ -192,17 +186,16 @@ function CheckoutFormContent() {
       </div>
 
       {/* ── Payment Method ── */}
-      <div className="border border-white/[0.06] p-6 bg-[#1f1a23]/50">
+      <div className="border border-white/[0.06] p-5 bg-[#1f1a23]/50 rounded-xl">
         <div className="flex items-center gap-3 mb-6">
-          <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#ddb7ff]">[</span>
+          <span className="inline-block w-1.5 h-1.5 bg-[#ddb7ff]" />
           <h2 className="font-display text-3xl uppercase tracking-wide text-[#eadfed]">Payment</h2>
-          <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#ddb7ff]">]</span>
         </div>
 
         <div className="space-y-3">
           <button
             onClick={() => setPaymentMethod('demo')}
-            className={`w-full flex items-center justify-between p-4 border transition-colors text-left ${
+              className={`w-full flex items-center justify-between p-4 border transition-colors text-left rounded-xl ${
               paymentMethod === 'demo'
                 ? 'border-[#ddb7ff]/40 bg-[#ddb7ff]/5'
                 : 'border-white/[0.08] bg-transparent hover:border-white/[0.15]'
@@ -219,51 +212,38 @@ function CheckoutFormContent() {
                 <span className="font-mono text-[9px] uppercase text-green-400/70 block mt-0.5">Active</span>
               </div>
             </div>
-            <span className="font-mono text-[9px] uppercase text-white/20">Test Mode</span>
+            <span className="font-mono text-[9px] uppercase text-white/35">Test Mode</span>
           </button>
 
           <button
             disabled
-            className="w-full flex items-center justify-between p-4 border border-white/[0.05] bg-transparent opacity-50 cursor-not-allowed text-left"
+            className="w-full flex items-center justify-between p-4 border border-white/[0.05] bg-transparent opacity-50 cursor-not-allowed text-left rounded-xl"
           >
             <div className="flex items-center gap-4">
               <div className="w-5 h-5 border-2 border-white/10" />
               <div>
-                <span className="font-mono text-xs uppercase text-white/40">Razorpay</span>
-                <span className="font-mono text-[9px] uppercase text-white/20 block mt-0.5">Coming Soon</span>
+                <span className="font-mono text-xs uppercase text-white/55">Razorpay</span>
+                <span className="font-mono text-[9px] uppercase text-white/35 block mt-0.5">Coming Soon</span>
               </div>
             </div>
-            <span className="font-mono text-[9px] uppercase text-white/10">Unavailable</span>
+            <span className="font-mono text-[9px] uppercase text-white/25">Unavailable</span>
           </button>
         </div>
       </div>
-
-      {/* ── Complete Order Button ── */}
-      <button
-        onClick={handleCompleteOrder}
-        className="rounded-none group relative block w-full py-6 text-center overflow-hidden transition-all active:scale-[0.98]"
-      >
-        <span className="absolute inset-0 bg-[#ddb7ff] transition-transform duration-500 group-hover:scale-y-0 origin-bottom" />
-        <span className="absolute inset-0 bg-[#eadfed] scale-y-0 group-hover:scale-y-100 transition-transform duration-500 origin-top" />
-        <span className="relative z-10 text-sm uppercase tracking-[0.2em] text-[#16111b] font-light">
-          Complete Order
-        </span>
-      </button>
     </div>
   );
-}
+});
 
 function WalletModule() {
   return (
-    <div className="border border-white/[0.06] p-6 bg-[#1f1a23]/50">
+    <div className="border border-white/[0.06] p-5 bg-[#1f1a23]/50 rounded-xl">
       <div className="flex items-center gap-3 mb-6">
-        <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#ddb7ff]">[</span>
+        <span className="inline-block w-1.5 h-1.5 bg-[#ddb7ff]" />
         <h2 className="font-display text-3xl uppercase tracking-wide text-[#eadfed]">Loyalty</h2>
-        <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#ddb7ff]">]</span>
       </div>
-      <div className="p-4 border border-[#ddb7ff]/15 bg-[#ddb7ff]/5 flex items-center justify-between">
+      <div className="p-4 border border-[#ddb7ff]/15 bg-[#ddb7ff]/5 flex items-center justify-between rounded-lg">
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-[#ddb7ff]/10 border border-[#ddb7ff]/30 flex items-center justify-center">
+          <div className="w-10 h-10 bg-[#ddb7ff]/10 border border-[#ddb7ff]/30 flex items-center justify-center rounded-lg">
             <span className="text-[#ddb7ff] text-sm">✦</span>
           </div>
           <div>
@@ -271,7 +251,7 @@ function WalletModule() {
             <div className="font-mono text-[10px] text-[#ddb7ff]/70 mt-0.5">2,450 Reward Points</div>
           </div>
         </div>
-        <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/40">Active</span>
+        <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/55">Active</span>
       </div>
     </div>
   );
@@ -279,9 +259,8 @@ function WalletModule() {
 
 function OrderSummary({ items, total }: { items: any[]; total: number }) {
   return (
-    <div className="border border-white/[0.06] bg-[#2e2832]/40 p-6 backdrop-blur-xl relative overflow-hidden">
+    <div className="border border-white/[0.06] bg-[#2e2832]/40 p-5 backdrop-blur-xl relative overflow-hidden rounded-xl">
       <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#ddb7ff]/40 to-transparent" />
-      <div className="absolute bottom-0 right-0 p-1 font-mono text-[8px] opacity-20 rotate-90 origin-bottom-right translate-y-8">SECURE CHECKOUT</div>
 
       <h3 className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#ddb7ff] mb-8 flex items-center gap-2">
         <span className="inline-block w-1.5 h-1.5 bg-[#ddb7ff]" />
@@ -291,7 +270,7 @@ function OrderSummary({ items, total }: { items: any[]; total: number }) {
       <div className="space-y-5 mb-8">
         {items.map((item) => (
           <div key={item.id} className="flex gap-4 group">
-            <div className="w-20 h-24 bg-[#231e27] border border-white/[0.06] overflow-hidden shrink-0 relative">
+            <div className="w-20 h-24 bg-[#231e27] border border-white/[0.06] overflow-hidden shrink-0 relative rounded-lg">
               <Image
                 src={item.image || "/images/placeholder.jpg"}
                 alt={item.name}
@@ -306,7 +285,7 @@ function OrderSummary({ items, total }: { items: any[]; total: number }) {
             <div className="flex-1 flex flex-col justify-between py-0.5 min-w-0">
               <div>
                 <p className="font-mono text-xs text-white/80 uppercase leading-tight">{formatProductTitle(item.name)}</p>
-                <p className="font-mono text-[10px] text-white/35 mt-1">
+                <p className="font-mono text-[10px] text-white/50 mt-1">
                   {item.size} / {item.color}
                 </p>
               </div>
@@ -317,13 +296,13 @@ function OrderSummary({ items, total }: { items: any[]; total: number }) {
       </div>
 
       <div className="border-t border-white/[0.06] pt-5 space-y-3">
-        <div className="flex justify-between font-mono text-xs text-white/40">
+        <div className="flex justify-between font-mono text-xs text-white/55">
           <span>Subtotal</span>
           <span className="text-white/70">{formatPrice(total)}</span>
         </div>
-        <div className="flex justify-between font-mono text-xs text-white/40">
+        <div className="flex justify-between font-mono text-xs text-white/55">
           <span>Shipping</span>
-          <span className="text-white/30">Calculated at checkout</span>
+          <span className="text-white/45">Calculated at checkout</span>
         </div>
       </div>
 
@@ -334,9 +313,9 @@ function OrderSummary({ items, total }: { items: any[]; total: number }) {
         </div>
       </div>
 
-      <div className="mt-6 p-3 bg-black/40 border border-white/[0.06] flex items-center gap-3">
-        <span className="text-white/40 text-[10px]">🔒</span>
-        <p className="font-mono text-[9px] text-white/25 uppercase leading-tight tracking-[0.1em]">
+      <div className="mt-6 p-3 bg-black/40 border border-white/[0.06] flex items-center gap-3 rounded-lg">
+        <span className="text-white/50 text-[10px]">🔒</span>
+        <p className="font-mono text-[9px] text-white/40 uppercase leading-tight tracking-[0.1em]">
           Encrypted checkout. Your information is secure.
         </p>
       </div>
@@ -352,9 +331,9 @@ function PromoCode() {
         value={code}
         onChange={(e) => setCode(e.target.value)}
         placeholder="PROMO CODE"
-        className="flex-1 bg-[#1f1a23] border border-white/[0.06] px-4 py-3 font-mono text-xs text-white/60 outline-none focus:border-[#ddb7ff]/40 transition-colors placeholder:text-white/20"
+        className="flex-1 bg-[#1f1a23] border border-white/[0.06] px-4 py-3 font-mono text-xs text-white/60 outline-none focus:border-[#ddb7ff]/40 transition-colors placeholder:text-white/30 rounded-lg"
       />
-      <button className="rounded-none px-6 bg-[#2e2832] border border-white/[0.06] font-mono text-xs uppercase tracking-[0.15em] text-white/50 hover:bg-[#ddb7ff] hover:text-[#16111b] hover:border-[#ddb7ff] transition-all">
+      <button className="rounded-xl px-6 bg-[#2e2832] border border-white/[0.06] font-mono text-xs uppercase tracking-[0.15em] text-white/50 hover:bg-[#ddb7ff] hover:text-[#16111b] hover:border-[#ddb7ff] transition-all">
         Apply
       </button>
     </div>
@@ -365,6 +344,8 @@ export default function CheckoutPage() {
   const { items } = useCartStore();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
+  const formRef = useRef<{ completeOrder: () => Promise<void> }>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -378,47 +359,61 @@ export default function CheckoutPage() {
   const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const itemCount = items.length;
 
+  const handleCheckout = async () => {
+    if (isProcessing) return;
+    setIsProcessing(true);
+    try {
+      await formRef.current?.completeOrder();
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   return (
     <>
       <Navbar />
-      <div className="relative min-h-screen bg-[#16111b] pt-32 pb-24 px-6 sm:px-12 lg:px-16">
+      <div className="relative min-h-screen bg-[#16111b] pt-20 md:pt-32 pb-24 px-4 md:px-6">
         <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(0,0,0,0.65)_100%)]" />
         <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.25)_0%,transparent_10%,transparent_90%,rgba(0,0,0,0.25)_100%)]" />
         <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_50%_30%,rgba(221,183,255,0.05)_0%,transparent_55%)]" />
-        <div
-          className="pointer-events-none fixed inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)",
-            backgroundSize: "40px 40px",
-          }}
-        />
         <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(255,87,26,0.03)_0%,transparent_60%)]" />
 
-        <div className="max-w-[1440px] mx-auto relative z-10">
-          <div className="absolute left-0 top-0 bottom-0 w-px bg-white/[0.04]" />
-          <div className="absolute left-0 top-0 bottom-0 w-px bg-white/[0.02] translate-x-[7px]" />
+        <div className="max-w-[min(95vw,2400px)] mx-auto relative z-10">
+          <div className="hidden md:block absolute left-0 top-0 bottom-0 w-px bg-white/[0.04]" />
+          <div className="hidden md:block absolute left-0 top-0 bottom-0 w-px bg-white/[0.02] translate-x-[7px]" />
 
-          <div className="flex items-center justify-between mb-12 border-b border-white/[0.05] pb-6">
+          <div className="flex items-center justify-between mb-6 md:mb-12 border-b border-white/[0.05] pb-6">
             <div className="flex items-center gap-4">
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#ddb7ff] border border-[#ddb7ff]/40 px-3 py-1 flex items-center gap-2">
                 <span className="inline-block w-1.5 h-1.5 bg-[#ddb7ff]" />
                 01 Shipping
               </div>
               <div className="w-6 h-px bg-white/[0.1]" />
-              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/25">02 Payment</span>
+              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">02 Payment</span>
               <div className="w-6 h-px bg-white/[0.1]" />
-              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/25">03 Confirmation</span>
+              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">03 Confirmation</span>
             </div>
-            <div className="hidden md:block font-mono text-[10px] uppercase tracking-[0.15em] text-white/25">
+            <div className="hidden md:block font-mono text-[10px] uppercase tracking-[0.15em] text-white/40">
               {itemCount} Items
             </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             <div className="lg:col-span-7 space-y-6">
-              <CheckoutFormContent />
+              <CheckoutFormContent ref={formRef} />
               <WalletModule />
+              {/* CTA — always last on mobile */}
+              <button
+                onClick={handleCheckout}
+                disabled={isProcessing}
+                className="rounded-xl group relative block w-full py-6 text-center overflow-hidden transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span className="absolute inset-0 bg-[#ddb7ff] transition-transform duration-500 group-hover:scale-y-0 origin-bottom" />
+                <span className="absolute inset-0 bg-[#eadfed] scale-y-0 group-hover:scale-y-100 transition-transform duration-500 origin-top" />
+                <span className="relative z-10 text-sm uppercase tracking-[0.2em] text-[#16111b] font-light">
+                  Complete Order
+                </span>
+              </button>
             </div>
             <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-32">
               <OrderSummary items={items} total={total} />
@@ -429,21 +424,21 @@ export default function CheckoutPage() {
           <div className="flex justify-between items-center mt-10 pt-6 border-t border-white/[0.05]">
             <Link
               href="/cart"
-              className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/30 hover:text-white transition-colors"
+              className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/45 hover:text-white transition-colors"
             >
               ← Return to Cart
             </Link>
-            <span className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/15">
+            <span className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/25">
               Secure checkout
             </span>
           </div>
         </div>
 
-        <footer className="relative z-10 max-w-[1440px] mx-auto mt-24 pt-10 pb-10 border-t border-white/[0.05]">
+        <footer className="relative z-10 max-w-[min(95vw,2400px)] mx-auto mt-20 pt-10 pb-10 border-t border-white/[0.05]">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex flex-col items-center md:items-start">
               <span className="font-display text-lg uppercase tracking-wide text-white/60">Street PlayR</span>
-              <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-white/15 mt-2">&copy; 2024 Street PlayR</span>
+              <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-white/25 mt-2">&copy; 2024 Street PlayR</span>
             </div>
             <div className="flex gap-8 font-mono text-[9px] uppercase tracking-[0.2em]">
               <Link href="/collections" className="text-white/30 hover:text-white/60 transition-colors">Collections</Link>
@@ -452,13 +447,13 @@ export default function CheckoutPage() {
               <Link href="/faq" className="text-white/30 hover:text-white/60 transition-colors">FAQ</Link>
             </div>
             <div className="flex gap-3">
-              <div className="w-7 h-7 border border-white/[0.1] flex items-center justify-center hover:border-[#ddb7ff]/40 transition-colors cursor-pointer">
+              <div className="w-7 h-7 border border-white/[0.1] flex items-center justify-center hover:border-[#ddb7ff]/40 transition-colors cursor-pointer rounded">
                 <span className="text-[10px] text-white/40">IG</span>
               </div>
-              <div className="w-7 h-7 border border-white/[0.1] flex items-center justify-center hover:border-[#ddb7ff]/40 transition-colors cursor-pointer">
+              <div className="w-7 h-7 border border-white/[0.1] flex items-center justify-center hover:border-[#ddb7ff]/40 transition-colors cursor-pointer rounded">
                 <span className="text-[10px] text-white/40">X</span>
               </div>
-              <div className="w-7 h-7 border border-white/[0.1] flex items-center justify-center hover:border-[#ddb7ff]/40 transition-colors cursor-pointer">
+              <div className="w-7 h-7 border border-white/[0.1] flex items-center justify-center hover:border-[#ddb7ff]/40 transition-colors cursor-pointer rounded">
                 <span className="text-[10px] text-white/40">YT</span>
               </div>
             </div>

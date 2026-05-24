@@ -11,7 +11,14 @@
       "Bash(taskkill /PID 23132 /F)",
       "Bash(ffmpeg -version)",
       "PowerShell(Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing; $screen = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds; $bmp = New-Object System.Drawing.Bitmap\\($screen.Width, $screen.Height\\); $g = [System.Drawing.Graphics]::FromImage\\($bmp\\); $g.CopyFromScreen\\($screen.Location, [System.Drawing.Point]::Empty, $screen.Size\\); $bmp.Save\\(\"C:\\\\Users\\\\pc\\\\Desktop\\\\screen_cap.png\"\\); $g.Dispose\\(\\); $bmp.Dispose\\(\\); Write-Output \"saved\")",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(taskkill /PID 4364 /F)",
+      "PowerShell(Stop-Process -Id 4364 -Force)",
+      "WebFetch(domain:bluorng.com)",
+      "Bash(Remove-Item -Recurse -Force \"C:\\\\Users\\\\pc\\\\Desktop\\\\streetplayr - open code\\\\.next\" -ErrorAction SilentlyContinue)",
+      "Bash(Write-Output \"Cache cleared\")",
+      "PowerShell(Copy-Item -Path \"C:\\\\Users\\\\pc\\\\Desktop\\\\streetplay r other files\\\\inspired.glb\" -Destination \"C:\\\\Users\\\\pc\\\\Desktop\\\\streetplayr - open code\\\\public\\\\models\\\\inspired.glb\" -Force; if \\(Test-Path \"C:\\\\Users\\\\pc\\\\Desktop\\\\streetplayr - open code\\\\public\\\\models\\\\inspired.glb\"\\) { \"Copied OK - $\\(\\([System.IO.FileInfo]'C:\\\\Users\\\\pc\\\\Desktop\\\\streetplayr - open code\\\\public\\\\models\\\\inspired.glb'\\).Length / 1MB\\) MB\" } else { \"FAILED\" })"
     ]
   }
 }

@@ -57,7 +57,7 @@ export default function ProfilePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-          className="lg:col-span-8 bg-[#1f1a23] border border-white/[0.06] p-6 md:p-8 relative overflow-hidden"
+          className="lg:col-span-8 bg-[#1f1a23] border border-white/[0.06] p-5 md:p-6 relative overflow-hidden rounded-xl"
         >
           <div className="absolute top-0 right-0 p-4 opacity-[0.04] pointer-events-none select-none">
             <span className="font-display text-[120px] text-white leading-none">{tier === 'LEGEND' ? 'L' : tier === 'PLAYER' ? 'P' : 'S'}</span>
@@ -124,7 +124,7 @@ export default function ProfilePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="lg:col-span-4 bg-[#ddb7ff] text-[#16111b] p-6 md:p-8 flex flex-col justify-between"
+          className="lg:col-span-4 bg-[#ddb7ff] text-[#16111b] p-5 md:p-6 flex flex-col justify-between"
         >
           <div>
             <span className="font-mono text-[9px] uppercase tracking-[0.25em] opacity-60 block mb-2">Universal Wallet</span>
@@ -137,7 +137,7 @@ export default function ProfilePage() {
           </div>
           <Link
             href="/profile/wallet"
-            className="rounded-none block w-full mt-6 py-3 bg-[#16111b] text-[#ddb7ff] text-center font-mono text-[10px] uppercase tracking-[0.2em] hover:bg-[#231e27] transition-colors"
+            className="rounded-xl block w-full mt-6 py-3 bg-[#16111b] text-white text-center font-mono text-[10px] uppercase tracking-[0.2em] hover:bg-[#231e27] transition-colors"
           >
             Manage Assets →
           </Link>
@@ -148,7 +148,7 @@ export default function ProfilePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
-          className="lg:col-span-4 bg-[#231e27] border border-white/[0.06] p-6 group hover:border-[#ddb7ff]/30 transition-colors"
+          className="lg:col-span-4 bg-[#231e27] border border-white/[0.06] p-5 group hover:border-[#ddb7ff]/30 transition-colors rounded-xl"
         >
           <div className="h-full flex flex-col justify-between">
             <div>
@@ -170,19 +170,19 @@ export default function ProfilePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          className="lg:col-span-4 bg-[#231e27] border border-white/[0.06] p-6 group hover:border-[#ddb7ff]/30 transition-colors"
+          className="lg:col-span-4 bg-[#231e27] border border-white/[0.06] p-5 group hover:border-[#ddb7ff]/30 transition-colors rounded-xl"
         >
           <div className="h-full flex flex-col justify-between">
             <div>
               <span className="font-mono text-2xl text-[#ddb7ff] block mb-3 group-hover:scale-110 transition-transform">⊞</span>
               <h3 className="font-display text-xl uppercase text-[#eadfed] mb-2">Addresses</h3>
-              <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/30">Manage your delivery nodes</p>
+              <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/30">Manage your delivery addresses</p>
             </div>
             <Link
               href="/profile/addresses"
               className="inline-block mt-6 font-mono text-[9px] uppercase tracking-[0.15em] text-[#ddb7ff] border-b border-[#ddb7ff]/40 pb-0.5 hover:text-white hover:border-white transition-colors"
             >
-              Manage Nodes →
+              Manage Addresses →
             </Link>
           </div>
         </motion.div>
@@ -192,7 +192,7 @@ export default function ProfilePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
-          className="lg:col-span-4 bg-[#231e27] border border-white/[0.06] p-6 text-center group hover:border-[#ddb7ff]/30 transition-colors"
+          className="lg:col-span-4 bg-[#231e27] border border-white/[0.06] p-5 text-center group hover:border-[#ddb7ff]/30 transition-colors rounded-xl"
         >
           <span className="font-mono text-3xl text-[#ddb7ff] block mb-3 group-hover:scale-110 transition-transform">✦</span>
           <h3 className="font-display text-xl uppercase text-[#eadfed] mb-2">Earn Rewards</h3>
@@ -217,7 +217,7 @@ export default function ProfilePage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Link
             href="/dashboard/leaderboards"
-            className="bg-[#1f1a23] border border-white/[0.06] p-6 hover:border-[#ddb7ff]/30 transition-colors group"
+            className="bg-[#1f1a23] border border-white/[0.06] p-5 hover:border-[#ddb7ff]/30 transition-colors group rounded-xl"
           >
             <span className="font-mono text-lg text-[#ddb7ff] block mb-2 group-hover:scale-110 transition-transform">≡</span>
             <h3 className="font-display text-lg uppercase text-[#eadfed] mb-1">Leaderboards</h3>
@@ -225,7 +225,7 @@ export default function ProfilePage() {
           </Link>
           <Link
             href="/dashboard/drops"
-            className="bg-[#1f1a23] border border-white/[0.06] p-6 hover:border-[#ddb7ff]/30 transition-colors group"
+            className="bg-[#1f1a23] border border-white/[0.06] p-5 hover:border-[#ddb7ff]/30 transition-colors group rounded-xl"
           >
             <span className="font-mono text-lg text-[#ddb7ff] block mb-2 group-hover:scale-110 transition-transform">⊕</span>
             <h3 className="font-display text-lg uppercase text-[#eadfed] mb-1">Drops</h3>
@@ -233,7 +233,7 @@ export default function ProfilePage() {
           </Link>
           <Link
             href="/dashboard/referrals"
-            className="bg-[#1f1a23] border border-white/[0.06] p-6 hover:border-[#ddb7ff]/30 transition-colors group"
+            className="bg-[#1f1a23] border border-white/[0.06] p-5 hover:border-[#ddb7ff]/30 transition-colors group rounded-xl"
           >
             <span className="font-mono text-lg text-[#ddb7ff] block mb-2 group-hover:scale-110 transition-transform">↗</span>
             <h3 className="font-display text-lg uppercase text-[#eadfed] mb-1">Referrals</h3>
@@ -241,7 +241,7 @@ export default function ProfilePage() {
           </Link>
           <Link
             href="/dashboard/quests"
-            className="bg-[#1f1a23] border border-white/[0.06] p-6 hover:border-[#ddb7ff]/30 transition-colors group"
+            className="bg-[#1f1a23] border border-white/[0.06] p-5 hover:border-[#ddb7ff]/30 transition-colors group rounded-xl"
           >
             <span className="font-mono text-lg text-[#ddb7ff] block mb-2 group-hover:scale-110 transition-transform">◉</span>
             <h3 className="font-display text-lg uppercase text-[#eadfed] mb-1">Quests</h3>

@@ -30,7 +30,7 @@ function AddressCard({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className={`bg-[#1f1a23] border p-6 md:p-8 relative ${
+      className={`bg-[#1f1a23] border p-5 md:p-6 relative rounded-xl ${
         address.is_primary ? 'border-[#ddb7ff]/30' : 'border-white/[0.06] hover:border-white/[0.1]'
       } transition-colors`}
     >
@@ -39,7 +39,7 @@ function AddressCard({
         <div className="flex items-center gap-3">
           <span className="font-display text-xl uppercase text-[#eadfed]">{address.label}</span>
           {address.is_primary && (
-            <span className="font-mono text-[8px] uppercase tracking-[0.15em] text-[#ddb7ff] border border-[#ddb7ff]/30 px-2 py-0.5">
+            <span className="font-mono text-[8px] uppercase tracking-[0.15em] text-[#ddb7ff] border border-[#ddb7ff]/30 px-2 py-0.5 rounded">
               Primary
             </span>
           )}
@@ -75,7 +75,7 @@ function AddressCard({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="inline-block w-1.5 h-1.5 rounded-full border border-white/20" />
-          <span className="font-mono text-[7px] uppercase tracking-[0.2em] text-white/15">NODE_ACTIVE</span>
+          <span className="font-mono text-[7px] uppercase tracking-[0.2em] text-white/15">ADDRESS_ACTIVE</span>
           <span className="font-mono text-[7px] uppercase tracking-[0.2em] text-white/10">ID: {address.id.slice(0, 6).toUpperCase()}</span>
         </div>
         {!address.is_primary && (
@@ -132,11 +132,11 @@ function AddressForm({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
       transition={{ duration: 0.4 }}
-      className="bg-[#1f1a23] border border-white/[0.06] p-6 md:p-8"
+      className="bg-[#1f1a23] border border-white/[0.06] p-5 md:p-6"
       noValidate
     >
       <h3 className="font-display text-2xl uppercase text-[#eadfed] mb-6 pb-4 border-b border-white/[0.05]">
-        {initial.label ? 'Edit Address' : 'New Delivery Node'}
+        {initial.label ? 'Edit Address' : 'New Address'}
       </h3>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -267,7 +267,7 @@ export default function AddressesPage() {
         className="mb-10 border-l-4 border-[#ddb7ff] pl-6"
       >
         <h1 className="font-display text-5xl sm:text-6xl md:text-7xl uppercase tracking-tight text-[#eadfed] leading-none">
-          Saved Nodes
+          Saved Addresses
         </h1>
       </motion.header>
 
@@ -275,7 +275,7 @@ export default function AddressesPage() {
       {primaryAddress && (
         <section className="mb-10">
           <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/[0.05]">
-            <h2 className="font-display text-xl uppercase text-[#ddb7ff]">Primary Node</h2>
+            <h2 className="font-display text-xl uppercase text-[#ddb7ff]">Primary Address</h2>
             <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/20">ACTIVE</span>
           </div>
           <AnimatePresence mode="popLayout">
@@ -303,8 +303,8 @@ export default function AddressesPage() {
       {otherAddresses.length > 0 && (
         <section className="mb-10">
           <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/[0.05]">
-            <h2 className="font-display text-xl uppercase text-[#ddb7ff]">Saved Nodes</h2>
-            <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/20">{otherAddresses.length} NODE{otherAddresses.length !== 1 ? 'S' : ''}</span>
+            <h2 className="font-display text-xl uppercase text-[#ddb7ff]">Saved Addresses</h2>
+            <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/20">{otherAddresses.length} ADDRESS{otherAddresses.length !== 1 ? 'ES' : ''}</span>
           </div>
           <div className="space-y-4">
             <AnimatePresence mode="popLayout">
@@ -346,11 +346,11 @@ export default function AddressesPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="border border-white/[0.06] p-12 text-center mb-10"
+          className="border border-white/[0.06] p-12 text-center mb-10 rounded-xl"
         >
-          <p className="font-display text-3xl uppercase text-white/15 mb-3">No nodes registered.</p>
+          <p className="font-display text-3xl uppercase text-white/15 mb-3">No addresses saved.</p>
           <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/20 mb-6">
-            Add a delivery node to get started.
+            Add a delivery address to get started.
           </p>
         </motion.div>
       )}
@@ -362,9 +362,9 @@ export default function AddressesPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="w-full py-5 border border-dashed border-white/[0.1] hover:border-[#ddb7ff]/30 bg-transparent font-mono text-[10px] uppercase tracking-[0.2em] text-white/30 hover:text-[#ddb7ff]/70 transition-all"
+          className="w-full py-5 border border-dashed border-white/[0.1] hover:border-[#ddb7ff]/30 bg-transparent font-mono text-[10px] uppercase tracking-[0.2em] text-white/30 hover:text-[#ddb7ff]/70 rounded-xl transition-all"
         >
-          + Add New Node
+          + Add New Address
         </motion.button>
       )}
     </div>

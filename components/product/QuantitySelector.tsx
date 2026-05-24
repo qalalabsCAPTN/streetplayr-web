@@ -12,7 +12,7 @@ export default function QuantitySelector({
   onDecrease,
 }: QuantitySelectorProps) {
   return (
-    <div className="flex h-12 w-32 items-center justify-between border border-white/20 px-4">
+    <div className="flex h-12 w-32 items-center justify-between border border-white/20 px-4 rounded-lg">
       <button
         onClick={onDecrease}
         disabled={quantity <= 1}

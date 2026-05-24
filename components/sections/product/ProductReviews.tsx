@@ -4,8 +4,8 @@ import { motion } from "framer-motion";
 
 export default function ProductReviews() {
   return (
-    <section className="py-32 px-6 md:px-12 lg:px-24 bg-[#050505]">
-      <div className="mx-auto max-w-7xl">
+    <section className="py-24 px-4 md:px-6 bg-[#050505]">
+      <div className="mx-auto max-w-[min(95vw,2400px)]">
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}

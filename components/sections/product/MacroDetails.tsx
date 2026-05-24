@@ -20,7 +20,7 @@ export default function MacroDetails({ images }: { images: MacroImage[] }) {
   const y2 = useTransform(scrollYProgress, [0, 1], [-100, 100]);
 
   return (
-    <section ref={containerRef} className="py-32 px-6 md:px-12 lg:px-24 overflow-hidden">
+    <section ref={containerRef} className="py-24 px-4 md:px-6 overflow-hidden">
       <div className="mb-32 flex flex-col gap-4">
         <h3 className="font-mono text-[10px] uppercase tracking-[0.4em] text-white/30">
           Material Intelligence

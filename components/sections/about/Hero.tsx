@@ -31,8 +31,8 @@ export default function AboutHero() {
         }}
       />
 
-      <div className="relative z-10 w-full px-6 sm:px-12 lg:px-20 pb-32 sm:pb-40">
-        <div className="max-w-[1440px] mx-auto">
+      <div className="relative z-10 w-full px-4 md:px-6 pb-32 sm:pb-40">
+        <div className="max-w-[min(95vw,2400px)] mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}

@@ -13,8 +13,8 @@ type ProductDetailsProps = {
 
 export default function ProductDetails({ details }: ProductDetailsProps) {
   return (
-    <section className="py-24 md:py-32">
-      <div className="mx-auto max-w-7xl px-6 md:px-12">
+    <section className="py-20 md:py-24 px-4 md:px-6">
+      <div className="mx-auto max-w-[min(95vw,2400px)]">
         <div className="grid grid-cols-1 gap-16 lg:grid-cols-12 lg:gap-8">
           <div className="lg:col-span-4">
             <h2 className="font-display text-5xl uppercase leading-none tracking-wide text-white md:text-6xl">

@@ -45,10 +45,10 @@
   --glow-white:    0 18px 70px rgba(0, 0, 0, 0.24);
 
   /* ── Border Radius ──────────────────────────────────────────── */
-  --br-sm: 4px;
-  --br-md: 8px;
-  --br-lg: 12px;
-  --br-xl: 16px;
+  --br-sm: 8px;
+  --br-md: 12px;
+  --br-lg: 16px;
+  --br-xl: 20px;
   --br-full: 9999px;
 
   /* ── Spacing Grid (4px base) ──────────────────────────────── */
@@ -843,7 +843,7 @@ select {
   background: transparent;
   color: #f5f5f5;
   padding: 10px 24px;
-  border-radius: 8px;
+  border-radius: var(--br-lg);
   cursor: pointer;
   font-size: 12px;
   font-weight: 700;
@@ -862,5 +862,15 @@ select {
 @keyframes starFloat {
   0%,100% { transform: translateY(0); }
   50%     { transform: translateY(-4px); }
+}
+
+/* ── Large Screen (2xl) Behavior ──────────────────────────── */
+@media (min-width: 1920px) {
+  section > .mx-auto,
+  footer > .mx-auto,
+  main > .mx-auto {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
 }
 

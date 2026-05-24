@@ -7,10 +7,10 @@ const REDIRECT_MAP: Record<string, string> = {
   '/shop': '/collections',
 };
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Step 0: Legacy route redirects
+  // Legacy route redirects
   const target = REDIRECT_MAP[pathname];
   if (target) {
     return NextResponse.redirect(new URL(target, request.url));

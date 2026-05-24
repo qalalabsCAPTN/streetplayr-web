@@ -28,7 +28,7 @@ export default function ProductGallery({ images, title, heroImage }: ProductGall
           </div>
         </div>
         <div
-          className="flex-1 relative bg-[#211c26] overflow-hidden border border-white/10 group"
+          className="flex-1 relative bg-[#211c26] overflow-hidden border border-white/10 group rounded-xl"
           onMouseEnter={() => setHeroHovered(true)}
           onMouseLeave={() => setHeroHovered(false)}
         >
@@ -49,7 +49,7 @@ export default function ProductGallery({ images, title, heroImage }: ProductGall
       {/* Right Image Column — Dynamic / Scrollable Gallery */}
       <div className="w-full lg:w-1/2 lg:h-full lg:min-h-0 p-4 lg:p-8 space-y-6">
         {allImages.slice(1).map((src, i) => (
-          <div key={i} className="relative aspect-[4/5] bg-[#211c26] overflow-hidden border border-white/10">
+          <div key={i} className="relative aspect-[4/5] bg-[#211c26] overflow-hidden border border-white/10 rounded-xl">
             <Image
               src={src}
               alt={`Detail view ${i + 1}`}

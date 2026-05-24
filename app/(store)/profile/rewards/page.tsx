@@ -64,7 +64,7 @@ export default async function RewardsPage() {
       {/* ═══ BENTO GRID ═══ */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-10">
         {/* Tier card (4 cols) */}
-        <div className="lg:col-span-4 bg-[#1f1a23] border border-white/[0.06] p-6 md:p-8 relative overflow-hidden">
+        <div className="lg:col-span-4 bg-[#1f1a23] border border-white/[0.06] p-5 md:p-6 relative overflow-hidden">
           <div className="absolute top-0 right-0 p-3 opacity-[0.04] pointer-events-none">
             <span className="font-display text-[80px] text-white leading-none">{threshold.label[0]}</span>
           </div>
@@ -86,21 +86,21 @@ export default async function RewardsPage() {
         </div>
 
         {/* SP-RR card (4 cols) */}
-        <div className="lg:col-span-4 bg-[#231e27] border border-white/[0.06] p-6 md:p-8">
+        <div className="lg:col-span-4 bg-[#231e27] border border-white/[0.06] p-5 md:p-6">
           <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/25 block mb-2">SP-RR Balance</span>
           <h2 className="font-display text-4xl uppercase text-[#eadfed]">{formatNumber(sprr)}</h2>
           <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/30 mt-2">Spendable loyalty points</p>
         </div>
 
         {/* XP card (4 cols) */}
-        <div className="lg:col-span-4 bg-[#231e27] border border-white/[0.06] p-6 md:p-8">
+        <div className="lg:col-span-4 bg-[#231e27] border border-white/[0.06] p-5 md:p-6">
           <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/25 block mb-2">Experience Points</span>
           <h2 className="font-display text-4xl uppercase text-[#eadfed]">{formatNumber(xp)}</h2>
           <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/30 mt-2">Total XP earned</p>
         </div>
 
         {/* Streak card (12 cols) */}
-        <div className="lg:col-span-12 bg-[#1f1a23] border border-white/[0.06] p-6 md:p-8">
+        <div className="lg:col-span-12 bg-[#1f1a23] border border-white/[0.06] p-5 md:p-6">
           <div className="flex items-center justify-between">
             <div>
               <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/25 block mb-2">Activity Streak</span>
@@ -126,15 +126,15 @@ export default async function RewardsPage() {
         {/* Referral stats */}
         {referralStats.total > 0 && (
           <>
-            <div className="lg:col-span-4 bg-[#231e27] border border-white/[0.06] p-6">
+            <div className="lg:col-span-4 bg-[#231e27] border border-white/[0.06] p-5">
               <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/25">Total Referrals</span>
               <p className="font-display text-3xl uppercase text-[#eadfed] mt-2">{referralStats.total}</p>
             </div>
-            <div className="lg:col-span-4 bg-[#231e27] border border-white/[0.06] p-6">
+            <div className="lg:col-span-4 bg-[#231e27] border border-white/[0.06] p-5">
               <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/25">Converted</span>
               <p className="font-display text-3xl uppercase text-[#eadfed] mt-2">{referralStats.converted}</p>
             </div>
-            <div className="lg:col-span-4 bg-[#231e27] border border-white/[0.06] p-6">
+            <div className="lg:col-span-4 bg-[#231e27] border border-white/[0.06] p-5">
               <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/25">SP-RR Earned</span>
               <p className="font-display text-3xl uppercase text-[#eadfed] mt-2">{formatNumber(referralStats.earnedSprr)}</p>
             </div>
@@ -151,7 +151,7 @@ export default async function RewardsPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {campaigns.map((c: any) => (
-              <div key={c.id} className="bg-[#1f1a23] border border-white/[0.06] p-6 hover:border-[#ddb7ff]/30 transition-colors">
+              <div key={c.id} className="bg-[#1f1a23] border border-white/[0.06] p-5 hover:border-[#ddb7ff]/30 transition-colors">
                 <h3 className="font-display text-xl uppercase text-[#eadfed]">{c.name}</h3>
                 {c.description && <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/30 mt-2">{c.description}</p>}
                 <div className="flex gap-4 mt-4">

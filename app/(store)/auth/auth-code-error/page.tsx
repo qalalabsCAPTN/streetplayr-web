@@ -19,7 +19,7 @@ export default function AuthCodeErrorPage() {
         </p>
         <Link
           href="/login"
-          className="rounded-none group inline-flex items-center gap-4 border border-white/20 px-8 py-4 font-mono text-xs uppercase tracking-widest text-[#eadfed] transition-all hover:bg-[#ddb7ff] hover:text-[#16111b]"
+          className="rounded-xl group inline-flex items-center gap-4 border border-white/20 px-8 py-4 font-mono text-xs uppercase tracking-widest text-[#eadfed] transition-all hover:bg-[#ddb7ff] hover:text-[#16111b]"
         >
           Return to Login
         </Link>

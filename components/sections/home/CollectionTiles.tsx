@@ -75,7 +75,7 @@ const collections = [
 
 export default function CollectionTiles() {
   return (
-    <section className="relative py-28 sm:py-36 px-6 sm:px-12 lg:px-20 max-w-[1440px] mx-auto border-t border-white/[0.04]">
+    <section className="relative py-24 sm:py-28 px-4 md:px-6 w-full max-w-[min(95vw,2400px)] mx-auto border-t border-white/[0.04]">
       <FadeIn>
         <div className="flex items-center gap-3 mb-4">
           <span className="h-px w-6 bg-white/20 block" />
@@ -88,7 +88,7 @@ export default function CollectionTiles() {
           <FadeIn key={col.id} delay={0.1 * i}>
             <Link
               href={col.slug}
-              className="group relative block aspect-[4/3] overflow-hidden border border-white/[0.06] hover:border-[#ddb7ff]/20 transition-colors"
+              className="group relative block aspect-[4/3] overflow-hidden border border-white/[0.06] hover:border-[#ddb7ff]/20 transition-colors rounded-xl"
             >
               <ArchivePanel className="absolute inset-0" label={`Collection // ${col.title}`} />
               <div className="absolute inset-0 z-20 flex flex-col justify-end p-6 md:p-8">

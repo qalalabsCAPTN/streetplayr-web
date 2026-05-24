@@ -20,7 +20,7 @@ export default function NewDrops({ products }: NewDropsProps) {
   const drops = products.slice(0, 5);
 
   return (
-    <section className="py-28 px-4 md:px-16 max-w-[1440px] mx-auto">
+    <section className="py-24 px-4 md:px-6 w-full max-w-[min(95vw,2400px)] mx-auto">
       <div className="flex justify-between items-end mb-14">
         <div>
           <span className="font-mono text-[10px] tracking-[0.28em] uppercase text-[rgba(234,223,237,0.52)] block mb-3">Current Release</span>
@@ -34,7 +34,7 @@ export default function NewDrops({ products }: NewDropsProps) {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
         {/* Large Card — first product */}
         {drops[0] && (
-          <Link href={drops[0].slug ? `/product/${drops[0].slug}` : "/collections"} className="md:col-span-8 group relative aspect-video bg-[#231e27] overflow-hidden border border-white/[0.10] shadow-[0_22px_70px_rgba(12,6,18,0.30)]">
+          <Link href={drops[0].slug ? `/product/${drops[0].slug}` : "/collections"} className="md:col-span-8 group relative aspect-video bg-[#231e27] overflow-hidden border border-white/[0.10] shadow-[0_22px_70px_rgba(12,6,18,0.30)] rounded-xl">
             <Image
               src={drops[0].image}
               alt={drops[0].name}
@@ -56,7 +56,7 @@ export default function NewDrops({ products }: NewDropsProps) {
 
         {/* Vertical Card — second product */}
         {drops[1] && (
-          <Link href={drops[1].slug ? `/product/${drops[1].slug}` : "/collections"} className="md:col-span-4 group relative aspect-[4/5] bg-[#231e27] overflow-hidden border border-white/[0.10] shadow-[0_22px_70px_rgba(12,6,18,0.30)]">
+          <Link href={drops[1].slug ? `/product/${drops[1].slug}` : "/collections"} className="md:col-span-4 group relative aspect-[4/5] bg-[#231e27] overflow-hidden border border-white/[0.10] shadow-[0_22px_70px_rgba(12,6,18,0.30)] rounded-xl">
             <Image
               src={drops[1].image}
               alt={drops[1].name}
@@ -65,7 +65,7 @@ export default function NewDrops({ products }: NewDropsProps) {
             />
             <div className="absolute inset-0 p-6 flex flex-col justify-between">
               <div className="flex justify-end">
-                <span className="font-mono text-[10px] tracking-[0.22em] uppercase border border-white/[0.14] text-white/62 px-2 py-1">Limited</span>
+                <span className="font-mono text-[10px] tracking-[0.22em] uppercase border border-white/[0.14] text-white/62 px-2 py-1 rounded">Limited</span>
               </div>
               <div>
                 <span className="font-mono text-[10px] tracking-[0.22em] uppercase text-white/48 mb-2 block">Drop 02 / {drops[1].category}</span>
@@ -81,7 +81,7 @@ export default function NewDrops({ products }: NewDropsProps) {
           <Link
             key={product.id}
             href={product.slug ? `/product/${product.slug}` : "/collections"}
-            className="md:col-span-4 group relative aspect-square bg-[#231e27] overflow-hidden border border-white/[0.10] shadow-[0_22px_70px_rgba(12,6,18,0.26)]"
+            className="md:col-span-4 group relative aspect-square bg-[#231e27] overflow-hidden border border-white/[0.10] shadow-[0_22px_70px_rgba(12,6,18,0.26)] rounded-xl"
           >
             <Image
               src={product.image}
@@ -96,7 +96,7 @@ export default function NewDrops({ products }: NewDropsProps) {
           </Link>
         ))}
 
-        <div className="md:col-span-4 flex flex-col justify-center items-center border border-dashed border-white/[0.10] p-8 text-center bg-[#231e27]/72 hover:bg-[#2b2430] transition-colors group cursor-pointer aspect-square shadow-[0_22px_70px_rgba(12,6,18,0.20)]">
+        <div className="md:col-span-4 flex flex-col justify-center items-center border border-dashed border-white/[0.10] p-8 text-center bg-[#231e27]/72 hover:bg-[#2b2430] transition-colors group cursor-pointer aspect-square shadow-[0_22px_70px_rgba(12,6,18,0.20)] rounded-xl">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-white/48 mb-4">
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
           </svg>

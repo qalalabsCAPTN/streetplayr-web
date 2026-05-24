@@ -9,7 +9,7 @@ const NinjaStar = dynamic(() => import("@/components/ui/NinjaStar"), {
 
 export default function Footer() {
   return (
-    <footer className="w-full bg-[#16111b] border-t border-white/[0.10] px-6 sm:px-12 lg:px-20 relative overflow-hidden">
+    <footer className="w-full bg-[#16111b] border-t border-white/[0.10] px-4 md:px-6 relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(700px_360px_at_8%_0%,rgba(221,183,255,0.08),transparent_60%),radial-gradient(520px_320px_at_92%_100%,rgba(255,87,26,0.07),transparent_62%)]" />
 
       <div className="relative py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 md:gap-8 lg:gap-6">
@@ -45,10 +45,6 @@ export default function Footer() {
           <a href="#" className="font-mono text-[12px] tracking-[0.22em] text-[rgba(234,223,237,0.42)] hover:text-[#eadfed] transition-colors duration-300 uppercase">
             Product 3D Popup
           </a>
-        </div>
-
-        <div>
-          <img src="/assets/streetplayr-logo.png" alt="StreetPlayR" className="h-10 w-auto object-contain opacity-95" />
         </div>
 
         <div className="flex items-center justify-center lg:justify-end">

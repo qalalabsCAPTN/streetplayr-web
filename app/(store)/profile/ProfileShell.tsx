@@ -1,6 +1,6 @@
 'use client';
 
-import { ProfileSidebar, ProfileTabBar } from '@/components/profile/ProfileNav';
+import { ProfileSidebar, ProfileTopTabs } from '@/components/profile/ProfileNav';
 import { usePathname } from 'next/navigation';
 
 export default function ProfileShell({
@@ -41,7 +41,8 @@ export default function ProfileShell({
         <ProfileSidebar />
 
         {/* Column 2: Main command area */}
-        <main className="flex-1 min-w-0 pt-24 pb-32 px-6 sm:px-10 lg:px-14" id="profile-content">
+        <main className="flex-1 min-w-0 pt-24 pb-28 px-6 sm:px-10 lg:px-14" id="profile-content">
+          <ProfileTopTabs />
           {children}
         </main>
 
@@ -53,8 +54,7 @@ export default function ProfileShell({
         )}
       </div>
 
-      {/* Mobile bottom navigation */}
-      <ProfileTabBar />
+      
     </>
   );
 }
@@ -94,15 +94,6 @@ function IdentityContextPanel() {
         <SummaryRow label="Encryption" value="TLS 1.3" />
         <SummaryRow label="Session ID" value="STR-24-7A" mono />
         <SummaryRow label="Node" value="MUM-01" mono />
-      </div>
-
-      <div className="mt-6 pt-5 border-t border-white/[0.05]">
-        <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/20 block mb-3">Quick Actions</span>
-        <div className="space-y-2">
-          <QuickAction href="/profile/orders" label="View Orders" />
-          <QuickAction href="/profile/wallet" label="Wallet" />
-          <QuickAction href="/profile/settings" label="Settings" />
-        </div>
       </div>
 
       {/* HUD coordinates */}
@@ -194,12 +185,12 @@ function AddressesContextPanel() {
   return (
     <div className="px-5">
       <div className="pb-5 mb-4 border-b border-white/[0.05]">
-        <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-[#ddb7ff]/[0.5] block mb-2">[ NODES ]</span>
+        <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-[#ddb7ff]/[0.5] block mb-2">[ ADDRESSES ]</span>
         <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/25">Delivery Diagnostics</span>
       </div>
 
       <div className="space-y-4">
-        <SummaryRow label="Saved Nodes" value="—" />
+        <SummaryRow label="Saved Addresses" value="—" />
         <SummaryRow label="Primary" value="Not set" />
       </div>
     </div>

@@ -44,7 +44,7 @@ export default function WalletPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-          className="lg:col-span-8 bg-[#1f1a23] border border-white/[0.06] p-6 md:p-8 relative overflow-hidden"
+          className="lg:col-span-8 bg-[#1f1a23] border border-white/[0.06] p-5 md:p-6 relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 p-4 opacity-[0.04] pointer-events-none select-none">
             <span className="font-display text-[120px] text-white leading-none">$</span>
@@ -71,7 +71,7 @@ export default function WalletPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-          className="lg:col-span-4 bg-[#231e27] border border-white/[0.06] p-6 flex flex-col justify-between"
+          className="lg:col-span-4 bg-[#231e27] border border-white/[0.06] p-5 flex flex-col justify-between"
         >
           <div className="space-y-4">
             <div>
@@ -94,7 +94,7 @@ export default function WalletPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="lg:col-span-12 bg-[#1f1a23] border border-white/[0.06] p-6 md:p-8"
+          className="lg:col-span-12 bg-[#1f1a23] border border-white/[0.06] p-5 md:p-6"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
@@ -146,7 +146,7 @@ export default function WalletPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
-          className="lg:col-span-4 bg-[#231e27] border border-white/[0.06] p-6 group hover:border-[#ddb7ff]/30 transition-colors"
+          className="lg:col-span-4 bg-[#231e27] border border-white/[0.06] p-5 group hover:border-[#ddb7ff]/30 transition-colors"
         >
           <span className="font-mono text-3xl text-[#ddb7ff] block mb-3 group-hover:scale-110 transition-transform">⇉</span>
           <h3 className="font-display text-xl uppercase text-[#eadfed] mb-2">Referrals</h3>
@@ -158,7 +158,7 @@ export default function WalletPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          className="lg:col-span-4 bg-[#231e27] border border-white/[0.06] p-6 group hover:border-[#ddb7ff]/30 transition-colors"
+          className="lg:col-span-4 bg-[#231e27] border border-white/[0.06] p-5 group hover:border-[#ddb7ff]/30 transition-colors"
         >
           <span className="font-mono text-3xl text-[#ddb7ff] block mb-3 group-hover:scale-110 transition-transform">◆</span>
           <h3 className="font-display text-xl uppercase text-[#eadfed] mb-2">Purchases</h3>
@@ -172,7 +172,7 @@ export default function WalletPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
-          className="lg:col-span-4 bg-[#231e27] border border-white/[0.06] p-6 group hover:border-[#ddb7ff]/30 transition-colors"
+          className="lg:col-span-4 bg-[#231e27] border border-white/[0.06] p-5 group hover:border-[#ddb7ff]/30 transition-colors"
         >
           <span className="font-mono text-3xl text-[#ddb7ff] block mb-3 group-hover:scale-110 transition-transform">★</span>
           <h3 className="font-display text-xl uppercase text-[#eadfed] mb-2">Reviews</h3>
@@ -201,7 +201,7 @@ export default function WalletPage() {
             ))}
           </div>
         ) : (
-          <div className="border border-white/[0.06] p-8 text-center">
+          <div className="border border-white/[0.06] p-6 text-center">
             <p className="font-display text-2xl uppercase text-white/15 mb-2">No Transactions</p>
             <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/20">
               SP-RR rewards will appear as you engage with drops, orders, and the community.

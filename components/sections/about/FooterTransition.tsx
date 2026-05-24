@@ -9,7 +9,7 @@ export default function FooterTransition() {
   const isInView = useInView(ref, { once: true, margin: "-10%" });
 
   return (
-    <section ref={ref} className="relative py-40 sm:py-56 overflow-hidden">
+    <section ref={ref} className="relative py-32 sm:py-44 overflow-hidden">
       <motion.div
         initial={{ opacity: 0 }}
         animate={isInView ? { opacity: 1 } : {}}
@@ -24,7 +24,7 @@ export default function FooterTransition() {
         />
       </motion.div>
 
-      <div className="relative z-10 max-w-[1440px] mx-auto px-6 sm:px-12 lg:px-20">
+      <div className="relative z-10 max-w-[min(95vw,2400px)] mx-auto px-4 md:px-6">
         <div className="max-w-[880px] mx-auto text-center">
           <motion.div
             initial={{ opacity: 0 }}
@@ -75,7 +75,7 @@ export default function FooterTransition() {
           >
             <Link
               href="/collections"
-              className="group relative inline-flex items-center gap-5 border border-white/[0.14] px-10 py-5 font-mono text-xs uppercase tracking-[0.2em] text-[#eadfed] transition-all duration-500 hover:bg-[#ddb7ff] hover:text-[#16111b] hover:border-[#ddb7ff]"
+              className="group relative inline-flex items-center gap-5 border border-white/[0.14] px-10 py-5 font-mono text-xs uppercase tracking-[0.2em] text-[#eadfed] transition-all duration-500 hover:bg-[#ddb7ff] hover:text-[#16111b] hover:border-[#ddb7ff] rounded-xl"
             >
               <span>Explore Archive</span>
               <span className="group-hover:translate-x-1 transition-transform">→</span>

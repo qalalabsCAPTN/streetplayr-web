@@ -115,11 +115,11 @@ export default function ProductInfo({
       <div className="space-y-8">
         {/* Pricing */}
         <div>
-          <p className="font-display text-5xl text-white tracking-tight">{price}</p>
-          <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[rgba(234,223,237,0.35)] mt-1">Limited Release</p>
+          <p className="font-display text-[56px] text-white tracking-tight leading-none">{price}</p>
+          <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[rgba(234,223,237,0.62)] font-medium mt-1">Limited Release</p>
           {isLowStock && (
             <div className="mt-5 pt-4 border-t border-white/[0.06]">
-              <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[rgba(234,223,237,0.4)]">
+              <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[rgba(234,223,237,0.65)] font-medium">
                 Only {selectedStock} units remaining
               </p>
             </div>
@@ -129,7 +129,7 @@ export default function ProductInfo({
         {/* Color Selector */}
         {colors.length > 0 && (
           <div>
-            <label className="font-mono text-[10px] uppercase tracking-[0.15em] text-[rgba(234,223,237,0.4)] mb-4 block">Colorway</label>
+            <label className="font-mono text-[10px] uppercase tracking-[0.15em] text-[rgba(234,223,237,0.65)] font-medium mb-4 block">Colorway</label>
             <div className="flex flex-wrap gap-3">
               {colors.map((color) => {
                 const isSelected = (controlledColor ?? colors[0]?.id) === color.id;
@@ -137,7 +137,7 @@ export default function ProductInfo({
                   <button
                     key={color.id}
                     onClick={() => onColorSelect?.(color.id)}
-                    className="group relative flex h-10 w-10 items-center justify-center transition-colors duration-300"
+                    className="group relative flex h-11 w-11 items-center justify-center transition-colors duration-300"
                     style={{
                       border: isSelected ? "1px solid rgba(255,255,255,0.9)" : "1px solid rgba(255,255,255,0.12)",
                     }}
@@ -157,20 +157,20 @@ export default function ProductInfo({
         {/* Sizing */}
         <div>
           <div className="flex justify-between mb-4">
-            <label className="font-mono text-[10px] uppercase tracking-[0.15em] text-[rgba(234,223,237,0.4)]">Select Size</label>
-            <button className="font-mono text-[10px] uppercase tracking-[0.1em] text-white/40 hover:text-white/70 transition-colors underline underline-offset-4">Size Guide</button>
+            <label className="font-mono text-[10px] uppercase tracking-[0.15em] text-[rgba(234,223,237,0.65)] font-medium">Select Size</label>
+            <button className="font-mono text-[10px] uppercase tracking-[0.1em] text-white/60 hover:text-white/80 transition-colors underline underline-offset-4">Size Guide</button>
           </div>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-5 gap-2">
             {sizes.map((size) => {
               const isSelected = selectedSize === size;
               return (
                 <button
                   key={size}
                   onClick={() => handleSizeSelect(size)}
-                  className={`py-3 font-mono text-xs transition-all ${
+                  className={`py-3.5 font-mono text-xs transition-all ${
                     isSelected
                       ? "border border-white/80 bg-white/5 text-white"
-                      : "border border-white/[0.10] hover:border-white/30 hover:bg-white/[0.04] text-white/50"
+                      : "border border-white/[0.14] hover:border-white/35 hover:bg-white/[0.04] text-white/65"
                   }`}
                 >
                   {size}
@@ -183,8 +183,8 @@ export default function ProductInfo({
         {/* Credits */}
         <div className="p-5 bg-[#16111b] border border-white/[0.06]">
           <div className="flex justify-between items-center mb-3">
-            <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-[rgba(234,223,237,0.4)]">Member Credits</span>
-            <span className="font-mono text-[10px] text-white/60">{spCredits} / 2500</span>
+            <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-[rgba(234,223,237,0.65)] font-medium">Member Credits</span>
+            <span className="font-mono text-[10px] font-medium text-white/75">{spCredits} / 2500</span>
           </div>
           <input
             type="range"
@@ -200,7 +200,7 @@ export default function ProductInfo({
         <div className="flex flex-col gap-3">
           <button
             onClick={handleAddToCart}
-            className="rounded-none bg-white text-black font-semibold py-4 hover:bg-[#ddb7ff] hover:text-[#16111b] transition-all flex items-center justify-center uppercase font-mono text-xs tracking-[0.2em]"
+            className="rounded-none bg-white text-black font-semibold py-5 hover:bg-[#ddb7ff] hover:text-[#16111b] transition-all flex items-center justify-center uppercase font-mono text-xs tracking-[0.2em]"
           >
             {isAdded ? "Added" : "Add To Cart"}
           </button>
@@ -209,10 +209,10 @@ export default function ProductInfo({
         {/* AI Try-On Placeholder */}
         <div className="border border-white/[0.06] bg-[#16111b]/60 p-5">
           <div className="flex items-center gap-2 mb-3">
-            <span className="font-mono text-[8px] uppercase tracking-[0.25em] text-[#ddb7ff]/40">AI Try-On</span>
+            <span className="font-mono text-[8px] uppercase tracking-[0.25em] text-[#ddb7ff]/70 font-medium">AI Try-On</span>
             <span className="px-2 py-0.5 border border-white/[0.06] font-mono text-[7px] uppercase tracking-[0.15em] text-white/20">Coming Soon</span>
           </div>
-          <p className="font-body text-[10px] leading-relaxed text-white/25">
+          <p className="font-body text-[10px] leading-relaxed text-white/55">
             Virtual fitting experience. Preview this piece in real-time before committing.
           </p>
         </div>
@@ -227,7 +227,7 @@ export default function ProductInfo({
             <div key={spec.id} className="border-b border-white/[0.06]">
               <button
                 onClick={() => setExpandedSpec(expandedSpec === spec.id ? null : spec.id)}
-                className="w-full flex justify-between items-center py-5 font-mono text-[10px] uppercase tracking-[0.15em] text-white/35 hover:text-white/65 transition-colors"
+                className="w-full flex justify-between items-center py-5 font-mono text-[10px] uppercase tracking-[0.15em] font-medium text-white/60 hover:text-white/85 transition-colors"
               >
                 <span>{spec.label}</span>
                 <span className="font-mono text-xs transition-opacity duration-300">
@@ -235,7 +235,7 @@ export default function ProductInfo({
                 </span>
               </button>
               {expandedSpec === spec.id && (
-                <div className="pb-6 text-white/50 text-xs leading-relaxed pr-8">
+                <div className="pb-6 text-white/70 text-xs leading-relaxed pr-8">
                   {spec.content}
                 </div>
               )}

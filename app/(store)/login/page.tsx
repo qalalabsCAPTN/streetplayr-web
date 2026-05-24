@@ -58,7 +58,7 @@ function SocialAuthButton({ provider, icon, label, action, isPending: externalPe
       type="button"
       onClick={handleLogin}
       disabled={externalPending}
-      className="flex items-center justify-center gap-2.5 w-full py-3 border border-white/[0.10] font-mono text-[10px] uppercase tracking-[0.22em] text-white/40 hover:text-[#eadfed] hover:border-white/[0.20] transition-all duration-300 disabled:opacity-40"
+      className="flex items-center justify-center gap-2.5 w-full py-3 border border-white/[0.10] font-mono text-[10px] uppercase tracking-[0.22em] text-white/55 hover:text-[#eadfed] hover:border-white/[0.20] transition-all duration-300 disabled:opacity-40"
     >
       {icon}
       <span>{label}</span>
@@ -74,27 +74,22 @@ function LoginForm() {
   return (
     <div className="w-full max-w-[420px] mx-auto">
       <div className="border border-white/[0.08] bg-[#1b1620]/60">
-        <div className="p-8 sm:p-10">
+        <div className="p-6 sm:p-8">
           <div className="flex justify-center mb-8">
             <img src="/assets/streetplayr-logo.png" alt="StreetPlayR" className="h-10 w-auto object-contain opacity-90" />
           </div>
 
           <div className="text-center mb-8">
-            <div className="flex items-center justify-center gap-2 mb-1.5">
-              <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-[#ddb7ff]/50">[</span>
-              <h1 className="font-display text-2xl sm:text-3xl uppercase tracking-[0.06em] text-[#eadfed]">
-                Member Access
-              </h1>
-              <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-[#ddb7ff]/50">]</span>
-            </div>
-            <div className="w-16 h-px bg-gradient-to-r from-transparent via-white/[0.12] to-transparent mx-auto" />
+            <h1 className="font-display text-2xl sm:text-3xl uppercase tracking-[0.06em] text-[#eadfed] mb-2">
+              Member Access
+            </h1>
+            <div className="w-16 h-px bg-gradient-to-r from-transparent via-white/[0.18] to-transparent mx-auto" />
           </div>
 
           <div className="space-y-5">
             <div>
-              <label className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.22em] text-white/30 mb-2">
-                <span className="text-[#ddb7ff]/40">{">_"}</span>
-                Email / Phone
+              <label className="block font-mono text-[10px] uppercase tracking-[0.22em] text-white/55 mb-2.5">
+                Email
               </label>
               <input
                 type="text"
@@ -106,8 +101,7 @@ function LoginForm() {
             </div>
 
             <div>
-              <label className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.22em] text-white/30 mb-2">
-                <span className="text-[#ddb7ff]/40">{">_"}</span>
+              <label className="block font-mono text-[10px] uppercase tracking-[0.22em] text-white/55 mb-2.5">
                 Password
               </label>
               <input
@@ -122,7 +116,7 @@ function LoginForm() {
             <div className="flex justify-end pt-1">
               <Link
                 href="#"
-                className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/25 hover:text-[#ddb7ff]/60 transition-colors"
+                className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/45 hover:text-[#ddb7ff]/60 transition-colors"
               >
                 Forgot Password
               </Link>
@@ -142,7 +136,7 @@ function LoginForm() {
 
           <div className="flex items-center gap-4 my-6">
             <span className="flex-1 h-px bg-white/[0.06]" />
-            <span className="font-mono text-[8px] uppercase tracking-[0.25em] text-white/20">or</span>
+            <span className="font-mono text-[8px] uppercase tracking-[0.25em] text-white/35">or</span>
             <span className="flex-1 h-px bg-white/[0.06]" />
           </div>
 
@@ -172,7 +166,7 @@ function LoginForm() {
           <div className="mt-6 pt-5 border-t border-white/[0.06] text-center">
             <Link
               href="#"
-              className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/30 hover:text-[#eadfed] transition-colors"
+              className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/45 hover:text-[#eadfed] transition-colors"
             >
               Create Account
             </Link>
@@ -182,18 +176,18 @@ function LoginForm() {
         <div className="border-t border-white/[0.06] px-8 sm:px-10 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500/50" />
-            <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/20">Terminal Active</span>
+            <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/30">Terminal Active</span>
           </div>
           <div className="hidden sm:flex items-center gap-4">
-            <span className="font-mono text-[7px] tracking-[0.2em] text-white/[0.15] uppercase flex items-center gap-1.5">
+            <span className="font-mono text-[7px] tracking-[0.2em] text-white/[0.25] uppercase flex items-center gap-1.5">
               <span className="inline-block w-1 h-1 rounded-full bg-green-500/40" />
               NETWORK ONLINE
             </span>
-            <span className="font-mono text-[7px] tracking-[0.2em] text-white/[0.15] uppercase flex items-center gap-1.5">
+            <span className="font-mono text-[7px] tracking-[0.2em] text-white/[0.25] uppercase flex items-center gap-1.5">
               <span className="inline-block w-1 h-1 rounded-full bg-green-500/40" />
               IDENTITY ACTIVE
             </span>
-            <span className="font-mono text-[7px] tracking-[0.2em] text-white/[0.15] uppercase flex items-center gap-1.5">
+            <span className="font-mono text-[7px] tracking-[0.2em] text-white/[0.25] uppercase flex items-center gap-1.5">
               <span className="inline-block w-1 h-1 rounded-full bg-green-500/40" />
               ACCESS READY
             </span>

@@ -33,7 +33,7 @@ export default function EditorialFeed({ activeCategory }: EditorialFeedProps) {
   });
 
   return (
-    <section className="mx-auto w-full max-w-[1800px] px-0 md:px-12 py-12 md:py-24">
+    <section className="mx-auto w-full max-w-[min(95vw,2400px)] px-4 md:px-6 py-12 md:py-20">
       <motion.div 
         layout
         className="grid grid-cols-1 gap-y-16 gap-x-8 md:grid-cols-12 md:gap-y-32 items-center"
@@ -95,7 +95,7 @@ export default function EditorialFeed({ activeCategory }: EditorialFeedProps) {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 1, ease: "easeOut" }}
-                  className="px-6 py-24 text-center md:py-32"
+                  className="px-6 py-20 text-center md:py-24"
                 >
                   <h2 className="font-display text-[8vw] leading-[0.85] tracking-tighter text-[var(--sp-accent)] md:text-[5vw] text-balance">
                     {item.content}

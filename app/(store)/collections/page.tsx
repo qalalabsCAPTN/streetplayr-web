@@ -17,6 +17,8 @@ function CollectionsInner() {
     validCategories.includes(initialCategory) ? initialCategory : "ALL"
   );
 
+  const [tappedId, setTappedId] = useState<string | null>(null);
+
   const products = LOCAL_PRODUCTS.map((p) => ({
     id: p.id,
     name: p.name,
@@ -62,8 +64,10 @@ function CollectionsInner() {
       <div className="fixed left-0 top-0 bottom-0 w-px bg-white/[0.04] z-20 pointer-events-none" />
       <div className="fixed left-0 top-0 bottom-0 w-px bg-white/[0.02] translate-x-[7px] z-20 pointer-events-none" />
       <style>{`
-        .product-card:hover .alt-face {
-          opacity: 1;
+        @media (hover: hover) {
+          .product-card:hover .alt-face {
+            opacity: 1;
+          }
         }
       `}</style>
 
@@ -77,16 +81,9 @@ function CollectionsInner() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#16111b] via-[#16111b]/25 to-[#16111b]/55" />
         <div className="absolute inset-0 bg-[radial-gradient(700px_360px_at_18%_10%,rgba(221,183,255,0.13),transparent_62%),radial-gradient(560px_340px_at_86%_82%,rgba(255,87,26,0.10),transparent_64%)]" />
-        <div className="absolute inset-0 flex items-end justify-start px-4 md:px-16 pb-14">
+        <div className="absolute inset-0 flex items-end justify-start px-4 md:px-6 pb-14">
           <div className="max-w-[760px]">
-            <div className="flex items-center gap-3 mb-4">
-              <span className="inline-flex items-center gap-1.5">
-                <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#ff3b30] animate-pulse shadow-[0_0_6px_rgba(255,59,48,0.5)]" />
-                <span className="font-mono text-[8px] uppercase tracking-[0.15em] text-[rgba(234,223,237,0.3)]">LIVE</span>
-              </span>
-              <span className="w-px h-3 bg-white/[0.08]" />
-              <span className="font-mono text-[10px] tracking-[0.28em] text-[rgba(234,223,237,0.52)] uppercase">Drop 001</span>
-            </div>
+
             <h1 className="font-display text-[clamp(56px,8vw,128px)] uppercase leading-[0.88] text-[#eadfed]">
               Current Release
             </h1>
@@ -96,7 +93,7 @@ function CollectionsInner() {
 
       <CategoryFilter activeCategory={activeFilter} onSelect={handleFilterChange} />
 
-      <main className="relative z-[1] pb-24 w-full max-w-[1440px] mx-auto px-4 md:px-16 pt-14">
+      <main className="relative z-[1] pb-20 w-full max-w-[min(95vw,2400px)] mx-auto px-4 md:px-6 pt-14">
         <div className="mb-14">
           <h2 className="font-display text-[42px] md:text-[64px] uppercase leading-[0.92] tracking-tight text-[#eadfed]">
             The Archive
@@ -110,12 +107,12 @@ function CollectionsInner() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {filteredProducts.map((product) => (
               <Link
                 key={product.id}
                 href={product.slug ? `/product/${product.slug}` : "/collections"}
-                className="group product-card relative border border-white/[0.10] bg-[#1f1a23] transition-all duration-300 hover:border-white/[0.20]"
+                className="group product-card relative border border-white/[0.10] bg-[#1f1a23] rounded-xl overflow-hidden transition-all duration-300 hover:border-white/[0.20]"
               >
                 {product.badge && (
                   <div className="absolute top-4 left-4 z-10">
@@ -125,15 +122,29 @@ function CollectionsInner() {
                   </div>
                 )}
 
-                <div className="relative aspect-[4/5] overflow-hidden bg-[#211c26]">
+                <div
+                  className="relative aspect-[4/5] overflow-hidden bg-[#211c26]"
+                  onClick={(e) => {
+                    if (window.innerWidth >= 768) return;
+                    if (tappedId !== product.id && product.altImage) {
+                      e.stopPropagation();
+                      setTappedId(product.id);
+                    }
+                  }}
+                >
                   <img
                     alt={product.name}
                     src={product.image}
-                    className="w-full h-full object-cover saturate-[0.92] transition-all duration-700 group-hover:opacity-0"
+                    className={`w-full h-full object-cover saturate-[0.92] transition-all duration-700 ${
+                      tappedId === product.id && product.altImage ? 'opacity-0' : ''
+                    } md:group-hover:opacity-0`}
                   />
 
                   {product.altImage && (
-                    <div className="alt-face absolute inset-0 opacity-0 transition-opacity duration-500">
+                    <div className={`alt-face absolute inset-0 transition-opacity duration-500 ${
+                      tappedId === product.id ? 'opacity-100' : 'opacity-0'
+                    } md:opacity-0 md:group-hover:opacity-100`}
+                    >
                       <img
                         alt={`${product.name} detail`}
                         src={product.altImage}

@@ -194,7 +194,7 @@
   align-items: center;
   gap: 18px;
   padding: 22px 56px;
-  border-radius: 0;
+  border-radius: 12px;
   border: 1px solid rgba(221,183,255,0.25);
   background: transparent;
   color: rgba(234,223,237,0.85);

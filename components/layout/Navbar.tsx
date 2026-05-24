@@ -41,24 +41,29 @@ export default function Navbar() {
             : "bg-transparent"
         }`}
       >
-        <nav className="flex justify-between items-center px-4 md:px-14 xl:px-20 h-20 w-full max-w-[1680px] mx-auto">
-          <div className="flex items-center gap-10">
+        <nav className="grid grid-cols-3 items-center px-4 md:px-8 lg:px-16 h-20 w-full max-w-[1600px] mx-auto">
+          {/* Logo — extreme left */}
+          <div className="flex items-center">
             <Link href="/">
               <img src="/assets/streetplayr-logo.png" alt="StreetplayR" className="h-10 w-auto object-contain opacity-95" />
             </Link>
-            <div className="hidden md:flex gap-8">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.label}
-                  href={link.href}
-                  className="font-mono text-[10px] uppercase tracking-[0.28em] text-[rgba(234,223,237,0.55)] transition-colors duration-300 hover:text-[#eadfed]"
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
           </div>
-          <div className="flex items-center gap-6">
+
+          {/* Nav — perfectly centered */}
+          <div className="hidden md:flex justify-center gap-8">
+            {navLinks.map((link) => (
+              <Link
+                key={link.label}
+                href={link.href}
+                className="font-mono text-[10px] uppercase tracking-[0.28em] text-[rgba(234,223,237,0.55)] transition-colors duration-300 hover:text-[#eadfed]"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+
+          {/* Actions — extreme right */}
+          <div className="flex items-center justify-end gap-6">
             <Link
               href="/cart"
               className="hidden md:block hover:text-[#eadfed] transition-colors text-[rgba(234,223,237,0.58)]"

@@ -60,15 +60,6 @@ export default function HomeHero() {
         }}
       />
 
-      <div className="absolute top-8 left-8 z-10 flex items-center gap-3">
-        <span className="inline-flex items-center gap-1.5">
-          <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#ff3b30] animate-pulse shadow-[0_0_6px_rgba(255,59,48,0.5)]" />
-          <span className="font-mono text-[8px] uppercase tracking-[0.15em] text-[rgba(234,223,237,0.3)]">LIVE</span>
-        </span>
-        <span className="w-px h-3 bg-white/[0.08]" />
-        <span className="text-[10px] tracking-[0.3em] text-[rgba(234,223,237,0.58)] font-mono uppercase">Drop 01</span>
-      </div>
-
       {/* Hero Content */}
       <div className="relative z-[2] flex flex-col items-start gap-4 px-[6vw] pb-16 max-w-[880px]">
         <h1 className="font-display text-[clamp(64px,10vw,168px)] leading-[0.88] tracking-[0.01em] uppercase text-[#eadfed] m-0 max-w-[7.8ch]">
@@ -78,7 +69,7 @@ export default function HomeHero() {
         </h1>
         <div className="flex gap-3 mt-4">
           <button
-            className="inline-flex items-center gap-3 px-7 py-4 bg-[#eadfed] text-[#16111b] border border-[#eadfed] font-mono text-[11px] tracking-[0.24em] font-bold uppercase transition-colors hover:bg-[#ddb7ff]"
+            className="inline-flex items-center gap-3 px-7 py-4 bg-[#eadfed] text-[#16111b] border border-[#eadfed] font-mono text-[11px] tracking-[0.24em] font-bold uppercase transition-colors hover:bg-[#ddb7ff] rounded-xl"
             onClick={() => router.push("/collection")}
           >
             Enter the Drop
@@ -88,7 +79,7 @@ export default function HomeHero() {
             </svg>
           </button>
           <button
-            className="inline-flex items-center gap-3 px-7 py-4 bg-[#231e27]/40 text-[#eadfed] border border-white/[0.14] font-mono text-[11px] tracking-[0.24em] font-bold uppercase transition-colors hover:bg-white/[0.06] hover:border-white/[0.24]"
+            className="inline-flex items-center gap-3 px-7 py-4 bg-[#231e27]/40 text-[#eadfed] border border-white/[0.14] font-mono text-[11px] tracking-[0.24em] font-bold uppercase transition-colors hover:bg-white/[0.06] hover:border-white/[0.24] rounded-xl"
             onClick={() => setJoinOpen(true)}
           >
             Join List
@@ -116,12 +107,12 @@ export default function HomeHero() {
           onClick={() => setJoinOpen(false)}
         >
           <div
-            className="relative w-full max-w-[960px] max-h-[calc(100vh-48px)] overflow-auto grid grid-cols-1 md:grid-cols-[360px_1fr] bg-[#231e27] border border-white/[0.10] shadow-[0_40px_120px_-20px_rgba(12,6,18,0.92)] animate-in fade-in zoom-in-95 duration-300"
+            className="relative w-full max-w-[960px] max-h-[calc(100vh-48px)] overflow-hidden grid grid-cols-1 md:grid-cols-[360px_1fr] bg-[#231e27] border border-white/[0.10] shadow-[0_40px_120px_-20px_rgba(12,6,18,0.92)] animate-in fade-in zoom-in-95 duration-300 rounded-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close */}
             <button
-              className="absolute top-3.5 right-3.5 w-9 h-9 bg-black/60 border border-white/[0.14] text-white grid place-items-center z-[4] transition-colors hover:bg-white/[0.08]"
+              className="absolute top-3.5 right-3.5 w-9 h-9 bg-black/60 border border-white/[0.14] text-white grid place-items-center z-[4] transition-colors hover:bg-white/[0.08] rounded-xl"
               onClick={() => setJoinOpen(false)}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -186,17 +177,17 @@ export default function HomeHero() {
               >
                 <label className="flex flex-col gap-2">
                   <span className="font-mono text-[9px] tracking-[0.32em] text-white/34 uppercase">Name</span>
-                  <input className="w-full bg-[#1b1620] border border-white/[0.12] text-[#eadfed] p-3.5 font-mono text-[13px] tracking-[0.04em] outline-none transition-colors focus:border-white/[0.32] focus:bg-[#211c26]" placeholder="Your name" type="text" />
+                  <input className="w-full bg-[#1b1620] border border-white/[0.12] text-[#eadfed] p-3.5 font-mono text-[13px] tracking-[0.04em] outline-none transition-colors focus:border-white/[0.32] focus:bg-[#211c26] rounded-xl" placeholder="Your name" type="text" />
                 </label>
                 <label className="flex flex-col gap-2">
                   <span className="font-mono text-[9px] tracking-[0.32em] text-white/34 uppercase">Email</span>
-                  <input className="w-full bg-[#1b1620] border border-white/[0.12] text-[#eadfed] p-3.5 font-mono text-[13px] tracking-[0.04em] outline-none transition-colors focus:border-white/[0.32] focus:bg-[#211c26]" placeholder="you@streetplayr.com" type="email" />
+                  <input className="w-full bg-[#1b1620] border border-white/[0.12] text-[#eadfed] p-3.5 font-mono text-[13px] tracking-[0.04em] outline-none transition-colors focus:border-white/[0.32] focus:bg-[#211c26] rounded-xl" placeholder="you@streetplayr.com" type="email" />
                 </label>
                 <label className="flex flex-col gap-2">
                   <span className="font-mono text-[9px] tracking-[0.32em] text-white/34 uppercase">Phone</span>
-                  <input className="w-full bg-[#1b1620] border border-white/[0.12] text-[#eadfed] p-3.5 font-mono text-[13px] tracking-[0.04em] outline-none transition-colors focus:border-white/[0.32] focus:bg-[#211c26]" placeholder="+X XXX XXX XXXX" type="tel" />
+                  <input className="w-full bg-[#1b1620] border border-white/[0.12] text-[#eadfed] p-3.5 font-mono text-[13px] tracking-[0.04em] outline-none transition-colors focus:border-white/[0.32] focus:bg-[#211c26] rounded-xl" placeholder="+X XXX XXX XXXX" type="tel" />
                 </label>
-                <button type="submit" className="w-full bg-[#eadfed] py-4 mt-2 font-mono font-bold text-[12px] tracking-[0.22em] uppercase text-[#16111b] hover:bg-[#ddb7ff] transition-colors duration-300 group flex items-center justify-center gap-2">
+                <button type="submit" className="w-full bg-[#eadfed] py-4 mt-2 font-mono font-bold text-[12px] tracking-[0.22em] uppercase text-[#16111b] hover:bg-[#ddb7ff] transition-colors duration-300 group flex items-center justify-center gap-2 rounded-xl">
                   SUBMIT
                   <span className="inline-block group-hover:translate-x-1 transition-transform">→</span>
                 </button>

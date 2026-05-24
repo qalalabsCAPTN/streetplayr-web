@@ -10,6 +10,8 @@ export interface LocalProduct {
     points: string;
     gallery_images: string[];
     colors: { id: string; name: string; hex: string }[];
+    /** Path to GLB file in /public/models/ — enables "View in 3D" button on PDP */
+    model3d?: string;
   };
   variants: {
     id: string;
@@ -70,6 +72,7 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
       points: "250",
       gallery_images: GALLERY_IMAGES("inspired"),
       colors: [{ id: "default", name: "Standard", hex: "#ffffff" }],
+      model3d: "/models/inspired.glb",
     },
     variants: buildVariants("inspired"),
   },
@@ -144,6 +147,7 @@ export function getLocalLatestDrops() {
     name: p.name,
     price: p.price,
     image: p.image_url,
+    image2: p.metadata.gallery_images[1] || p.image_url,
     slug: p.slug,
     category: p.category.name,
     className: idx === 0 ? "md:col-span-5 md:mt-24" : idx === 1 ? "md:col-span-3" : "md:col-span-4 md:mt-48",

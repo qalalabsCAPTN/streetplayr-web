@@ -143,36 +143,33 @@ export function ProfileSidebar() {
   );
 }
 
-// ─── Mobile Bottom Tab Bar ───────────────────────────────────────────────
-export function ProfileTabBar() {
+// ─── Mobile Top Tabs ────────────────────────────────────────────────────
+export function ProfileTopTabs() {
   const pathname = usePathname();
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#16111b]/95 backdrop-blur-xl border-t border-white/[0.06] flex justify-around py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]" aria-label="Profile navigation">
-      {NAV_ITEMS.map(({ label, href, icon: Icon }) => {
-        const active = pathname === href;
-        return (
-          <Link
-            key={href}
-            href={href}
-            id={`profile-tab-${label.toLowerCase()}`}
-            className={`flex flex-col items-center gap-0.5 py-1 px-2 transition-colors relative ${
-              active ? 'text-[#ddb7ff]' : 'text-white/30 hover:text-white/50'
-            }`}
-            aria-current={active ? 'page' : undefined}
-          >
-            <Icon active={active} />
-            <span className="font-mono text-[7px] uppercase tracking-[0.15em]">{label}</span>
-            {active && (
-              <motion.div
-                layoutId="tab-active"
-                className="absolute -top-2 left-[20%] right-[20%] h-[2px] bg-[#ddb7ff]"
-                transition={{ type: 'spring', stiffness: 380, damping: 40 }}
-              />
-            )}
-          </Link>
-        );
-      })}
+    <nav className="md:hidden overflow-x-auto no-scrollbar -mx-4 px-4 mb-6" aria-label="Profile sections">
+      <div className="flex gap-2 min-w-max">
+        {NAV_ITEMS.map(({ label, href, icon: Icon }) => {
+          const active = pathname === href;
+          return (
+            <Link
+              key={href}
+              href={href}
+              id={`profile-pill-${label.toLowerCase()}`}
+              className={`flex items-center gap-2 py-1.5 px-4 rounded-full border font-mono text-[9px] uppercase tracking-[0.15em] whitespace-nowrap transition-all ${
+                active
+                  ? 'bg-[#ddb7ff]/20 border-[#ddb7ff]/40 text-[#ddb7ff]'
+                  : 'border-white/[0.08] text-white/35 hover:text-white/60 hover:border-white/[0.15]'
+              }`}
+              aria-current={active ? 'page' : undefined}
+            >
+              <Icon active={active} />
+              <span>{label}</span>
+            </Link>
+          );
+        })}
+      </div>
     </nav>
   );
 }

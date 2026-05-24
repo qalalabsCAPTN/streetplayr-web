@@ -19,7 +19,7 @@ export default function AtmosphericSpacer() {
   return (
     <section 
       ref={containerRef}
-      className="relative flex min-h-[70vh] w-full flex-col items-center justify-center overflow-hidden py-32 md:min-h-[100vh] md:py-48"
+      className="relative flex min-h-[70vh] w-full flex-col items-center justify-center overflow-hidden py-24 md:min-h-[100vh] md:py-48"
     >
       <div className="absolute inset-0 z-0 bg-[#050505]" />
       

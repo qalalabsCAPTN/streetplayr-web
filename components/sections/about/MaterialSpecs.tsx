@@ -53,7 +53,7 @@ const TILES = [
 function MaterialTile({ tile, index }: { tile: (typeof TILES)[number]; index: number }) {
   return (
     <FadeIn delay={0.1 * index}>
-      <div className="group relative bg-[#0a0a0a] border border-white/[0.06]">
+      <div className="group relative bg-[#0a0a0a] border border-white/[0.06] rounded-xl overflow-hidden">
         <div className="grid grid-rows-[3fr_1fr] aspect-[3/4]">
           <div className="relative overflow-hidden">
             <Image
@@ -98,7 +98,7 @@ function MaterialTile({ tile, index }: { tile: (typeof TILES)[number]; index: nu
 
 export default function MaterialSpecs() {
   return (
-    <section className="relative py-36 sm:py-48 px-6 sm:px-12 lg:px-20 max-w-[1400px] mx-auto border-t border-white/[0.04]">
+    <section className="relative py-28 sm:py-36 px-4 md:px-6 w-full max-w-[min(95vw,2400px)] mx-auto border-t border-white/[0.04]">
       <div className="mb-16">
         <FadeIn>
           <div className="flex items-center gap-3 mb-4">
@@ -107,7 +107,7 @@ export default function MaterialSpecs() {
           </div>
         </FadeIn>
         <FadeIn delay={0.15}>
-          <h2 className="font-display text-[clamp(40px,6vw,96px)] leading-[0.88] tracking-[0.01em] uppercase text-[#eadfed] max-w-[10ch]">
+          <h2 className="font-display text-[clamp(40px,6vw,96px)] leading-[0.88] tracking-[0.01em] uppercase text-[#eadfed]">
             Engineered for the city after dark.
           </h2>
         </FadeIn>

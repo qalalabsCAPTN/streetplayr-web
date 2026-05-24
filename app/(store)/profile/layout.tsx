@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import Navbar from '@/components/layout/Navbar';
 import ProfileShell from './ProfileShell';
 
 export const metadata: Metadata = {
@@ -14,6 +15,7 @@ export default function ProfileLayout({
 }) {
   return (
     <ProtectedRoute>
+      <Navbar />
       <ProfileShell>{children}</ProfileShell>
     </ProtectedRoute>
   );

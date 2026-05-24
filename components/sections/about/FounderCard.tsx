@@ -22,7 +22,7 @@ function FadeIn({ children, delay = 0, className = "" }: { children: React.React
 
 export default function FounderCard() {
   return (
-    <section className="relative py-36 sm:py-48 px-6 sm:px-12 lg:px-20 max-w-[1440px] mx-auto border-t border-white/[0.04]">
+    <section className="relative py-28 sm:py-36 px-4 md:px-6 w-full max-w-[min(95vw,2400px)] mx-auto border-t border-white/[0.04]">
       <FadeIn>
         <div className="flex items-center gap-3 mb-14">
           <span className="h-px w-6 bg-white/20 block" />
@@ -30,9 +30,9 @@ export default function FounderCard() {
         </div>
       </FadeIn>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
-        <FadeIn className="lg:col-span-7">
-          <div className="relative overflow-hidden bg-[#0a0a0a] border border-white/[0.06]">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,520px)_1fr] gap-10 lg:gap-16 items-start">
+        <FadeIn>
+          <div className="relative overflow-hidden bg-[#0a0a0a] border border-white/[0.06] rounded-xl">
             <div className="aspect-[4/5] relative">
               <Image
                 src="/assets/about/founder-portrait.svg"
@@ -57,25 +57,23 @@ export default function FounderCard() {
           </div>
         </FadeIn>
 
-        <FadeIn delay={0.2} className="lg:col-span-5 flex flex-col justify-center">
-          <div className="max-w-[460px]">
-            <p className="font-body text-[15px] sm:text-[17px] leading-[1.9] text-white/45 tracking-wide">
+        <FadeIn delay={0.2} className="flex flex-col justify-start lg:pt-3">
+            <p className="font-body text-[15px] sm:text-[17px] leading-[1.9] text-white/65 tracking-wide">
               StreetPlayR was never meant to be a brand. It was a reaction — against the noise, against the overproduction, against the idea that fashion has to be disposable to be relevant.
             </p>
 
-            <p className="font-body text-[14px] leading-[1.9] text-white/30 mt-8 tracking-wide">
+            <p className="font-body text-[14px] leading-[1.9] text-white/45 mt-8 tracking-wide">
               Every piece is a study in subtraction. We ask not what we can add, but what we can remove — until only the essential remains. That is the discipline. That is the position.
             </p>
 
             <div className="mt-14 pt-6 border-t border-white/[0.06]">
-              <span className="font-display text-[28px] sm:text-[36px] uppercase text-[#eadfed] leading-none block tracking-[0.01em]">
+              <span className="font-display text-[32px] sm:text-[40px] uppercase text-[#eadfed] leading-none block tracking-[0.01em]">
                 The Streets
               </span>
-              <span className="font-mono text-[9px] uppercase tracking-[0.35em] text-white/20 mt-3 block">
+              <span className="font-mono text-[9px] uppercase tracking-[0.35em] text-white/25 mt-3 block">
                 StreetPlayR — Est. 2024
               </span>
             </div>
-          </div>
         </FadeIn>
       </div>
     </section>

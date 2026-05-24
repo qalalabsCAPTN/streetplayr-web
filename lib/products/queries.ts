@@ -98,6 +98,7 @@ export const ProductQueries = {
         name: p.title,
         price: minPrice,
         image: p.featured_image_url,
+        image2: p.metadata?.gallery_images?.[1] || p.featured_image_url,
         slug: p.slug,
         category: 'Street',
         className: p.metadata?.className || getDefaultClassName(idx),

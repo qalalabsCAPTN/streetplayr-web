@@ -21,39 +21,25 @@ function FadeIn({ children, delay = 0, className = "" }: { children: React.React
 
 export default function Manifesto() {
   return (
-    <section className="relative py-36 sm:py-48 px-6 sm:px-12 lg:px-20 max-w-[1440px] mx-auto">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20">
-        {/* Label column */}
-        <FadeIn className="lg:col-span-3">
-          <div className="flex items-center gap-3">
-            <span className="h-px w-6 bg-white/20 block" />
-            <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/30">The Manifesto</span>
-          </div>
-        </FadeIn>
-
-        {/* Content column */}
-        <div className="lg:col-span-9 lg:col-start-4">
-          <FadeIn delay={0.15}>
-            <h2 className="font-display text-[clamp(44px,7vw,120px)] leading-[0.88] tracking-[0.01em] uppercase text-[#eadfed] max-w-[12ch]">
-              Made for those who refuse to be styled.
-            </h2>
-          </FadeIn>
-
-          <FadeIn delay={0.3}>
-            <p className="font-body text-[14px] sm:text-[16px] leading-[1.9] text-white/40 max-w-[520px] mt-14 tracking-wide">
-              StreetPlayR exists at the intersection of raw urban energy and exacting craftsmanship. Every piece is a study in restraint — stripped of excess, defined by form.
-            </p>
-          </FadeIn>
-
-          <FadeIn delay={0.45}>
-            <p className="font-body text-[13px] leading-[1.9] text-white/25 max-w-[440px] mt-8 tracking-wide">
-              We do not overproduce. Each drop is limited — an artifact of a moment, not a commodity on a conveyor belt. The scarcity is intentional. The silence is part of the signal.
-            </p>
-          </FadeIn>
-
-          
+    <section className="relative py-32 sm:py-48 lg:py-56 px-4 md:px-6 w-full max-w-[min(95vw,2400px)] mx-auto">
+      <FadeIn delay={0.1}>
+        <div className="flex items-center gap-3 mb-8">
+          <span className="h-px w-6 bg-white/20 block" />
+          <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-white/60">The Manifesto</span>
         </div>
-      </div>
+      </FadeIn>
+
+      <FadeIn delay={0.2}>
+        <h2 className="font-display text-[clamp(64px,9vw,160px)] leading-[0.88] tracking-[-0.02em] uppercase text-[#eadfed] max-w-[16ch]">
+          Made for those who refuse to be styled.
+        </h2>
+      </FadeIn>
+
+      <FadeIn delay={0.35}>
+        <p className="font-body text-[15px] sm:text-[18px] leading-[1.9] text-white/70 font-medium max-w-[660px] mt-16 lg:mt-20">
+          StreetPlayR exists at the intersection of raw urban energy and exacting craftsmanship. Every piece is a study in restraint — stripped of excess, defined by form. We do not overproduce. Each drop is limited — an artifact of a moment, not a commodity on a conveyor belt. The scarcity is intentional. The silence is part of the signal.
+        </p>
+      </FadeIn>
     </section>
   );
 }

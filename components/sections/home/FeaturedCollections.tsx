@@ -16,7 +16,7 @@ export default function FeaturedCollections() {
   const textY = useTransform(scrollYProgress, [0, 1], ["10%", "-10%"]);
 
   return (
-    <section ref={containerRef} className="relative w-full bg-[#16111b] py-40 px-4 md:px-8 lg:px-16 overflow-hidden">
+    <section ref={containerRef} className="relative w-full bg-[#16111b] py-32 px-4 md:px-6 overflow-hidden">
       {/* Background oversized typography watermark */}
       <motion.div 
         style={{ y: textY }}
@@ -25,7 +25,7 @@ export default function FeaturedCollections() {
         <span className="font-display text-[20vw] leading-none whitespace-nowrap">CURATED</span>
       </motion.div>
 
-      <div className="relative z-10 max-w-7xl mx-auto">
+      <div className="relative z-10 max-w-[min(95vw,2400px)] mx-auto">
         <div className="mb-32 flex flex-col items-center text-center">
           <span className="font-mono text-xs tracking-[0.3em] text-[var(--sp-accent)] uppercase mb-6">Archive 001</span>
           <h2 className="font-display text-5xl md:text-8xl uppercase tracking-widest text-white leading-[0.9]">
@@ -60,7 +60,7 @@ export default function FeaturedCollections() {
             style={{ y: y1 }}
             className="md:col-span-8 md:col-start-1 relative z-10 group"
           >
-            <div data-cursor="drag" className="relative w-full aspect-[4/5] md:aspect-[16/10] overflow-hidden bg-[#111] rotate-[1deg] shadow-2xl border border-white/5 p-1 pb-4 bg-zinc-900/50">
+            <div data-cursor="drag" className="relative w-full aspect-[4/5] md:aspect-[16/10] overflow-hidden bg-[#111] rotate-[1deg] shadow-2xl border border-white/5 p-1 pb-4 bg-zinc-900/50 rounded-xl">
               <Image
                 src="/assets/polo-editorial.png"
                 alt="Polo Editorial"
@@ -69,7 +69,7 @@ export default function FeaturedCollections() {
               />
               <div className="absolute inset-0 bg-black/20 mix-blend-overlay transition-opacity duration-1000 group-hover:opacity-0" />
             </div>
-            <div className="absolute -bottom-16 left-8 md:left-12 flex flex-col bg-[#231e27]/80 backdrop-blur-md p-6 border border-white/10">
+            <div className="absolute -bottom-16 left-8 md:left-12 flex flex-col bg-[#231e27]/80 backdrop-blur-md p-6 border border-white/10 rounded-lg">
               <span className="font-mono text-xs text-white/50 tracking-[0.2em] mb-2 uppercase">Editorial</span>
               <h3 className="font-display text-3xl tracking-wider">Heritage Polo</h3>
             </div>
@@ -79,7 +79,7 @@ export default function FeaturedCollections() {
             style={{ y: y2 }}
             className="md:col-span-5 md:col-start-8 md:-mt-48 md:-ml-16 relative z-20 group"
           >
-            <div data-cursor="product" className="relative w-full aspect-[3/4] md:aspect-[3/4] overflow-hidden bg-[#111] shadow-2xl shadow-black/80 rotate-[-1.5deg] border border-white/5 p-1 pb-8 bg-zinc-900/50">
+            <div data-cursor="product" className="relative w-full aspect-[3/4] md:aspect-[3/4] overflow-hidden bg-[#111] shadow-2xl shadow-black/80 rotate-[-1.5deg] border border-white/5 p-1 pb-8 bg-zinc-900/50 rounded-xl">
               <Image
                 src="/assets/srh-jersey.jpg"
                 alt="SRH Jersey"

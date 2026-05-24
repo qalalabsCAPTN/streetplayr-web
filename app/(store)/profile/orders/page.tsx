@@ -103,19 +103,19 @@ export default function OrdersPage() {
             transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
             className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10"
           >
-            <div className="bg-[#1f1a23] border border-white/[0.06] p-5">
+            <div className="bg-[#1f1a23] border border-white/[0.06] p-5 rounded-xl">
               <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/25 block mb-2">Total Orders</span>
               <span className="font-display text-3xl text-[#eadfed]">{orders.length}</span>
             </div>
-            <div className="bg-[#1f1a23] border border-white/[0.06] p-5">
+            <div className="bg-[#1f1a23] border border-white/[0.06] p-5 rounded-xl">
               <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/25 block mb-2">Total Spent</span>
               <span className="font-display text-3xl text-[#eadfed]">{formatPrice(totalSpent)}</span>
             </div>
-            <div className="bg-[#1f1a23] border border-white/[0.06] p-5">
+            <div className="bg-[#1f1a23] border border-white/[0.06] p-5 rounded-xl">
               <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/25 block mb-2">Delivered</span>
               <span className="font-display text-3xl text-green-400">{deliveredCount}</span>
             </div>
-            <div className="bg-[#1f1a23] border border-white/[0.06] p-5">
+            <div className="bg-[#1f1a23] border border-white/[0.06] p-5 rounded-xl">
               <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/25 block mb-2">Cancelled</span>
               <span className="font-display text-3xl text-red-400">{cancelledCount}</span>
             </div>
@@ -128,7 +128,7 @@ export default function OrdersPage() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 + i * 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              className="bg-[#1f1a23] border border-white/[0.06] p-6 md:p-8 hover:border-white/[0.1] transition-colors"
+              className="bg-[#1f1a23] border border-white/[0.06] p-5 md:p-6 hover:border-white/[0.1] transition-colors rounded-xl"
             >
               <div className="flex items-start justify-between mb-5 pb-5 border-b border-white/[0.05]">
                 <div>
@@ -139,7 +139,7 @@ export default function OrdersPage() {
                     {formatDate(order.createdAt)}
                   </p>
                 </div>
-                <span className={`font-mono text-[9px] uppercase tracking-[0.15em] px-3 py-1 border ${
+                <span className={`font-mono text-[9px] uppercase tracking-[0.15em] px-3 py-1 border rounded ${
                   order.status === 'delivered' ? 'text-green-400 border-green-500/30' :
                   order.status === 'cancelled' ? 'text-red-400 border-red-500/30' :
                   order.status === 'shipped' ? 'text-[#ddb7ff] border-[#ddb7ff]/30' :
@@ -167,7 +167,7 @@ export default function OrdersPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="border border-white/[0.06] p-12 text-center"
+          className="border border-white/[0.06] p-12 text-center rounded-xl"
         >
           <p className="font-display text-3xl uppercase text-white/15 mb-3">Nothing acquired yet.</p>
           <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/20 mb-6">
@@ -175,7 +175,7 @@ export default function OrdersPage() {
           </p>
           <a
             href="/collections"
-            className="inline-block border border-white/[0.2] px-8 py-3 font-mono text-[10px] uppercase tracking-[0.2em] text-white/60 hover:bg-white hover:text-[#16111b] transition-all"
+            className="inline-block border border-white/[0.2] px-8 py-3 font-mono text-[10px] uppercase tracking-[0.2em] text-white/60 hover:bg-white hover:text-[#16111b] transition-all rounded-xl"
           >
             Explore Collection
           </a>

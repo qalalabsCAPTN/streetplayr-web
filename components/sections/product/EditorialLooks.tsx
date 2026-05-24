@@ -14,7 +14,7 @@ type Look = {
 
 export default function EditorialLooks({ looks }: { looks: Look[] }) {
   return (
-    <section className="py-32 px-6 md:px-12 lg:px-24">
+    <section className="py-24 px-4 md:px-6">
       <div className="mb-32 flex justify-between items-end">
         <h2 className="font-display text-5xl uppercase leading-none tracking-wide text-white md:text-7xl lg:text-[6rem]">
           Complete<br />The Look

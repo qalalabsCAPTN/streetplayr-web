@@ -114,7 +114,7 @@ export default function CheckoutSuccessPage() {
             <div className="pt-8">
               <Link
                 href="/"
-                className="rounded-none border border-white/[0.14] px-8 py-4 font-mono text-xs uppercase tracking-[0.3em] text-[#eadfed] hover:bg-[#ddb7ff] hover:text-[#16111b] transition-all"
+                className="rounded-xl border border-white/[0.14] px-8 py-4 font-mono text-xs uppercase tracking-[0.3em] text-[#eadfed] hover:bg-[#ddb7ff] hover:text-[#16111b] transition-all"
               >
                 Return to Surface
               </Link>
@@ -146,7 +146,7 @@ export default function CheckoutSuccessPage() {
               className="mt-16 space-y-8 max-w-sm mx-auto"
             >
               {order && (
-                <div className="border border-white/[0.06] bg-[#1f1a23]/50 p-6 space-y-4">
+                <div className="border border-white/[0.06] bg-[#1f1a23]/50 p-5 space-y-3 rounded-xl">
                   <div className="flex justify-between items-center">
                     <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/30">Order</span>
                     <span className="font-mono text-[10px] text-white/60">#{order.id.slice(0, 8)}</span>
@@ -157,7 +157,7 @@ export default function CheckoutSuccessPage() {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/30">Status</span>
-                    <span className="font-mono text-[9px] uppercase tracking-[0.15em] text-green-400 border border-green-500/30 px-2 py-0.5">
+                    <span className="font-mono text-[9px] uppercase tracking-[0.15em] text-green-400 border border-green-500/30 px-2 py-0.5 rounded">
                       {order.status}
                     </span>
                   </div>

@@ -11,11 +11,6 @@ export default async function HomePage() {
   return (
     <div className="flex flex-col w-full overflow-hidden bg-[#16111b] text-[#eadfed]">
       <HomeHero />
-      <section className="py-24 px-4 md:px-16 max-w-[1440px] mx-auto text-center">
-        <h3 className="font-display text-[clamp(32px,5vw,64px)] leading-[0.95] tracking-[0.01em] uppercase text-[#eadfed]">
-          Create The Things You Wish Existed
-        </h3>
-      </section>
       <BestSellers products={latestDrops} />
       <BrandStory />
       <Lookbook />
