@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { useCartStore } from "../../store/cartStore";
+import dynamic from "next/dynamic";
+
+const AITryOn = dynamic(() => import("./AITryOn"), { ssr: false });
 
 type VariantInfo = {
   id: string;
@@ -206,16 +209,11 @@ export default function ProductInfo({
           </button>
         </div>
 
-        {/* AI Try-On Placeholder */}
-        <div className="border border-white/[0.06] bg-[#16111b]/60 p-5">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="font-mono text-[8px] uppercase tracking-[0.25em] text-[#ddb7ff]/70 font-medium">AI Try-On</span>
-            <span className="px-2 py-0.5 border border-white/[0.06] font-mono text-[7px] uppercase tracking-[0.15em] text-white/20">Coming Soon</span>
-          </div>
-          <p className="font-body text-[10px] leading-relaxed text-white/55">
-            Virtual fitting experience. Preview this piece in real-time before committing.
-          </p>
-        </div>
+        {/* AI Try-On */}
+        <AITryOn
+          productImageUrl={image}
+          productTitle={title}
+        />
 
         {/* Accordion */}
         <div className="border-t border-white/[0.06] pt-2">

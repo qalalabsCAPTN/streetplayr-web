@@ -11,6 +11,12 @@ import { useCartStore } from "@/store/cartStore";
 import ProductInfo from "@/components/product/ProductInfo";
 import RecommendedProducts from "@/components/product/RecommendedProducts";
 
+/* ── Lazy-load AI Try-On — no SSR ── */
+const AITryOn = dynamic(
+  () => import("@/components/product/AITryOn"),
+  { ssr: false }
+);
+
 /* ── Lazy-load the 3D viewer — no SSR, only loads when modal opens ── */
 const ProductViewer3D = dynamic(
   () => import("@/components/product/ProductViewer3D"),
@@ -519,19 +525,12 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
           </div>
         )}
 
-        {/* ── 8. AI Try-On placeholder ── */}
-        <div className="mx-4 mt-5 border border-white/[0.06] bg-[#16111b]/60 p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="font-mono text-[8px] uppercase tracking-[0.25em] text-[#ddb7ff]/70">
-              AI Try-On
-            </span>
-            <span className="px-2 py-0.5 border border-white/[0.06] font-mono text-[7px] uppercase tracking-[0.15em] text-white/20">
-              Coming Soon
-            </span>
-          </div>
-          <p className="font-body text-[10px] leading-relaxed text-white/45">
-            Virtual fitting experience. Preview before committing.
-          </p>
+        {/* ── 8. AI Try-On ── */}
+        <div className="mx-4 mt-5">
+          <AITryOn
+            productImageUrl={props.image}
+            productTitle={props.title}
+          />
         </div>
 
         {/* ── 9. Accordion ── */}
