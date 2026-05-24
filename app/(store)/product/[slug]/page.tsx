@@ -8,14 +8,21 @@ import { formatPrice, formatProductTitle } from "@/lib/utils/format";
 export const dynamic = "force-dynamic";
 
 async function resolveProduct(slug: string) {
-  let product = await ProductQueries.getProductBySlug(slug);
-  if (product) return product;
-
-  product = await ProductQueries.getProductBySlug(slug.toLowerCase());
-  if (product) return product;
-
+  // Always try local first — instant, no network, never fails
   const local = getLocalProductBySlug(slug);
   if (local) return local;
+
+  // Then try DB (Supabase) with full exception guard so a network
+  // error or mis-configured project can never cause a 404
+  try {
+    const product = await ProductQueries.getProductBySlug(slug);
+    if (product) return product;
+
+    const productLower = await ProductQueries.getProductBySlug(slug.toLowerCase());
+    if (productLower) return productLower;
+  } catch {
+    // DB unavailable — already found local above if it existed
+  }
 
   return null;
 }
