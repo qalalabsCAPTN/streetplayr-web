@@ -503,22 +503,22 @@ export default function Journey() {
                     </div>
 
                     {/* Date */}
-                    <span className="font-mono text-[9.5px] tracking-[0.22em] text-[#dfba89]/75 uppercase block mb-1 text-center">
-                      {item.period}
+                    <span className="font-mono text-[11px] font-semibold tracking-[0.18em] leading-[1.2] text-white/72 uppercase block mb-1.5 text-center">
+                      {item.period.toUpperCase().replace(" - ", " • ")}
                     </span>
 
                     {/* Title */}
-                    <h3 className="font-display text-[14.5px] uppercase text-[#eadfed] tracking-wider leading-tight mb-3 font-bold text-center">
+                    <h3 className="font-display text-[18px] uppercase text-white/95 tracking-[-0.01em] leading-[1.1] mb-3.5 font-extrabold text-center">
                       {item.title}
                     </h3>
 
                     {/* Description — wraps naturally, no truncation */}
-                    <div className="space-y-1 text-left">
+                    <div className="space-y-[10px] text-left">
                       {item.details.map((detail, di) => {
                         const text = detail.startsWith("- ") ? detail.slice(2) : detail;
                         return (
-                          <p key={di} className="font-body text-[12px] leading-relaxed text-white/65 flex items-start gap-1.5">
-                            <span className="text-[#dfba89]/50 flex-shrink-0 mt-0.5">—</span>
+                          <p key={di} className="font-body text-[14px] leading-[1.65] text-white/82 tracking-normal flex items-start gap-2.5 font-medium">
+                            <span className="flex-shrink-0 mt-[3px]">—</span>
                             <span>{text}</span>
                           </p>
                         );
@@ -560,23 +560,23 @@ export default function Journey() {
                   </div>
 
                   {/* Period/Date */}
-                  <span className="font-mono text-[11px] tracking-[0.22em] text-[#dfba89] uppercase block mb-1">
-                    {item.period}
+                  <span className="font-mono text-[11px] font-semibold tracking-[0.18em] leading-[1.2] text-white/72 uppercase block mb-1.5">
+                    {item.period.toUpperCase().replace(" - ", " • ")}
                   </span>
                   
                   {/* Milestone Title */}
-                  <h3 className="font-display text-[18px] uppercase text-[#eadfed] font-bold leading-tight mb-2.5 tracking-wide">
+                  <h3 className="font-display text-[18px] uppercase text-white/95 font-extrabold leading-[1.1] mb-3.5 tracking-[-0.01em]">
                     {item.title}
                   </h3>
                   
-                  {/* High contrast, legible 16px body text */}
-                  <div className="space-y-1 w-full px-2">
+                  {/* High contrast, legible body text */}
+                  <div className="space-y-[10px] w-full px-2">
                     {item.details.map((detail, di) => (
                       <p
                         key={di}
-                        className="font-body text-[16px] leading-relaxed text-white/70 tracking-wide font-light"
+                        className="font-body text-[14px] leading-[1.65] text-white/82 tracking-normal font-medium text-center"
                       >
-                        <span className="text-[#ddb7ff]/40 mr-1.5">—</span>
+                        <span className="mr-1.5">—</span>
                         {detail}
                       </p>
                     ))}
@@ -625,12 +625,12 @@ export default function Journey() {
                 </div>
 
                 {/* Title */}
-                <h4 className="font-display text-[15px] sm:text-[16px] uppercase text-[#eadfed] tracking-widest leading-tight font-bold mb-3">
+                <h4 className="font-display text-[15.5px] uppercase text-white/95 tracking-[-0.01em] leading-[1.1] font-extrabold mb-3">
                   {val.title}
                 </h4>
 
                 {/* Description */}
-                <p className="font-body text-[12.5px] leading-relaxed text-white/50 font-light max-w-[280px]">
+                <p className="font-body text-[14px] leading-[1.65] text-white/82 tracking-normal font-medium max-w-[280px]">
                   {val.desc}
                 </p>
                 
