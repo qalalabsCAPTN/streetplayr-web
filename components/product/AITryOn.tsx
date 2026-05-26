@@ -142,11 +142,13 @@ export default function AITryOn({
   productTitle,
   onAddToCart,
 }: AITryOnProps) {
+  const isEnabled = process.env.NEXT_PUBLIC_AI_TRYON_ENABLED === "true";
+
   const [phase, setPhase] = useState<Phase>("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [userPhotoPreview, setUserPhotoPreview] = useState<string | null>(null);
   const [userPhotoFile, setUserPhotoFile] = useState<File | null>(null);
-  const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
+
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -223,7 +225,7 @@ export default function AITryOn({
         throw new Error(uploadData.error || "Upload failed");
       }
 
-      setUploadedUrl(uploadData.url);
+
 
       // 2. Also upload the garment image so the AI model has a real public URL
       //    (product images are relative paths like /assets/... — we must make them absolute)
@@ -253,7 +255,7 @@ export default function AITryOn({
         garmentPublicUrl = garmentUploadData.url;
       }
 
-      // 3. Call AI model with both real public URLs
+      // 3. Call AI model with both real public URLs and the product metadata
       setPhase("generating");
       startTimer();
 
@@ -263,13 +265,27 @@ export default function AITryOn({
         body: JSON.stringify({
           userImageUrl: uploadData.url,
           garmentImageUrl: garmentPublicUrl,
+          productTitle,
         }),
       });
       const tryonData = await tryonRes.json();
       stopTimer();
 
-      if (!tryonRes.ok || !tryonData.output) {
+      if (!tryonRes.ok) {
+        if (tryonRes.status === 401) {
+          throw new Error("Authentication required. Please sign in to try on this item.");
+        }
+        if (tryonRes.status === 429) {
+          throw new Error(tryonData.error || "You have reached your daily limit of 3 try-ons.");
+        }
+        if (tryonRes.status === 503) {
+          throw new Error(tryonData.error || "Store try-on quota limit reached for today. Try again tomorrow.");
+        }
         throw new Error(tryonData.error || "AI generation failed");
+      }
+
+      if (!tryonData.output) {
+        throw new Error("AI try-on completed but returned no output image.");
       }
 
       setResultUrl(tryonData.output);
@@ -281,14 +297,14 @@ export default function AITryOn({
       );
       setPhase("error");
     }
-  }, [userPhotoFile, productImageUrl, startTimer, stopTimer]);
+  }, [userPhotoFile, productImageUrl, productTitle, startTimer, stopTimer]);
 
   /* ── Reset ── */
   const handleReset = useCallback(() => {
     setPhase("idle");
     setUserPhotoPreview(null);
     setUserPhotoFile(null);
-    setUploadedUrl(null);
+
     setResultUrl(null);
     setErrorMsg("");
     setElapsed(0);
@@ -298,6 +314,8 @@ export default function AITryOn({
   /* ─────────────────────────────────────────
      Render
   ───────────────────────────────────────── */
+  if (!isEnabled) return null;
+
   return (
     <div className="border border-white/[0.06] bg-[#16111b] overflow-hidden">
       {/* Header */}
@@ -508,7 +526,7 @@ export default function AITryOn({
             </div>
 
             <p className="font-mono text-[7px] text-white/20 text-center leading-relaxed">
-              AI-generated preview. Actual fit may vary.
+              AI Style Preview — actual garment fits and print scales may vary.
             </p>
           </div>
         )}
