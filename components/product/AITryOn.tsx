@@ -208,7 +208,7 @@ export default function AITryOn({
     if (!userPhotoFile) return;
 
     try {
-      // 1. Upload user photo
+      // 1. Upload user photo to Supabase (gets a real public URL)
       setPhase("uploading");
       const form = new FormData();
       form.append("file", userPhotoFile);
@@ -225,7 +225,35 @@ export default function AITryOn({
 
       setUploadedUrl(uploadData.url);
 
-      // 2. Call AI model
+      // 2. Also upload the garment image so the AI model has a real public URL
+      //    (product images are relative paths like /assets/... — we must make them absolute)
+      setPhase("uploading");
+      let garmentPublicUrl = productImageUrl;
+
+      if (!productImageUrl.startsWith("http")) {
+        // Fetch the local image and re-upload to Supabase so HuggingFace can reach it
+        const garmentBlob = await fetch(productImageUrl).then((r) => r.blob());
+        const garmentFile = new File(
+          [garmentBlob],
+          "garment.jpg",
+          { type: garmentBlob.type || "image/jpeg" }
+        );
+        const garmentForm = new FormData();
+        garmentForm.append("file", garmentFile);
+
+        const garmentUploadRes = await fetch("/api/ai-tryon/upload", {
+          method: "POST",
+          body: garmentForm,
+        });
+        const garmentUploadData = await garmentUploadRes.json();
+
+        if (!garmentUploadRes.ok || !garmentUploadData.url) {
+          throw new Error(garmentUploadData.error || "Garment upload failed");
+        }
+        garmentPublicUrl = garmentUploadData.url;
+      }
+
+      // 3. Call AI model with both real public URLs
       setPhase("generating");
       startTimer();
 
@@ -234,7 +262,7 @@ export default function AITryOn({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userImageUrl: uploadData.url,
-          garmentImageUrl: productImageUrl,
+          garmentImageUrl: garmentPublicUrl,
         }),
       });
       const tryonData = await tryonRes.json();

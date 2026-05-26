@@ -9,6 +9,11 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
+      // AI Try-On result images from IDM-VTON on HuggingFace Spaces
+      { protocol: "https", hostname: "*.hf.space" },
+      { protocol: "https", hostname: "yisol-idm-vton.hf.space" },
+      // Supabase storage (garment + user photo uploads)
+      { protocol: "https", hostname: "*.supabase.co" },
     ],
   },
   async headers() {

@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { Client } from "@gradio/client";
+import { Client, handle_file } from "@gradio/client";
 
 export const runtime = "nodejs";
-export const maxDuration = 60; // HF Space can be slow when cold
+export const maxDuration = 60;
 
 export async function POST(req: Request) {
   try {
@@ -15,29 +15,36 @@ export async function POST(req: Request) {
       );
     }
 
-    // Connect to the free public Kolors Virtual Try-On Space on HuggingFace
-    const client = await Client.connect("Kwai-Kolors/Kolors-Virtual-Try-On");
+    // IDM-VTON on HuggingFace — API confirmed open via /info endpoint
+    // Space: https://huggingface.co/spaces/yisol/IDM-VTON
+    const client = await Client.connect("yisol/IDM-VTON");
 
+    // handle_file() is the correct way to pass image URLs to Gradio client
+    // The ImageEditor dict needs background as a handle_file reference
     const result = await client.predict("/tryon", {
-      human_img: { url: userImageUrl },
-      garm_img: { url: garmentImageUrl },
+      dict: {
+        background: handle_file(userImageUrl),
+        layers: [],
+        composite: handle_file(userImageUrl), // composite = same as background for auto-mask
+      },
+      garm_img: handle_file(garmentImageUrl),
       garment_des: "streetwear garment",
-      is_checked: true,
+      is_checked: true,       // auto-masking ON
       is_checked_crop: false,
       denoise_steps: 30,
       seed: 42,
     });
 
-    // The Space returns an array — first element is the result image
-    const data = result.data as Array<{ url?: string } | string | null>;
+    // Returns [output_image, masked_image] — first is the try-on result
+    const data = result.data as Array<{ url?: string; path?: string } | null>;
+    const first = data[0];
     const output =
-      typeof data[0] === "object" && data[0] !== null
-        ? (data[0] as { url?: string }).url
-        : typeof data[0] === "string"
-        ? data[0]
+      first && typeof first === "object"
+        ? (first.url ?? first.path ?? null)
         : null;
 
     if (!output) {
+      console.error("[ai-tryon] No output in result.data:", data);
       return NextResponse.json(
         { error: "Model returned no output. Try again." },
         { status: 500 }
@@ -46,15 +53,41 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ output });
   } catch (err: unknown) {
-    const message =
-      err instanceof Error ? err.message : "Unknown error occurred";
-    console.error("[ai-tryon] HuggingFace error:", message);
+    let message = "Unknown error occurred";
+    let isGradioError = false;
 
-    // Surface queue/rate-limit errors clearly
-    if (message.includes("queue") || message.includes("too many")) {
+    if (err instanceof Error) {
+      message = err.message;
+    } else if (typeof err === "string") {
+      message = err;
+    } else if (err && typeof err === "object") {
+      const e = err as Record<string, unknown>;
+      isGradioError = e.type === "status";
+      // Extract human-readable message from Gradio status error
+      message = (e.message as string) || (e.title as string) || JSON.stringify(err);
+    }
+
+    console.error("[ai-tryon] raw error:", err);
+    console.error("[ai-tryon] message:", message);
+
+    if (isGradioError) {
       return NextResponse.json(
-        { error: "HuggingFace queue is busy. Try again in a moment." },
+        { error: "The AI model is temporarily unavailable. Please try again in a moment." },
         { status: 503 }
+      );
+    }
+
+    if (message.toLowerCase().includes("queue") || message.toLowerCase().includes("too many")) {
+      return NextResponse.json(
+        { error: "The AI model is busy right now. Please try again shortly." },
+        { status: 503 }
+      );
+    }
+
+    if (message.toLowerCase().includes("timeout")) {
+      return NextResponse.json(
+        { error: "Request timed out. Please try again." },
+        { status: 504 }
       );
     }
 
