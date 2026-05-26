@@ -1,74 +1,66 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
-import CoverflowCarousel, {
-  CarouselProduct,
-} from "@/components/ui/CoverflowCarousel";
+import ProductCarousel from "@/components/ui/ProductCarousel";
+
+interface Product {
+  id: string | number;
+  name: string;
+  price: string | number;
+  image: string;
+  slug?: string;
+  category?: string;
+}
 
 interface BestSellersProps {
-  products: CarouselProduct[];
+  products: Product[];
 }
 
 export default function BestSellers({ products }: BestSellersProps) {
-  if (!products.length) return null;
 
   return (
-    <section className="py-12 md:py-20 w-full max-w-[min(95vw,2400px)] mx-auto px-4 md:px-6">
-      {/* ── Section Header ── */}
-      <div className="flex justify-between items-end mb-8 md:mb-12">
+    <section className="py-28 px-4 md:px-16 max-w-[1440px] mx-auto">
+      <div className="flex justify-between items-end mb-10 md:mb-14">
         <div>
-          <span
-            className="font-mono text-[10px] tracking-[0.28em] uppercase block mb-2"
-            style={{ color: "rgba(234,223,237,0.42)" }}
-          >
-            Most Wanted
-          </span>
-          <h2
-            className="font-display uppercase leading-[0.9]"
-            style={{
-              fontSize: "clamp(36px, 7vw, 72px)",
-              color: "#eadfed",
-              letterSpacing: "0.015em",
-            }}
-          >
+          <h2 className="font-display text-[42px] md:text-[64px] uppercase leading-[0.92] text-[#eadfed]">
             Best Sellers
           </h2>
         </div>
-
-        <Link
-          href="/collections"
-          className="font-mono text-[10px] tracking-[0.24em] uppercase transition-colors hidden md:block"
-          style={{ color: "rgba(234,223,237,0.48)" }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLAnchorElement).style.color = "#eadfed";
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLAnchorElement).style.color =
-              "rgba(234,223,237,0.48)";
-          }}
-        >
-          View All →
+        <Link href="/collections" className="font-mono text-[10px] tracking-[0.24em] uppercase text-[rgba(234,223,237,0.52)] hover:text-[#eadfed] transition-colors hidden md:block">
+          View All
         </Link>
       </div>
 
-      {/* ── Coverflow Carousel (all breakpoints) ── */}
-      <CoverflowCarousel products={products} />
+      {/* Mobile carousel */}
+      <div className="md:hidden">
+        <ProductCarousel products={products} />
+      </div>
 
-      {/* ── Mobile "View All" CTA ── */}
-      <div className="mt-8 flex justify-center md:hidden">
-        <Link
-          href="/collections"
-          className="font-mono text-[10px] tracking-[0.24em] uppercase"
-          style={{
-            color: "rgba(234,223,237,0.48)",
-            border: "1px solid rgba(255,255,255,0.1)",
-            padding: "10px 20px",
-            borderRadius: 8,
-            display: "inline-block",
-          }}
-        >
-          View All →
-        </Link>
+      {/* Desktop grid */}
+      <div className="hidden md:grid md:grid-cols-3 gap-8">
+        {products.map((product) => (
+          <Link
+            key={product.id}
+            href={product.slug ? `/product/${product.slug}` : "/collections"}
+            className="group relative aspect-[4/5] bg-[#231e27] overflow-hidden border border-white/[0.10] shadow-[0_22px_70px_rgba(12,6,18,0.30)]"
+          >
+            <img
+              src={product.image}
+              alt={product.name}
+              className="w-full h-full object-cover saturate-[0.92] transition-transform duration-700 group-hover:scale-[1.025] group-hover:saturate-100"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#16111b]/90 via-[#16111b]/15 to-transparent p-8 flex flex-col justify-end">
+              <h3 className="font-display text-[28px] text-[#eadfed] uppercase leading-none">
+                {product.name}
+              </h3>
+              <div className="flex justify-between items-center mt-3">
+                <span className="font-mono text-[11px] tracking-[0.18em] uppercase text-[rgba(234,223,237,0.64)]">
+                  {typeof product.price === "number" ? `Rs. ${product.price}` : product.price}
+                </span>
+              </div>
+            </div>
+          </Link>
+        ))}
       </div>
     </section>
   );

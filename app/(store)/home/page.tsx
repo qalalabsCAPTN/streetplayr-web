@@ -1,5 +1,5 @@
 import HomeHero from "@/components/sections/home/HomeHero";
-import BestSellers from "@/components/sections/home/BestSellers";
+import BestSellersGate from "@/components/sections/home/BestSellersGate";
 import BrandStory from "@/components/sections/home/BrandStory";
 import Lookbook from "@/components/sections/home/Lookbook";
 import ReviewsSection from "@/components/sections/home/ReviewsSection";
@@ -50,7 +50,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   return (
     <div className="flex flex-col w-full overflow-x-clip bg-[#16111b] text-[#eadfed]">
       <HomeHero />
-      <BestSellers products={latestDrops} />
+      <BestSellersGate products={latestDrops} />
       <BrandStory />
       <Lookbook />
       <ReviewsSection />
