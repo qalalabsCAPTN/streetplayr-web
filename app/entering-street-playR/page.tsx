@@ -23,6 +23,7 @@ export default function EnteringStreetPlayR() {
         className={styles["preloader-video"]}
         autoPlay
         muted
+        playsInline
         controls={false}
         onEnded={handleVideoEnd}
       >

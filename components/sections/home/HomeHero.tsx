@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 
@@ -24,10 +24,21 @@ export default function HomeHero({
   overlayOpacity = 0.4,
 }: HomeHeroProps = {}) {
   const router = useRouter();
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [joinOpen, setJoinOpen] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setJoinOpen(true), 6000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el) return;
+    let timer: ReturnType<typeof setTimeout>;
+    el.play().catch(() => {
+      timer = setTimeout(() => el.play(), 300);
+    });
     return () => clearTimeout(timer);
   }, []);
 
@@ -51,6 +62,7 @@ export default function HomeHero({
       {/* Video Background */}
       {bgVideoUrl && !bgImageUrl && (
         <video
+          ref={videoRef}
           className="absolute inset-0 w-full h-full object-cover z-[-3]"
           src={bgVideoUrl}
           autoPlay
