@@ -142,7 +142,7 @@ export default function AITryOn({
   productTitle,
   onAddToCart,
 }: AITryOnProps) {
-  const isEnabled = process.env.NEXT_PUBLIC_AI_TRYON_ENABLED === "true";
+  const isEnabled = process.env.NEXT_PUBLIC_AI_TRYON_ENABLED !== "false";
 
   const [phase, setPhase] = useState<Phase>("idle");
   const [errorMsg, setErrorMsg] = useState("");
