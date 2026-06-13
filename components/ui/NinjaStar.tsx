@@ -1,8 +1,156 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState, Suspense, useMemo } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { useGLTF, Environment as DreiEnvironment } from "@react-three/drei";
 import * as THREE from "three";
+import React from "react";
+
+// ─── Preset Configurations ───────────────────────────────────────────────────
+// Easily toggle between presets. To revert to the previous look,
+// simply change ACTIVE_PRESET to 'PURPLE_GLASS' or 'CHROME_PREVIOUS'.
+type PresetName = 'CHROME' | 'PURPLE_GLASS' | 'CHROME_PREVIOUS';
+const ACTIVE_PRESET: PresetName = 'PURPLE_GLASS';
+
+const PRESETS = {
+  PURPLE_GLASS: {
+    // Star body
+    starColor: "#f3eaff",
+    starRoughness: 0.06,
+    starMetalness: 1.0,
+    starEnvMapIntensity: 5.0,
+    starEmissive: "#0d041a",
+    starEmissiveIntensity: 0.2,
+    starIridescence: 0.65,
+    starIridescenceIOR: 1.7,
+    starIridescenceThicknessRange: [100, 320] as [number, number],
+    starUseMap: true,
+    
+    // Lights
+    ambientLightColor: "#442288",
+    ambientLightIntensity: 0.45,
+    keyLightColor: "#ffffff",
+    keyLightIntensity: 6.0,
+    purpleLightColor: "#bf55ff",
+    purpleLightIntensity: 8.0,
+    cyanLightColor: "#33bbff",
+    cyanLightIntensity: 5.0,
+    frontPointLightColor: "#dfa0ff",
+    frontPointLightIntensity: 4.0,
+    
+    // Core (Diamond)
+    coreColor: "#bf55ff",
+    coreEmissive: "#7b2cbf",
+    coreEmissiveIntensityMin: 0.5,
+    coreEmissiveIntensityMax: 0.9,
+    corePointLightColor: "#bf55ff",
+    corePointLightIntensityMin: 0.6,
+    corePointLightIntensityMax: 1.0,
+    corePointLightDistance: 1.5,
+    corePointLightDecay: 2.0,
+    corePointLightZ: 0.04,
+    coreHaloColor: "#9d4edd",
+    coreHaloOpacity: 0.35,
+    flareColor: "#d1b3ff",
+    flareOpacity: 0.5,
+    flareLength: 0.26,
+    centerGlowColor: "#dfbfff",
+    centerGlowOpacity: 0.7,
+    envPreset: "city" as const,
+  },
+  CHROME_PREVIOUS: {
+    // Star body - Pure silver-chrome base
+    starColor: "#ffffff",
+    starRoughness: 0.02,
+    starMetalness: 1.0,
+    starEnvMapIntensity: 9.0,
+    starEmissive: "#000000",
+    starEmissiveIntensity: 0.0,
+    starIridescence: 0.0,
+    starIridescenceIOR: 1.5,
+    starIridescenceThicknessRange: [100, 300] as [number, number],
+    starUseMap: false,
+    
+    // Lights
+    ambientLightColor: "#05050a",
+    ambientLightIntensity: 0.15,
+    keyLightColor: "#ffffff",
+    keyLightIntensity: 8.0,
+    purpleLightColor: "#c084fc",
+    purpleLightIntensity: 1.2,
+    cyanLightColor: "#ffffff",
+    cyanLightIntensity: 3.0,
+    frontPointLightColor: "#d8b4fe",
+    frontPointLightIntensity: 1.0,
+    
+    // Core (Diamond)
+    coreColor: "#c084fc",
+    coreEmissive: "#a855f7",
+    coreEmissiveIntensityMin: 2.0,
+    coreEmissiveIntensityMax: 3.5,
+    corePointLightColor: "#bf55ff",
+    corePointLightIntensityMin: 40.0,
+    corePointLightIntensityMax: 55.0,
+    corePointLightDistance: 2.5,
+    corePointLightDecay: 1.1,
+    corePointLightZ: 0.12,
+    coreHaloColor: "#a855f7",
+    coreHaloOpacity: 0.65,
+    flareColor: "#e9d5ff",
+    flareOpacity: 1.0,
+    flareLength: 0.65,
+    centerGlowColor: "#ffffff",
+    centerGlowOpacity: 1.0,
+    envPreset: "city" as const,
+  },
+  CHROME: {
+    // Star body - Pure silver-chrome base matching the reference image
+    starColor: "#ffffff",
+    starRoughness: 0.05, // polished chrome with smooth gradient reflections
+    starMetalness: 1.0,
+    starEnvMapIntensity: 7.5, // strong environment reflection for realistic chrome look
+    starEmissive: "#000000",
+    starEmissiveIntensity: 0.0,
+    starIridescence: 0.0,
+    starIridescenceIOR: 1.5,
+    starIridescenceThicknessRange: [100, 300] as [number, number],
+    starUseMap: false,
+    
+    // Lights - Clean studio lighting to keep chrome silver/white, avoiding tinting outer facets purple
+    ambientLightColor: "#030308", // very dark background ambient
+    ambientLightIntensity: 0.15,
+    keyLightColor: "#ffffff", // bright white key
+    keyLightIntensity: 9.0,
+    purpleLightColor: "#bf55ff", // rich purple rim light
+    purpleLightIntensity: 0.8,
+    cyanLightColor: "#ffffff", // clean white fill
+    cyanLightIntensity: 3.0,
+    frontPointLightColor: "#ffffff", // pure white front fill to keep outer blades clean chrome
+    frontPointLightIntensity: 1.2,
+    
+    // Core (Diamond) - Bright glowing amethyst core
+    coreColor: "#bf55ff", // saturated purple gemstone core
+    coreEmissive: "#a855f7", // vivid purple emissive
+    coreEmissiveIntensityMin: 2.5, // strong glow
+    coreEmissiveIntensityMax: 4.0,
+    corePointLightColor: "#bf55ff", // saturated purple glow bleeding onto blades
+    corePointLightIntensityMin: 18.0, // adjusted for closer Z position
+    corePointLightIntensityMax: 26.0,
+    corePointLightDistance: 1.2, // limit distance so the purple doesn't reach blade tips
+    corePointLightDecay: 1.8, // standard physics decay to concentrate glow near center
+    corePointLightZ: 0.04, // placed closer/inside the star to light up inner bevels/crevices
+    coreHaloColor: "#a855f7",
+    coreHaloOpacity: 0.7,
+    flareColor: "#f3eaff", // bright off-white flare
+    flareOpacity: 0.95,
+    flareLength: 0.60, // needle-like lens flare
+    centerGlowColor: "#ffffff", // bright white center flare star
+    centerGlowOpacity: 1.0,
+    envPreset: "studio" as const, // studio environment for clean black and white softbox reflections
+  }
+};
+
+const current = PRESETS[ACTIVE_PRESET];
 
 // ─── Blade geometry ───────────────────────────────────────────────────────────
 function buildBladeGeo(length: number, maxW: number, maxT: number): THREE.BufferGeometry {
@@ -75,178 +223,364 @@ function buildBladeGeo(length: number, maxW: number, maxT: number): THREE.Buffer
   return geo;
 }
 
-const vGeo = buildBladeGeo(2.05, 0.30, 0.11); // vertical (top/bottom) — taller
-const hGeo = buildBladeGeo(1.55, 0.27, 0.08); // horizontal (left/right) — wider, flatter
+const vGeo = buildBladeGeo(2.28, 0.48, 0.52); // vertical (top/bottom) — length 2.28m, maxW 0.48m, maxT 0.52m
+const hGeo = buildBladeGeo(2.14, 0.44, 0.52); // horizontal (left/right) — length 2.14m, maxW 0.44m, maxT 0.52m
 
-// ─── Chrome material ──────────────────────────────────────────────────────────
-// metalness < 1 lets direct lights contribute diffuse → visible even in dark scenes.
-// Low roughness keeps sharp specular highlights for the luxury feel.
-const CHROME = {
-  color:               "#c8c8e0" as const,
-  metalness:           0.82,
-  roughness:           0.05,
-  clearcoat:           1.0,
-  clearcoatRoughness:  0.02,
-  envMapIntensity:     3.0,
-  emissive:            "#1a1a2e" as const,
-  emissiveIntensity:   0.35,
-} as const;
+// CHROME material constants are now driven dynamically by the ACTIVE_PRESET configuration.
+
+// ─── GLB Star Loader with Fallback ──────────────────────────────────────────
+class GLBErrorBoundary extends React.Component<
+  { fallback: React.ReactNode; children: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: any, errorInfo: any) {
+    console.warn("Failed to load GLB model, falling back to procedural geometry:", error);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    return this.props.children;
+  }
+}
+
+function GLBStar() {
+  const { scene } = useGLTF("/models/3-d Star.glb");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      (window as any).glbScene = scene;
+    }
+    scene.rotation.y = Math.PI / 2;
+    scene.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        // Center the geometry so it rotates around the center of the star
+        child.geometry.computeBoundingBox();
+        if (child.geometry.boundingBox) {
+          const offset = new THREE.Vector3();
+          child.geometry.boundingBox.getCenter(offset).negate();
+          child.geometry.translate(offset.x, offset.y, offset.z);
+        }
+
+        const originalMaterial = child.material as THREE.MeshStandardMaterial;
+        const originalMap = originalMaterial?.map || null;
+        const originalNormalMap = originalMaterial?.normalMap || null;
+        const originalNormalScale = originalMaterial?.normalScale || new THREE.Vector2(1, 1);
+        console.log("GLB Star Original Material details:", {
+          name: child.name,
+          color: originalMaterial.color ? originalMaterial.color.getHexString() : null,
+          hasMap: !!originalMap,
+          hasNormalMap: !!originalNormalMap,
+          metalness: originalMaterial.metalness,
+          roughness: originalMaterial.roughness
+        });
+
+        // Apply our premium chrome material with iridescence for streaks, retaining the original map texture!
+        child.material = new THREE.MeshPhysicalMaterial({
+          map: current.starUseMap ? originalMap : null,
+          normalMap: originalNormalMap,
+          normalScale: originalNormalScale,
+          color: current.starColor,
+          metalness: current.starMetalness,
+          roughness: current.starRoughness,
+          clearcoat: 1.0,
+          clearcoatRoughness: current.starRoughness === 0.04 ? 0.01 : 0.02,
+          envMapIntensity: current.starEnvMapIntensity,
+          emissive: current.starEmissive,
+          emissiveIntensity: current.starEmissiveIntensity,
+          iridescence: current.starIridescence,
+          iridescenceIOR: current.starIridescenceIOR,
+          iridescenceThicknessRange: current.starIridescenceThicknessRange,
+        });
+      }
+    });
+  }, [scene]);
+
+  return <primitive object={scene} />;
+}
+
+function StarBody() {
+  return (
+    <GLBErrorBoundary fallback={<StarBlades />}>
+      <Suspense fallback={<StarBlades />}>
+        <GLBStar />
+      </Suspense>
+    </GLBErrorBoundary>
+  );
+}
 
 // ─── Blades ───────────────────────────────────────────────────────────────────
 function StarBlades() {
   return (
     <group>
       <mesh geometry={vGeo} rotation={[0, 0, 0]}>
-        <meshPhysicalMaterial {...CHROME} />
+        <meshPhysicalMaterial
+          color={current.starColor}
+          metalness={current.starMetalness}
+          roughness={current.starRoughness}
+          clearcoat={1.0}
+          clearcoatRoughness={current.starRoughness === 0.04 ? 0.01 : 0.02}
+          envMapIntensity={current.starEnvMapIntensity}
+          emissive={current.starEmissive}
+          emissiveIntensity={current.starEmissiveIntensity}
+          iridescence={current.starIridescence}
+          iridescenceIOR={current.starIridescenceIOR}
+          iridescenceThicknessRange={current.starIridescenceThicknessRange}
+        />
       </mesh>
       <mesh geometry={vGeo} rotation={[0, 0, Math.PI]}>
-        <meshPhysicalMaterial {...CHROME} />
+        <meshPhysicalMaterial
+          color={current.starColor}
+          metalness={current.starMetalness}
+          roughness={current.starRoughness}
+          clearcoat={1.0}
+          clearcoatRoughness={current.starRoughness === 0.04 ? 0.01 : 0.02}
+          envMapIntensity={current.starEnvMapIntensity}
+          emissive={current.starEmissive}
+          emissiveIntensity={current.starEmissiveIntensity}
+          iridescence={current.starIridescence}
+          iridescenceIOR={current.starIridescenceIOR}
+          iridescenceThicknessRange={current.starIridescenceThicknessRange}
+        />
       </mesh>
       <mesh geometry={hGeo} rotation={[0, 0, -Math.PI / 2]}>
-        <meshPhysicalMaterial {...CHROME} />
+        <meshPhysicalMaterial
+          color={current.starColor}
+          metalness={current.starMetalness}
+          roughness={current.starRoughness}
+          clearcoat={1.0}
+          clearcoatRoughness={current.starRoughness === 0.04 ? 0.01 : 0.02}
+          envMapIntensity={current.starEnvMapIntensity}
+          emissive={current.starEmissive}
+          emissiveIntensity={current.starEmissiveIntensity}
+          iridescence={current.starIridescence}
+          iridescenceIOR={current.starIridescenceIOR}
+          iridescenceThicknessRange={current.starIridescenceThicknessRange}
+        />
       </mesh>
       <mesh geometry={hGeo} rotation={[0, 0,  Math.PI / 2]}>
-        <meshPhysicalMaterial {...CHROME} />
+        <meshPhysicalMaterial
+          color={current.starColor}
+          metalness={current.starMetalness}
+          roughness={current.starRoughness}
+          clearcoat={1.0}
+          clearcoatRoughness={current.starRoughness === 0.04 ? 0.01 : 0.02}
+          envMapIntensity={current.starEnvMapIntensity}
+          emissive={current.starEmissive}
+          emissiveIntensity={current.starEmissiveIntensity}
+          iridescence={current.starIridescence}
+          iridescenceIOR={current.starIridescenceIOR}
+          iridescenceThicknessRange={current.starIridescenceThicknessRange}
+        />
       </mesh>
     </group>
   );
 }
 
-// ─── Center crystal + bezel ───────────────────────────────────────────────────
-function CrystalCore() {
-  const crystalRef = useRef<THREE.Mesh>(null);
-  const lightRef   = useRef<THREE.PointLight>(null);
-  const halo1Ref   = useRef<THREE.Mesh>(null);
-  const halo2Ref   = useRef<THREE.Mesh>(null);
+const FlareMaterial = ({ color = "#f0d5ff", opacity = 0.9 }) => {
+  const uniforms = useMemo(() => ({
+    color: { value: new THREE.Color(color) },
+    opacity: { value: opacity }
+  }), [color, opacity]);
+
+  return (
+    <shaderMaterial
+      vertexShader={`
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `}
+      fragmentShader={`
+        varying vec2 vUv;
+        uniform vec3 color;
+        uniform float opacity;
+        void main() {
+          // Fade out from the center along the X axis
+          float dist = abs(vUv.x - 0.5) * 2.0; // 0.0 in middle, 1.0 at ends
+          float alpha = 1.0 - smoothstep(0.0, 1.0, dist);
+          
+          // Add a subtle fade on the edges of the line width too
+          float widthFade = 1.0 - smoothstep(0.0, 1.0, abs(vUv.y - 0.5) * 2.0);
+          
+          gl_FragColor = vec4(color, alpha * widthFade * opacity);
+        }
+      `}
+      uniforms={uniforms}
+      transparent
+      depthWrite={false}
+      blending={THREE.AdditiveBlending}
+    />
+  );
+};
+
+const GlowCircleMaterial = ({ color = "#ffffff", opacity = 0.9 }) => {
+  const uniforms = useMemo(() => ({
+    color: { value: new THREE.Color(color) },
+    opacity: { value: opacity }
+  }), [color, opacity]);
+
+  return (
+    <shaderMaterial
+      vertexShader={`
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `}
+      fragmentShader={`
+        varying vec2 vUv;
+        uniform vec3 color;
+        uniform float opacity;
+        void main() {
+          // Circular fade out from the center (0.5, 0.5)
+          float dist = distance(vUv, vec2(0.5));
+          float alpha = 1.0 - smoothstep(0.0, 0.5, dist);
+          gl_FragColor = vec4(color, alpha * opacity);
+        }
+      `}
+      uniforms={uniforms}
+      transparent
+      depthWrite={false}
+      blending={THREE.AdditiveBlending}
+    />
+  );
+};
+
+// ─── Center element: Flat diamond/rhombus with subtle glow ──────────────────
+function FlatDiamondCore() {
+  const meshRef = useRef<THREE.Mesh>(null);
+  const glowRef = useRef<THREE.PointLight>(null);
 
   useFrame(({ clock }) => {
     const t = clock.elapsedTime;
-    const pulse = Math.sin(t * 2.0) * 0.5 + 0.5; // 0→1
+    const pulse = Math.sin(t * 1.5) * 0.15 + 0.85; // 0.7 → 1.0 (subtle pulse)
 
-    if (crystalRef.current) {
-      const m = crystalRef.current.material as THREE.MeshPhysicalMaterial;
-      m.emissiveIntensity = 2.8 + pulse * 1.4;
+    if (meshRef.current) {
+      const m = meshRef.current.material as THREE.MeshPhysicalMaterial;
+      m.emissiveIntensity = current.coreEmissiveIntensityMin + pulse * (current.coreEmissiveIntensityMax - current.coreEmissiveIntensityMin);
     }
-    if (lightRef.current) {
-      lightRef.current.intensity = 5.0 + pulse * 3.5;
-    }
-    if (halo1Ref.current) {
-      const m = halo1Ref.current.material as THREE.MeshBasicMaterial;
-      m.opacity = 0.10 + pulse * 0.08;
-    }
-    if (halo2Ref.current) {
-      const m = halo2Ref.current.material as THREE.MeshBasicMaterial;
-      m.opacity = 0.04 + pulse * 0.04;
+    if (glowRef.current) {
+      glowRef.current.intensity = current.corePointLightIntensityMin + pulse * (current.corePointLightIntensityMax - current.corePointLightIntensityMin);
     }
   });
 
+  // Small sleek flat diamond shape (rhombus)
+  const shape = useMemo(() => {
+    const s = new THREE.Shape();
+    s.moveTo(0, 0.095);      // top tip (slightly smaller for premium look)
+    s.lineTo(0.065, 0);     // right corner
+    s.lineTo(0, -0.095);     // bottom tip
+    s.lineTo(-0.065, 0);    // left corner
+    s.closePath();
+    return s;
+  }, []);
+
+  const extrudeSettings = {
+    depth: 0.005,           // very flat
+    bevelEnabled: true,
+    bevelSegments: 3,
+    steps: 1,
+    bevelSize: 0.002,
+    bevelThickness: 0.002,
+  };
+
+  // Dynamically scale Z positions of the core assembly
+  const coreZ = current.corePointLightZ;
+  const haloZ = coreZ - 0.005;
+  const diamondZ = coreZ - 0.02;
+  const flareZ = coreZ - 0.015;
+  const glowZ = coreZ - 0.014;
+
   return (
     <>
-      {/* Purple point light — bleeds onto chrome blades */}
-      <pointLight ref={lightRef} color="#9933ff" intensity={5.5} distance={4.5} decay={2} />
+      {/* Subtle purple point light behind the diamond */}
+      <pointLight
+        ref={glowRef}
+        color={current.corePointLightColor}
+        intensity={current.corePointLightIntensityMin}
+        distance={current.corePointLightDistance}
+        decay={current.corePointLightDecay}
+        position={[0, 0, coreZ]}
+      />
 
-      {/* Layered fake-bloom halos */}
-      <mesh ref={halo1Ref}>
-        <sphereGeometry args={[0.38, 20, 20]} />
-        <meshBasicMaterial color="#7700cc" transparent opacity={0.12} depthWrite={false} />
-      </mesh>
-      <mesh ref={halo2Ref}>
-        <sphereGeometry args={[0.65, 20, 20]} />
-        <meshBasicMaterial color="#5500aa" transparent opacity={0.05} depthWrite={false} />
-      </mesh>
-      <mesh>
-        <sphereGeometry args={[0.95, 20, 20]} />
-        <meshBasicMaterial color="#330077" transparent opacity={0.02} depthWrite={false} />
+      {/* Subtle soft glowing back-plane halo */}
+      <mesh position={[0, 0, haloZ]}>
+        <planeGeometry args={[0.22, 0.22]} />
+        <GlowCircleMaterial color={current.coreHaloColor} opacity={current.coreHaloOpacity} />
       </mesh>
 
-      {/* Chrome bezel ring — luxury watch detail */}
-      <mesh rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[0.195, 0.022, 10, 60]} />
+      {/* Flat beveled diamond core - upgraded to high-end purple gemstone glass */}
+      <mesh ref={meshRef} position={[0, 0, diamondZ]}>
+        <extrudeGeometry args={[shape, extrudeSettings]} />
         <meshPhysicalMaterial
-          color="#e8e8ff"
-          metalness={1}
-          roughness={0.02}
-          clearcoat={1}
-          envMapIntensity={5}
+          color={current.coreColor} // Elegant deep purple
+          emissive={current.coreEmissive} // Rich purple glow
+          emissiveIntensity={current.coreEmissiveIntensityMin}
+          metalness={0.1} // Low metalness for glass-like behavior
+          roughness={0.02} // High gloss
+          transmission={0.9} // Glass-like transmission
+          thickness={0.05} // Glass thickness
+          ior={1.7} // Amethyst / Diamond index of refraction
+          clearcoat={1.0}
+          clearcoatRoughness={0.01}
+          envMapIntensity={3.0}
         />
       </mesh>
 
-      {/* Faceted diamond crystal */}
-      <mesh ref={crystalRef} rotation={[Math.PI / 4, 0.3, Math.PI / 4]}>
-        <octahedronGeometry args={[0.155, 1]} />
-        <meshPhysicalMaterial
-          color="#cc88ff"
-          emissive="#8800ff"
-          emissiveIntensity={3.2}
-          metalness={0.0}
-          roughness={0.05}
-          transparent
-          opacity={0.92}
-          clearcoat={1}
-          clearcoatRoughness={0.05}
-        />
+      {/* Horizontal flare line (much thinner, needle-like and subtle) */}
+      <mesh position={[0, 0, flareZ]} rotation={[0, 0, 0]}>
+        <planeGeometry args={[current.flareLength, 0.003]} />
+        <FlareMaterial color={current.flareColor} opacity={current.flareOpacity} />
+      </mesh>
+
+      {/* Vertical flare line (much thinner, needle-like and subtle) */}
+      <mesh position={[0, 0, flareZ]} rotation={[0, 0, Math.PI / 2]}>
+        <planeGeometry args={[current.flareLength, 0.003]} />
+        <FlareMaterial color={current.flareColor} opacity={current.flareOpacity} />
+      </mesh>
+
+      {/* Central soft glow point (smaller and purple-tinted to avoid washing out) */}
+      <mesh position={[0, 0, glowZ]}>
+        <planeGeometry args={[0.02, 0.02]} />
+        <GlowCircleMaterial color={current.centerGlowColor} opacity={current.centerGlowOpacity} />
       </mesh>
     </>
   );
 }
 
-// ─── High-contrast studio environment ────────────────────────────────────────
-// Chrome needs bright patches in the env + darkness everywhere else.
-function Environment() {
-  const { scene, gl } = useThree();
-
-  useEffect(() => {
-    const pmrem = new THREE.PMREMGenerator(gl);
-    const env   = new THREE.Scene();
-
-    const setup: [number, number, [number, number, number]][] = [
-      [0xffffff, 20.0, [ 2,  5,  3]],  // top-right studio key
-      [0xffffff, 12.0, [-3,  2,  2]],  // left secondary
-      [0xffffff,  8.0, [ 0, -2,  5]],  // front-low fill
-      [0xcc88ff,  6.0, [ 0,  1, -4]],  // purple back
-      [0x88aaff,  5.0, [ 4, -1, -2]],  // blue-right rim
-      [0xffffff, 10.0, [ 0,  0,  6]],  // direct front boost
-    ];
-
-    for (const [col, int, pos] of setup) {
-      const d = new THREE.DirectionalLight(col, int);
-      d.position.set(...pos);
-      env.add(d);
-    }
-    env.add(new THREE.AmbientLight(0x9988cc, 2.5));
-
-    const envMap = pmrem.fromScene(env).texture;
-    scene.environment = envMap;
-    return () => { envMap.dispose(); pmrem.dispose(); };
-  }, [scene, gl]);
-
-  return null;
-}
+// Custom environment function removed in favor of Drei's photorealistic Environment component.
 
 // ─── Scene lights ─────────────────────────────────────────────────────────────
 function SceneLights() {
   return (
     <>
       {/* Ambient just enough to reveal blade shape in shadows */}
-      <ambientLight intensity={0.55} color="#9988bb" />
+      <ambientLight intensity={current.ambientLightIntensity} color={current.ambientLightColor} />
 
-      {/* Top-right key — bright white, creates the main highlight */}
-      <directionalLight position={[ 1,  5,  4]} intensity={8.0}  color="#ffffff" />
+      {/* Main white key light for sharp reflections */}
+      <directionalLight position={[ 2,  5,  3]} intensity={current.keyLightIntensity}  color={current.keyLightColor} />
 
-      {/* Left fill — reveals left blade faces */}
-      <directionalLight position={[-4,  1,  3]} intensity={4.0}  color="#ddeeff" />
+      {/* Cyberpunk neon purple light hitting the front-left edges */}
+      <directionalLight position={[-3,  1,  2]} intensity={current.purpleLightIntensity}  color={current.purpleLightColor} />
 
-      {/* Front-low — lifts bottom blade, prevents total darkness */}
-      <directionalLight position={[ 0, -2,  5]} intensity={3.0}  color="#bbbbff" />
+      {/* Subtle deep blue/cyan rim light hitting the right edges */}
+      <directionalLight position={[ 3, -1, -2]} intensity={current.cyanLightIntensity}  color={current.cyanLightColor} />
 
-      {/* Purple back rim — separates from bg */}
-      <directionalLight position={[ 0,  1, -4]} intensity={2.5}  color="#9933ff" />
-
-      {/* Strong point light near camera for specular pop */}
-      <pointLight position={[1, 3, 5]} intensity={8.0} color="#ffffff" distance={16} />
-
-      {/* Low purple point to illuminate underside with glow */}
-      <pointLight position={[0, -3, 2]} intensity={3.0} color="#7722cc" distance={8} />
+      {/* Bright front point light for highlight pops */}
+      <pointLight position={[0, 0, 3]} intensity={current.frontPointLightIntensity} color={current.frontPointLightColor} distance={8} />
     </>
   );
 }
@@ -335,8 +669,8 @@ function CompassStar({ scale = 0.70 }: { scale?: number }) {
 
   return (
     <group ref={groupRef} scale={scale}>
-      <StarBlades />
-      <CrystalCore />
+      <StarBody />
+      <FlatDiamondCore />
     </group>
   );
 }
@@ -353,7 +687,9 @@ export default function NinjaStar({ scale = 0.70 }: { scale?: number }) {
         dpr={[1, 1.5]}
         style={{ width: "100%", height: "100%", touchAction: "none" }}
       >
-        <Environment />
+        <Suspense fallback={null}>
+          <DreiEnvironment preset={current.envPreset} />
+        </Suspense>
         <SceneLights />
         <CompassStar scale={scale} />
       </Canvas>

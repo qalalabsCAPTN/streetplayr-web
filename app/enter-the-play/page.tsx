@@ -16,6 +16,7 @@ export default function EnterThePlay() {
   const [progress, setProgress] = useState(0);
   const [ready, setReady] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
     let p = 0;
@@ -50,7 +51,15 @@ export default function EnterThePlay() {
   };
 
   return (
-    <div className={`${styles["container"]} ${isExiting ? styles["exit"] : ""}`}>
+    <div className={`${styles["container"]} ${theme === 'light' ? styles["light"] : ""} ${isExiting ? styles["exit"] : ""}`}>
+      {/* Theme Toggle Button */}
+      <button 
+        className={styles["theme-toggle"]}
+        onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+      >
+        {theme === 'light' ? 'Dark Mode' : 'Light Mode'}
+      </button>
+
       {/* Background layers */}
       <div className={styles["bg-stage"]}>
         <div className={styles["bg-grid"]} />
