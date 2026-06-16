@@ -3,6 +3,12 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
+
+const NinjaStar = dynamic(() => import("@/components/ui/NinjaStar"), {
+  ssr: false,
+  loading: () => <div className="w-full h-full bg-transparent" />,
+});
 
 interface HomeHeroProps {
   title?: string;
@@ -26,6 +32,35 @@ export default function HomeHero({
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [joinOpen, setJoinOpen] = useState(false);
+  const [particles, setParticles] = useState<Array<{ left: number; delay: number; dur: number; size: number }>>([]);
+
+  useEffect(() => {
+    setParticles(
+      Array.from({ length: 28 }, () => ({
+        left: Math.random() * 100,
+        delay: Math.random() * 5,
+        dur: 4 + Math.random() * 6,
+        size: 1 + Math.random() * 2,
+      })),
+    );
+  }, []);
+
+  const [windowWidth, setWindowWidth] = useState<number | null>(null);
+
+  useEffect(() => {
+    setWindowWidth(window.innerWidth);
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const getStarScale = () => {
+    if (windowWidth === null) return 0.95;
+    if (windowWidth < 768) return 0.65;
+    if (windowWidth < 1024) return 0.85;
+    return 0.95;
+  };
+  const starScale = getStarScale();
 
   useEffect(() => {
     const timer = setTimeout(() => setJoinOpen(true), 6000);
@@ -59,19 +94,42 @@ export default function HomeHero({
 
   return (
     <section className="relative min-h-screen w-full flex flex-col justify-end overflow-hidden bg-[#16111b] isolate">
-      {/* Video Background */}
-      {bgVideoUrl && !bgImageUrl && (
-        <video
-          ref={videoRef}
-          className="absolute inset-0 w-full h-full object-cover z-[-3]"
-          src={bgVideoUrl}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-        />
-      )}
+      {/* CSS-driven backdrop stages matching /enter-the-play page */}
+      <div className="absolute inset-0 z-[-3] overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 bg-[#000]" />
+        <div className="home-bg-grid" />
+        <div className="home-bg-blob-purple" />
+        <div className="home-bg-blob-green" />
+        <div className="home-bg-scanline" />
+        <div className="home-bg-scanline" />
+      </div>
+
+      {/* Floating Particles Backdrop */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-[-2]">
+        {particles.map((p, i) => (
+          <span
+            key={i}
+            className="home-particle"
+            style={{
+              left: `${p.left}%`,
+              bottom: "-10px",
+              width: `${p.size}px`,
+              height: `${p.size}px`,
+              "--dur": `${p.dur}s`,
+              "--delay": `${p.delay}s`,
+            } as React.CSSProperties}
+          />
+        ))}
+      </div>
+
+      {/* Interactive 3D Star Overlay */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[5]">
+        <div 
+          className="pointer-events-auto flex items-center justify-center w-60 h-60 md:w-[320px] md:h-[320px] lg:w-[420px] lg:h-[420px]"
+        >
+          <NinjaStar scale={starScale} />
+        </div>
+      </div>
 
       {/* Image Background */}
       {bgImageUrl && (
@@ -111,16 +169,16 @@ export default function HomeHero({
       />
 
       {/* Hero Content */}
-      <div className="relative z-[2] flex flex-col items-start gap-4 px-[6vw] pb-16 max-w-[880px]">
-        <h1 className="font-display text-[clamp(64px,10vw,168px)] leading-[0.88] tracking-[0.01em] uppercase text-[#eadfed] m-0 max-w-[7.8ch] whitespace-pre-line">
+      <div className="relative z-[2] flex flex-col items-start gap-4 px-[6vw] pb-16 max-w-[880px] pointer-events-none">
+        <h1 className="font-display text-[clamp(64px,10vw,168px)] leading-[0.88] tracking-[0.01em] uppercase text-[#eadfed] m-0 max-w-[7.8ch] whitespace-pre-line pointer-events-none">
           {title}
         </h1>
         {subtitle && (
-          <p className="font-body text-base text-white/70 max-w-md mt-2">
+          <p className="font-body text-base text-white/70 max-w-md mt-2 pointer-events-none">
             {subtitle}
           </p>
         )}
-        <div className="flex gap-3 mt-4">
+        <div className="flex gap-3 mt-4 pointer-events-auto">
           <button
             className="inline-flex items-center gap-3 px-7 py-4 bg-[#eadfed] text-[#16111b] border border-[#eadfed] font-mono text-[11px] tracking-[0.24em] font-bold uppercase transition-colors hover:bg-[#ddb7ff] rounded-xl"
             onClick={() => router.push(ctaHref)}
@@ -160,7 +218,7 @@ export default function HomeHero({
           onClick={() => setJoinOpen(false)}
         >
           <div
-            className="relative w-full max-w-[960px] max-h-[calc(100vh-48px)] overflow-hidden grid grid-cols-1 md:grid-cols-[360px_1fr] bg-[#231e27] border border-white/[0.10] shadow-[0_40px_120px_-20px_rgba(12,6,18,0.92)] animate-in fade-in zoom-in-95 duration-300 rounded-2xl"
+            className="relative w-full max-w-[960px] max-h-[calc(100vh-48px)] overflow-y-auto md:overflow-hidden grid grid-cols-1 md:grid-cols-[360px_1fr] bg-[#231e27] border border-white/[0.10] shadow-[0_40px_120px_-20px_rgba(12,6,18,0.92)] animate-in fade-in zoom-in-95 duration-300 rounded-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close */}
@@ -176,7 +234,7 @@ export default function HomeHero({
 
             {/* Left Panel */}
             <div
-              className="relative p-9 pr-7 flex flex-col gap-6 overflow-hidden border-r border-[rgba(255,255,255,0.10)]"
+              className="relative p-6 md:p-9 flex flex-col items-center justify-center gap-6 md:gap-8 overflow-hidden border-b md:border-b-0 md:border-r border-[rgba(255,255,255,0.10)]"
               style={{
                   background: "linear-gradient(160deg, rgba(221,183,255,0.08), rgba(35,30,39,0.78) 62%), #1b1620",
               }}
@@ -197,21 +255,12 @@ export default function HomeHero({
                   animation: "preFloat 8s ease-in-out infinite",
                 }}
               />
-              <div className="relative z-[2] self-center">
-                <svg width="64" height="64" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <polygon points="100,5 115.6,84.4 195,100 115.6,115.6 100,195 84.4,115.6 5,100 84.4,84.4" fill="#ddb7ff" opacity="0.55" />
-                  <polygon points="100,5 115.6,84.4 195,100 115.6,115.6 100,195 84.4,115.6 5,100 84.4,84.4" fill="url(#starGlow)" style={{ mixBlendMode: "screen" }} />
-                  <defs>
-                    <radialGradient id="starGlow" cx="50%" cy="50%" r="50%">
-                      <stop offset="70%" stopColor="rgba(157,78,221,0)" />
-                      <stop offset="100%" stopColor="rgba(157,78,221,0.35)" />
-                    </radialGradient>
-                  </defs>
-                </svg>
+              <div className="relative z-[2] w-40 h-40 md:w-56 md:h-56 flex items-center justify-center">
+                <NinjaStar scale={0.75} />
               </div>
               <div className="relative z-[2] flex flex-col gap-3.5">
                 <h3
-                  className="font-display text-[56px] leading-[0.9] tracking-[0.01em] uppercase text-white m-0"
+                  className="font-display text-[48px] md:text-[64px] leading-[1.05] tracking-[0.01em] uppercase text-white m-0 text-center"
                 >
                   Join The<br />Release
                 </h3>
@@ -219,7 +268,7 @@ export default function HomeHero({
             </div>
 
             {/* Right Panel */}
-            <div className="p-9 pt-8 flex flex-col gap-4">
+            <div className="p-6 md:p-9 md:pt-8 flex flex-col gap-4">
               <h2 className="font-display text-[36px] leading-none tracking-[0.01em] uppercase text-white m-0">
                 Welcome to <em className="not-italic text-[#ddb7ff]">StreetplayR</em>
               </h2>
@@ -250,6 +299,92 @@ export default function HomeHero({
         </div>,
         document.body
       )}
+      <style>{`
+        @keyframes gridDrift {
+          from { background-position: 0 0; }
+          to   { background-position: 64px 64px; }
+        }
+        @keyframes blobP {
+          0%,100% { transform: translate(-12%, -18%); }
+          33%     { transform: translate(12%, 4%); }
+          66%     { transform: translate(-6%, 18%); }
+        }
+        @keyframes blobG {
+          0%,100% { transform: translate(82%, 60%); }
+          33%     { transform: translate(70%, 78%); }
+          66%     { transform: translate(88%, 48%); }
+        }
+        @keyframes scan {
+          0% { top: -1px; opacity: 0; }
+          6% { opacity: 0.5; }
+          94% { opacity: 0.5; }
+          100% { top: 100%; opacity: 0; }
+        }
+        @keyframes particleUp {
+          0%   { transform: translateY(0) translateX(0); opacity: 0; }
+          10%  { opacity: 1; }
+          90%  { opacity: 1; }
+          100% { transform: translateY(-100vh) translateX(20px); opacity: 0; }
+        }
+        .home-bg-grid {
+          position: absolute;
+          inset: 0;
+          background-image:
+            linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+          background-size: 64px 64px;
+          animation: gridDrift 28s linear infinite;
+          mask-image: radial-gradient(80% 80% at 50% 50%, #000 50%, transparent 100%);
+          -webkit-mask-image: radial-gradient(80% 80% at 50% 50%, #000 50%, transparent 100%);
+        }
+        .home-bg-blob-purple {
+          position: absolute;
+          width: 620px;
+          height: 620px;
+          border-radius: 50%;
+          filter: blur(80px);
+          opacity: 0.5;
+          pointer-events: none;
+          background: radial-gradient(circle, rgba(221,183,255,0.10), transparent 70%);
+          animation: blobP 18s ease-in-out infinite;
+          top: 10%;
+          left: 55%;
+        }
+        .home-bg-blob-green {
+          position: absolute;
+          width: 460px;
+          height: 460px;
+          border-radius: 50%;
+          filter: blur(80px);
+          opacity: 0.4;
+          pointer-events: none;
+          background: radial-gradient(circle, rgba(255,181,158,0.08), transparent 70%);
+          animation: blobG 22s ease-in-out infinite;
+          top: 60%;
+          left: 10%;
+        }
+        .home-bg-scanline {
+          position: absolute;
+          left: 0;
+          right: 0;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, #ddb7ff, transparent);
+          animation: scan 7s linear infinite;
+          opacity: 0;
+        }
+        .home-bg-scanline:nth-child(2) {
+          animation-delay: 2.4s;
+        }
+        .home-particle {
+          position: absolute;
+          width: 2px;
+          height: 2px;
+          background: #ddb7ff;
+          border-radius: 50%;
+          box-shadow: 0 0 6px rgba(221,183,255,0.3);
+          animation: particleUp var(--dur) var(--delay) linear infinite;
+        }
+      `}</style>
     </section>
   );
 }

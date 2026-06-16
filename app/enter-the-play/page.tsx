@@ -18,6 +18,23 @@ export default function EnterThePlay() {
   const [isExiting, setIsExiting] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
+  const [windowWidth, setWindowWidth] = useState<number | null>(null);
+
+  useEffect(() => {
+    setWindowWidth(window.innerWidth);
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const getStarScale = () => {
+    if (windowWidth === null) return 0.95;
+    if (windowWidth < 768) return 0.65;
+    if (windowWidth < 1024) return 0.8;
+    return 0.95;
+  };
+  const starScale = getStarScale();
+
   useEffect(() => {
     let p = 0;
     const id = setInterval(() => {
@@ -90,7 +107,7 @@ export default function EnterThePlay() {
       {/* Content */}
       <div className={styles["content"]}>
         <div className={styles["star-container"]}>
-          <NinjaStar scale={1.15} />
+          <NinjaStar scale={starScale} />
         </div>
 
         <div className={styles["brand"]}>

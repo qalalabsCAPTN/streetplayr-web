@@ -130,13 +130,27 @@
 }
 
 .star-container {
-  width: clamp(320px, 42vmin, 540px);
-  height: clamp(320px, 42vmin, 540px);
+  width: 220px;
+  height: 220px;
   display: flex;
   align-items: center;
   justify-content: center;
   margin: -20px 0;
   flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .star-container {
+    width: 320px;
+    height: 320px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .star-container {
+    width: 400px;
+    height: 400px;
+  }
 }
 
 .star-loader {
@@ -245,8 +259,8 @@
   }
 
   .star-container {
-    width: clamp(260px, 72vw, 360px);
-    height: clamp(260px, 72vw, 360px);
+    width: clamp(180px, 55vw, 240px);
+    height: clamp(180px, 55vw, 240px);
     margin: -10px 0;
   }
 

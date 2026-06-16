@@ -257,33 +257,14 @@ class GLBErrorBoundary extends React.Component<
 function GLBStar() {
   const { scene } = useGLTF("/models/3-d Star.glb");
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      (window as any).glbScene = scene;
-    }
-    scene.rotation.y = Math.PI / 2;
-    scene.traverse((child) => {
+  const clonedScene = useMemo(() => {
+    const clone = scene.clone();
+    clone.traverse((child) => {
       if (child instanceof THREE.Mesh) {
-        // Center the geometry so it rotates around the center of the star
-        child.geometry.computeBoundingBox();
-        if (child.geometry.boundingBox) {
-          const offset = new THREE.Vector3();
-          child.geometry.boundingBox.getCenter(offset).negate();
-          child.geometry.translate(offset.x, offset.y, offset.z);
-        }
-
         const originalMaterial = child.material as THREE.MeshStandardMaterial;
         const originalMap = originalMaterial?.map || null;
         const originalNormalMap = originalMaterial?.normalMap || null;
         const originalNormalScale = originalMaterial?.normalScale || new THREE.Vector2(1, 1);
-        console.log("GLB Star Original Material details:", {
-          name: child.name,
-          color: originalMaterial.color ? originalMaterial.color.getHexString() : null,
-          hasMap: !!originalMap,
-          hasNormalMap: !!originalNormalMap,
-          metalness: originalMaterial.metalness,
-          roughness: originalMaterial.roughness
-        });
 
         // Apply our premium chrome material with iridescence for streaks, retaining the original map texture!
         child.material = new THREE.MeshPhysicalMaterial({
@@ -304,9 +285,16 @@ function GLBStar() {
         });
       }
     });
+    return clone;
   }, [scene]);
 
-  return <primitive object={scene} />;
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      (window as any).glbScene = clonedScene;
+    }
+  }, [clonedScene]);
+
+  return <primitive object={clonedScene} />;
 }
 
 function StarBody() {
@@ -587,6 +575,7 @@ function SceneLights() {
 
 // ─── Full 3-D trackball ───────────────────────────────────────────────────────
 function CompassStar({ scale = 0.70 }: { scale?: number }) {
+  const { gl } = useThree();
   const groupRef     = useRef<THREE.Group>(null);
   const dragging     = useRef(false);
   const lastPos      = useRef({ x: 0, y: 0 });
@@ -595,7 +584,7 @@ function CompassStar({ scale = 0.70 }: { scale?: number }) {
   const autoRotate   = useRef(true);
 
   useEffect(() => {
-    const canvas = document.querySelector("canvas");
+    const canvas = gl.domElement;
     if (!canvas) return;
 
     // Prevent browser scroll / zoom from intercepting touch on the canvas
@@ -639,9 +628,9 @@ function CompassStar({ scale = 0.70 }: { scale?: number }) {
       canvas.removeEventListener("pointerup",    onUp);
       canvas.removeEventListener("pointercancel", onUp);
     };
-  }, []);
+  }, [gl]);
 
-  useFrame(({ clock }, delta) => {
+  useFrame(({ clock, pointer }, delta) => {
     if (!groupRef.current || dragging.current) return;
 
     const idle = Date.now() - lastMoveTime.current;
@@ -660,7 +649,14 @@ function CompassStar({ scale = 0.70 }: { scale?: number }) {
     if (idle > 3000) autoRotate.current = true;
 
     if (autoRotate.current && Math.abs(vel.current.y) < 0.0002) {
-      groupRef.current.rotation.x *= 0.982; // gently return to face-on
+      // Return gently to baseline while adding subtle mouse-based parallax tilt
+      const targetX = pointer.y * 0.28; // Tilt up/down
+      const targetZ = -pointer.x * 0.15; // Tilt left/right
+      
+      groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, targetX, 0.05);
+      groupRef.current.rotation.z = THREE.MathUtils.lerp(groupRef.current.rotation.z, targetZ, 0.05);
+      
+      // Continuous gentle auto-spin
       groupRef.current.rotation.y += delta * 0.22;
     }
 

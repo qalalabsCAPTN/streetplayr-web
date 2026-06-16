@@ -1,14 +1,32 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 
 const NinjaStar = dynamic(() => import("@/components/ui/NinjaStar"), {
   ssr: false,
-  loading: () => <div className="w-20 h-20 md:w-40 md:h-40 rounded-full border border-white/[0.08] bg-white/[0.02]" />,
+  loading: () => <div className="w-32 h-32 md:w-56 md:h-56 lg:w-72 lg:h-72 rounded-full border border-white/[0.08] bg-white/[0.02]" />,
 });
 
 export default function Footer() {
+  const [windowWidth, setWindowWidth] = useState<number | null>(null);
+
+  useEffect(() => {
+    setWindowWidth(window.innerWidth);
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const getStarScale = () => {
+    if (windowWidth === null) return 1.2;
+    if (windowWidth < 768) return 0.8;
+    if (windowWidth < 1024) return 1.05;
+    return 1.3;
+  };
+  const starScale = getStarScale();
+
   return (
     <footer className="w-full bg-[#16111b] border-t border-white/[0.10] px-4 md:px-8 lg:px-12 pt-4 pb-24 md:pt-12 md:pb-12 relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(700px_360px_at_8%_0%,rgba(221,183,255,0.08),transparent_60%),radial-gradient(520px_320px_at_92%_100%,rgba(255,87,26,0.07),transparent_62%)]" />
@@ -135,8 +153,8 @@ export default function Footer() {
 
         {/* 5. NinjaStar Premium Graphic: Right side on mobile, column 5 on desktop */}
         <div className="col-span-1 lg:col-span-1 flex justify-center items-center lg:justify-end order-5 lg:order-5 mt-0">
-          <div className="w-16 h-16 md:w-44 md:h-44 lg:w-52 lg:h-52 select-none pointer-events-none">
-            <NinjaStar />
+          <div className="w-32 h-32 md:w-56 md:h-56 lg:w-72 lg:h-72 select-none pointer-events-auto">
+            <NinjaStar scale={starScale} />
           </div>
         </div>
       </div>
