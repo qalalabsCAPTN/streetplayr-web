@@ -170,6 +170,7 @@ function ArrowButton({
         flexShrink: 0,
         transition: "border-color 0.2s, color 0.2s, background 0.2s",
         outline: "none",
+        pointerEvents: "auto",
       }}
       onMouseEnter={(e) => {
         const el = e.currentTarget as HTMLButtonElement;
