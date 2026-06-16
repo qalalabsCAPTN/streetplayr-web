@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import CustomCursor from "@/components/ui/CustomCursor";
 
 export const metadata: Metadata = {
   title: "Journal — Street PlayR | Field Notes",
@@ -14,14 +13,6 @@ export default function JournalLayout({
 }) {
   return (
     <div className="journal-layout min-h-screen">
-      <style dangerouslySetInnerHTML={{
-        __html: `
-          .journal-layout, .journal-layout * {
-            cursor: none !important;
-          }
-        `
-      }} />
-      <CustomCursor />
       <main>{children}</main>
     </div>
   );

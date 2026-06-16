@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import CustomCursor from "@/components/ui/CustomCursor";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
@@ -16,14 +15,6 @@ export default function LookbookLayout({
 }) {
   return (
     <div className="lookbook-layout min-h-screen">
-      <style dangerouslySetInnerHTML={{
-        __html: `
-          .lookbook-layout, .lookbook-layout * {
-            cursor: none !important;
-          }
-        `
-      }} />
-      <CustomCursor />
       <Navbar />
       <main>{children}</main>
       <Footer />
