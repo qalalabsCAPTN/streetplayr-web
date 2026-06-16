@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { motion, useInView } from "framer-motion";
 import { useScrollNavigation } from "@/components/ui/useScrollNavigation";
@@ -23,7 +23,7 @@ function FadeIn({ children, delay = 0, className = "" }: { children: React.React
 
 interface LookbookItem {
   id: string;
-  type: "video" | "youtube" | "placeholder";
+  type: "video" | "youtube" | "placeholder" | "image";
   src: string;
   label: string;
   href: string;
@@ -36,39 +36,17 @@ interface LookbookProps {
   items?: LookbookItem[];
 }
 
-const defaultLookbookItems = [
-  {
-    id: "vid-1",
-    type: "video" as const,
-    src: "/assets/lookbook-01.mp4",
-    label: "FW26 / Urban Uniform",
-    href: "/collections",
-    widthClass: "w-[36vw] min-w-[220px] max-w-[560px]",
-  },
-  {
-    id: "yt-1",
-    type: "youtube" as const,
-    src: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-    label: "FW26 / Street Protocol",
-    href: "/collections",
-    widthClass: "w-[22vw] min-w-[160px] max-w-[340px]",
-  },
-  {
-    id: "img-1",
-    type: "placeholder" as const,
-    src: "",
-    label: "FW26 / Night Runner",
-    href: "/collections",
-    widthClass: "w-[28vw] min-w-[180px] max-w-[440px]",
-  },
-  {
-    id: "img-2",
-    type: "placeholder" as const,
-    src: "",
-    label: "FW26 / Core Edit",
-    href: "/collections",
-    widthClass: "w-[32vw] min-w-[200px] max-w-[500px]",
-  },
+const defaultLookbookItems: LookbookItem[] = [
+  { id: "lb-1", type: "image" as const, src: "/assets/lookbook/artboard-1.jpg", label: "SS25 / STICK NO BILLS", href: "/product/stick-no-bills" },
+  { id: "lb-2", type: "image" as const, src: "/assets/lookbook/artboard-2.jpg", label: "SS25 / INSPIRED TEE", href: "/product/inspired" },
+  { id: "lb-3", type: "image" as const, src: "/assets/lookbook/artboard-3.jpg", label: "SS25 / CTT WAFFLE HOODIE", href: "/product/ctt-waffle" },
+  { id: "lb-4", type: "image" as const, src: "/assets/lookbook/artboard-4.jpg", label: "SS25 / BROWN WARRIOR", href: "/product/brown-warrior" },
+  { id: "lb-5", type: "image" as const, src: "/assets/lookbook/artboard-5.jpg", label: "SS25 / BLACK WARRIOR", href: "/product/black-warrior" },
+  { id: "lb-6", type: "image" as const, src: "/assets/lookbook/artboard-6.jpg", label: "SS25 / STICK NO BILLS", href: "/product/stick-no-bills" },
+  { id: "lb-7", type: "image" as const, src: "/assets/lookbook/artboard-7.jpg", label: "SS25 / INSPIRED TEE", href: "/product/inspired" },
+  { id: "lb-8", type: "image" as const, src: "/assets/lookbook/artboard-8.jpg", label: "SS25 / CTT WAFFLE HOODIE", href: "/product/ctt-waffle" },
+  { id: "lb-9", type: "image" as const, src: "/assets/lookbook/artboard-9.jpg", label: "SS25 / BROWN WARRIOR", href: "/product/brown-warrior" },
+  { id: "lb-10", type: "image" as const, src: "/assets/lookbook/artboard-10.jpg", label: "SS25 / BLACK WARRIOR", href: "/product/black-warrior" }
 ];
 
 export default function Lookbook({
@@ -79,16 +57,46 @@ export default function Lookbook({
   const activeItems = items && items.length > 0 ? items : defaultLookbookItems;
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { needsNavigation, canScrollPrev, canScrollNext } = useScrollNavigation(scrollRef);
+  const isHovered = useRef(false);
+  const { needsNavigation } = useScrollNavigation(scrollRef);
 
   const scroll = useCallback((direction: "prev" | "next") => {
     if (!scrollRef.current) return;
-    const card = scrollRef.current.querySelector<HTMLElement>("[data-card]");
+    const el = scrollRef.current;
+    const card = el.querySelector<HTMLElement>("[data-card]");
     const scrollAmount = card?.offsetWidth ?? 400;
-    scrollRef.current.scrollBy({
-      left: direction === "next" ? scrollAmount : -scrollAmount,
-      behavior: "smooth",
-    });
+    const maxScrollLeft = el.scrollWidth - el.clientWidth;
+
+    if (direction === "next") {
+      if (el.scrollLeft >= maxScrollLeft - 15) {
+        el.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        el.scrollBy({ left: scrollAmount, behavior: "smooth" });
+      }
+    } else {
+      if (el.scrollLeft <= 15) {
+        el.scrollTo({ left: maxScrollLeft, behavior: "smooth" });
+      } else {
+        el.scrollBy({ left: -scrollAmount, behavior: "smooth" });
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!scrollRef.current || isHovered.current) return;
+      const el = scrollRef.current;
+      const maxScrollLeft = el.scrollWidth - el.clientWidth;
+      if (el.scrollLeft >= maxScrollLeft - 10) {
+        el.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        const card = el.querySelector<HTMLElement>("[data-card]");
+        const scrollAmount = card?.offsetWidth ?? 400;
+        el.scrollBy({ left: scrollAmount, behavior: "smooth" });
+      }
+    }, 3500);
+
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -105,19 +113,25 @@ export default function Lookbook({
         </FadeIn>
       </div>
 
-      <div className="relative">
+      <div className="relative max-w-[min(98vw,2560px)] mx-auto">
         <button
           onClick={() => scroll("prev")}
-          className={`absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 place-items-center w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm border border-white/[0.12] text-white/70 hover:text-white hover:bg-black/70 transition-all ${needsNavigation && canScrollPrev ? "hidden md:grid" : "hidden"}`}
+          onMouseEnter={() => { isHovered.current = true; }}
+          onMouseLeave={() => { isHovered.current = false; }}
+          className={`absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-40 flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-full bg-black/60 backdrop-blur-md border border-white/[0.18] text-white/80 hover:text-white hover:bg-black/80 hover:scale-110 active:scale-95 shadow-lg transition-all duration-200 after:content-[''] after:absolute after:-inset-4 ${needsNavigation ? "flex" : "hidden"}`}
           aria-label="Previous lookbook item"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="15 18 9 12 15 6" />
           </svg>
         </button>
 
         <div
           ref={scrollRef}
+          onMouseEnter={() => { isHovered.current = true; }}
+          onMouseLeave={() => { isHovered.current = false; }}
+          onTouchStart={() => { isHovered.current = true; }}
+          onTouchEnd={() => { isHovered.current = false; }}
           className="flex items-stretch gap-3 px-4 md:px-8 lg:px-12 max-w-[min(98vw,2560px)] mx-auto overflow-x-auto pb-6 no-scrollbar h-[52vw] min-h-[320px] max-h-[580px]"
         >
           {activeItems.map((item, i) => {
@@ -192,6 +206,14 @@ export default function Lookbook({
                       </svg>
                     </div>
                   )}
+                  {item.type === "image" && (
+                    <img
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      src={item.src}
+                      alt={item.label}
+                      loading="lazy"
+                    />
+                  )}
 
                   {/* Hover CTA overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 z-30 flex items-center justify-center">
@@ -219,10 +241,12 @@ export default function Lookbook({
 
         <button
           onClick={() => scroll("next")}
-          className={`absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 place-items-center w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm border border-white/[0.12] text-white/70 hover:text-white hover:bg-black/70 transition-all ${needsNavigation && canScrollNext ? "hidden md:grid" : "hidden"}`}
+          onMouseEnter={() => { isHovered.current = true; }}
+          onMouseLeave={() => { isHovered.current = false; }}
+          className={`absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-40 flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-full bg-black/60 backdrop-blur-md border border-white/[0.18] text-white/80 hover:text-white hover:bg-black/80 hover:scale-110 active:scale-95 shadow-lg transition-all duration-200 after:content-[''] after:absolute after:-inset-4 ${needsNavigation ? "flex" : "hidden"}`}
           aria-label="Next lookbook item"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="9 18 15 12 9 6" />
           </svg>
         </button>
