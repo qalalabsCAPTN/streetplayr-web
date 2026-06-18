@@ -107,7 +107,7 @@ export default function EnterThePlay() {
       {/* Content */}
       <div className={styles["content"]}>
         <div className={styles["star-container"]}>
-          <NinjaStar scale={starScale} />
+          <NinjaStar scale={starScale} scrollReactive={false} />
         </div>
 
         <div className={styles["brand"]}>

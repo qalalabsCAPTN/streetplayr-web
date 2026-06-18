@@ -62,6 +62,14 @@ export default function HomeHero({
   };
   const starScale = getStarScale();
 
+  const getPopupStarScale = () => {
+    if (windowWidth === null) return 1.45;
+    if (windowWidth < 768) return 1.05;
+    if (windowWidth < 1024) return 1.25;
+    return 1.45;
+  };
+  const popupStarScale = getPopupStarScale();
+
   useEffect(() => {
     const timer = setTimeout(() => setJoinOpen(true), 6000);
     return () => clearTimeout(timer);
@@ -234,7 +242,7 @@ export default function HomeHero({
 
             {/* Left Panel */}
             <div
-              className="relative p-6 md:p-9 flex flex-col items-center justify-center gap-6 md:gap-8 overflow-hidden border-b md:border-b-0 md:border-r border-[rgba(255,255,255,0.10)]"
+              className="relative px-5 md:px-5 py-8 md:py-10 flex flex-col items-center justify-center gap-6 md:gap-8 overflow-hidden border-b md:border-b-0 md:border-r border-[rgba(255,255,255,0.10)]"
               style={{
                   background: "linear-gradient(160deg, rgba(221,183,255,0.08), rgba(35,30,39,0.78) 62%), #1b1620",
               }}
@@ -255,8 +263,8 @@ export default function HomeHero({
                   animation: "preFloat 8s ease-in-out infinite",
                 }}
               />
-              <div className="relative z-[2] w-40 h-40 md:w-56 md:h-56 flex items-center justify-center">
-                <NinjaStar scale={0.75} />
+              <div className="relative z-[2] w-full max-w-[240px] sm:max-w-[280px] md:max-w-[320px] aspect-square flex items-center justify-center select-none pointer-events-auto">
+                <NinjaStar scale={popupStarScale} scrollReactive={false} />
               </div>
               <div className="relative z-[2] flex flex-col gap-3.5">
                 <h3

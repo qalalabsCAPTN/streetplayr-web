@@ -20,10 +20,10 @@ export default function Footer() {
   }, []);
 
   const getStarScale = () => {
-    if (windowWidth === null) return 1.2;
-    if (windowWidth < 768) return 0.8;
-    if (windowWidth < 1024) return 1.05;
-    return 1.3;
+    if (windowWidth === null) return 1.1;
+    if (windowWidth < 768) return 0.75;
+    if (windowWidth < 1024) return 0.95;
+    return 1.15;
   };
   const starScale = getStarScale();
 
@@ -153,8 +153,8 @@ export default function Footer() {
 
         {/* 5. NinjaStar Premium Graphic: Right side on mobile, column 5 on desktop */}
         <div className="col-span-1 lg:col-span-1 flex justify-center items-center lg:justify-end order-5 lg:order-5 mt-0">
-          <div className="w-32 h-32 md:w-56 md:h-56 lg:w-72 lg:h-72 select-none pointer-events-auto">
-            <NinjaStar scale={starScale} />
+          <div className="w-full max-w-[140px] sm:max-w-[180px] md:max-w-[220px] lg:max-w-[240px] aspect-square select-none pointer-events-auto">
+            <NinjaStar scale={starScale} scrollReactive={false} />
           </div>
         </div>
       </div>

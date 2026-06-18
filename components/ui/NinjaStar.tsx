@@ -574,7 +574,7 @@ function SceneLights() {
 }
 
 // ─── Full 3-D trackball ───────────────────────────────────────────────────────
-function CompassStar({ scale = 0.70 }: { scale?: number }) {
+function CompassStar({ scale = 0.70, scrollReactive = true }: { scale?: number; scrollReactive?: boolean }) {
   const { gl } = useThree();
   const groupRef     = useRef<THREE.Group>(null);
   const scrollRef    = useRef<THREE.Group>(null);
@@ -666,7 +666,7 @@ function CompassStar({ scale = 0.70 }: { scale?: number }) {
     groupRef.current.position.y = Math.sin(clock.elapsedTime * 0.8) * 0.020;
 
     // Scroll-driven 3D rotation, tilt, and depth translation
-    if (scrollRef.current && typeof window !== "undefined") {
+    if (scrollReactive && scrollRef.current && typeof window !== "undefined") {
       const scrollY = window.scrollY;
       
       const targetScrollRotY = scrollY * 0.0015;
@@ -704,7 +704,7 @@ function CompassStar({ scale = 0.70 }: { scale?: number }) {
 // ─── Export ───────────────────────────────────────────────────────────────────
 // Fills 100% of parent container — size is controlled by .star-container in CSS.
 // touch-action: pan-y on the wrapper and Canvas allows page scrolling on mobile swipe.
-export default function NinjaStar({ scale = 0.70 }: { scale?: number }) {
+export default function NinjaStar({ scale = 0.70, scrollReactive = true }: { scale?: number; scrollReactive?: boolean }) {
   return (
     <div style={{ width: "100%", height: "100%", touchAction: "pan-y" }}>
       <Canvas
@@ -717,7 +717,7 @@ export default function NinjaStar({ scale = 0.70 }: { scale?: number }) {
           <DreiEnvironment preset={current.envPreset} />
         </Suspense>
         <SceneLights />
-        <CompassStar scale={scale} />
+        <CompassStar scale={scale} scrollReactive={scrollReactive} />
       </Canvas>
     </div>
   );
