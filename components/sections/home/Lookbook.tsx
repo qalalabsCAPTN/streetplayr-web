@@ -65,39 +65,76 @@ export default function Lookbook({
     const el = scrollRef.current;
     const card = el.querySelector<HTMLElement>("[data-card]");
     const scrollAmount = card?.offsetWidth ?? 400;
-    const maxScrollLeft = el.scrollWidth - el.clientWidth;
 
     if (direction === "next") {
-      if (el.scrollLeft >= maxScrollLeft - 15) {
-        el.scrollTo({ left: 0, behavior: "smooth" });
-      } else {
-        el.scrollBy({ left: scrollAmount, behavior: "smooth" });
-      }
+      el.scrollBy({ left: scrollAmount, behavior: "smooth" });
     } else {
-      if (el.scrollLeft <= 15) {
-        el.scrollTo({ left: maxScrollLeft, behavior: "smooth" });
-      } else {
-        el.scrollBy({ left: -scrollAmount, behavior: "smooth" });
-      }
+      el.scrollBy({ left: -scrollAmount, behavior: "smooth" });
     }
   }, []);
 
+  // Autoplay interval
   useEffect(() => {
     const interval = setInterval(() => {
       if (!scrollRef.current || isHovered.current) return;
       const el = scrollRef.current;
-      const maxScrollLeft = el.scrollWidth - el.clientWidth;
-      if (el.scrollLeft >= maxScrollLeft - 10) {
-        el.scrollTo({ left: 0, behavior: "smooth" });
-      } else {
-        const card = el.querySelector<HTMLElement>("[data-card]");
-        const scrollAmount = card?.offsetWidth ?? 400;
-        el.scrollBy({ left: scrollAmount, behavior: "smooth" });
-      }
+      const card = el.querySelector<HTMLElement>("[data-card]");
+      const scrollAmount = card?.offsetWidth ?? 400;
+      el.scrollBy({ left: scrollAmount, behavior: "smooth" });
     }, 3500);
 
     return () => clearInterval(interval);
   }, []);
+
+  // Initialize scroll to middle set and handle seamless wrapping
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const N = activeItems.length;
+
+    const adjustScroll = () => {
+      if (el.children.length < N * 3) return;
+      const item0 = el.children[0] as HTMLElement;
+      const itemN = el.children[N] as HTMLElement;
+      if (!item0 || !itemN) return;
+      const setWidth = itemN.offsetLeft - item0.offsetLeft;
+      if (setWidth <= 0) return;
+
+      const scrollLeft = el.scrollLeft;
+      const clientWidth = el.clientWidth;
+
+      if (scrollLeft < setWidth - clientWidth) {
+        el.scrollLeft += setWidth;
+      } else if (scrollLeft > setWidth * 2 - clientWidth) {
+        el.scrollLeft -= setWidth;
+      }
+    };
+
+    const initScroll = () => {
+      if (el.children.length < N * 3) return;
+      const item0 = el.children[0] as HTMLElement;
+      const itemN = el.children[N] as HTMLElement;
+      if (!item0 || !itemN) return;
+      const setWidth = itemN.offsetLeft - item0.offsetLeft;
+      if (setWidth > 0) {
+        el.scrollLeft = setWidth;
+      }
+    };
+
+    const timer = setTimeout(initScroll, 100);
+
+    el.addEventListener("scroll", adjustScroll, { passive: true });
+    const ro = new ResizeObserver(() => {
+      adjustScroll();
+    });
+    ro.observe(el);
+
+    return () => {
+      clearTimeout(timer);
+      el.removeEventListener("scroll", adjustScroll);
+      ro.disconnect();
+    };
+  }, [activeItems.length]);
 
   return (
     <section className="relative py-14 md:py-18 overflow-hidden border-t border-white/[0.04]">
@@ -134,10 +171,11 @@ export default function Lookbook({
           onTouchEnd={() => { isHovered.current = false; }}
           className="flex items-stretch gap-3 px-4 md:px-8 lg:px-12 max-w-[min(98vw,2560px)] mx-auto overflow-x-auto pb-6 no-scrollbar h-[52vw] min-h-[320px] max-h-[580px]"
         >
-          {activeItems.map((item, i) => {
+          {[...activeItems, ...activeItems, ...activeItems].map((item, index) => {
+            const i = index % activeItems.length;
             const widthClass = item.widthClass || ['w-[36vw] min-w-[220px] max-w-[560px]', 'w-[22vw] min-w-[160px] max-w-[340px]', 'w-[28vw] min-w-[180px] max-w-[440px]', 'w-[32vw] min-w-[200px] max-w-[500px]'][i % 4];
             return (
-              <FadeIn key={item.id} delay={0.1 * i} className={`${widthClass} shrink-0 h-full`}>
+              <FadeIn key={`${item.id}-${index}`} delay={0.1 * i} className={`${widthClass} shrink-0 h-full`}>
               <Link
                 href={item.href}
                 data-card

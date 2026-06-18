@@ -90,7 +90,14 @@ export default function PremiumCoverflowCard({
     if (isReduced) {
       baseXPct.set(transform.translateXPct);
     } else {
-      animate(baseXPct, transform.translateXPct, transition);
+      const prev = baseXPct.get();
+      // If the difference is huge (e.g. wrapping from one edge to the other),
+      // we snap the value instantly to prevent sliding across the active area.
+      if (Math.abs(transform.translateXPct - prev) > 100) {
+        baseXPct.set(transform.translateXPct);
+      } else {
+        animate(baseXPct, transform.translateXPct, transition);
+      }
     }
   }, [transform.translateXPct, isReduced, transition, baseXPct]);
 
