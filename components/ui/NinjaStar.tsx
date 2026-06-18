@@ -577,6 +577,7 @@ function SceneLights() {
 function CompassStar({ scale = 0.70 }: { scale?: number }) {
   const { gl } = useThree();
   const groupRef     = useRef<THREE.Group>(null);
+  const scrollRef    = useRef<THREE.Group>(null);
   const dragging     = useRef(false);
   const lastPos      = useRef({ x: 0, y: 0 });
   const vel          = useRef({ x: 0, y: 0 });
@@ -587,8 +588,8 @@ function CompassStar({ scale = 0.70 }: { scale?: number }) {
     const canvas = gl.domElement;
     if (!canvas) return;
 
-    // Prevent browser scroll / zoom from intercepting touch on the canvas
-    canvas.style.touchAction = "none";
+    // Allow vertical scrolling (pan-y) to prevent scroll traps on mobile
+    canvas.style.touchAction = "pan-y";
 
     const onDown = (e: PointerEvent) => {
       dragging.current   = true;
@@ -635,6 +636,7 @@ function CompassStar({ scale = 0.70 }: { scale?: number }) {
 
     const idle = Date.now() - lastMoveTime.current;
 
+    // Drag inertia deceleration physics
     if (Math.abs(vel.current.x) > 0.0001 || Math.abs(vel.current.y) > 0.0001) {
       if (idle < 1200) {
         groupRef.current.rotation.x += vel.current.x;
@@ -660,28 +662,56 @@ function CompassStar({ scale = 0.70 }: { scale?: number }) {
       groupRef.current.rotation.y += delta * 0.22;
     }
 
+    // Hover bobbing animation
     groupRef.current.position.y = Math.sin(clock.elapsedTime * 0.8) * 0.020;
+
+    // Scroll-driven 3D rotation, tilt, and depth translation
+    if (scrollRef.current && typeof window !== "undefined") {
+      const scrollY = window.scrollY;
+      
+      const targetScrollRotY = scrollY * 0.0015;
+      const targetScrollRotX = scrollY * 0.0008;
+      const targetScrollZ = -Math.min(scrollY * 0.002, 1.8); // Recede back in depth (Z axis)
+      
+      scrollRef.current.rotation.y = THREE.MathUtils.lerp(
+        scrollRef.current.rotation.y,
+        targetScrollRotY,
+        0.08
+      );
+      scrollRef.current.rotation.x = THREE.MathUtils.lerp(
+        scrollRef.current.rotation.x,
+        targetScrollRotX,
+        0.08
+      );
+      scrollRef.current.position.z = THREE.MathUtils.lerp(
+        scrollRef.current.position.z,
+        targetScrollZ,
+        0.08
+      );
+    }
   });
 
   return (
     <group ref={groupRef} scale={scale}>
-      <StarBody />
-      <FlatDiamondCore />
+      <group ref={scrollRef}>
+        <StarBody />
+        <FlatDiamondCore />
+      </group>
     </group>
   );
 }
 
 // ─── Export ───────────────────────────────────────────────────────────────────
 // Fills 100% of parent container — size is controlled by .star-container in CSS.
-// touch-action: none on the wrapper prevents browser scroll from hijacking drag.
+// touch-action: pan-y on the wrapper and Canvas allows page scrolling on mobile swipe.
 export default function NinjaStar({ scale = 0.70 }: { scale?: number }) {
   return (
-    <div style={{ width: "100%", height: "100%", touchAction: "none" }}>
+    <div style={{ width: "100%", height: "100%", touchAction: "pan-y" }}>
       <Canvas
         camera={{ position: [0, 0, 4], fov: 44 }}
         gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
         dpr={[1, 1.5]}
-        style={{ width: "100%", height: "100%", touchAction: "none" }}
+        style={{ width: "100%", height: "100%", touchAction: "pan-y" }}
       >
         <Suspense fallback={null}>
           <DreiEnvironment preset={current.envPreset} />
