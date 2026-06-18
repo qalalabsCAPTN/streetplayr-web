@@ -244,7 +244,7 @@ function LoginForm() {
                 <span className="absolute inset-0 bg-[#ddb7ff] transition-transform duration-500 group-hover:scale-y-0 origin-bottom" />
                 <span className="absolute inset-0 bg-[#eadfed] scale-y-0 group-hover:scale-y-100 transition-transform duration-500 origin-top" />
                 <span className="relative z-10 font-mono text-[11px] font-bold uppercase tracking-[0.28em] text-[#16111b]">
-                  {emailPending ? "Verifying..." : "Access System"}
+                  {emailPending ? "Verifying..." : "Login"}
                 </span>
               </button>
             </div>
