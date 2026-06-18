@@ -82,3 +82,18 @@ When implementing custom scroll damping:
   - Linearly interpolate (`lerp`) the scroll position to update rotation, tilt, and Z-depth position changes.
 <!-- END:web3d-scroll-damping -->
 
+<!-- BEGIN:seamless-loop-carousels -->
+# Seamless Loop Carousels
+
+## Coverflow Wrapping
+- When a 3D coverflow carousel uses visual offset calculations that jump from negative to positive at boundaries, prevent cards from sliding backward across the viewport.
+- **Rule:** Compare the target coordinate translation against the current motion value. If the difference exceeds `100` (wrapping), set the motion value instantly using `baseXPct.set(...)` to snap the card. Otherwise, use `animate(...)` with spring physics for smooth sliding.
+
+## Lookbook Infinite Scroll
+- To implement seamless loop scrolling on overflow-x elements:
+  - **Array Tripling:** Render three copies of the item array: `[...items, ...items, ...items]`.
+  - **Unique Keys:** Key elements as `${item.id}-${index}` to keep keys unique.
+  - **Scroll Event Listener:** Listen to `scroll` passive events. If `scrollLeft` goes outside the middle set range `[setWidth - clientWidth, setWidth * 2 - clientWidth]`, instantly adjust `scrollLeft` by adding/subtracting `setWidth`.
+  - **ResizeObserver:** Observe the container size and run the same boundary check on resize.
+  - **Autoplay & Manual Controls:** Execute normal `scrollBy` smoothly; boundary wrapping handles resetting coordinates transparently.
+<!-- END:seamless-loop-carousels -->
