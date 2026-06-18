@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { getSupabaseClient } from '@/lib/ops2/supabase';
 import { getLocalLatestDrops } from '@/lib/products/data';
-import BestSellers from "@/components/sections/home/BestSellers";
+import BestSellersGate from "@/components/sections/home/BestSellersGate";
 
 interface CMSBestSellerContent {
   schema_version?: string;
@@ -16,6 +16,18 @@ interface CMSBestSellerContent {
 
 interface CMSBestSellerWrapperProps {
   content: CMSBestSellerContent;
+}
+
+interface DBProduct {
+  id: string;
+  title: string;
+  slug: string;
+  featured_image_url: string;
+  metadata?: {
+    category?: string;
+    gallery_images?: string[];
+  };
+  product_variants: Array<{ id: string; price: number }>;
 }
 
 // Client-safe helper to fetch latest drops directly using standard client-side Supabase
@@ -41,8 +53,9 @@ async function getClientLatestDrops() {
       return getLocalLatestDrops();
     }
 
-    return data.map((p: any) => {
-      const prices = (p.product_variants ?? []).map((v: any) => v.price).filter(Boolean);
+    const typedData = data as unknown as DBProduct[];
+    return typedData.map((p) => {
+      const prices = (p.product_variants ?? []).map((v) => v.price).filter(Boolean);
       const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
       return {
         id: p.id,
@@ -93,7 +106,8 @@ export default function CMSBestSellerWrapper({ content }: CMSBestSellerWrapperPr
           return getClientLatestDrops();
         }
 
-        const productIds = colProducts.map((cp: any) => cp.product_id);
+        const typedColProducts = colProducts as unknown as Array<{ product_id: string }>;
+        const productIds = typedColProducts.map((cp) => cp.product_id);
 
         // Query actual active products
         const { data, error } = await db
@@ -116,8 +130,9 @@ export default function CMSBestSellerWrapper({ content }: CMSBestSellerWrapperPr
           return getClientLatestDrops();
         }
 
-        return data.map((p: any) => {
-          const prices = (p.product_variants ?? []).map((v: any) => v.price).filter(Boolean);
+        const typedData = data as unknown as DBProduct[];
+        return typedData.map((p) => {
+          const prices = (p.product_variants ?? []).map((v) => v.price).filter(Boolean);
           const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
           return {
             id: p.id,
@@ -146,7 +161,7 @@ export default function CMSBestSellerWrapper({ content }: CMSBestSellerWrapperPr
   }
 
   return (
-    <BestSellers
+    <BestSellersGate
       products={products && products.length > 0 ? products : []}
     />
   );

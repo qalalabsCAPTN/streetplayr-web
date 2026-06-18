@@ -21,15 +21,15 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   KeyboardEvent,
 } from "react";
-import { motion, useMotionValue, useReducedMotion } from "framer-motion";
+import { motion, useMotionValue, useReducedMotion, animate } from "framer-motion";
 
 import PremiumCoverflowCard, {
   PremiumCarouselProduct,
-  PremiumCardTransform,
 } from "@/components/ui/PremiumCoverflowCard";
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -44,53 +44,6 @@ interface PremiumCoverflowCarouselProps {
 const SWIPE_VELOCITY_THRESHOLD = 280; // px/s
 const SWIPE_DISTANCE_THRESHOLD = 48;  // px
 const WHEEL_DEBOUNCE_MS = 360;        // ms between wheel-triggered advances
-
-// ─── Transform calculator ─────────────────────────────────────────────────────
-//
-// Exact formulas, documented here for auditability.
-//
-// For a card at wrapped offset `o` (signed integer, 0 = active):
-//
-//   MOBILE:
-//     translateX  = o × 73 %                   (% of card width)
-//     translateZ  = -|o| × 70 px               (depth recession)
-//     rotateY     = sign(o) × min(|o|×12, 32)° (perspective tilt)
-//     scale       = 1  if |o|=0  else  max(0.78 - |o|×0.055, 0.56)
-//     opacity     = 1  if |o|=0  else  max(0.72 - |o|×0.17, 0.16)
-//     zIndex      = max(20 - |o|×5, 0)
-//
-//   DESKTOP:
-//     translateX  = o × 58 %
-//     translateZ  = -|o| × 110 px
-//     rotateY     = sign(o) × min(|o|×17, 42)°
-//     scale       = 1  if |o|=0  else  max(0.75 - |o|×0.065, 0.52)
-//     opacity     = 1  if |o|=0  else  max(0.65 - |o|×0.15, 0.12)
-//     zIndex      = max(20 - |o|×5, 0)
-
-function calcTransform(offset: number, isMobile: boolean): PremiumCardTransform {
-  const abs = Math.min(Math.abs(offset), 4); // clamp beyond 4 cards out
-  const sign = Math.sign(offset);
-
-  if (isMobile) {
-    return {
-      translateXPct: offset * 73,
-      translateZpx: -abs * 70,
-      rotateYdeg: abs === 0 ? 0 : sign * Math.min(abs * 12, 32),
-      scale:   abs === 0 ? 1 : Math.max(0.78 - abs * 0.055, 0.56),
-      opacity: abs === 0 ? 1 : Math.max(0.72 - abs * 0.17,  0.16),
-      zIndex:  Math.max(20 - abs * 5, 0),
-    };
-  }
-
-  return {
-    translateXPct: offset * 58,
-    translateZpx: -abs * 110,
-    rotateYdeg: abs === 0 ? 0 : sign * Math.min(abs * 17, 42),
-    scale:   abs === 0 ? 1 : Math.max(0.75 - abs * 0.065, 0.52),
-    opacity: abs === 0 ? 1 : Math.max(0.65 - abs * 0.15,  0.12),
-    zIndex:  Math.max(20 - abs * 5, 0),
-  };
-}
 
 // ─── Dot indicator ────────────────────────────────────────────────────────────
 
@@ -228,12 +181,31 @@ export default function PremiumCoverflowCarousel({
   const [isDragging, setIsDragging] = useState(false);
 
   const isReduced = useReducedMotion() ?? false;
-  const dragX = useMotionValue(0);
+  const progress = useMotionValue(0);
+  const dragStartProgress = useRef(0);
   const wheelTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(0);
 
   const count = products.length;
 
-  // ── Responsive breakpoint ───────────────────────────────────────────────────
+  const SPRING_DESKTOP = useMemo(() => ({ type: "spring" as const, stiffness: 260, damping: 28, mass: 1 }), []);
+  const SPRING_MOBILE  = useMemo(() => ({ type: "spring" as const, stiffness: 400, damping: 36, mass: 1 }), []);
+  const transition = useMemo(() => isReduced ? { type: "tween" as const, duration: 0 } : (isMobile ? SPRING_MOBILE : SPRING_DESKTOP), [isReduced, isMobile, SPRING_MOBILE, SPRING_DESKTOP]);
+
+  // Measure container width for responsive drag calculations
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setContainerWidth(entry.contentRect.width);
+      }
+    });
+    resizeObserver.observe(containerRef.current);
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  // Responsive breakpoint
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 768px)");
     const handle = (e: MediaQueryListEvent | MediaQueryList) =>
@@ -243,21 +215,59 @@ export default function PremiumCoverflowCarousel({
     return () => mq.removeEventListener("change", handle);
   }, []);
 
-  // ── Navigation helpers ──────────────────────────────────────────────────────
+  // Sync activeIndex with progress's nearest integer index
+  useEffect(() => {
+    const unsubscribe = progress.on("change", (latest) => {
+      const nearest = Math.round(latest);
+      const wrapped = (nearest % count + count) % count;
+      setActiveIndex((prev) => (prev !== wrapped ? wrapped : prev));
+    });
+    return unsubscribe;
+  }, [progress, count]);
+
+  // Navigation helpers
   const advance = useCallback(
-    (dir: 1 | -1) =>
-      setActiveIndex((prev) => {
-        const next = prev + dir;
-        if (next < 0) return count - 1;
-        if (next >= count) return 0;
-        return next;
-      }),
-    [count]
+    (dir: 1 | -1) => {
+      if (isDragging) return;
+      const currentVal = progress.get();
+      const target = currentVal + dir;
+      animate(progress, target, {
+        ...transition,
+        onComplete: () => {
+          const wrapped = (target % count + count) % count;
+          progress.set(wrapped);
+          setActiveIndex(wrapped);
+        }
+      });
+    },
+    [progress, count, transition, isDragging]
   );
 
-  const goTo = useCallback((i: number) => setActiveIndex(i), []);
+  const goTo = useCallback(
+    (i: number) => {
+      if (isDragging) return;
+      const currentVal = progress.get();
+      
+      let diff = i - currentVal;
+      const half = count / 2;
+      diff = ((diff + half) % count);
+      if (diff < 0) diff += count;
+      diff -= half;
 
-  // ── Keyboard ────────────────────────────────────────────────────────────────
+      const target = currentVal + diff;
+      animate(progress, target, {
+        ...transition,
+        onComplete: () => {
+          const wrapped = (target % count + count) % count;
+          progress.set(wrapped);
+          setActiveIndex(wrapped);
+        }
+      });
+    },
+    [progress, count, transition, isDragging]
+  );
+
+  // Keyboard
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLDivElement>) => {
       if (e.key === "ArrowRight" || e.key === "ArrowDown") {
@@ -277,7 +287,7 @@ export default function PremiumCoverflowCarousel({
     [advance, goTo, count]
   );
 
-  // ── Mouse wheel ─────────────────────────────────────────────────────────────
+  // Mouse wheel
   const handleWheel = useCallback(
     (e: React.WheelEvent) => {
       e.preventDefault();
@@ -290,29 +300,8 @@ export default function PremiumCoverflowCarousel({
     [advance]
   );
 
-  // ── Drag end ────────────────────────────────────────────────────────────────
-  const handleDragEnd = useCallback(
-    (
-      _: unknown,
-      info: { offset: { x: number }; velocity: { x: number } }
-    ) => {
-      setIsDragging(false);
-      const { offset, velocity } = info;
-      const byVelocity = Math.abs(velocity.x) > SWIPE_VELOCITY_THRESHOLD;
-      const byDistance = Math.abs(offset.x) > SWIPE_DISTANCE_THRESHOLD;
-      if (byVelocity || byDistance) {
-        advance(offset.x < 0 ? 1 : -1);
-      }
-      dragX.set(0);
-    },
-    [advance, dragX]
-  );
-
   if (!count) return null;
 
-  // Desktop height: cards are min(44%, 533px) of container width, portrait 2:3 ≈ ×1.50 taller.
-  // So container height = calc(44vw * 1.5) capped at 800px.
-  // Mobile: 80vw card × 1.25 (4:5 aspect).
   const containerStyle: React.CSSProperties = {
     position: "relative",
     width: "100%",
@@ -323,6 +312,7 @@ export default function PremiumCoverflowCarousel({
     perspectiveOrigin: "50% 50%",
     overflow: "visible",
     touchAction: "pan-y",
+    cursor: isDragging ? "grabbing" : "grab",
   };
 
   return (
@@ -332,37 +322,70 @@ export default function PremiumCoverflowCarousel({
       aria-label="Best Sellers"
       onKeyDown={handleKeyDown}
     >
-      {/* ── Perspective container ── */}
-      <div style={containerStyle} role="region" aria-live="polite">
+      {/* ── Perspective drag container ── */}
+      <motion.div
+        ref={containerRef}
+        style={containerStyle}
+        role="region"
+        aria-live="polite"
+        onWheel={handleWheel}
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.15}
+        dragMomentum={false}
+        onDragStart={() => {
+          setIsDragging(true);
+          dragStartProgress.current = progress.get();
+        }}
+        onDrag={(event, info) => {
+          const cardWidth = isMobile ? containerWidth * 0.8 : Math.min(containerWidth * 0.44, 533);
+          const spacingFactor = isMobile ? 0.73 : 0.58;
+          const delta = -info.offset.x / (cardWidth * spacingFactor);
+          progress.set(dragStartProgress.current + delta);
+        }}
+        onDragEnd={(event, info) => {
+          setIsDragging(false);
 
+
+          
+          const currentVal = progress.get();
+          const byVelocity = Math.abs(info.velocity.x) > SWIPE_VELOCITY_THRESHOLD;
+          const byDistance = Math.abs(info.offset.x) > SWIPE_DISTANCE_THRESHOLD;
+          
+          let targetIndex = Math.round(currentVal);
+          
+          if (byVelocity || byDistance) {
+            const direction = info.offset.x < 0 ? 1 : -1;
+            targetIndex = direction === 1 ? Math.ceil(currentVal) : Math.floor(currentVal);
+          }
+
+          animate(progress, targetIndex, {
+            ...transition,
+            onComplete: () => {
+              const wrapped = (targetIndex % count + count) % count;
+              progress.set(wrapped);
+              setActiveIndex(wrapped);
+            }
+          });
+        }}
+      >
         {/* ── Render all cards ── */}
-        {products.map((product, index) => {
-          // Compute shortest wrapped offset for seamless looping feel
-          const raw = index - activeIndex;
-          const half = count / 2;
-          let wrappedOffset = raw;
-          while (wrappedOffset > half)  wrappedOffset -= count;
-          while (wrappedOffset < -half) wrappedOffset += count;
-
-          return (
-            <PremiumCoverflowCard
-              key={product.id}
-              product={product}
-              offset={wrappedOffset}
-              transform={calcTransform(wrappedOffset, isMobile)}
-              isMobile={isMobile}
-              isActive={index === activeIndex}
-              isReduced={isReduced}
-              onClick={() => goTo(index)}
-              slideIndex={index}
-              totalSlides={count}
-              dragX={dragX}
-              onDragStart={() => setIsDragging(true)}
-              onDragEnd={handleDragEnd}
-            />
-          );
-        })}
-      </div>
+        {products.map((product, index) => (
+          <PremiumCoverflowCard
+            key={product.id}
+            product={product}
+            index={index}
+            count={count}
+            progress={progress}
+            isMobile={isMobile}
+            isActive={index === activeIndex}
+            activeIndex={activeIndex}
+            onClick={() => goTo(index)}
+            slideIndex={index}
+            totalSlides={count}
+          />
+        ))}
+      </motion.div>
 
       {/* ── Dot indicators ── */}
       <div className="mt-6 md:mt-8">

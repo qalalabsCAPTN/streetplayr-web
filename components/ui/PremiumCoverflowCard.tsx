@@ -11,9 +11,8 @@
  * reveal, and ARIA semantics.
  */
 
-import { AnimatePresence, motion, useMotionValue, useTransform, animate } from "framer-motion";
+import { AnimatePresence, motion, useTransform, MotionValue } from "framer-motion";
 import Link from "next/link";
-import { useEffect } from "react";
 
 // ─── Types (self-contained — no coupling to existing types) ───────────────────
 
@@ -38,71 +37,108 @@ export interface PremiumCardTransform {
 
 interface PremiumCoverflowCardProps {
   product: PremiumCarouselProduct;
-  /** visual position relative to active card: 0=center, ±1=adjacent, etc. */
-  offset: number;
-  transform: PremiumCardTransform;
+  index: number;
+  count: number;
+  progress: MotionValue<number>;
   isMobile: boolean;
   isActive: boolean;
-  isReduced: boolean;
+  activeIndex: number;
   onClick: () => void;
   slideIndex: number;   // 0-based position in full product array
   totalSlides: number;
-  dragX: any;
-  onDragStart: () => void;
-  onDragEnd: (event: any, info: any) => void;
 }
-
-// ─── Spring config ────────────────────────────────────────────────────────────
-
-// Desktop: rich 3-D spring. Mobile: snappier 2-D spring (no perspective cost).
-const SPRING_DESKTOP = { type: "spring" as const, stiffness: 260, damping: 28, mass: 1 };
-const SPRING_MOBILE  = { type: "spring" as const, stiffness: 400, damping: 36, mass: 1 };
-const INSTANT = { duration: 0.01 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function PremiumCoverflowCard({
   product,
-  offset,
-  transform,
+  index,
+  count,
+  progress,
   isMobile,
   isActive,
-  isReduced,
+  activeIndex,
   onClick,
   slideIndex,
   totalSlides,
-  dragX,
-  onDragStart,
-  onDragEnd,
 }: PremiumCoverflowCardProps) {
-  const abs = Math.abs(offset);
-  const transition = isReduced ? INSTANT : (isMobile ? SPRING_MOBILE : SPRING_DESKTOP);
   const href = product.slug ? `/product/${product.slug}` : "/collections";
-
   const borderRadius = isMobile ? 20 : 24;
 
-  // 1:1 Dynamic swipe tracking:
-  // We animate a motion value baseXPct to the target percentage, and combine
-  // it with dragX (in pixels) for instant physical response during swipe.
-  const baseXPct = useMotionValue(transform.translateXPct);
+  const rawDist = Math.abs(index - activeIndex);
+  const isAdjacent = rawDist === 1 || rawDist === count - 1;
 
-  useEffect(() => {
-    if (isReduced) {
-      baseXPct.set(transform.translateXPct);
+  // Derive wrapped offset relative to progress continuously
+  const cardOffset = useTransform(progress, (latestProgress) => {
+    let diff = index - latestProgress;
+    const half = count / 2;
+    diff = ((diff + half) % count);
+    if (diff < 0) diff += count;
+    diff -= half;
+    return diff;
+  });
+
+  // Continuous translation X
+  const x = useTransform(cardOffset, (offset) => {
+    const spacing = isMobile ? 73 : 58;
+    return `${offset * spacing}%`;
+  });
+
+  // Continuous translation Z
+  const z = useTransform(cardOffset, (offset) => {
+    if (isMobile) return 0;
+    const abs = Math.min(Math.abs(offset), 4);
+    return -abs * 110;
+  });
+
+  // Continuous Y rotation
+  const rotateY = useTransform(cardOffset, (offset) => {
+    if (isMobile) return 0;
+    const abs = Math.min(Math.abs(offset), 4);
+    const sign = Math.sign(offset);
+    return sign * Math.min(abs * 17, 42);
+  });
+
+  // Continuous scale
+  const scale = useTransform(cardOffset, (offset) => {
+    const abs = Math.min(Math.abs(offset), 4);
+    if (isMobile) {
+      return abs <= 1 
+        ? 1 - abs * 0.22 
+        : Math.max(0.78 - (abs - 1) * 0.055, 0.56);
     } else {
-      const prev = baseXPct.get();
-      // If the difference is huge (e.g. wrapping from one edge to the other),
-      // we snap the value instantly to prevent sliding across the active area.
-      if (Math.abs(transform.translateXPct - prev) > 100) {
-        baseXPct.set(transform.translateXPct);
-      } else {
-        animate(baseXPct, transform.translateXPct, transition);
-      }
+      return abs <= 1 
+        ? 1 - abs * 0.25 
+        : Math.max(0.75 - (abs - 1) * 0.065, 0.52);
     }
-  }, [transform.translateXPct, isReduced, transition, baseXPct]);
+  });
 
-  const cardX = useTransform([baseXPct, dragX], ([bx, dx]) => {
-    return `calc(${bx}% + ${dx}px)`;
+  // Continuous opacity
+  const opacity = useTransform(cardOffset, (offset) => {
+    const abs = Math.min(Math.abs(offset), 4);
+    if (isMobile) {
+      return abs <= 1
+        ? 1 - abs * 0.28
+        : Math.max(0.72 - (abs - 1) * 0.17, 0.16);
+    } else {
+      return abs <= 1
+        ? 1 - abs * 0.35
+        : Math.max(0.65 - (abs - 1) * 0.15, 0.12);
+    }
+  });
+
+  // Continuous zIndex
+  const zIndex = useTransform(cardOffset, (offset) => {
+    const abs = Math.min(Math.abs(offset), 4);
+    return Math.round(Math.max(20 - abs * 5, 0));
+  });
+
+  // Continuous image filter
+  const filter = useTransform(cardOffset, (offset) => {
+    const abs = Math.min(Math.abs(offset), 4);
+    const saturateVal = abs <= 1 ? 1.06 - abs * 0.41 : 0.65;
+    const brightnessVal = abs <= 1 ? 1 - abs * 0.22 : Math.max(0.55, 0.9 - abs * 0.12);
+    return `saturate(${saturateVal}) brightness(${brightnessVal})`;
   });
 
   return (
@@ -117,46 +153,21 @@ export default function PremiumCoverflowCard({
       // ── Interaction ───────────────────────────────────────────────────────
       onClick={!isActive ? onClick : undefined}
 
-      // ── Draggable ─────────────────────────────────────────────────────────
-      drag="x"
-      dragConstraints={{ left: 0, right: 0 }}
-      dragElastic={0.10}
-      dragMomentum={false}
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
-
-      // ── 3-D position (desktop) / 2-D position (mobile) ───────────────────
-      // Mobile deliberately omits rotateY + translateZ — perspective transforms
-      // are expensive on mobile GPUs and cause the "laggy" feel.
-      animate={
-        isMobile
-          ? {
-              scale: transform.scale,
-              opacity: transform.opacity,
-              zIndex: transform.zIndex,
-            }
-          : {
-              z: transform.translateZpx,
-              rotateY: transform.rotateYdeg,
-              scale: transform.scale,
-              opacity: transform.opacity,
-              zIndex: transform.zIndex,
-            }
-      }
-      transition={transition}
-
       style={{
         position: "absolute",
         left: "50%",
         top: 0,
-        x: cardX,
+        x,
+        z: isMobile ? undefined : z,
+        rotateY: isMobile ? undefined : rotateY,
+        scale,
+        opacity,
+        zIndex,
         touchAction: "pan-y",
         width: isMobile ? "80%" : "min(44%, 533px)",
         marginLeft: isMobile ? "-40%" : "calc(min(44%, 533px) / -2)",
         height: "100%",
         willChange: "transform, opacity",
-        // Only set preserve-3d on desktop — it creates a new stacking context
-        // and forces GPU rasterisation on every card, causing mobile jank.
         transformStyle: isMobile ? "flat" : "preserve-3d",
         cursor: isActive ? "default" : "pointer",
         transformOrigin: "center center",
@@ -182,20 +193,17 @@ export default function PremiumCoverflowCard({
         }}
       >
         {/* ── Product image ─────────────────────────────────────────────── */}
-        <img
+        <motion.img
           src={product.image}
           alt={product.name}
-          loading={abs <= 1 ? "eager" : "lazy"}
+          loading={slideIndex <= 1 ? "eager" : "lazy"}
           draggable={false}
           className="absolute inset-0 w-full h-full object-cover pointer-events-none"
           style={{
             // object-position: top ensures the full outfit / face is visible
             // instead of the centre crop cutting off the head.
             objectPosition: "top center",
-            filter: isActive
-              ? "saturate(1.06) brightness(1)"
-              : `saturate(0.65) brightness(${Math.max(0.55, 0.9 - abs * 0.12)})`,
-            transition: "filter 0.5s ease",
+            filter,
           }}
         />
 
@@ -319,7 +327,7 @@ export default function PremiumCoverflowCard({
 
           {/* ±1 cards: subtle price hint */}
           <AnimatePresence>
-            {!isActive && abs === 1 && (
+            {!isActive && isAdjacent && (
               <motion.p
                 key="premium-adjacent-price"
                 initial={{ opacity: 0 }}
