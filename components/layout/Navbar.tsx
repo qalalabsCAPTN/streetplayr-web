@@ -64,13 +64,18 @@ export default function Navbar() {
           <div className="flex items-center justify-end gap-6">
             <Link
               href="/cart"
-              className="hidden md:block hover:text-[#eadfed] transition-colors text-[rgba(234,223,237,0.58)]"
+              className="hidden md:block hover:text-[#eadfed] transition-colors text-[rgba(234,223,237,0.58)] relative"
               aria-label={`Cart${mounted ? ` (${cartCount})` : ''}`}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
                 <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
               </svg>
+              {mounted && cartCount > 0 && (
+                <span className="absolute -top-1.5 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#ddb7ff] font-mono text-[8px] font-bold text-[#1b1620] animate-in zoom-in duration-200">
+                  {cartCount > 99 ? "99+" : cartCount}
+                </span>
+              )}
             </Link>
             <Link
               href={isAuthenticated ? "/profile/wallet" : "/login"}
