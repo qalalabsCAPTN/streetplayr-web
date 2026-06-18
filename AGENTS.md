@@ -55,3 +55,30 @@ inner <div>: max-w-[ANYTHING] → max-w-[min(95vw,2400px)]
 - Admin pages
 - Footer (w-full, no max-w needed)
 <!-- END:layout-width-system -->
+
+<!-- BEGIN:web3d-scroll-damping -->
+# Web3D Scroll Damping & Touch Optimization
+
+## Universal Rules
+
+### 1. Frame-Rate Independent Scroll Damping
+When implementing custom scroll damping:
+- **Always** use a fixed-timestep sub-stepping accumulator (e.g., 2ms/500Hz step size) rather than per-frame physics updates.
+- This ensures the scroll feel (inertia, deceleration, softness) behaves identically across standard (60Hz) and high-refresh-rate (120Hz, 144Hz, 240Hz) displays.
+- Suggested constants for a 2ms step: `stepStiffness = 0.004`, `stepDamping = 0.98`.
+
+### 2. Route Transition Resets
+- **Always** listen to route changes (e.g., `usePathname` in Next.js) and immediately reset/synchronize the damping variables to `window.scrollY`.
+- This prevents visual scroll-back/jump artifacts when navigating.
+
+### 3. Touch Scroll Trap Prevention over 3D Canvas
+- **Never** leave `touch-action: none` on interactive 3D WebGL Canvas wrappers or Canvas elements.
+- **Always** set `touch-action: pan-y` (or `pan-y pinch-zoom`) so that touch devices (like mobile phones) can scroll the page vertically when dragging over the 3D canvas, avoiding user touch trapping.
+
+### 4. Scroll-Driven 3D Reactivity & Parallax
+- To animate 3D elements in response to page scrolling:
+  - Wrap the 3D body inside a dedicated scroll-reactive group (`scrollRef`).
+  - Keep this separate from any auto-rotation or drag-rotation physics groups (`groupRef`) so they combine additively.
+  - Linearly interpolate (`lerp`) the scroll position to update rotation, tilt, and Z-depth position changes.
+<!-- END:web3d-scroll-damping -->
+
