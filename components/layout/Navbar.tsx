@@ -38,12 +38,24 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="absolute top-0 w-full z-50 bg-transparent">
-        <nav className="grid grid-cols-3 items-center w-full mx-auto px-4 md:px-8 lg:px-12 h-20">
+      <header className={`w-full z-50 transition-all duration-300 ${
+        isScrolled 
+          ? "fixed top-0 bg-[#16111b]/85 backdrop-blur-md border-b border-white/[0.05] shadow-lg animate-in slide-in-from-top duration-300" 
+          : "absolute top-0 bg-transparent"
+      }`}>
+        <nav className={`grid grid-cols-3 items-center w-full mx-auto px-4 md:px-8 lg:px-12 transition-all duration-300 ${
+          isScrolled ? "h-16" : "h-20"
+        }`}>
           {/* Logo — extreme left */}
           <div className="flex items-center">
             <Link href="/home">
-              <img src="/assets/streetplayr-logo.png" alt="StreetplayR" className="h-10 md:h-12 w-auto object-contain opacity-95 transition-all duration-300" />
+              <img 
+                src="/assets/streetplayr-logo.png" 
+                alt="StreetplayR" 
+                className={`w-auto object-contain opacity-95 transition-all duration-300 ${
+                  isScrolled ? "h-8 md:h-9" : "h-10 md:h-12"
+                }`} 
+              />
             </Link>
           </div>
 
