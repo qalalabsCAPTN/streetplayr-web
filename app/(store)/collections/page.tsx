@@ -91,13 +91,14 @@ function CollectionsInner() {
         </div>
       </section>
 
-      <CategoryFilter activeCategory={activeFilter} onSelect={handleFilterChange} />
-
       <main className="relative z-[1] pb-20 w-full max-w-[min(98vw,2560px)] mx-auto px-4 md:px-8 lg:px-12 pt-14">
-        <div className="mb-14">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 border-b border-white/[0.06] pb-8">
           <h2 className="font-display text-[42px] md:text-[64px] uppercase leading-[0.92] tracking-tight text-[#eadfed]">
             The Archive
           </h2>
+          <div className="flex-shrink-0">
+            <CategoryFilter activeCategory={activeFilter} onSelect={handleFilterChange} />
+          </div>
         </div>
 
         {filteredProducts.length === 0 ? (
