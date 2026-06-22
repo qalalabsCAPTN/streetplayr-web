@@ -97,3 +97,112 @@ When implementing custom scroll damping:
   - **ResizeObserver:** Observe the container size and run the same boundary check on resize.
   - **Autoplay & Manual Controls:** Execute normal `scrollBy` smoothly; boundary wrapping handles resetting coordinates transparently.
 <!-- END:seamless-loop-carousels -->
+
+<!-- BEGIN:ui-ux-pro-max -->
+# UI/UX Pro Max — Design Intelligence (Persisted)
+
+Saved: 2026-06-22. This block captures the /ui-ux-pro-max skill rules so they apply automatically in every session on this project.
+
+## Skill Workflow (StreetPlayR Stack: Next.js + Tailwind)
+
+When doing any UI/UX work, follow this order:
+1. **Analyze** — product type, style, industry, stack (default: `nextjs`)
+2. **Generate design system** — run `--design-system` search script
+3. **Supplement** — domain searches for style/ux/typography as needed
+4. **Stack guidelines** — use `--stack nextjs` for implementation specifics
+5. **Deliver** — pass Pre-Delivery Checklist before submitting code
+
+## Priority Rule Categories
+
+| Priority | Category | Impact |
+|----------|----------|--------|
+| 1 | Accessibility | CRITICAL |
+| 2 | Touch & Interaction | CRITICAL |
+| 3 | Performance | HIGH |
+| 4 | Layout & Responsive | HIGH |
+| 5 | Typography & Color | MEDIUM |
+| 6 | Animation | MEDIUM |
+| 7 | Style Selection | MEDIUM |
+| 8 | Charts & Data | LOW |
+
+## Always Apply — Common Rules
+
+### Icons & Visual Elements
+- **No emoji icons** — use SVG icons (Heroicons, Lucide, Simple Icons)
+- **Stable hover states** — color/opacity transitions only, no layout-shifting scale
+- **Correct brand logos** — verified SVG from Simple Icons
+- **Consistent icon sizing** — fixed viewBox (24×24) with w-6 h-6
+
+### Interaction & Cursor
+- `cursor-pointer` on ALL clickable/hoverable cards and elements
+- Hover feedback: color, shadow, or border change
+- Smooth transitions: `transition-colors duration-200` (150–300ms range)
+- Focus states visible for keyboard navigation
+
+### Light/Dark Mode Contrast
+- Glass card light mode: `bg-white/80` or higher opacity (NOT `bg-white/10`)
+- Body text light: `#0F172A` (slate-900) — NOT slate-400
+- Muted text: `#475569` (slate-600) minimum
+- Borders: `border-gray-200` in light mode (NOT `border-white/10`)
+
+### Layout & Spacing
+- Floating navbar: `top-4 left-4 right-4` spacing (not flush to edges)
+- Always account for fixed navbar height in content padding
+- Consistent container: `max-w-[min(95vw,2400px)] mx-auto` (see layout-width-system)
+
+### Accessibility
+- All images have `alt` text
+- Form inputs have `<label>` elements
+- Color is never the only indicator
+- `prefers-reduced-motion` respected
+
+### Performance / Animation
+- Use `transform` / `opacity` — never `width`/`height` for animation
+- Micro-interactions: 150–300ms
+- Skeleton screens or spinners for loading states
+- Check `prefers-reduced-motion` before running animations
+
+## Pre-Delivery Checklist
+
+Before submitting any UI code, verify:
+
+### Visual Quality
+- [ ] No emojis used as icons (SVG only)
+- [ ] All icons from consistent set (Heroicons / Lucide)
+- [ ] Brand logos correct (Simple Icons verified)
+- [ ] Hover states don't cause layout shift
+- [ ] Theme colors used directly (`bg-primary`), not `var()` wrappers
+
+### Interaction
+- [ ] All clickable elements have `cursor-pointer`
+- [ ] Hover states provide clear visual feedback
+- [ ] Transitions: 150–300ms
+- [ ] Focus states visible for keyboard nav
+
+### Light/Dark Mode
+- [ ] Light mode text contrast ≥ 4.5:1
+- [ ] Glass/transparent elements visible in light mode
+- [ ] Borders visible in both modes
+- [ ] Both modes tested before delivery
+
+### Layout
+- [ ] Floating elements spaced from edges
+- [ ] No content hidden behind fixed navbars
+- [ ] Responsive at 375px / 768px / 1024px / 1440px
+- [ ] No horizontal scroll on mobile
+
+### Accessibility
+- [ ] All images have alt text
+- [ ] Form inputs have labels
+- [ ] Color is not the only indicator
+- [ ] `prefers-reduced-motion` respected
+
+## StreetPlayR Design Context (Session: 2026-06-22)
+
+- **Stack:** Next.js 15 App Router + Tailwind CSS
+- **Aesthetic:** Dark editorial streetwear — minimal, bold typography, high contrast
+- **Container rule:** `max-w-[min(95vw,2400px)] mx-auto px-4 md:px-6` (see layout-width-system)
+- **Animation library:** Framer Motion
+- **Backend:** Supabase
+- **Scroll:** Custom frame-rate-independent damping (see web3d-scroll-damping)
+<!-- END:ui-ux-pro-max -->
