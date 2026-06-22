@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+
 interface Testimonial {
   text: string;
   author: string;
@@ -28,6 +32,10 @@ export default function ReviewsSection({
   reviews,
 }: ReviewsSectionProps = {}) {
   const activeReviews = reviews && reviews.length > 0 ? reviews : defaultReviews;
+  const [current, setCurrent] = useState(0);
+
+  const prev = () => setCurrent((c) => (c === 0 ? activeReviews.length - 1 : c - 1));
+  const next = () => setCurrent((c) => (c === activeReviews.length - 1 ? 0 : c + 1));
 
   return (
     <section className="py-14 md:py-24 pb-20 md:pb-[inherit] px-4 md:px-8 lg:px-12 w-full max-w-[min(98vw,2560px)] mx-auto">
@@ -41,52 +49,81 @@ export default function ReviewsSection({
         </h2>
       </div>
 
+      {/* Desktop: 3-column grid */}
       <div className="hidden md:grid md:grid-cols-3 gap-6">
         {activeReviews.map((review, i) => (
           <ReviewCard key={i} review={review} />
         ))}
       </div>
 
-      <div className="md:hidden flex gap-4 overflow-x-auto snap-x snap-mandatory no-scrollbar pb-0">
-        {activeReviews.map((review, i) => (
-          <div key={i} className="min-w-[92vw] snap-center shrink-0">
-            <div className="border border-white/[0.08] p-6 flex flex-col gap-4 rounded-xl bg-transparent">
-              <div className="flex items-center gap-2">
-                <span className="font-display text-[24px] leading-none text-[#ddb7ff] opacity-[0.08] select-none">
-                  &ldquo;
-                </span>
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: 5 }, (_, s) => (
-                    <svg
-                      key={s}
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="#ddb7ff"
-                      stroke="none"
-                      opacity="0.5"
-                    >
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                    </svg>
-                  ))}
-                </div>
-              </div>
-
-              <p className="font-body text-base leading-[1.65] text-[rgba(234,223,237,0.72)]">
-                &ldquo;{review.text}&rdquo;
-              </p>
-
-              <div className="flex items-center gap-2 pt-3 border-t border-white/[0.06]">
-                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">
-                  {review.author}
-                </span>
-                <span className="font-mono text-[7px] uppercase tracking-[0.15em] text-[#ddb7ff]/30 ml-auto">
-                  VERIFIED
-                </span>
-              </div>
+      {/* Mobile: controlled slider — one card at a time, no overflow */}
+      <div className="md:hidden w-full overflow-hidden">
+        {/* Card */}
+        <div className="border border-white/[0.08] p-6 flex flex-col gap-4 rounded-xl bg-transparent w-full">
+          <div className="flex items-center gap-2">
+            <span className="font-display text-[24px] leading-none text-[#ddb7ff] opacity-[0.08] select-none">
+              &ldquo;
+            </span>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: 5 }, (_, s) => (
+                <svg key={s} width="14" height="14" viewBox="0 0 24 24" fill="#ddb7ff" stroke="none" opacity="0.5">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+              ))}
             </div>
           </div>
-        ))}
+
+          <p className="font-body text-base leading-[1.65] text-[rgba(234,223,237,0.72)]">
+            &ldquo;{activeReviews[current].text}&rdquo;
+          </p>
+
+          <div className="flex items-center gap-2 pt-3 border-t border-white/[0.06]">
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">
+              {activeReviews[current].author}
+            </span>
+            <span className="font-mono text-[7px] uppercase tracking-[0.15em] text-[#ddb7ff]/30 ml-auto">
+              VERIFIED
+            </span>
+          </div>
+        </div>
+
+        {/* Controls: prev / dots / next */}
+        <div className="flex items-center justify-between mt-5 px-1">
+          <button
+            onClick={prev}
+            aria-label="Previous review"
+            className="w-8 h-8 flex items-center justify-center rounded-full border border-white/10 text-white/40 hover:text-white/70 hover:border-white/25 transition-colors"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </button>
+
+          <div className="flex items-center gap-2">
+            {activeReviews.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrent(i)}
+                aria-label={`Go to review ${i + 1}`}
+                className={`rounded-full transition-all duration-300 ${
+                  i === current
+                    ? "w-4 h-1.5 bg-[#ddb7ff]/70"
+                    : "w-1.5 h-1.5 bg-white/20 hover:bg-white/40"
+                }`}
+              />
+            ))}
+          </div>
+
+          <button
+            onClick={next}
+            aria-label="Next review"
+            className="w-8 h-8 flex items-center justify-center rounded-full border border-white/10 text-white/40 hover:text-white/70 hover:border-white/25 transition-colors"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       <div className="mt-4 md:mt-12 text-center">
