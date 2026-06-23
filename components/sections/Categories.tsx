@@ -82,7 +82,7 @@ export default function Categories() {
                   <h3 className="font-display text-4xl leading-none tracking-[0.1em]">
                     {category.name}
                   </h3>
-                  <span className="mt-3 block h-px w-10 bg-[var(--sp-accent)] transition-all duration-200 group-hover:w-20" />
+                  <span className="mt-3 block h-px w-10 bg-[var(--sp-accent)] origin-left transition-transform duration-300 group-hover:scale-x-[2]" />
                 </div>
               </Link>
             </motion.div>

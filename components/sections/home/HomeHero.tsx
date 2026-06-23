@@ -4,11 +4,31 @@ import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
+import { motion, type Variants } from "framer-motion";
 
 const NinjaStar = dynamic(() => import("@/components/ui/NinjaStar"), {
   ssr: false,
   loading: () => <div className="w-full h-full bg-transparent" />,
 });
+
+const containerVariants: Variants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.3,
+    },
+  },
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
+  },
+};
 
 interface HomeHeroProps {
   title?: string;
@@ -35,23 +55,30 @@ export default function HomeHero({
   const [particles, setParticles] = useState<Array<{ left: number; delay: number; dur: number; size: number }>>([]);
 
   useEffect(() => {
-    setParticles(
-      Array.from({ length: 28 }, () => ({
-        left: Math.random() * 100,
-        delay: Math.random() * 5,
-        dur: 4 + Math.random() * 6,
-        size: 1 + Math.random() * 2,
-      })),
-    );
+    const initParticles = () => {
+      setParticles(
+        Array.from({ length: 28 }, () => ({
+          left: Math.random() * 100,
+          delay: Math.random() * 5,
+          dur: 4 + Math.random() * 6,
+          size: 1 + Math.random() * 2,
+        })),
+      );
+    };
+    const frame = requestAnimationFrame(initParticles);
+    return () => cancelAnimationFrame(frame);
   }, []);
 
   const [windowWidth, setWindowWidth] = useState<number | null>(null);
 
   useEffect(() => {
-    setWindowWidth(window.innerWidth);
     const handleResize = () => setWindowWidth(window.innerWidth);
+    const frame = requestAnimationFrame(handleResize);
     window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
 
   const getStarScale = () => {
@@ -100,35 +127,44 @@ export default function HomeHero({
     window.scrollTo({ top: window.innerHeight, behavior: "smooth" });
   };
 
+  const isMobile = windowWidth !== null && windowWidth < 768;
+  const isTablet = windowWidth !== null && windowWidth >= 768 && windowWidth < 1024;
+
   return (
     <section className="relative min-h-screen w-full flex flex-col justify-end overflow-hidden bg-[#16111b] isolate">
       {/* CSS-driven backdrop stages matching /enter-the-play page */}
       <div className="absolute inset-0 z-[-3] overflow-hidden pointer-events-none">
         <div className="absolute inset-0 bg-[#000]" />
-        <div className="home-bg-grid" />
+        <div className={`home-bg-grid ${isMobile ? "mobile-static" : ""}`} />
         <div className="home-bg-blob-purple" />
         <div className="home-bg-blob-green" />
-        <div className="home-bg-scanline" />
-        <div className="home-bg-scanline" />
+        {!isMobile && (
+          <>
+            <div className={`home-bg-scanline ${isTablet ? "tablet-scan" : ""}`} />
+            <div className={`home-bg-scanline ${isTablet ? "tablet-scan" : ""}`} style={{ animationDelay: "2.4s" }} />
+          </>
+        )}
       </div>
 
       {/* Floating Particles Backdrop */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-[-2]">
-        {particles.map((p, i) => (
-          <span
-            key={i}
-            className="home-particle"
-            style={{
-              left: `${p.left}%`,
-              bottom: "-10px",
-              width: `${p.size}px`,
-              height: `${p.size}px`,
-              "--dur": `${p.dur}s`,
-              "--delay": `${p.delay}s`,
-            } as React.CSSProperties}
-          />
-        ))}
-      </div>
+      {!isMobile && (
+        <div className="absolute inset-0 overflow-hidden pointer-events-none z-[-2]">
+          {particles.map((p, i) => (
+            <span
+              key={i}
+              className="home-particle"
+              style={{
+                left: `${p.left}%`,
+                bottom: "-10px",
+                width: `${p.size}px`,
+                height: `${p.size}px`,
+                "--dur": `${p.dur}s`,
+                "--delay": `${p.delay}s`,
+              } as React.CSSProperties}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Interactive 3D Star Overlay */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[5]">
@@ -176,19 +212,33 @@ export default function HomeHero({
         }}
       />
 
-      {/* Hero Content */}
-      <div className="relative z-[2] flex flex-col items-start gap-4 px-[6vw] pb-16 max-w-[880px] pointer-events-none">
-        <h1 className="font-display text-[clamp(64px,10vw,168px)] leading-[0.88] tracking-[0.01em] uppercase text-[#eadfed] m-0 max-w-[7.8ch] whitespace-pre-line pointer-events-none">
+      {/* Hero Content with staggered reveals */}
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="relative z-[2] flex flex-col items-start gap-4 px-[6vw] pb-16 max-w-[880px] pointer-events-none"
+      >
+        <motion.h1
+          variants={itemVariants}
+          className="font-display text-[clamp(64px,10vw,168px)] leading-[0.88] tracking-[0.01em] uppercase text-[#eadfed] m-0 max-w-[7.8ch] whitespace-pre-line pointer-events-none"
+        >
           {title}
-        </h1>
+        </motion.h1>
         {subtitle && (
-          <p className="font-body text-base text-white/70 max-w-md mt-2 pointer-events-none">
+          <motion.p
+            variants={itemVariants}
+            className="font-body text-base text-white/70 max-w-md mt-2 pointer-events-none"
+          >
             {subtitle}
-          </p>
+          </motion.p>
         )}
-        <div className="flex gap-3 mt-4 pointer-events-auto">
+        <motion.div
+          variants={itemVariants}
+          className="flex gap-3 mt-4 pointer-events-auto"
+        >
           <button
-            className="inline-flex items-center gap-3 px-7 py-4 bg-[#eadfed] text-[#16111b] border border-[#eadfed] font-mono text-[11px] tracking-[0.24em] font-bold uppercase transition-colors hover:bg-[#ddb7ff] rounded-xl"
+            className="inline-flex items-center gap-3 px-7 py-4 bg-[#eadfed] text-[#16111b] border border-[#eadfed] font-mono text-[11px] tracking-[0.24em] font-bold uppercase transition-colors hover:bg-[#ddb7ff] rounded-xl cursor-pointer"
             onClick={() => router.push(ctaHref)}
           >
             {ctaLabel}
@@ -198,7 +248,7 @@ export default function HomeHero({
             </svg>
           </button>
           <button
-            className="inline-flex items-center gap-3 px-7 py-4 bg-[#231e27]/40 text-[#eadfed] border border-white/[0.14] font-mono text-[11px] tracking-[0.24em] font-bold uppercase transition-colors hover:bg-white/[0.06] hover:border-white/[0.24] rounded-xl"
+            className="inline-flex items-center gap-3 px-7 py-4 bg-[#231e27]/40 text-[#eadfed] border border-white/[0.14] font-mono text-[11px] tracking-[0.24em] font-bold uppercase transition-colors hover:bg-white/[0.06] hover:border-white/[0.24] rounded-xl cursor-pointer"
             onClick={() => setJoinOpen(true)}
           >
             Join List
@@ -207,8 +257,8 @@ export default function HomeHero({
               <polyline points="12 5 19 12 12 19" />
             </svg>
           </button>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* Scroll Down Indicator */}
       <div className="hidden md:flex absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex-col items-center gap-2 cursor-pointer" onClick={scrollToNext}>
@@ -323,10 +373,10 @@ export default function HomeHero({
           66%     { transform: translate(88%, 48%); }
         }
         @keyframes scan {
-          0% { top: -1px; opacity: 0; }
-          6% { opacity: 0.5; }
-          94% { opacity: 0.5; }
-          100% { top: 100%; opacity: 0; }
+          0% { transform: translateY(0); opacity: 0; }
+          6% { opacity: var(--scan-opacity, 0.5); }
+          94% { opacity: var(--scan-opacity, 0.5); }
+          100% { transform: translateY(100vh); opacity: 0; }
         }
         @keyframes particleUp {
           0%   { transform: translateY(0) translateX(0); opacity: 0; }
@@ -344,6 +394,9 @@ export default function HomeHero({
           animation: gridDrift 28s linear infinite;
           mask-image: radial-gradient(80% 80% at 50% 50%, #000 50%, transparent 100%);
           -webkit-mask-image: radial-gradient(80% 80% at 50% 50%, #000 50%, transparent 100%);
+        }
+        .home-bg-grid.mobile-static {
+          animation: none;
         }
         .home-bg-blob-purple {
           position: absolute;
@@ -373,15 +426,17 @@ export default function HomeHero({
         }
         .home-bg-scanline {
           position: absolute;
+          top: 0;
           left: 0;
           right: 0;
           height: 1px;
           background: linear-gradient(90deg, transparent, #ddb7ff, transparent);
           animation: scan 7s linear infinite;
-          opacity: 0;
+          --scan-opacity: 0.5;
         }
-        .home-bg-scanline:nth-child(2) {
-          animation-delay: 2.4s;
+        .home-bg-scanline.tablet-scan {
+          animation: scan 10s linear infinite;
+          --scan-opacity: 0.3;
         }
         .home-particle {
           position: absolute;

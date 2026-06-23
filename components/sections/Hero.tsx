@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion, type Variants } from "framer-motion";
 import Image from "next/image";
 import Button from "@/components/ui/Button";
@@ -25,6 +26,22 @@ const lineVariants: Variants = {
 };
 
 export default function Hero() {
+  const [windowWidth, setWindowWidth] = useState<number | null>(null);
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    const frame = requestAnimationFrame(handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  const isMobile = windowWidth !== null && windowWidth < 768;
+  const isTablet = windowWidth !== null && windowWidth >= 768 && windowWidth < 1024;
+  const duration = isTablet ? 12 : 8;
+
   return (
     <section className="relative isolate flex min-h-[100dvh] overflow-hidden bg-black">
       <Image
@@ -37,11 +54,17 @@ export default function Hero() {
       />
       <div className="absolute inset-0 -z-10 bg-[linear-gradient(120deg,rgba(0,0,0,0.92)_0%,rgba(0,0,0,0.68)_38%,rgba(0,0,0,0.20)_72%,rgba(0,0,0,0.74)_100%)]" />
       <div className="absolute inset-x-0 top-0 -z-10 h-1/3 bg-gradient-to-b from-black via-black/80 to-transparent" />
-      <motion.div
-        animate={{ backgroundPosition: ["0% 0%", "100% 0%"] }}
-        className="hero-sweep absolute inset-0 -z-10 opacity-25"
-        transition={{ duration: 8, ease: "linear", repeat: Infinity }}
-      />
+      
+      {/* Optimized GPU translation sweep background */}
+      <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
+        {!isMobile && (
+          <motion.div
+            animate={{ x: ["0%", "-50%"] }}
+            className="hero-sweep absolute top-0 left-0 h-full w-[200%] opacity-25"
+            transition={{ duration, ease: "linear", repeat: Infinity }}
+          />
+        )}
+      </div>
       <div className="grid-floor absolute inset-x-0 bottom-0 -z-10 h-1/2 opacity-70" />
 
       <div className="mx-auto flex w-full max-w-7xl items-end px-4 pb-[88px] pt-28 sm:px-6 md:pb-[104px] lg:px-16">
