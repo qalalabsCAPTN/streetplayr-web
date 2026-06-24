@@ -109,9 +109,9 @@ export default function Footer() {
             We are playR
           </h3>
           <div className="flex flex-col gap-1 md:gap-3.5">
-            <a href="#" className="font-mono text-[12px] md:text-[13px] tracking-[0.18em] text-[rgba(234,223,237,0.48)] hover:text-[#eadfed] transition-colors duration-300 uppercase">
+            <Link href="/about" className="font-mono text-[12px] md:text-[13px] tracking-[0.18em] text-[rgba(234,223,237,0.48)] hover:text-[#eadfed] transition-colors duration-300 uppercase">
               Our Story
-            </a>
+            </Link>
             <a href="#" className="font-mono text-[12px] md:text-[13px] tracking-[0.18em] text-[rgba(234,223,237,0.48)] hover:text-[#eadfed] transition-colors duration-300 uppercase">
               Latest Collection
             </a>
@@ -145,6 +145,9 @@ export default function Footer() {
             <a href="#" className="font-mono text-[12px] md:text-[13px] tracking-[0.18em] text-[rgba(234,223,237,0.48)] hover:text-[#eadfed] transition-colors duration-300 uppercase">
               FAQ's
             </a>
+            <Link href="/contact" className="font-mono text-[12px] md:text-[13px] tracking-[0.18em] text-[rgba(234,223,237,0.48)] hover:text-[#eadfed] transition-colors duration-300 uppercase">
+              Contact Us
+            </Link>
             <a href="#" className="font-mono text-[12px] md:text-[13px] tracking-[0.18em] text-[rgba(234,223,237,0.48)] hover:text-[#eadfed] transition-colors duration-300 uppercase">
               Terms & Conditions
             </a>
