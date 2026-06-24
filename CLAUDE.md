@@ -105,3 +105,13 @@ The `NinjaStar` 3D component is designed to be interactive but has scroll-driven
 - **Grid Alignment & Responsiveness:** Wrap the `<NinjaStar />` inside a responsive, aspect-square container with progressive max-widths (e.g. `w-full max-w-[140px] sm:max-w-[180px] md:max-w-[220px] lg:max-w-[240px]` in footer, or `w-full max-w-[240px] sm:max-w-[280px] md:max-w-[320px]` in popup modal).
 - **Dynamic Scale Adjustments:** Since the 3D model tips can clip the camera's view frustum if the scale is too high relative to the container width, calculate the `scale` prop dynamically based on viewport width (e.g., `0.75`/`0.95`/`1.15` in footer, or `1.05`/`1.25`/`1.45` in popup modal) to ensure a snug fit on all devices.
 - **Height-Based Viewport Overflow Prevention:** On full-screen fixed landing or splash pages (e.g., `/enter-the-play`), elements like the 3D star canvas, logo brand image, and gaps must scale using viewport height (`vh`) rather than fixed width/pixels to prevent vertical clipping at 100% zoom on desktop. Use CSS `clamp()` and `max-height` (e.g. `max-height: clamp(60px, 12vh, 100px)` for logos, and `width`/`height` with `vh` values for the 3D container) to keep all elements within the fold.
+
+### Supabase Stub Awaitable/Thenable Gotcha
+- **Problem:** If a proxy-based mock/stub client implements a custom `.then()` method (or returns another proxy on property access), JS and React rendering environments may assume it's a Promise/thenable object and attempt to await it. This leads to infinite loops, compiler crashes, or hanging SSR/actions.
+- **Fix:** In `lib/supabase/stub.ts`, explicitly check for `then`, `catch`, or `finally` on the top-level returned client and return `undefined` so that it is not considered thenable.
+
+### Premium Contact Page & Terminal Log Success State
+- **Route:** `/contact` is mapped to the storefront Contact Us page.
+- **Submission:** Implemented via Next.js Server Action (`submitContactAction`).
+- **Cyberpunk UI Success State:** Upon successful form submission, the UI shifts from the inputs to an interactive CLI/terminal simulator which logs server communication events, mock headers, and transmission payloads before letting the user send another message. Mocks/stubs allow this to work offline or in development without failing.
+
