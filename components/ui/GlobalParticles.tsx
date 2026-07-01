@@ -17,13 +17,20 @@ export default function GlobalParticles() {
   const [particles, setParticles] = useState<Particle[]>([]);
 
   useEffect(() => {
-    // Generate 32 particles on client mount to prevent hydration mismatch
-    const generated = Array.from({ length: 32 }, () => ({
-      left: Math.random() * 100,
-      delay: Math.random() * 6,
-      dur: 5 + Math.random() * 7,
-      size: 1 + Math.random() * 2,
-    }));
+    // Detect screen width to adjust particle count and size dynamically
+    const isDesktop = window.innerWidth >= 1024;
+    const count = isDesktop ? 90 : 32;
+    
+    const generated = Array.from({ length: count }, () => {
+      const dur = isDesktop ? (7 + Math.random() * 8) : (5 + Math.random() * 7);
+      return {
+        left: Math.random() * 100,
+        // Negative delay pre-warms the animation so they are distributed across the screen height on load
+        delay: -Math.random() * dur,
+        dur,
+        size: isDesktop ? (2 + Math.random() * 3.5) : (1 + Math.random() * 2),
+      };
+    });
     setParticles(generated);
   }, []);
 
@@ -37,14 +44,14 @@ export default function GlobalParticles() {
       {particles.map((p, i) => (
         <span
           key={i}
-          className="absolute rounded-full"
+          className="absolute rounded-full exempt-motion"
           style={{
             left: `${p.left}%`,
             bottom: "-10px",
             width: `${p.size}px`,
             height: `${p.size}px`,
             background: "var(--sp-accent, #ddb7ff)",
-            boxShadow: "0 0 6px var(--sp-accent, rgba(221, 183, 255, 0.4))",
+            boxShadow: `0 0 ${p.size * 3}px var(--sp-accent, rgba(221, 183, 255, 0.45))`,
             animation: `pPart ${p.dur}s linear infinite`,
             animationDelay: `${p.delay}s`,
           }}

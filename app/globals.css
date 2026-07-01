@@ -199,9 +199,9 @@ a {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *:not(.exempt-motion),
+  *:not(.exempt-motion)::before,
+  *:not(.exempt-motion)::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;

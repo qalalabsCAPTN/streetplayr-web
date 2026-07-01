@@ -48,7 +48,6 @@ export default async function RootLayout({
     >
       <body className="min-h-full bg-black text-white">
         <ScrollDamping />
-        <GlobalParticles />
         <QueryProvider>
           <AuthProvider initialUser={user}>
             <RealtimeProvider>
@@ -56,6 +55,7 @@ export default async function RootLayout({
             </RealtimeProvider>
           </AuthProvider>
         </QueryProvider>
+        <GlobalParticles />
       </body>
     </html>
   );
