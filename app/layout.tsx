@@ -5,6 +5,7 @@ import RealtimeProvider from "@/components/auth/RealtimeProvider";
 import { getProfileAction } from "@/app/actions/auth";
 import { QueryProvider } from "@/providers/query-provider";
 import ScrollDamping from "@/components/ui/ScrollDamping";
+import GlobalParticles from "@/components/ui/GlobalParticles";
 import "./globals.css";
 
 export const dynamic = 'force-dynamic';
@@ -47,6 +48,7 @@ export default async function RootLayout({
     >
       <body className="min-h-full bg-black text-white">
         <ScrollDamping />
+        <GlobalParticles />
         <QueryProvider>
           <AuthProvider initialUser={user}>
             <RealtimeProvider>
