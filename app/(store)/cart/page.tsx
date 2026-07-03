@@ -24,7 +24,7 @@ export default function CartPage() {
   return (
     <>
       <Navbar />
-      <div className="relative min-h-screen bg-[#16111b] pt-20 md:pt-32 pb-24 px-4 md:px-8 lg:px-12">
+      <div className="relative min-h-screen bg-transparent pt-20 md:pt-32 pb-24 px-4 md:px-8 lg:px-12">
       {/* ── Environmental background layers ── */}
       {/* Vignette */}
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(0,0,0,0.65)_100%)]" />

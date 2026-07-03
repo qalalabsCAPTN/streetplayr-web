@@ -39,7 +39,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   // If database contains blocks, serve the fully CMS-driven homepage layout
   if (blocks && blocks.length > 0) {
     return (
-      <div className="flex flex-col w-full overflow-x-clip bg-[#16111b] text-[#eadfed]">
+      <div className="flex flex-col w-full overflow-x-clip bg-transparent text-[#eadfed]">
         <BlockRenderer blocks={blocks} />
       </div>
     );
@@ -48,7 +48,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   // DYNAMIC FALLBACK: Render identical static hardcoded components on empty blocks or DB down times
   const latestDrops = await ProductQueries.getLatestDrops();
   return (
-    <div className="flex flex-col w-full overflow-x-clip bg-[#16111b] text-[#eadfed]">
+    <div className="flex flex-col w-full overflow-x-clip bg-transparent text-[#eadfed]">
       <HomeHero />
       <BestSellersGate products={latestDrops} />
       <BrandStory />

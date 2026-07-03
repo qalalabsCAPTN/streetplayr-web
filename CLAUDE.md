@@ -115,3 +115,34 @@ The `NinjaStar` 3D component is designed to be interactive but has scroll-driven
 - **Submission:** Implemented via Next.js Server Action (`submitContactAction`).
 - **Cyberpunk UI Success State:** Upon successful form submission, the UI shifts from the inputs to an interactive CLI/terminal simulator which logs server communication events, mock headers, and transmission payloads before letting the user send another message. Mocks/stubs allow this to work offline or in development without failing.
 
+### Reviews & Testimonials Mobile Slider Layout
+To prevent horizontal overflow and clutter on mobile screens in review/testimonial components:
+- **State-driven slider:** Avoid simple scrollable snap rows (`overflow-x-auto`) which cause partial cards to leak or overflow layouts. Use a state-driven sliding approach with React `useState` tracking the active card index.
+- **Single-card viewport:** On mobile screens (`max-md`), display exactly one card at a time. Keep other cards hidden dynamically.
+- **Controls & Indicators:** Implement active-index controls consisting of prev/next arrow buttons (with wrapping boundary handling) and dot indicators (active dot styled differently, e.g., pill shape, inactive dots as standard circles). All dots should be interactive and map to their respective cards.
+- **Desktop Grid Fallback:** Render the desktop version separately (e.g., using a 3-column grid) gated via responsive utility classes (`hidden md:grid` on desktop, `md:hidden` on the mobile slider container).
+
+### Sandbox Git Push & Authentication Issues
+When pushing local commits to GitHub from the Antigravity sandbox:
+- **Dummy GITHUB_TOKEN Override:** The sandbox automatically injects a dummy `GITHUB_TOKEN` environment variable. This overrides the local keyring credentials (e.g. for `QalaLabs`), causing `fatal: Authentication failed` when executing standard `git push` commands.
+- **Fix:** Clear the environment variable in the terminal session prior to pushing, configure GitHub CLI credentials, and execute the push:
+  ```powershell
+  # For PowerShell (Windows)
+  Remove-Item env:GITHUB_TOKEN
+  gh auth setup-git
+  git push origin main
+  ```
+  ```bash
+  # For Bash/Linux/Mac
+  unset GITHUB_TOKEN
+  gh auth setup-git
+  git push origin main
+  ```
+
+### Global Background Particles & Stacking Context Visibility
+To keep the global floating particles animation (`GlobalParticles` at `z-[-1]`) visible behind all text, images, videos, and products across the storefront:
+- **Layering Hierarchy:** The background layers are structured as: Body background gradient (`z-[-3]`) -> page-specific background overlays (`z-[-2]`) -> `GlobalParticles` (`z-[-1]`) -> content (`z-auto`/`0`/positive).
+- **Avoiding Isolated Stacking Contexts:** Store layout/template wrappers (e.g., `app/(store)/template.tsx` and section headers like `HomeHero.tsx`) must avoid isolating content layout (do not use `isolate` or wrapper classes like `z-[2]`), as doing so groups the page background and text together above the global particles layer.
+- **Targeting Fixed Background Overlays:** Any page-specific fixed background overlays that lack explicit z-indexes are forced to the correct layer in `app/globals.css` using the selector `.pointer-events-none.fixed.inset-0:not([class*="z-"]):not(.exempt-motion) { z-index: -2 !important; }`.
+- **Scoping Opaque Portal Backgrounds:** Dashboard/portal CSS (e.g., `app/nectar-portal.css`) that sets a solid background on the `body` must be scoped to a container class (e.g., `.nectar-portal-root` applied in `app/dashboard/layout.tsx`) to prevent it from globally rendering over and hiding the storefront's transparent page backgrounds and floating particles.
+

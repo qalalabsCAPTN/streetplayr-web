@@ -61,92 +61,104 @@ export const ProductQueries = {
    * Fetches the latest arrivals/drops.
    */
   async getLatestDrops() {
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL.includes('mockproject')) {
       return getLocalLatestDrops();
     }
-    const supabase = await createClient();
+    try {
+      const supabase = await createClient();
 
-    const { data, error } = await supabase
-      .from('products')
-      .select(`
-        id,
-        title,
-        slug,
-        featured_image_url,
-        metadata,
-        status,
-        product_variants(id, price)
-      `)
-      .eq('status', 'active')
-      .order('created_at', { ascending: false })
-      .limit(10);
+      const { data, error } = await supabase
+        .from('products')
+        .select(`
+          id,
+          title,
+          slug,
+          featured_image_url,
+          metadata,
+          status,
+          product_variants(id, price)
+        `)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(10);
 
-    if (error) {
-      console.error('Error fetching drops:', error);
+      if (error) {
+        console.error('Error fetching drops:', error);
+        return getLocalLatestDrops();
+      }
+
+      if (!data || data.length === 0) {
+        return getLocalLatestDrops();
+      }
+
+      return data.map((p, idx) => {
+        const prices = (p.product_variants ?? []).map((v: any) => v.price).filter(Boolean);
+        const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+        return {
+          id: p.id,
+          name: p.title,
+          price: minPrice,
+          image: p.featured_image_url,
+          image2: p.metadata?.gallery_images?.[1] || p.featured_image_url,
+          slug: p.slug,
+          category: 'Street',
+          className: p.metadata?.className || getDefaultClassName(idx),
+        };
+      });
+    } catch (err) {
+      console.error('Exception in getLatestDrops:', err);
       return getLocalLatestDrops();
     }
-
-    if (!data || data.length === 0) {
-      return getLocalLatestDrops();
-    }
-
-    return data.map((p, idx) => {
-      const prices = (p.product_variants ?? []).map((v: any) => v.price).filter(Boolean);
-      const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
-      return {
-        id: p.id,
-        name: p.title,
-        price: minPrice,
-        image: p.featured_image_url,
-        image2: p.metadata?.gallery_images?.[1] || p.featured_image_url,
-        slug: p.slug,
-        category: 'Street',
-        className: p.metadata?.className || getDefaultClassName(idx),
-      };
-    });
   },
 
   /**
    * Fetches all active products for the collections feed.
    */
   async getActiveProducts() {
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return getLocalActiveProducts();
-    const supabase = await createClient();
-    const { data, error } = await supabase
-      .from('products')
-      .select(`
-        id,
-        title,
-        slug,
-        featured_image_url,
-        metadata,
-        status,
-        product_variants(id, price)
-      `)
-      .eq('status', 'active')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching active products:', error);
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL.includes('mockproject')) {
       return getLocalActiveProducts();
     }
+    try {
+      const supabase = await createClient();
+      const { data, error } = await supabase
+        .from('products')
+        .select(`
+          id,
+          title,
+          slug,
+          featured_image_url,
+          metadata,
+          status,
+          product_variants(id, price)
+        `)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
 
-    if (!data || data.length === 0) {
+      if (error) {
+        console.error('Error fetching active products:', error);
+        return getLocalActiveProducts();
+      }
+
+      if (!data || data.length === 0) {
+        return getLocalActiveProducts();
+      }
+
+      return data.map((p) => {
+        const prices = (p.product_variants ?? []).map((v: any) => v.price).filter(Boolean);
+        const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+        return {
+          id: p.id,
+          name: p.title,
+          price: minPrice,
+          slug: p.slug,
+          image: p.featured_image_url,
+          category: 'Street',
+        };
+      });
+    } catch (err) {
+      console.error('Exception in getActiveProducts:', err);
       return getLocalActiveProducts();
     }
-
-    return data.map((p) => {
-      const prices = (p.product_variants ?? []).map((v: any) => v.price).filter(Boolean);
-      const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
-      return {
-        id: p.id,
-        name: p.title,
-        price: minPrice,
-        slug: p.slug,
-        image: p.featured_image_url,
-        category: 'Street',
-      };
-    });
   },
 
   /**
@@ -176,52 +188,57 @@ export const ProductQueries = {
    * Fetches a single product by slug.
    */
   async getProductBySlug(slug: string) {
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL.includes('mockproject')) {
       return getLocalProductBySlug(slug) || null;
     }
-    const supabase = await createClient();
-    const { data, error } = await supabase
-      .from('products')
-      .select(`
-        id,
-        title,
-        slug,
-        description,
-        featured_image_url,
-        metadata,
-        status,
-        product_variants(id, sku, title, price, attributes)
-      `)
-      .eq('slug', slug)
-      .eq('status', 'active')
-      .single();
+    try {
+      const supabase = await createClient();
+      const { data, error } = await supabase
+        .from('products')
+        .select(`
+          id,
+          title,
+          slug,
+          description,
+          featured_image_url,
+          metadata,
+          status,
+          product_variants(id, sku, title, price, attributes)
+        `)
+        .eq('slug', slug)
+        .eq('status', 'active')
+        .single();
 
-    if (error || !data) return getLocalProductBySlug(slug) || null;
+      if (error || !data) return getLocalProductBySlug(slug) || null;
 
-    const variants = (data.product_variants ?? []).map((v: any) => ({
-      id: v.id,
-      size: v.title,
-      color: v.attributes?.color ?? 'Default',
-      stock_quantity: 999,
-      price_override: v.price,
-    }));
+      const variants = (data.product_variants ?? []).map((v: any) => ({
+        id: v.id,
+        size: v.title,
+        color: v.attributes?.color ?? 'Default',
+        stock_quantity: 999,
+        price_override: v.price,
+      }));
 
-    const minPrice = variants.length > 0
-      ? Math.min(...variants.map((v: any) => v.price_override))
-      : 0;
+      const minPrice = variants.length > 0
+        ? Math.min(...variants.map((v: any) => v.price_override))
+        : 0;
 
-    return {
-      id: data.id,
-      name: data.title,
-      slug: data.slug,
-      price: minPrice,
-      description: data.description ?? '',
-      image_url: data.featured_image_url,
-      category: '',
-      variants,
-      metadata: data.metadata ?? {},
-      is_active: data.status === 'active',
-    };
+      return {
+        id: data.id,
+        name: data.title,
+        slug: data.slug,
+        price: minPrice,
+        description: data.description ?? '',
+        image_url: data.featured_image_url,
+        category: '',
+        variants,
+        metadata: data.metadata ?? {},
+        is_active: data.status === 'active',
+      };
+    } catch (err) {
+      console.error('Exception in getProductBySlug:', err);
+      return getLocalProductBySlug(slug) || null;
+    }
   },
 };
 

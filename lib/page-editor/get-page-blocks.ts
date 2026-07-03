@@ -38,45 +38,50 @@ export async function getPageBlocks(
   siteSlug: string = 'streetplayr',
   isPreview: boolean = false
 ): Promise<PageBlock[]> {
-  const supabase = createClient();
+  try {
+    const supabase = createClient();
 
-  // Resolve site UUID from slug
-  const { data: site } = await supabase
-    .from('sites')
-    .select('id')
-    .eq('slug', siteSlug)
-    .single();
+    // Resolve site UUID from slug
+    const { data: site } = await supabase
+      .from('sites')
+      .select('id')
+      .eq('slug', siteSlug)
+      .single();
 
-  if (!site) return [];
+    if (!site) return [];
 
-  // Query both content and published_content to support robust preview fallback
-  const { data, error } = await supabase
-    .from('page_blocks')
-    .select('id, site_id, page_slug, block_type, content, published_content, block_order, is_visible')
-    .eq('site_id', site.id)
-    .eq('page_slug', pageSlug)
-    .eq('is_visible', true)
-    .order('block_order', { ascending: true });
+    // Query both content and published_content to support robust preview fallback
+    const { data, error } = await supabase
+      .from('page_blocks')
+      .select('id, site_id, page_slug, block_type, content, published_content, block_order, is_visible')
+      .eq('site_id', site.id)
+      .eq('page_slug', pageSlug)
+      .eq('is_visible', true)
+      .order('block_order', { ascending: true });
 
-  if (error) {
-    console.error('[getPageBlocks]', error.message);
+    if (error) {
+      console.error('[getPageBlocks]', error.message);
+      return [];
+    }
+
+    return (data ?? []).map((b: any) => {
+      // Staging Preview serves content (draft); Production serves published_content (falling back to draft)
+      const activeContent = isPreview
+        ? b.content
+        : (b.published_content ?? b.content ?? {});
+
+      return {
+        id: b.id,
+        site_id: b.site_id,
+        page_slug: b.page_slug,
+        block_type: b.block_type,
+        content: activeContent,
+        block_order: b.block_order,
+        is_visible: b.is_visible
+      };
+    }) as PageBlock[];
+  } catch (err) {
+    console.error('Exception in getPageBlocks:', err);
     return [];
   }
-
-  return (data ?? []).map((b: any) => {
-    // Staging Preview serves content (draft); Production serves published_content (falling back to draft)
-    const activeContent = isPreview
-      ? b.content
-      : (b.published_content ?? b.content ?? {});
-
-    return {
-      id: b.id,
-      site_id: b.site_id,
-      page_slug: b.page_slug,
-      block_type: b.block_type,
-      content: activeContent,
-      block_order: b.block_order,
-      is_visible: b.is_visible
-    };
-  }) as PageBlock[];
 }

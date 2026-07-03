@@ -11,7 +11,7 @@ const feedItems = [
 
 export default function DiscoveryFeed() {
   return (
-    <section className="relative h-screen w-full flex border-t border-white/[0.10] overflow-hidden bg-[#16111b]">
+    <section className="relative h-screen w-full flex border-t border-white/[0.10] overflow-hidden bg-transparent">
       <aside className="w-[200px] h-full border-r border-white/[0.08] flex-shrink-0 hidden lg:flex flex-col p-6 font-mono text-[10px] tracking-[0.22em] uppercase text-white/38">
         <div className="mb-12">
           <p className="mb-1">Editorial Index</p>

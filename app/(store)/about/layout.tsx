@@ -14,7 +14,7 @@ export default function AboutLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-[#16111b]">
+    <div className="min-h-screen bg-transparent">
       <Navbar />
       <main className="pb-28 md:pb-0">{children}</main>
       <Footer />

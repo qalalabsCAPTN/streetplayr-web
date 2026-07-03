@@ -29,7 +29,7 @@ function ResetPasswordForm() {
   }
 
   return (
-    <main className="relative min-h-screen bg-[#16111b] flex items-center justify-center overflow-hidden">
+    <main className="relative min-h-screen bg-transparent flex items-center justify-center overflow-hidden">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(0,0,0,0.65)_100%)]" />
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_50%_30%,rgba(221,183,255,0.04)_0%,transparent_55%)]" />
 

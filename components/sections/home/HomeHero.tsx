@@ -131,10 +131,10 @@ export default function HomeHero({
   const isTablet = windowWidth !== null && windowWidth >= 768 && windowWidth < 1024;
 
   return (
-    <section className="relative min-h-screen w-full flex flex-col justify-end overflow-hidden bg-[#16111b] isolate">
+    <section className="relative min-h-screen w-full flex flex-col justify-end overflow-hidden bg-transparent">
       {/* CSS-driven backdrop stages matching /enter-the-play page */}
       <div className="absolute inset-0 z-[-3] overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-[#000]" />
+        <div className="absolute inset-0 bg-transparent" />
         <div className={`home-bg-grid ${isMobile ? "mobile-static" : ""}`} />
         <div className="home-bg-blob-purple" />
         <div className="home-bg-blob-green" />

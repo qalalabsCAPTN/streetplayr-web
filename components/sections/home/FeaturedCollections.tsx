@@ -16,7 +16,7 @@ export default function FeaturedCollections() {
   const textY = useTransform(scrollYProgress, [0, 1], ["10%", "-10%"]);
 
   return (
-    <section ref={containerRef} className="relative w-full bg-[#16111b] py-32 px-4 md:px-8 lg:px-12 overflow-hidden">
+    <section ref={containerRef} className="relative w-full bg-transparent py-32 px-4 md:px-8 lg:px-12 overflow-hidden">
       {/* Background oversized typography watermark */}
       <motion.div 
         style={{ y: textY }}

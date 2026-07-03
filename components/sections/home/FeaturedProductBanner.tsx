@@ -15,7 +15,7 @@ export default function FeaturedProductBanner() {
   const y = useTransform(scrollYProgress, [0, 1], ["-10%", "10%"]);
 
   return (
-    <section ref={containerRef} className="relative w-full h-[100vh] min-h-[700px] overflow-hidden bg-[#16111b]">
+    <section ref={containerRef} className="relative w-full h-[100vh] min-h-[700px] overflow-hidden bg-transparent">
       <motion.div style={{ scale, y }} className="absolute inset-0 h-full w-full">
         <Image
           src="/assets/hero-tees.png"

@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 
 export default function ContactHero() {
   return (
-    <section className="relative min-h-[50vh] w-full flex items-end overflow-hidden bg-[#16111b] pt-32 pb-16 sm:pb-24">
+    <section className="relative min-h-[50vh] w-full flex items-end overflow-hidden bg-transparent pt-32 pb-16 sm:pb-24">
       {/* Premium background grid & glows */}
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(1000px_600px_at_50%_-10%,rgba(221,183,255,0.08),transparent_60%),radial-gradient(800px_500px_at_10%_80%,rgba(255,87,26,0.04),transparent_50%)]" />
       <div

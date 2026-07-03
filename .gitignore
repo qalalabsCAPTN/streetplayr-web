@@ -45,3 +45,5 @@ supabase/.temp/
 
 Nectar 2.0.zip
 *.zip
+/scratch/
+

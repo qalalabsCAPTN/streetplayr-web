@@ -4,7 +4,7 @@ import ContactForm from "@/components/sections/contact/ContactForm";
 
 export default function ContactPage() {
   return (
-    <div className="flex flex-col w-full bg-[#16111b] text-[#eadfed]">
+    <div className="flex flex-col w-full bg-transparent text-[#eadfed]">
       <ContactHero />
       
       <section className="w-full max-w-[min(98vw,2560px)] mx-auto px-4 md:px-8 lg:px-12 pb-28 md:pb-36 lg:pb-48">

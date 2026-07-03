@@ -28,7 +28,7 @@ export default function Footer() {
   const starScale = getStarScale();
 
   return (
-    <footer className="w-full bg-[#16111b] border-t border-white/[0.10] px-4 md:px-8 lg:px-12 pt-4 pb-24 md:pt-12 md:pb-12 relative overflow-hidden">
+    <footer className="w-full bg-transparent border-t border-white/[0.10] px-4 md:px-8 lg:px-12 pt-4 pb-24 md:pt-12 md:pb-12 relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(700px_360px_at_8%_0%,rgba(221,183,255,0.08),transparent_60%),radial-gradient(520px_320px_at_92%_100%,rgba(255,87,26,0.07),transparent_62%)]" />
 
       <div className="relative py-2 md:py-12 lg:py-16 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-y-3.5 gap-x-4 md:gap-12 lg:gap-8 w-full max-w-none">

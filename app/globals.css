@@ -98,10 +98,7 @@ body {
   min-height: 100%;
   margin: 0;
   font-size: 16px;
-  background:
-    radial-gradient(900px 520px at 12% -8%, rgba(221, 183, 255, 0.12), transparent 62%),
-    radial-gradient(760px 460px at 90% 8%, rgba(255, 87, 26, 0.08), transparent 60%),
-    linear-gradient(180deg, #16111b 0%, #1b1620 38%, #16111b 100%);
+  background: transparent;
   color: var(--sp-text-primary);
   font-family: var(--font-sp-body), system-ui, sans-serif;
   text-rendering: optimizeLegibility;
@@ -123,12 +120,17 @@ body::after {
   content: "";
   position: fixed;
   inset: 0;
-  z-index: -1;
+  z-index: -3;
   pointer-events: none;
   background:
-    radial-gradient(900px 520px at 18% 18%, rgba(221, 183, 255, 0.08), transparent 62%),
-    radial-gradient(700px 500px at 88% 72%, rgba(255, 87, 26, 0.06), transparent 65%),
-    linear-gradient(135deg, rgba(255,255,255,0.025), transparent 42%);
+    radial-gradient(900px 520px at 12% -8%, rgba(221, 183, 255, 0.12), transparent 62%),
+    radial-gradient(760px 460px at 90% 8%, rgba(255, 87, 26, 0.08), transparent 60%),
+    linear-gradient(180deg, #16111b 0%, #1b1620 38%, #16111b 100%);
+}
+
+/* Page-specific background overlays must sit behind the global particles */
+.pointer-events-none.fixed.inset-0:not([class*="z-"]):not(.exempt-motion) {
+  z-index: -2 !important;
 }
 
 body::selection {

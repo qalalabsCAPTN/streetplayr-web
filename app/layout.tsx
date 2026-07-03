@@ -46,7 +46,7 @@ export default async function RootLayout({
       lang="en"
       className={`${display.variable} ${body.variable} ${mono.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-black text-white">
+      <body className="min-h-full bg-transparent text-white">
         <ScrollDamping />
         <QueryProvider>
           <AuthProvider initialUser={user}>

@@ -40,7 +40,7 @@ export default function GlobalParticles() {
   }
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-[10] overflow-hidden">
+    <div className="pointer-events-none fixed inset-0 z-[-1] overflow-hidden">
       {particles.map((p, i) => (
         <span
           key={i}

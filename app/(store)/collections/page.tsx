@@ -48,7 +48,7 @@ function CollectionsInner() {
   };
 
   return (
-    <div className="min-h-screen bg-[#16111b] text-[#eadfed] selection:bg-[#ddb7ff] selection:text-[#16111b] relative overflow-hidden">
+    <div className="min-h-screen bg-transparent text-[#eadfed] selection:bg-[#ddb7ff] selection:text-[#16111b] relative overflow-hidden">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(0,0,0,0.65)_100%)]" />
       <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.25)_0%,transparent_10%,transparent_90%,rgba(0,0,0,0.25)_100%)]" />
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_50%_30%,rgba(221,183,255,0.05)_0%,transparent_55%)]" />

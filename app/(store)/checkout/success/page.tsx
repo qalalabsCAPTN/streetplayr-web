@@ -69,7 +69,7 @@ export default function CheckoutSuccessPage() {
   if (!mounted) return null;
 
   return (
-    <div className="relative min-h-screen bg-[#16111b] overflow-hidden flex items-center justify-center">
+    <div className="relative min-h-screen bg-transparent overflow-hidden flex items-center justify-center">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.2 }}

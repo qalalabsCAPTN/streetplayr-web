@@ -7,7 +7,7 @@ export default function AboutHero() {
   const ref = useRef<HTMLDivElement>(null);
 
   return (
-    <section ref={ref} className="relative min-h-screen w-full flex items-end overflow-hidden bg-[#16111b]">
+    <section ref={ref} className="relative min-h-screen w-full flex items-end overflow-hidden bg-transparent">
       <video
         className="absolute inset-0 w-full h-full object-cover"
         src="/assets/home-page-banner.mp4"

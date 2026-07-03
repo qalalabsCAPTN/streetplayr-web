@@ -64,7 +64,7 @@ export default function StoreTemplate({
       animate="visible"
       variants={variants}
       transition={{ duration, ease: [0.22, 1, 0.36, 1] }}
-      className="w-full flex-grow flex flex-col"
+      className="w-full flex-grow flex flex-col relative"
     >
       {children}
     </motion.div>
