@@ -206,3 +206,19 @@ Before submitting any UI code, verify:
 - **Backend:** Supabase
 - **Scroll:** Custom frame-rate-independent damping (see web3d-scroll-damping)
 <!-- END:ui-ux-pro-max -->
+
+<!-- BEGIN:enter-the-play-theme -->
+# Enter The Play Theme Default
+
+- **Rule:** The landing/splash page at `/enter-the-play` defaults to dark mode (`const [theme, setTheme] = useState<'light' | 'dark'>('dark')`).
+- **Reason:** StreetPlayR branding matches dark editorial streetwear aesthetic.
+<!-- END:enter-the-play-theme -->
+
+<!-- BEGIN:entering-street-playr-video -->
+# Entering Street PlayR Preloader Video
+
+- **Rule:** The preloader/intro video playing at `/entering-street-playR` must display full screen across all device widths/sizes, without any black pillarboxes or letterboxes.
+- **Implementation:** Use `object-fit: cover` and `object-position: center center` globally on the video element (e.g., `.preloader-video`).
+- **Reason:** Ensures an immersive full-screen experience when launching the play page.
+<!-- END:entering-street-playr-video -->
+

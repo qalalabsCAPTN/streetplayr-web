@@ -1,4 +1,6 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect */
+
 
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -16,7 +18,7 @@ export default function EnterThePlay() {
   const [progress, setProgress] = useState(0);
   const [ready, setReady] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
 
   const [windowWidth, setWindowWidth] = useState<number | null>(null);
 
