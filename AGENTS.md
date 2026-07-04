@@ -222,3 +222,11 @@ Before submitting any UI code, verify:
 - **Reason:** Ensures an immersive full-screen experience when launching the play page.
 <!-- END:entering-street-playr-video -->
 
+<!-- BEGIN:enter-the-play-drop-animation -->
+# Enter The Play Drop Animation
+
+- **Rule:** The landing/splash page at `/enter-the-play` uses the `contentDrop` animation on its content container to slide down and fade in on mount.
+- **Rule:** Animated elements on `/enter-the-play` (particles, content container, brand logo) must use the `exempt-motion` class to bypass standard OS prefers-reduced-motion media query restrictions.
+- **Rule:** Floating particles on `/enter-the-play` must be pre-warmed with negative animation delay `delay: -Math.random() * dur` to cover the screen instantly on mount.
+<!-- END:enter-the-play-drop-animation -->
+
