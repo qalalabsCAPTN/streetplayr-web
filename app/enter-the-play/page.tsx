@@ -55,12 +55,15 @@ export default function EnterThePlay() {
 
   useEffect(() => {
     setParticles(
-      Array.from({ length: 28 }, () => ({
-        left: Math.random() * 100,
-        delay: Math.random() * 5,
-        dur: 4 + Math.random() * 6,
-        size: 1 + Math.random() * 2,
-      })),
+      Array.from({ length: 28 }, () => {
+        const dur = 4 + Math.random() * 6;
+        return {
+          left: Math.random() * 100,
+          delay: -Math.random() * dur,
+          dur,
+          size: 1 + Math.random() * 2,
+        };
+      }),
     );
   }, []);
 
@@ -93,7 +96,7 @@ export default function EnterThePlay() {
         {particles.map((p, i) => (
           <span
             key={i}
-            className={styles["particle"]}
+            className={`${styles["particle"]} exempt-motion`}
             style={{
               left: `${p.left}%`,
               bottom: "-10px",
@@ -107,7 +110,7 @@ export default function EnterThePlay() {
       </div>
 
       {/* Content */}
-      <div className={styles["content"]}>
+      <div className={`${styles["content"]} exempt-motion`}>
         <div className={styles["star-container"]}>
           <NinjaStar scale={starScale} scrollReactive={false} />
         </div>
@@ -118,7 +121,7 @@ export default function EnterThePlay() {
             alt="StreetplayR"
             width={540}
             height={100}
-            className={styles["brand-logo"]}
+            className={`${styles["brand-logo"]} exempt-motion`}
             priority
           />
         </div>

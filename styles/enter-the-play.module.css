@@ -128,6 +128,18 @@
   flex-direction: column;
   align-items: center;
   gap: clamp(20px, 4vh, 40px);
+  animation: contentDrop 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes contentDrop {
+  0% {
+    opacity: 0;
+    transform: translateY(-40px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .star-container {
@@ -174,7 +186,7 @@
   height: auto;
   object-fit: contain;
   animation: logoFloat 5s ease-in-out infinite;
-  filter: drop-shadow(0 0 40px rgba(221,183,255,0.12));
+  filter: drop-shadow(0 0 40px rgba(221,183,255,0.45));
 }
 
 @keyframes logoFloat {
