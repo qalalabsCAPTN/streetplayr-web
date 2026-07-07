@@ -1,7 +1,8 @@
 "use client";
 
 import { motion, type Variants } from "framer-motion";
-import { type ReactNode, useState, useEffect } from "react";
+import { type ReactNode } from "react";
+import { useWindowWidth } from "@/hooks/useWindowWidth";
 
 type RevealProps = {
   children: ReactNode;
@@ -27,23 +28,8 @@ export default function Reveal({
   className = "",
   delay = 0,
 }: RevealProps) {
-  const [viewportAmount, setViewportAmount] = useState(0.18);
-
-  useEffect(() => {
-    const handleResize = () => {
-      const w = window.innerWidth;
-      if (w < 768) {
-        setViewportAmount(0.1);
-      } else if (w < 1024) {
-        setViewportAmount(0.15);
-      } else {
-        setViewportAmount(0.18);
-      }
-    };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  const width = useWindowWidth();
+  const viewportAmount = width < 768 ? 0.1 : width < 1024 ? 0.15 : 0.18;
 
   return (
     <motion.div

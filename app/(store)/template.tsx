@@ -12,13 +12,7 @@ export default function StoreTemplate({
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    const frame = requestAnimationFrame(handleResize);
-    window.addEventListener("resize", handleResize);
-    return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener("resize", handleResize);
-    };
+    setWindowWidth(window.innerWidth);
   }, []);
 
   useEffect(() => {

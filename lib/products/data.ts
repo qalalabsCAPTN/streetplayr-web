@@ -9,7 +9,7 @@ export interface LocalProduct {
   metadata: {
     points: string;
     gallery_images: string[];
-    colors: { id: string; name: string; hex: string }[];
+    colors: { id: string; name: string; hex: string; images?: string[] }[];
     /** Path to GLB file in /public/models/ — enables "View in 3D" button on PDP */
     model3d?: string;
   };
@@ -30,7 +30,7 @@ const GALLERY_IMAGES = (slug: string) => [
   `/assets/products/${slug}/image-5.jpg`,
 ];
 
-const ALL_SIZES = ["XS", "S", "M", "L", "XL"];
+const ALL_SIZES = ["XS", "S", "M", "L", "XL", "2XL"];
 
 function buildVariants(slug: string, baseStock = 25) {
   return ALL_SIZES.map((size) => ({
@@ -44,85 +44,137 @@ function buildVariants(slug: string, baseStock = 25) {
 
 export const LOCAL_PRODUCTS: LocalProduct[] = [
   {
-    id: "stick-no-bills",
-    name: "Stick No Bills",
-    price: 1200,
+    id: "ctt-waffle",
+    name: "playR Create Waffle Tee",
+    price: 1999,
     description:
-      "A statement tee for those who refuse to be ignored. Bold graphics meet heavyweight cotton — built for the streets that don't sleep.",
-    image_url: `/assets/products/stick-no-bills/image-1.jpg`,
-    slug: "stick-no-bills",
+      "Crafted from textured waffle-knit fabric with a relaxed fit and full-length sleeves",
+    image_url: `/assets/products/ctt-waffle/image-1.jpg`,
+    slug: "ctt-waffle",
     category: { name: "TEES" },
     metadata: {
-      points: "200",
-      gallery_images: GALLERY_IMAGES("stick-no-bills"),
-      colors: [{ id: "default", name: "Standard", hex: "#ffffff" }],
+      points: "300",
+      gallery_images: GALLERY_IMAGES("ctt-waffle"),
+      colors: [
+        { id: "white", name: "White", hex: "#f5f5f0", images: GALLERY_IMAGES("ctt-waffle") },
+        { id: "maroon", name: "Maroon", hex: "#6b1c2a", images: GALLERY_IMAGES("ctt-maroon") },
+      ],
     },
-    variants: buildVariants("stick-no-bills"),
+    variants: buildVariants("ctt-waffle"),
+  },
+  {
+    id: "warrior-tee",
+    name: "WARRIOR Tee",
+    price: 1999,
+    description:
+      "Made from heavyweight premium cotton terry, this oversized T-shirt is designed for all-day comfort and a structured drape. Signature aligned puff print detailing around the neckline and back adds a distinctive, elevated finish",
+    image_url: `/assets/products/black-warrior/image-1.jpg`,
+    slug: "black-warrior",
+    category: { name: "TEES" },
+    metadata: {
+      points: "300",
+      gallery_images: GALLERY_IMAGES("black-warrior"),
+      colors: [
+        { id: "black", name: "Black", hex: "#1a1a1a", images: GALLERY_IMAGES("black-warrior") },
+        { id: "brown", name: "Brown", hex: "#5c3a2e", images: GALLERY_IMAGES("brown-warrior") },
+      ],
+    },
+    variants: buildVariants("black-warrior"),
   },
   {
     id: "inspired",
-    name: "Inspired",
-    price: 1499,
+    name: "INSPIRED Tee",
+    price: 2499,
     description:
-      "Inspired by the rhythm of the city. A premium tee with a clean cut, archival-grade stitching, and a fit that moves with you.",
+      "Made from premium single jersey cotton for a soft, lightweight feel, this oversized T-shirt combines a unique purple acid-washed finish with a striking white screen print for elevated everyday wear.",
     image_url: `/assets/products/inspired/image-1.jpg`,
     slug: "inspired",
     category: { name: "TEES" },
     metadata: {
-      points: "250",
+      points: "350",
       gallery_images: GALLERY_IMAGES("inspired"),
-      colors: [{ id: "default", name: "Standard", hex: "#ffffff" }],
+      colors: [
+        { id: "purple", name: "Purple", hex: "#4a2d6b", images: GALLERY_IMAGES("inspired") },
+      ],
       model3d: "/models/inspired.glb",
     },
     variants: buildVariants("inspired"),
   },
   {
-    id: "ctt-waffle",
-    name: "CTT Waffle",
-    price: 1799,
+    id: "star-tank-dark",
+    name: "STAAR playR Tank",
+    price: 2499,
     description:
-      "Waffle-knit texture engineered for depth and dimension. Heavyweight build, breathable structure — the daily uniform for the discerning.",
-    image_url: `/assets/products/ctt-waffle/image-1.jpg`,
-    slug: "ctt-waffle",
-    category: { name: "HOODIES" },
+      "Crafted from heavyweight premium cotton, this sleeveless acid-washed tank features distressed panel seams across the entire garment for a deconstructed aesthetic. A premium raised puff print on the back completes the piece with bold dimension and lasting durability.",
+    image_url: `/assets/products/star-tank-dark/image-1.jpg`,
+    slug: "star-tank-dark",
+    category: { name: "TANKS" },
     metadata: {
-      points: "300",
-      gallery_images: GALLERY_IMAGES("ctt-waffle"),
-      colors: [{ id: "default", name: "Standard", hex: "#ffffff" }],
+      points: "350",
+      gallery_images: GALLERY_IMAGES("star-tank-dark"),
+      colors: [
+        { id: "dark", name: "Dark", hex: "#1a1a1a", images: GALLERY_IMAGES("star-tank-dark") },
+      ],
     },
-    variants: buildVariants("ctt-waffle"),
+    variants: buildVariants("star-tank-dark"),
   },
+  // playR Sweats (PS-PNT-CORE-BLK / -CRM, Rs.3499) — hidden until real product
+  // photos land. Black + Cream shots pending; the old olive images belonged to
+  // the Carpenter Olive colourway, not these.
   {
-    id: "brown-warrior",
-    name: "Brown Warrior",
-    price: 532,
+    id: "carpenter-grey",
+    name: "Carpenter Pants",
+    price: 3699,
     description:
-      "Earthy tones meet urban durability. The Brown Warrior is a rugged essential built for layering and daily rotation. No pretense. Just presence.",
-    image_url: `/assets/products/brown-warrior/image-1.jpg`,
-    slug: "brown-warrior",
-    category: { name: "OUTERWEAR" },
-    metadata: {
-      points: "100",
-      gallery_images: GALLERY_IMAGES("brown-warrior"),
-      colors: [{ id: "default", name: "Standard", hex: "#ffffff" }],
-    },
-    variants: buildVariants("brown-warrior"),
-  },
-  {
-    id: "black-warrior",
-    name: "Black Warrior",
-    price: 7892,
-    description:
-      "The apex of the Warrior line. Precision-cut black fabric with a weight that commands attention. Limited-release archival piece.",
-    image_url: `/assets/products/black-warrior/image-1.jpg`,
-    slug: "black-warrior",
-    category: { name: "OUTERWEAR" },
+      "Crafted from premium heavyweight fabric, the playR Carpenter Pants are designed for everyday comfort with a clean, timeless silhouette. Featuring a relaxed fit, subtle carpenter-inspired detailing, and a discreet side pocket for quick access to your phone or everyday essentials, they balance functionality with effortless style. Minimal, durable, and versatile, they're built to pair seamlessly with any outfit.",
+    image_url: `/assets/products/carpenter-grey/image-1.jpg`,
+    slug: "carpenter-grey",
+    category: { name: "PANTS" },
     metadata: {
       points: "500",
-      gallery_images: GALLERY_IMAGES("black-warrior"),
-      colors: [{ id: "default", name: "Standard", hex: "#ffffff" }],
+      gallery_images: GALLERY_IMAGES("carpenter-grey"),
+      colors: [
+        { id: "grey", name: "Grey", hex: "#8a8a8a", images: GALLERY_IMAGES("carpenter-grey") },
+        { id: "olive", name: "Olive", hex: "#5c5a3a", images: GALLERY_IMAGES("carpenter-olive") },
+      ],
     },
-    variants: buildVariants("black-warrior"),
+    variants: buildVariants("carpenter-grey"),
+  },
+  {
+    id: "stick-no-bills",
+    name: "playR Street SNB Waffle Tee",
+    price: 2299,
+    description:
+      "Crafted from heavyweight acid-washed ribbed cotton, this oversized long sleeve features a structured, boxy fit with dropped shoulders and a worn-in vintage finish. The phrase \"Stick No Bills\" comes from the iconic notices painted on city walls to discourage posters and advertisements, becoming a recognizable part of the urban landscape. The graphics draw inspiration from this piece of street culture, reinterpreting a familiar symbol of the city.",
+    image_url: `/assets/products/stick-no-bills/image-1.jpg`,
+    slug: "stick-no-bills",
+    category: { name: "TEES" },
+    metadata: {
+      points: "300",
+      gallery_images: GALLERY_IMAGES("stick-no-bills"),
+      colors: [
+        { id: "grey", name: "Grey", hex: "#8a8a8a", images: GALLERY_IMAGES("stick-no-bills") },
+      ],
+    },
+    variants: buildVariants("stick-no-bills"),
+  },
+  {
+    id: "warrior-bob",
+    name: "WARRIOR Bob",
+    price: 1999,
+    description:
+      "The boldest cut in the Warrior family. Heavyweight cotton terry with an oversized silhouette and signature puff print detailing — raw, structured, unapologetic.",
+    image_url: `/assets/products/warrior-bob/image-1.jpg`,
+    slug: "warrior-bob",
+    category: { name: "TEES" },
+    metadata: {
+      points: "300",
+      gallery_images: GALLERY_IMAGES("warrior-bob"),
+      colors: [
+        { id: "default", name: "Standard", hex: "#ffffff", images: GALLERY_IMAGES("warrior-bob") },
+      ],
+    },
+    variants: buildVariants("warrior-bob"),
   },
 ];
 

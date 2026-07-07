@@ -14,6 +14,10 @@ export default function ScrollDamping() {
   const lastTime = useRef(0);
   const accumulator = useRef(0);
 
+  // Cache targets to avoid layout thrashing during wheel scrolling
+  const lastTarget = useRef<EventTarget | null>(null);
+  const lastIsInsideScrollable = useRef(false);
+
   // Instantly reset scroll state on page navigation to avoid jumping or animating back
   useEffect(() => {
     targetScrollY.current = window.scrollY;
@@ -22,6 +26,11 @@ export default function ScrollDamping() {
     isMoving.current = false;
     lastTime.current = 0;
     accumulator.current = 0;
+    lastTarget.current = null;
+    lastIsInsideScrollable.current = false;
+    if (typeof window !== "undefined") {
+      (window as any).__scrollDampingY = window.scrollY;
+    }
   }, [pathname]);
 
   useEffect(() => {
@@ -31,6 +40,9 @@ export default function ScrollDamping() {
 
     targetScrollY.current = window.scrollY;
     currentScrollY.current = window.scrollY;
+    if (typeof window !== "undefined") {
+      (window as any).__scrollDampingY = window.scrollY;
+    }
 
     const syncScroll = () => {
       // Sync our tracking variables with the native scroll position.
@@ -44,6 +56,9 @@ export default function ScrollDamping() {
         isMoving.current = false;
         lastTime.current = 0;
         accumulator.current = 0;
+        if (typeof window !== "undefined") {
+          (window as any).__scrollDampingY = window.scrollY;
+        }
       }
     };
 
@@ -55,18 +70,25 @@ export default function ScrollDamping() {
       if (e.deltaY === 0) return;
 
       // Check if target or any parent is scrollable to avoid hijacking nested scroll areas (modals, dropdowns, etc.)
-      let target = e.target as HTMLElement | null;
       let isInsideScrollable = false;
-      while (target && target !== document.body && target !== document.documentElement) {
-        const style = window.getComputedStyle(target);
-        const overflowY = style.overflowY;
-        const isScrollable = overflowY === "auto" || overflowY === "scroll";
-        const canScroll = target.scrollHeight > target.clientHeight;
-        if (isScrollable && canScroll) {
-          isInsideScrollable = true;
-          break;
+      const eventTarget = e.target;
+      if (eventTarget && eventTarget === lastTarget.current) {
+        isInsideScrollable = lastIsInsideScrollable.current;
+      } else {
+        lastTarget.current = eventTarget;
+        let target = eventTarget as HTMLElement | null;
+        while (target && target !== document.body && target !== document.documentElement) {
+          const style = window.getComputedStyle(target);
+          const overflowY = style.overflowY;
+          const isScrollable = overflowY === "auto" || overflowY === "scroll";
+          const canScroll = target.scrollHeight > target.clientHeight;
+          if (isScrollable && canScroll) {
+            isInsideScrollable = true;
+            break;
+          }
+          target = target.parentElement;
         }
-        target = target.parentElement;
+        lastIsInsideScrollable.current = isInsideScrollable;
       }
       if (isInsideScrollable) return;
 
@@ -121,6 +143,9 @@ export default function ScrollDamping() {
 
       currentScrollY.current = current;
       velocity.current = vel;
+      if (typeof window !== "undefined") {
+        (window as any).__scrollDampingY = current;
+      }
 
       const displacement = target - current;
       if (Math.abs(displacement) > 0.05 || Math.abs(vel) > 0.02) {
@@ -129,6 +154,9 @@ export default function ScrollDamping() {
       } else {
         currentScrollY.current = target;
         window.scrollTo(0, target);
+        if (typeof window !== "undefined") {
+          (window as any).__scrollDampingY = target;
+        }
         velocity.current = 0;
         isMoving.current = false;
         lastTime.current = 0;

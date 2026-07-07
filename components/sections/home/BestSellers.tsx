@@ -52,6 +52,7 @@ export default function BestSellers({ products }: BestSellersProps) {
               <img
                 src={product.image}
                 alt={product.name}
+                decoding="async"
                 className="w-full h-full object-cover saturate-[0.92] transition-transform duration-700 group-hover:scale-[1.025] group-hover:saturate-100"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#16111b]/90 via-[#16111b]/15 to-transparent p-8 flex flex-col justify-end">

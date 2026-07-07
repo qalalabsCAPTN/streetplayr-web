@@ -102,20 +102,22 @@ export default function Loader() {
               }}
             />
             <div
-              className="absolute left-0 right-0 h-px"
+              className="absolute left-0 right-0 h-px top-0"
               style={{
                 background: "linear-gradient(90deg, transparent, #C77DFF, transparent)",
                 animation: "filmScan 5s linear infinite",
                 opacity: 0.55,
+                willChange: "transform",
               }}
             />
             <div
-              className="absolute left-0 right-0 h-px"
+              className="absolute left-0 right-0 h-px top-0"
               style={{
                 background: "linear-gradient(90deg, transparent, #C77DFF, transparent)",
                 animation: "filmScan 8s linear infinite",
                 animationDelay: "-2s",
                 opacity: 0.3,
+                willChange: "transform",
               }}
             />
             <div

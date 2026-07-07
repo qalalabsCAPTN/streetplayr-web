@@ -1,6 +1,6 @@
 "use client";
 
-const categories = ["ALL", "TEES", "HOODIES", "OUTERWEAR"];
+const categories = ["ALL", "TEES", "TANKS", "PANTS", "HOODIES", "OUTERWEAR"];
 
 interface CategoryFilterProps {
   activeCategory: string;

@@ -75,6 +75,7 @@ export default function ProductCarousel({ products }: ProductCarouselProps) {
                     alt={product.name}
                     className="h-full w-full object-cover saturate-[0.92]"
                     loading="lazy"
+                    decoding="async"
                   />
                   <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-[#16111b]/90 via-[#16111b]/15 to-transparent p-6">
                     <h3 className="font-display text-[22px] uppercase leading-none text-[#eadfed]">

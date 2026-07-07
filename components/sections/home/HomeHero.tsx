@@ -11,6 +11,8 @@ const NinjaStar = dynamic(() => import("@/components/ui/NinjaStar"), {
   loading: () => <div className="w-full h-full bg-transparent" />,
 });
 
+import { useWindowWidth } from "@/hooks/useWindowWidth";
+
 const containerVariants: Variants = {
   hidden: {},
   visible: {
@@ -51,6 +53,7 @@ export default function HomeHero({
 }: HomeHeroProps = {}) {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
   const [joinOpen, setJoinOpen] = useState(false);
   const [particles, setParticles] = useState<Array<{ left: number; delay: number; dur: number; size: number }>>([]);
 
@@ -69,17 +72,7 @@ export default function HomeHero({
     return () => cancelAnimationFrame(frame);
   }, []);
 
-  const [windowWidth, setWindowWidth] = useState<number | null>(null);
-
-  useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    const frame = requestAnimationFrame(handleResize);
-    window.addEventListener("resize", handleResize);
-    return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
+  const windowWidth = useWindowWidth();
 
   const getStarScale = () => {
     if (windowWidth === null) return 0.95;
@@ -131,7 +124,7 @@ export default function HomeHero({
   const isTablet = windowWidth !== null && windowWidth >= 768 && windowWidth < 1024;
 
   return (
-    <section className="relative min-h-screen w-full flex flex-col justify-end overflow-hidden bg-transparent">
+    <section ref={sectionRef} className="relative min-h-screen w-full flex flex-col justify-end overflow-hidden bg-transparent">
       {/* CSS-driven backdrop stages matching /enter-the-play page */}
       <div className="absolute inset-0 z-[-3] overflow-hidden pointer-events-none">
         <div className="absolute inset-0 bg-transparent" />
@@ -171,7 +164,7 @@ export default function HomeHero({
         <div 
           className="pointer-events-auto flex items-center justify-center w-60 h-60 md:w-[320px] md:h-[320px] lg:w-[420px] lg:h-[420px]"
         >
-          <NinjaStar scale={starScale} />
+          <NinjaStar scale={starScale} heroRef={sectionRef} />
         </div>
       </div>
 
@@ -181,6 +174,7 @@ export default function HomeHero({
           className="absolute inset-0 w-full h-full object-cover z-[-3]"
           src={bgImageUrl}
           alt={title}
+          decoding="async"
         />
       )}
 
@@ -410,6 +404,7 @@ export default function HomeHero({
           animation: blobP 18s ease-in-out infinite;
           top: 10%;
           left: 55%;
+          will-change: transform;
         }
         .home-bg-blob-green {
           position: absolute;
@@ -423,6 +418,7 @@ export default function HomeHero({
           animation: blobG 22s ease-in-out infinite;
           top: 60%;
           left: 10%;
+          will-change: transform;
         }
         .home-bg-scanline {
           position: absolute;
@@ -446,6 +442,7 @@ export default function HomeHero({
           border-radius: 50%;
           box-shadow: 0 0 6px rgba(221,183,255,0.3);
           animation: particleUp var(--dur) var(--delay) linear infinite;
+          will-change: transform;
         }
       `}</style>
     </section>

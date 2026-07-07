@@ -54,6 +54,7 @@ export default function GlobalParticles() {
             boxShadow: `0 0 ${p.size * 3}px var(--sp-accent, rgba(221, 183, 255, 0.45))`,
             animation: `pPart ${p.dur}s linear infinite`,
             animationDelay: `${p.delay}s`,
+            willChange: "transform",
           }}
         />
       ))}

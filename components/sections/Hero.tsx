@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, type Variants } from "framer-motion";
 import Image from "next/image";
 import Button from "@/components/ui/Button";
+import { useWindowWidth } from "@/hooks/useWindowWidth";
 
 const copyVariants: Variants = {
   hidden: { opacity: 0 },
@@ -26,17 +27,7 @@ const lineVariants: Variants = {
 };
 
 export default function Hero() {
-  const [windowWidth, setWindowWidth] = useState<number | null>(null);
-
-  useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    const frame = requestAnimationFrame(handleResize);
-    window.addEventListener("resize", handleResize);
-    return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
+  const windowWidth = useWindowWidth();
 
   const isMobile = windowWidth !== null && windowWidth < 768;
   const isTablet = windowWidth !== null && windowWidth >= 768 && windowWidth < 1024;

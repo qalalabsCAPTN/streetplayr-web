@@ -58,11 +58,11 @@ export default function MobilePurchaseBar({ price, productId, title, image, sele
   useEffect(() => {
     return scrollY.onChange((latest) => {
       // Show bar after scrolling past the hero (roughly 800px or when product info goes out)
-      if (latest > 800) {
-        setIsVisible(true);
-      } else {
-        setIsVisible(false);
-      }
+      const visible = latest > 800;
+      setIsVisible((prev) => {
+        if (prev === visible) return prev;
+        return visible;
+      });
     });
   }, [scrollY]);
 

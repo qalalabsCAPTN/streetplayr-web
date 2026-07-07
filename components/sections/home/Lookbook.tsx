@@ -58,6 +58,7 @@ export default function Lookbook({
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const isHovered = useRef(false);
+  const setWidthRef = useRef(0);
   const { needsNavigation } = useScrollNavigation(scrollRef);
 
   const scroll = useCallback((direction: "prev" | "next") => {
@@ -92,12 +93,21 @@ export default function Lookbook({
     if (!el) return;
     const N = activeItems.length;
 
-    const adjustScroll = () => {
-      if (el.children.length < N * 3) return;
+    const calculateWidth = () => {
+      if (el.children.length < N * 3) return 0;
       const item0 = el.children[0] as HTMLElement;
       const itemN = el.children[N] as HTMLElement;
-      if (!item0 || !itemN) return;
-      const setWidth = itemN.offsetLeft - item0.offsetLeft;
+      if (!item0 || !itemN) return 0;
+      const width = itemN.offsetLeft - item0.offsetLeft;
+      setWidthRef.current = width;
+      return width;
+    };
+
+    const adjustScroll = () => {
+      let setWidth = setWidthRef.current;
+      if (setWidth <= 0) {
+        setWidth = calculateWidth();
+      }
       if (setWidth <= 0) return;
 
       const scrollLeft = el.scrollLeft;
@@ -111,11 +121,7 @@ export default function Lookbook({
     };
 
     const initScroll = () => {
-      if (el.children.length < N * 3) return;
-      const item0 = el.children[0] as HTMLElement;
-      const itemN = el.children[N] as HTMLElement;
-      if (!item0 || !itemN) return;
-      const setWidth = itemN.offsetLeft - item0.offsetLeft;
+      const setWidth = calculateWidth();
       if (setWidth > 0) {
         el.scrollLeft = setWidth;
       }
@@ -125,6 +131,7 @@ export default function Lookbook({
 
     el.addEventListener("scroll", adjustScroll, { passive: true });
     const ro = new ResizeObserver(() => {
+      calculateWidth();
       adjustScroll();
     });
     ro.observe(el);
@@ -250,6 +257,7 @@ export default function Lookbook({
                       src={item.src}
                       alt={item.label}
                       loading="lazy"
+                      decoding="async"
                     />
                   )}
 

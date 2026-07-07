@@ -112,6 +112,7 @@ export default function BrandStory({
               <img
                 src={blocks[0].image_url}
                 alt={blocks[0].title || "Brand Story"}
+                decoding="async"
                 className="absolute inset-0 w-full h-full object-cover"
               />
             ) : (

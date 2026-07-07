@@ -737,7 +737,7 @@ select {
   color: var(--sp-text-secondary);
 }
 
-/* ── Claude Preloader Animations ─────────────────────────── */
+/* ── Preloader Animations ─────────────────────────── */
 @keyframes blobP {
   0%,100% { transform: translate(-12%, -18%); }
   33%     { transform: translate(12%, 4%); }
@@ -773,7 +773,7 @@ select {
   50%     { transform: scale(1.6); opacity: 0.4; }
 }
 
-/* ── Claude IntroVideo Animations ──────────────────────────── */
+/* ── IntroVideo Animations ──────────────────────────── */
 @keyframes filmIn {
   from { opacity: 0; }
   to   { opacity: 1; }
@@ -804,8 +804,8 @@ select {
   to   { background-position: 80px 80px; }
 }
 @keyframes filmScan {
-  0%   { top: -2%; }
-  100% { top: 102%; }
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(104vh); }
 }
 @keyframes starSpin {
   0%   { transform: rotateY(0deg); }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { useWindowWidth } from "@/hooks/useWindowWidth";
 
 const NinjaStar = dynamic(() => import("@/components/ui/NinjaStar"), {
   ssr: false,
@@ -10,14 +11,7 @@ const NinjaStar = dynamic(() => import("@/components/ui/NinjaStar"), {
 });
 
 export default function Footer() {
-  const [windowWidth, setWindowWidth] = useState<number | null>(null);
-
-  useEffect(() => {
-    setWindowWidth(window.innerWidth);
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  const windowWidth = useWindowWidth();
 
   const getStarScale = () => {
     if (windowWidth === null) return 1.1;

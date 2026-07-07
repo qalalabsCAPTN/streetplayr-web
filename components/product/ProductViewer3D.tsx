@@ -72,7 +72,7 @@ export default function ProductViewer3D({ modelPath }: ProductViewer3DProps) {
     <Canvas
       camera={{ position: [0, 0.4, 4.5], fov: 38 }}
       gl={{ antialias: true, alpha: false }}
-      dpr={[1, 2]}
+      dpr={[1, 1.5]}
       shadows={false}
     >
       <color attach="background" args={["#050505"]} />
