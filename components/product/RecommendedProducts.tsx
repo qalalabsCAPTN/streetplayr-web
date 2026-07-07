@@ -30,6 +30,7 @@ export default function RecommendedProducts({ currentSlug }: { currentSlug: stri
               <img
                 src={product.metadata.gallery_images[0]}
                 alt={product.name}
+                decoding="async"
                 className="w-full h-full object-cover saturate-[0.92] transition-transform duration-700 group-hover:scale-[1.02]"
               />
             </div>

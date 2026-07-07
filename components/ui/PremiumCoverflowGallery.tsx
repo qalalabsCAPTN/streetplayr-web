@@ -244,12 +244,14 @@ function GalleryCard({
         src={src}
         alt={alt}
         loading={index === 0 ? "eager" : "lazy"}
+        decoding="async"
         draggable={false}
         className="absolute inset-0 w-full h-full object-cover pointer-events-none"
         style={{
           objectPosition: "top center",
           filter: isActive ? "saturate(1) brightness(1)" : "saturate(0.70) brightness(0.60)",
           transition: "filter 0.5s ease",
+          willChange: "filter, transform",
         }}
       />
     </motion.div>

@@ -9,7 +9,7 @@ export interface LocalProduct {
   metadata: {
     points: string;
     gallery_images: string[];
-    colors: { id: string; name: string; hex: string }[];
+    colors: { id: string; name: string; hex: string; images?: string[] }[];
     /** Path to GLB file in /public/models/ — enables "View in 3D" button on PDP */
     model3d?: string;
   };
@@ -56,33 +56,14 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
       points: "300",
       gallery_images: GALLERY_IMAGES("ctt-waffle"),
       colors: [
-        { id: "white", name: "White", hex: "#f5f5f0" },
-        { id: "maroon", name: "Maroon", hex: "#6b1c2a" },
+        { id: "white", name: "White", hex: "#f5f5f0", images: GALLERY_IMAGES("ctt-waffle") },
+        { id: "maroon", name: "Maroon", hex: "#6b1c2a", images: GALLERY_IMAGES("ctt-maroon") },
       ],
     },
     variants: buildVariants("ctt-waffle"),
   },
   {
-    id: "ctt-maroon",
-    name: "playR Create Waffle Tee — Maroon",
-    price: 1999,
-    description:
-      "Crafted from textured waffle-knit fabric with a relaxed fit and full-length sleeves",
-    image_url: `/assets/products/ctt-maroon/image-1.jpg`,
-    slug: "ctt-maroon",
-    category: { name: "TEES" },
-    metadata: {
-      points: "300",
-      gallery_images: GALLERY_IMAGES("ctt-maroon"),
-      colors: [
-        { id: "white", name: "White", hex: "#f5f5f0" },
-        { id: "maroon", name: "Maroon", hex: "#6b1c2a" },
-      ],
-    },
-    variants: buildVariants("ctt-maroon"),
-  },
-  {
-    id: "black-warrior",
+    id: "warrior-tee",
     name: "WARRIOR Tee",
     price: 1999,
     description:
@@ -94,30 +75,11 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
       points: "300",
       gallery_images: GALLERY_IMAGES("black-warrior"),
       colors: [
-        { id: "black", name: "Black", hex: "#1a1a1a" },
-        { id: "brown", name: "Brown", hex: "#5c3a2e" },
+        { id: "black", name: "Black", hex: "#1a1a1a", images: GALLERY_IMAGES("black-warrior") },
+        { id: "brown", name: "Brown", hex: "#5c3a2e", images: GALLERY_IMAGES("brown-warrior") },
       ],
     },
     variants: buildVariants("black-warrior"),
-  },
-  {
-    id: "brown-warrior",
-    name: "WARRIOR Tee — Brown",
-    price: 1999,
-    description:
-      "Made from heavyweight premium cotton terry, this oversized T-shirt is designed for all-day comfort and a structured drape. Signature aligned puff print detailing around the neckline and back adds a distinctive, elevated finish",
-    image_url: `/assets/products/brown-warrior/image-1.jpg`,
-    slug: "brown-warrior",
-    category: { name: "TEES" },
-    metadata: {
-      points: "300",
-      gallery_images: GALLERY_IMAGES("brown-warrior"),
-      colors: [
-        { id: "black", name: "Black", hex: "#1a1a1a" },
-        { id: "brown", name: "Brown", hex: "#5c3a2e" },
-      ],
-    },
-    variants: buildVariants("brown-warrior"),
   },
   {
     id: "inspired",
@@ -131,7 +93,9 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
     metadata: {
       points: "350",
       gallery_images: GALLERY_IMAGES("inspired"),
-      colors: [{ id: "purple", name: "Purple", hex: "#4a2d6b" }],
+      colors: [
+        { id: "purple", name: "Purple", hex: "#4a2d6b", images: GALLERY_IMAGES("inspired") },
+      ],
       model3d: "/models/inspired.glb",
     },
     variants: buildVariants("inspired"),
@@ -148,7 +112,9 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
     metadata: {
       points: "350",
       gallery_images: GALLERY_IMAGES("star-tank-dark"),
-      colors: [{ id: "black", name: "Dark", hex: "#1a1a1a" }],
+      colors: [
+        { id: "dark", name: "Dark", hex: "#1a1a1a", images: GALLERY_IMAGES("star-tank-dark") },
+      ],
     },
     variants: buildVariants("star-tank-dark"),
   },
@@ -164,7 +130,9 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
     metadata: {
       points: "500",
       gallery_images: GALLERY_IMAGES("olive-pant"),
-      colors: [{ id: "black", name: "Black", hex: "#1a1a1a" }],
+      colors: [
+        { id: "black", name: "Black", hex: "#1a1a1a", images: GALLERY_IMAGES("olive-pant") },
+      ],
     },
     variants: buildVariants("olive-pant"),
   },
@@ -180,7 +148,9 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
     metadata: {
       points: "500",
       gallery_images: GALLERY_IMAGES("carpenter-grey"),
-      colors: [{ id: "grey", name: "Grey", hex: "#8a8a8a" }],
+      colors: [
+        { id: "grey", name: "Grey", hex: "#8a8a8a", images: GALLERY_IMAGES("carpenter-grey") },
+      ],
     },
     variants: buildVariants("carpenter-grey"),
   },
@@ -196,7 +166,9 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
     metadata: {
       points: "200",
       gallery_images: GALLERY_IMAGES("stick-no-bills"),
-      colors: [{ id: "default", name: "Standard", hex: "#ffffff" }],
+      colors: [
+        { id: "default", name: "Standard", hex: "#ffffff", images: GALLERY_IMAGES("stick-no-bills") },
+      ],
     },
     variants: buildVariants("stick-no-bills"),
   },
@@ -212,7 +184,9 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
     metadata: {
       points: "300",
       gallery_images: GALLERY_IMAGES("warrior-bob"),
-      colors: [{ id: "default", name: "Standard", hex: "#ffffff" }],
+      colors: [
+        { id: "default", name: "Standard", hex: "#ffffff", images: GALLERY_IMAGES("warrior-bob") },
+      ],
     },
     variants: buildVariants("warrior-bob"),
   },

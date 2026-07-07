@@ -34,8 +34,21 @@ export default function CustomCursor() {
   const dotRef = useRef<HTMLDivElement>(null);
   const rafId = useRef<number>(0);
   const pos = useRef({ x: 0, y: 0 });
+  const isMoving = useRef(false);
+  const stopTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    const tick = () => {
+      if (dotRef.current) {
+        dotRef.current.style.transform = `translate(${pos.current.x}px, ${pos.current.y}px) translate(-50%, -50%)`;
+      }
+      if (isMoving.current) {
+        rafId.current = requestAnimationFrame(tick);
+      } else {
+        rafId.current = 0;
+      }
+    };
+
     const handleMouseMove = (e: MouseEvent) => {
       if (!isVisible) setIsVisible(true);
       pos.current.x = e.clientX;
@@ -56,23 +69,29 @@ export default function CustomCursor() {
       } else {
         setCursorType("default");
       }
+
+      // Sync position on mousemove using RAF, ticking only when mouse is active
+      if (!isMoving.current) {
+        isMoving.current = true;
+        if (!rafId.current) {
+          rafId.current = requestAnimationFrame(tick);
+        }
+      }
+
+      // Suspend ticking 100ms after mouse stops moving to conserve CPU/GPU
+      if (stopTimeout.current) clearTimeout(stopTimeout.current);
+      stopTimeout.current = setTimeout(() => {
+        isMoving.current = false;
+      }, 100);
     };
 
     window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [isVisible]);
-
-  // Direct RAF for zero-lag position sync
-  useEffect(() => {
-    const tick = () => {
-      if (dotRef.current) {
-        dotRef.current.style.transform = `translate(${pos.current.x}px, ${pos.current.y}px) translate(-50%, -50%)`;
-      }
-      rafId.current = requestAnimationFrame(tick);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      if (stopTimeout.current) clearTimeout(stopTimeout.current);
+      if (rafId.current) cancelAnimationFrame(rafId.current);
     };
-    rafId.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafId.current);
-  }, []);
+  }, [isVisible]);
 
   const label = LABELS[cursorType];
   const labelDark = cursorType === "video" || cursorType === "cart";

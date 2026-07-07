@@ -583,6 +583,9 @@ function CompassStar({ scale = 0.70, scrollReactive = true }: { scale?: number; 
   const vel          = useRef({ x: 0, y: 0 });
   const lastMoveTime = useRef(0);
   const autoRotate   = useRef(true);
+  // Interaction gate — cursor parallax only runs while the pointer is
+  // actually inside the star region. Idle on load, lerps back on leave.
+  const interactive  = useRef(false);
 
   useEffect(() => {
     const canvas = gl.domElement;
@@ -590,6 +593,9 @@ function CompassStar({ scale = 0.70, scrollReactive = true }: { scale?: number; 
 
     // Allow vertical scrolling (pan-y) to prevent scroll traps on mobile
     canvas.style.touchAction = "pan-y";
+
+    const onEnter = () => { interactive.current = true; };
+    const onLeave = () => { interactive.current = false; };
 
     const onDown = (e: PointerEvent) => {
       dragging.current   = true;
@@ -618,12 +624,16 @@ function CompassStar({ scale = 0.70, scrollReactive = true }: { scale?: number; 
 
     const onUp = () => { dragging.current = false; lastMoveTime.current = Date.now(); };
 
+    canvas.addEventListener("pointerenter",  onEnter);
+    canvas.addEventListener("pointerleave",  onLeave);
     canvas.addEventListener("pointerdown",  onDown, { passive: false });
     canvas.addEventListener("pointermove",  onMove, { passive: false });
     canvas.addEventListener("pointerup",    onUp);
     canvas.addEventListener("pointercancel", onUp);
 
     return () => {
+      canvas.removeEventListener("pointerenter",  onEnter);
+      canvas.removeEventListener("pointerleave",  onLeave);
       canvas.removeEventListener("pointerdown",  onDown);
       canvas.removeEventListener("pointermove",  onMove);
       canvas.removeEventListener("pointerup",    onUp);
@@ -634,7 +644,8 @@ function CompassStar({ scale = 0.70, scrollReactive = true }: { scale?: number; 
   useFrame(({ clock, pointer }, delta) => {
     if (!groupRef.current || dragging.current) return;
 
-    const idle = Date.now() - lastMoveTime.current;
+    const now = Date.now();
+    const idle = now - lastMoveTime.current;
 
     // Drag inertia deceleration physics
     if (Math.abs(vel.current.x) > 0.0001 || Math.abs(vel.current.y) > 0.0001) {
@@ -644,20 +655,22 @@ function CompassStar({ scale = 0.70, scrollReactive = true }: { scale?: number; 
         vel.current.x *= 0.92;
         vel.current.y *= 0.92;
       } else {
-        vel.current = { x: 0, y: 0 };
+        vel.current.x = 0;
+        vel.current.y = 0;
       }
     }
 
     if (idle > 3000) autoRotate.current = true;
 
     if (autoRotate.current && Math.abs(vel.current.y) < 0.0002) {
-      // Return gently to baseline while adding subtle mouse-based parallax tilt
-      const targetX = pointer.y * 0.28; // Tilt up/down
-      const targetZ = -pointer.x * 0.15; // Tilt left/right
-      
+      // Cursor parallax only while the pointer is inside the star; otherwise
+      // the target is neutral so the star smoothly lerps back to rest (idle).
+      const targetX = interactive.current ? pointer.y * 0.28 : 0; // Tilt up/down
+      const targetZ = interactive.current ? -pointer.x * 0.15 : 0; // Tilt left/right
+
       groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, targetX, 0.05);
       groupRef.current.rotation.z = THREE.MathUtils.lerp(groupRef.current.rotation.z, targetZ, 0.05);
-      
+
       // Continuous gentle auto-spin
       groupRef.current.rotation.y += delta * 0.22;
     }
@@ -667,27 +680,24 @@ function CompassStar({ scale = 0.70, scrollReactive = true }: { scale?: number; 
 
     // Scroll-driven 3D rotation, tilt, and depth translation
     if (scrollReactive && scrollRef.current && typeof window !== "undefined") {
-      const scrollY = window.scrollY;
-      
+      const scrollY = (window as any).__scrollDampingY !== undefined ? (window as any).__scrollDampingY : window.scrollY;
+
       const targetScrollRotY = scrollY * 0.0015;
       const targetScrollRotX = scrollY * 0.0008;
       const targetScrollZ = -Math.min(scrollY * 0.002, 1.8); // Recede back in depth (Z axis)
-      
-      scrollRef.current.rotation.y = THREE.MathUtils.lerp(
-        scrollRef.current.rotation.y,
-        targetScrollRotY,
-        0.08
-      );
-      scrollRef.current.rotation.x = THREE.MathUtils.lerp(
-        scrollRef.current.rotation.x,
-        targetScrollRotX,
-        0.08
-      );
-      scrollRef.current.position.z = THREE.MathUtils.lerp(
-        scrollRef.current.position.z,
-        targetScrollZ,
-        0.08
-      );
+
+      const sr = scrollRef.current;
+      // Skip the lerp + matrix update once the values have settled onto their
+      // targets — avoids redundant transform work when nothing is scrolling.
+      if (
+        Math.abs(sr.rotation.y - targetScrollRotY) > 1e-5 ||
+        Math.abs(sr.rotation.x - targetScrollRotX) > 1e-5 ||
+        Math.abs(sr.position.z - targetScrollZ) > 1e-5
+      ) {
+        sr.rotation.y = THREE.MathUtils.lerp(sr.rotation.y, targetScrollRotY, 0.08);
+        sr.rotation.x = THREE.MathUtils.lerp(sr.rotation.x, targetScrollRotX, 0.08);
+        sr.position.z = THREE.MathUtils.lerp(sr.position.z, targetScrollZ, 0.08);
+      }
     }
   });
 
@@ -705,9 +715,27 @@ function CompassStar({ scale = 0.70, scrollReactive = true }: { scale?: number; 
 // Fills 100% of parent container — size is controlled by .star-container in CSS.
 // touch-action: pan-y on the wrapper and Canvas allows page scrolling on mobile swipe.
 export default function NinjaStar({ scale = 0.70, scrollReactive = true }: { scale?: number; scrollReactive?: boolean }) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  // Pause the render loop entirely while the star is scrolled out of view.
+  // Invisible to the user, but reclaims all GPU/CPU spent re-rendering the
+  // expensive physical material + HDR environment off-screen.
+  const [onScreen, setOnScreen] = useState(true);
+
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      ([entry]) => setOnScreen(entry.isIntersecting),
+      { rootMargin: "150px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   return (
-    <div style={{ width: "100%", height: "100%", touchAction: "pan-y" }}>
+    <div ref={wrapRef} style={{ width: "100%", height: "100%", touchAction: "pan-y" }}>
       <Canvas
+        frameloop={onScreen ? "always" : "never"}
         camera={{ position: [0, 0, 4], fov: 44 }}
         gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
         dpr={[1, 1.5]}

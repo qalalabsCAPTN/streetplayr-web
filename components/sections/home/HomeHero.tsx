@@ -11,6 +11,8 @@ const NinjaStar = dynamic(() => import("@/components/ui/NinjaStar"), {
   loading: () => <div className="w-full h-full bg-transparent" />,
 });
 
+import { useWindowWidth } from "@/hooks/useWindowWidth";
+
 const containerVariants: Variants = {
   hidden: {},
   visible: {
@@ -69,17 +71,7 @@ export default function HomeHero({
     return () => cancelAnimationFrame(frame);
   }, []);
 
-  const [windowWidth, setWindowWidth] = useState<number | null>(null);
-
-  useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    const frame = requestAnimationFrame(handleResize);
-    window.addEventListener("resize", handleResize);
-    return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
+  const windowWidth = useWindowWidth();
 
   const getStarScale = () => {
     if (windowWidth === null) return 0.95;
@@ -181,6 +173,7 @@ export default function HomeHero({
           className="absolute inset-0 w-full h-full object-cover z-[-3]"
           src={bgImageUrl}
           alt={title}
+          decoding="async"
         />
       )}
 
@@ -410,6 +403,7 @@ export default function HomeHero({
           animation: blobP 18s ease-in-out infinite;
           top: 10%;
           left: 55%;
+          will-change: transform;
         }
         .home-bg-blob-green {
           position: absolute;
@@ -423,6 +417,7 @@ export default function HomeHero({
           animation: blobG 22s ease-in-out infinite;
           top: 60%;
           left: 10%;
+          will-change: transform;
         }
         .home-bg-scanline {
           position: absolute;
@@ -446,6 +441,7 @@ export default function HomeHero({
           border-radius: 50%;
           box-shadow: 0 0 6px rgba(221,183,255,0.3);
           animation: particleUp var(--dur) var(--delay) linear infinite;
+          will-change: transform;
         }
       `}</style>
     </section>

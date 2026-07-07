@@ -48,7 +48,7 @@ const ProductViewer3D = dynamic(
   }
 );
 
-type Color = { id: string; name: string; hex: string };
+type Color = { id: string; name: string; hex: string; images?: string[] };
 
 type VariantInfo = {
   id: string;
@@ -170,7 +170,18 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
     stockQuantity: liveStock[v.id] ?? v.stockQuantity,
   }));
 
-  const allImages = props.images.length > 1 ? props.images : [props.image, props.image];
+  /* Gallery follows the selected colour swatch. Falls back to the
+     product's default images if a colour has no dedicated set. */
+  const activeColor = props.colors.find((c) => c.id === selectedColor);
+  const colorImages = activeColor?.images?.length ? activeColor.images : props.images;
+  const heroImage = colorImages[0] ?? props.image;
+  const allImages = colorImages.length > 1 ? colorImages : [heroImage, heroImage];
+
+  /* Reset gallery position when the colour changes */
+  useEffect(() => {
+    setActiveSlide(0);
+    if (emblaApi) emblaApi.reInit();
+  }, [selectedColor, emblaApi]);
 
   const handleGalleryScroll = useCallback(() => {
     const el = galleryRef.current;
@@ -235,7 +246,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
       quantity,
       color: colorName,
       size: selectedSize,
-      image: props.image,
+      image: heroImage,
     });
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
@@ -261,7 +272,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
           </div>
           <div className="relative aspect-[3/4] bg-[#050505] overflow-hidden border border-white/[0.08]">
             <Image
-              src={props.image}
+              src={heroImage}
               alt={props.title}
               fill
               sizes="(min-width: 1024px) 30vw, 100vw"
@@ -316,7 +327,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
             colors={props.colors}
             sizes={props.sizes}
             variants={liveVariants}
-            image={props.image}
+            image={heroImage}
             selectedColor={selectedColor}
             selectedSize={selectedSize}
             quantity={quantity}
@@ -528,7 +539,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
         {/* ── 8. AI Try-On ── */}
         <div className="mx-4 mt-5">
           <AITryOn
-            productImageUrl={props.image}
+            productImageUrl={heroImage}
             productTitle={props.title}
           />
         </div>

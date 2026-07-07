@@ -804,8 +804,8 @@ select {
   to   { background-position: 80px 80px; }
 }
 @keyframes filmScan {
-  0%   { top: -2%; }
-  100% { top: 102%; }
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(104vh); }
 }
 @keyframes starSpin {
   0%   { transform: rotateY(0deg); }

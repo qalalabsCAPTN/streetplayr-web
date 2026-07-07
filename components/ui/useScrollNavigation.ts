@@ -30,10 +30,22 @@ export function useScrollNavigation(
     const el = scrollRef.current;
     if (!el) return;
     const overflow = el.scrollWidth > el.clientWidth + 2;
-    setState({
-      needsNavigation: overflow,
-      canScrollPrev: el.scrollLeft > 2,
-      canScrollNext: el.scrollLeft < el.scrollWidth - el.clientWidth - 2,
+    const prevVal = el.scrollLeft > 2;
+    const nextVal = el.scrollLeft < el.scrollWidth - el.clientWidth - 2;
+
+    setState((prev) => {
+      if (
+        prev.needsNavigation === overflow &&
+        prev.canScrollPrev === prevVal &&
+        prev.canScrollNext === nextVal
+      ) {
+        return prev;
+      }
+      return {
+        needsNavigation: overflow,
+        canScrollPrev: prevVal,
+        canScrollNext: nextVal,
+      };
     });
   }, [scrollRef]);
 

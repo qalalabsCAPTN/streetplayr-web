@@ -136,6 +136,7 @@ function CollectionsInner() {
                   <img
                     alt={product.name}
                     src={product.image}
+                    decoding="async"
                     className={`w-full h-full object-cover saturate-[0.92] transition-all duration-700 ${
                       tappedId === product.id && product.altImage ? 'opacity-0' : ''
                     } md:group-hover:opacity-0`}
@@ -149,6 +150,7 @@ function CollectionsInner() {
                       <img
                         alt={`${product.name} detail`}
                         src={product.altImage}
+                        decoding="async"
                         className="w-full h-full object-cover"
                       />
                     </div>
