@@ -12,7 +12,7 @@ function CollectionsInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const initialCategory = searchParams.get("category")?.toUpperCase() || "ALL";
-  const validCategories = ["ALL", "TEES", "HOODIES", "OUTERWEAR"];
+  const validCategories = ["ALL", "TEES", "TANKS", "PANTS", "HOODIES", "OUTERWEAR"];
   const [activeFilter, setActiveFilter] = useState(
     validCategories.includes(initialCategory) ? initialCategory : "ALL"
   );
@@ -26,7 +26,7 @@ function CollectionsInner() {
     price: `Rs. ${p.price.toLocaleString("en-IN")}`,
     image: p.metadata.gallery_images[0],
     altImage: p.metadata.gallery_images[1],
-    badge: p.price >= 5000 ? "Limited" : p.price >= 1500 ? "New" : null,
+    badge: p.price >= 3000 ? "Premium" : "New",
     slug: p.slug,
   }));
 

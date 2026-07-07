@@ -30,7 +30,7 @@ const GALLERY_IMAGES = (slug: string) => [
   `/assets/products/${slug}/image-5.jpg`,
 ];
 
-const ALL_SIZES = ["XS", "S", "M", "L", "XL"];
+const ALL_SIZES = ["XS", "S", "M", "L", "XL", "2XL"];
 
 function buildVariants(slug: string, baseStock = 25) {
   return ALL_SIZES.map((size) => ({
@@ -44,9 +44,150 @@ function buildVariants(slug: string, baseStock = 25) {
 
 export const LOCAL_PRODUCTS: LocalProduct[] = [
   {
+    id: "ctt-waffle",
+    name: "playR Create Waffle Tee",
+    price: 1999,
+    description:
+      "Crafted from textured waffle-knit fabric with a relaxed fit and full-length sleeves",
+    image_url: `/assets/products/ctt-waffle/image-1.jpg`,
+    slug: "ctt-waffle",
+    category: { name: "TEES" },
+    metadata: {
+      points: "300",
+      gallery_images: GALLERY_IMAGES("ctt-waffle"),
+      colors: [
+        { id: "white", name: "White", hex: "#f5f5f0" },
+        { id: "maroon", name: "Maroon", hex: "#6b1c2a" },
+      ],
+    },
+    variants: buildVariants("ctt-waffle"),
+  },
+  {
+    id: "ctt-maroon",
+    name: "playR Create Waffle Tee — Maroon",
+    price: 1999,
+    description:
+      "Crafted from textured waffle-knit fabric with a relaxed fit and full-length sleeves",
+    image_url: `/assets/products/ctt-maroon/image-1.jpg`,
+    slug: "ctt-maroon",
+    category: { name: "TEES" },
+    metadata: {
+      points: "300",
+      gallery_images: GALLERY_IMAGES("ctt-maroon"),
+      colors: [
+        { id: "white", name: "White", hex: "#f5f5f0" },
+        { id: "maroon", name: "Maroon", hex: "#6b1c2a" },
+      ],
+    },
+    variants: buildVariants("ctt-maroon"),
+  },
+  {
+    id: "black-warrior",
+    name: "WARRIOR Tee",
+    price: 1999,
+    description:
+      "Made from heavyweight premium cotton terry, this oversized T-shirt is designed for all-day comfort and a structured drape. Signature aligned puff print detailing around the neckline and back adds a distinctive, elevated finish",
+    image_url: `/assets/products/black-warrior/image-1.jpg`,
+    slug: "black-warrior",
+    category: { name: "TEES" },
+    metadata: {
+      points: "300",
+      gallery_images: GALLERY_IMAGES("black-warrior"),
+      colors: [
+        { id: "black", name: "Black", hex: "#1a1a1a" },
+        { id: "brown", name: "Brown", hex: "#5c3a2e" },
+      ],
+    },
+    variants: buildVariants("black-warrior"),
+  },
+  {
+    id: "brown-warrior",
+    name: "WARRIOR Tee — Brown",
+    price: 1999,
+    description:
+      "Made from heavyweight premium cotton terry, this oversized T-shirt is designed for all-day comfort and a structured drape. Signature aligned puff print detailing around the neckline and back adds a distinctive, elevated finish",
+    image_url: `/assets/products/brown-warrior/image-1.jpg`,
+    slug: "brown-warrior",
+    category: { name: "TEES" },
+    metadata: {
+      points: "300",
+      gallery_images: GALLERY_IMAGES("brown-warrior"),
+      colors: [
+        { id: "black", name: "Black", hex: "#1a1a1a" },
+        { id: "brown", name: "Brown", hex: "#5c3a2e" },
+      ],
+    },
+    variants: buildVariants("brown-warrior"),
+  },
+  {
+    id: "inspired",
+    name: "INSPIRED Tee",
+    price: 2499,
+    description:
+      "Made from premium single jersey cotton for a soft, lightweight feel, this oversized T-shirt combines a unique purple acid-washed finish with a striking white screen print for elevated everyday wear.",
+    image_url: `/assets/products/inspired/image-1.jpg`,
+    slug: "inspired",
+    category: { name: "TEES" },
+    metadata: {
+      points: "350",
+      gallery_images: GALLERY_IMAGES("inspired"),
+      colors: [{ id: "purple", name: "Purple", hex: "#4a2d6b" }],
+      model3d: "/models/inspired.glb",
+    },
+    variants: buildVariants("inspired"),
+  },
+  {
+    id: "star-tank-dark",
+    name: "STAAR playR Tank",
+    price: 2499,
+    description:
+      "Crafted from heavyweight premium cotton, this sleeveless acid-washed tank features distressed panel seams across the entire garment for a deconstructed aesthetic. A premium raised puff print on the back completes the piece with bold dimension and lasting durability.",
+    image_url: `/assets/products/star-tank-dark/image-1.jpg`,
+    slug: "star-tank-dark",
+    category: { name: "TANKS" },
+    metadata: {
+      points: "350",
+      gallery_images: GALLERY_IMAGES("star-tank-dark"),
+      colors: [{ id: "black", name: "Dark", hex: "#1a1a1a" }],
+    },
+    variants: buildVariants("star-tank-dark"),
+  },
+  {
+    id: "olive-pant",
+    name: "playR Sweats",
+    price: 3499,
+    description:
+      "Relaxed, baggy sweatpants crafted from premium heavyweight cotton fleece for everyday comfort. Finished with a signature woven playR patch and subtle design detailing on the left leg, they strike the perfect balance between clean minimalism and understated streetwear. Soft, durable, and made to be worn on repeat.",
+    image_url: `/assets/products/olive-pant/image-1.jpg`,
+    slug: "olive-pant",
+    category: { name: "PANTS" },
+    metadata: {
+      points: "500",
+      gallery_images: GALLERY_IMAGES("olive-pant"),
+      colors: [{ id: "black", name: "Black", hex: "#1a1a1a" }],
+    },
+    variants: buildVariants("olive-pant"),
+  },
+  {
+    id: "carpenter-grey",
+    name: "Carpenter Pants",
+    price: 3699,
+    description:
+      "Crafted from premium heavyweight fabric, the playR Carpenter Pants are designed for everyday comfort with a clean, timeless silhouette. Featuring a relaxed fit, subtle carpenter-inspired detailing, and a discreet side pocket for quick access to your phone or everyday essentials, they balance functionality with effortless style. Minimal, durable, and versatile, they're built to pair seamlessly with any outfit.",
+    image_url: `/assets/products/carpenter-grey/image-1.jpg`,
+    slug: "carpenter-grey",
+    category: { name: "PANTS" },
+    metadata: {
+      points: "500",
+      gallery_images: GALLERY_IMAGES("carpenter-grey"),
+      colors: [{ id: "grey", name: "Grey", hex: "#8a8a8a" }],
+    },
+    variants: buildVariants("carpenter-grey"),
+  },
+  {
     id: "stick-no-bills",
     name: "Stick No Bills",
-    price: 1200,
+    price: 1999,
     description:
       "A statement tee for those who refuse to be ignored. Bold graphics meet heavyweight cotton — built for the streets that don't sleep.",
     image_url: `/assets/products/stick-no-bills/image-1.jpg`,
@@ -60,69 +201,20 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
     variants: buildVariants("stick-no-bills"),
   },
   {
-    id: "inspired",
-    name: "Inspired",
-    price: 1499,
+    id: "warrior-bob",
+    name: "WARRIOR Bob",
+    price: 1999,
     description:
-      "Inspired by the rhythm of the city. A premium tee with a clean cut, archival-grade stitching, and a fit that moves with you.",
-    image_url: `/assets/products/inspired/image-1.jpg`,
-    slug: "inspired",
+      "The boldest cut in the Warrior family. Heavyweight cotton terry with an oversized silhouette and signature puff print detailing — raw, structured, unapologetic.",
+    image_url: `/assets/products/warrior-bob/image-1.jpg`,
+    slug: "warrior-bob",
     category: { name: "TEES" },
     metadata: {
-      points: "250",
-      gallery_images: GALLERY_IMAGES("inspired"),
-      colors: [{ id: "default", name: "Standard", hex: "#ffffff" }],
-      model3d: "/models/inspired.glb",
-    },
-    variants: buildVariants("inspired"),
-  },
-  {
-    id: "ctt-waffle",
-    name: "CTT Waffle",
-    price: 1799,
-    description:
-      "Waffle-knit texture engineered for depth and dimension. Heavyweight build, breathable structure — the daily uniform for the discerning.",
-    image_url: `/assets/products/ctt-waffle/image-1.jpg`,
-    slug: "ctt-waffle",
-    category: { name: "HOODIES" },
-    metadata: {
       points: "300",
-      gallery_images: GALLERY_IMAGES("ctt-waffle"),
+      gallery_images: GALLERY_IMAGES("warrior-bob"),
       colors: [{ id: "default", name: "Standard", hex: "#ffffff" }],
     },
-    variants: buildVariants("ctt-waffle"),
-  },
-  {
-    id: "brown-warrior",
-    name: "Brown Warrior",
-    price: 532,
-    description:
-      "Earthy tones meet urban durability. The Brown Warrior is a rugged essential built for layering and daily rotation. No pretense. Just presence.",
-    image_url: `/assets/products/brown-warrior/image-1.jpg`,
-    slug: "brown-warrior",
-    category: { name: "OUTERWEAR" },
-    metadata: {
-      points: "100",
-      gallery_images: GALLERY_IMAGES("brown-warrior"),
-      colors: [{ id: "default", name: "Standard", hex: "#ffffff" }],
-    },
-    variants: buildVariants("brown-warrior"),
-  },
-  {
-    id: "black-warrior",
-    name: "Black Warrior",
-    price: 7892,
-    description:
-      "The apex of the Warrior line. Precision-cut black fabric with a weight that commands attention. Limited-release archival piece.",
-    image_url: `/assets/products/black-warrior/image-1.jpg`,
-    slug: "black-warrior",
-    category: { name: "OUTERWEAR" },
-    metadata: {
-      points: "500",
-      gallery_images: GALLERY_IMAGES("black-warrior"),
-      colors: [{ id: "default", name: "Standard", hex: "#ffffff" }],
-    },
-    variants: buildVariants("black-warrior"),
+    variants: buildVariants("warrior-bob"),
   },
 ];
 
