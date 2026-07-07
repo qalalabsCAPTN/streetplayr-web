@@ -574,7 +574,7 @@ function SceneLights() {
 }
 
 // ─── Full 3-D trackball ───────────────────────────────────────────────────────
-function CompassStar({ scale = 0.70, scrollReactive = true }: { scale?: number; scrollReactive?: boolean }) {
+function CompassStar({ scale = 0.70, scrollReactive = false }: { scale?: number; scrollReactive?: boolean }) {
   const { gl } = useThree();
   const groupRef     = useRef<THREE.Group>(null);
   const scrollRef    = useRef<THREE.Group>(null);
@@ -704,7 +704,7 @@ function CompassStar({ scale = 0.70, scrollReactive = true }: { scale?: number; 
 // ─── Export ───────────────────────────────────────────────────────────────────
 // Fills 100% of parent container — size is controlled by .star-container in CSS.
 // touch-action: pan-y on the wrapper and Canvas allows page scrolling on mobile swipe.
-export default function NinjaStar({ scale = 0.70, scrollReactive = true }: { scale?: number; scrollReactive?: boolean }) {
+export default function NinjaStar({ scale = 0.70, scrollReactive = false }: { scale?: number; scrollReactive?: boolean }) {
   return (
     <div style={{ width: "100%", height: "100%", touchAction: "pan-y" }}>
       <Canvas

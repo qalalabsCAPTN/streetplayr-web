@@ -43,7 +43,6 @@ interface PremiumCoverflowCarouselProps {
 
 const SWIPE_VELOCITY_THRESHOLD = 280; // px/s
 const SWIPE_DISTANCE_THRESHOLD = 48;  // px
-const WHEEL_DEBOUNCE_MS = 360;        // ms between wheel-triggered advances
 
 // ─── Dot indicator ────────────────────────────────────────────────────────────
 
@@ -183,7 +182,6 @@ export default function PremiumCoverflowCarousel({
   const isReduced = useReducedMotion() ?? false;
   const progress = useMotionValue(0);
   const dragStartProgress = useRef(0);
-  const wheelTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
 
@@ -287,19 +285,6 @@ export default function PremiumCoverflowCarousel({
     [advance, goTo, count]
   );
 
-  // Mouse wheel
-  const handleWheel = useCallback(
-    (e: React.WheelEvent) => {
-      e.preventDefault();
-      if (wheelTimerRef.current) return; // debounce
-      advance(e.deltaY > 0 ? 1 : -1);
-      wheelTimerRef.current = setTimeout(() => {
-        wheelTimerRef.current = null;
-      }, WHEEL_DEBOUNCE_MS);
-    },
-    [advance]
-  );
-
   if (!count) return null;
 
   const containerStyle: React.CSSProperties = {
@@ -328,7 +313,6 @@ export default function PremiumCoverflowCarousel({
         style={containerStyle}
         role="region"
         aria-live="polite"
-        onWheel={handleWheel}
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.15}
