@@ -574,8 +574,16 @@ function SceneLights() {
 }
 
 // ─── Full 3-D trackball ───────────────────────────────────────────────────────
-function CompassStar({ scale = 0.70, scrollReactive = true }: { scale?: number; scrollReactive?: boolean }) {
-  const { gl } = useThree();
+function CompassStar({
+  scale = 0.70,
+  scrollReactive = true,
+  heroRef,
+}: {
+  scale?: number;
+  scrollReactive?: boolean;
+  heroRef?: React.RefObject<HTMLDivElement | HTMLElement | null>;
+}) {
+  const { gl, clock } = useThree();
   const groupRef     = useRef<THREE.Group>(null);
   const scrollRef    = useRef<THREE.Group>(null);
   const dragging     = useRef(false);
@@ -583,9 +591,11 @@ function CompassStar({ scale = 0.70, scrollReactive = true }: { scale?: number; 
   const vel          = useRef({ x: 0, y: 0 });
   const lastMoveTime = useRef(0);
   const autoRotate   = useRef(true);
-  // Interaction gate — cursor parallax only runs while the pointer is
-  // actually inside the star region. Idle on load, lerps back on leave.
-  const interactive  = useRef(false);
+
+  // Interaction state machine refs
+  const interactionState = useRef<"IDLE" | "INTERACTIVE" | "LERP_BACK">("IDLE");
+  const targetPointer = useRef({ x: 0, y: 0 });
+  const currentPointer = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
     const canvas = gl.domElement;
@@ -594,8 +604,38 @@ function CompassStar({ scale = 0.70, scrollReactive = true }: { scale?: number; 
     // Allow vertical scrolling (pan-y) to prevent scroll traps on mobile
     canvas.style.touchAction = "pan-y";
 
-    const onEnter = () => { interactive.current = true; };
-    const onLeave = () => { interactive.current = false; };
+    const heroElement = heroRef?.current || canvas;
+
+    const onEnter = () => {
+      heroElement.addEventListener("pointermove", onMove, { passive: true });
+    };
+
+    const onLeave = () => {
+      if (dragging.current) return;
+      interactionState.current = "LERP_BACK";
+      targetPointer.current = { x: 0, y: 0 };
+      heroElement.removeEventListener("pointermove", onMove);
+    };
+
+    const onMove = (e: PointerEvent) => {
+      if (dragging.current) return;
+
+      const rect = heroElement.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      const y = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
+
+      targetPointer.current = { x, y };
+
+      if (interactionState.current === "IDLE" || interactionState.current === "LERP_BACK") {
+        interactionState.current = "INTERACTIVE";
+        currentPointer.current = { x: 0, y: 0 };
+      }
+    };
+
+    const onFirstMove = () => {
+      onEnter();
+      heroElement.removeEventListener("pointermove", onFirstMove);
+    };
 
     const onDown = (e: PointerEvent) => {
       dragging.current   = true;
@@ -605,13 +645,17 @@ function CompassStar({ scale = 0.70, scrollReactive = true }: { scale?: number; 
       try { canvas.setPointerCapture(e.pointerId); } catch (_) { /* ignore */ }
     };
 
-    const onMove = (e: PointerEvent) => {
+    const onUp = () => {
+      dragging.current = false;
+      lastMoveTime.current = clock.getElapsedTime();
+    };
+
+    const onDragMove = (e: PointerEvent) => {
       if (!dragging.current || !groupRef.current) return;
       const dx = e.clientX - lastPos.current.x;
       const dy = e.clientY - lastPos.current.y;
       lastPos.current = { x: e.clientX, y: e.clientY };
 
-      // Touch pointers are less precise — use slightly higher sensitivity
       const sens = e.pointerType === "touch" ? 0.014 : 0.011;
 
       groupRef.current.rotation.y += dx * sens;
@@ -619,37 +663,40 @@ function CompassStar({ scale = 0.70, scrollReactive = true }: { scale?: number; 
       groupRef.current.rotation.x = Math.max(-Math.PI * 0.55, Math.min(Math.PI * 0.55, groupRef.current.rotation.x));
 
       vel.current = { x: dy * sens, y: dx * sens };
-      lastMoveTime.current = Date.now();
+      lastMoveTime.current = clock.getElapsedTime();
     };
 
-    const onUp = () => { dragging.current = false; lastMoveTime.current = Date.now(); };
+    heroElement.addEventListener("pointerenter", onEnter);
+    heroElement.addEventListener("pointerleave", onLeave);
+    heroElement.addEventListener("pointermove", onFirstMove, { passive: true });
 
-    canvas.addEventListener("pointerenter",  onEnter);
-    canvas.addEventListener("pointerleave",  onLeave);
-    canvas.addEventListener("pointerdown",  onDown, { passive: false });
-    canvas.addEventListener("pointermove",  onMove, { passive: false });
-    canvas.addEventListener("pointerup",    onUp);
+    canvas.addEventListener("pointerdown", onDown, { passive: false });
+    canvas.addEventListener("pointermove", onDragMove, { passive: false });
+    canvas.addEventListener("pointerup", onUp);
     canvas.addEventListener("pointercancel", onUp);
 
     return () => {
-      canvas.removeEventListener("pointerenter",  onEnter);
-      canvas.removeEventListener("pointerleave",  onLeave);
-      canvas.removeEventListener("pointerdown",  onDown);
-      canvas.removeEventListener("pointermove",  onMove);
-      canvas.removeEventListener("pointerup",    onUp);
+      heroElement.removeEventListener("pointerenter", onEnter);
+      heroElement.removeEventListener("pointerleave", onLeave);
+      heroElement.removeEventListener("pointermove", onMove);
+      heroElement.removeEventListener("pointermove", onFirstMove);
+
+      canvas.removeEventListener("pointerdown", onDown);
+      canvas.removeEventListener("pointermove", onDragMove);
+      canvas.removeEventListener("pointerup", onUp);
       canvas.removeEventListener("pointercancel", onUp);
     };
-  }, [gl]);
+  }, [gl, heroRef, clock]);
 
-  useFrame(({ clock, pointer }, delta) => {
+  useFrame((state, delta) => {
     if (!groupRef.current || dragging.current) return;
 
-    const now = Date.now();
-    const idle = now - lastMoveTime.current;
+    const time = clock.getElapsedTime();
+    const idle = time - lastMoveTime.current;
 
     // Drag inertia deceleration physics
     if (Math.abs(vel.current.x) > 0.0001 || Math.abs(vel.current.y) > 0.0001) {
-      if (idle < 1200) {
+      if (idle < 1.2) {
         groupRef.current.rotation.x += vel.current.x;
         groupRef.current.rotation.y += vel.current.y;
         vel.current.x *= 0.92;
@@ -660,23 +707,43 @@ function CompassStar({ scale = 0.70, scrollReactive = true }: { scale?: number; 
       }
     }
 
-    if (idle > 3000) autoRotate.current = true;
+    if (idle > 3.0) autoRotate.current = true;
 
     if (autoRotate.current && Math.abs(vel.current.y) < 0.0002) {
-      // Cursor parallax only while the pointer is inside the star; otherwise
-      // the target is neutral so the star smoothly lerps back to rest (idle).
-      const targetX = interactive.current ? pointer.y * 0.28 : 0; // Tilt up/down
-      const targetZ = interactive.current ? -pointer.x * 0.15 : 0; // Tilt left/right
+      if (interactionState.current === "INTERACTIVE" || interactionState.current === "LERP_BACK") {
+        currentPointer.current.x = THREE.MathUtils.lerp(currentPointer.current.x, targetPointer.current.x, 0.04);
+        currentPointer.current.y = THREE.MathUtils.lerp(currentPointer.current.y, targetPointer.current.y, 0.04);
 
-      groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, targetX, 0.05);
-      groupRef.current.rotation.z = THREE.MathUtils.lerp(groupRef.current.rotation.z, targetZ, 0.05);
+        const targetX = currentPointer.current.y * 0.28; // Tilt up/down
+        const targetZ = -currentPointer.current.x * 0.15; // Tilt left/right
+
+        groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, targetX, 0.08);
+        groupRef.current.rotation.z = THREE.MathUtils.lerp(groupRef.current.rotation.z, targetZ, 0.08);
+
+        if (interactionState.current === "LERP_BACK") {
+          const dx = currentPointer.current.x;
+          const dy = currentPointer.current.y;
+          if (Math.abs(dx) < 0.001 && Math.abs(dy) < 0.001) {
+            currentPointer.current = { x: 0, y: 0 };
+            interactionState.current = "IDLE";
+          }
+        }
+      } else {
+        if (Math.abs(groupRef.current.rotation.x) > 0.001 || Math.abs(groupRef.current.rotation.z) > 0.001) {
+          groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, 0, 0.08);
+          groupRef.current.rotation.z = THREE.MathUtils.lerp(groupRef.current.rotation.z, 0, 0.08);
+        } else {
+          groupRef.current.rotation.x = 0;
+          groupRef.current.rotation.z = 0;
+        }
+      }
 
       // Continuous gentle auto-spin
       groupRef.current.rotation.y += delta * 0.22;
     }
 
     // Hover bobbing animation
-    groupRef.current.position.y = Math.sin(clock.elapsedTime * 0.8) * 0.020;
+    groupRef.current.position.y = Math.sin(time * 0.8) * 0.020;
 
     // Scroll-driven 3D rotation, tilt, and depth translation
     if (scrollReactive && scrollRef.current && typeof window !== "undefined") {
@@ -714,7 +781,15 @@ function CompassStar({ scale = 0.70, scrollReactive = true }: { scale?: number; 
 // ─── Export ───────────────────────────────────────────────────────────────────
 // Fills 100% of parent container — size is controlled by .star-container in CSS.
 // touch-action: pan-y on the wrapper and Canvas allows page scrolling on mobile swipe.
-export default function NinjaStar({ scale = 0.70, scrollReactive = true }: { scale?: number; scrollReactive?: boolean }) {
+export default function NinjaStar({
+  scale = 0.70,
+  scrollReactive = true,
+  heroRef,
+}: {
+  scale?: number;
+  scrollReactive?: boolean;
+  heroRef?: React.RefObject<HTMLDivElement | HTMLElement | null>;
+}) {
   const wrapRef = useRef<HTMLDivElement>(null);
   // Pause the render loop entirely while the star is scrolled out of view.
   // Invisible to the user, but reclaims all GPU/CPU spent re-rendering the
@@ -745,7 +820,7 @@ export default function NinjaStar({ scale = 0.70, scrollReactive = true }: { sca
           <DreiEnvironment preset={current.envPreset} />
         </Suspense>
         <SceneLights />
-        <CompassStar scale={scale} scrollReactive={scrollReactive} />
+        <CompassStar scale={scale} scrollReactive={scrollReactive} heroRef={heroRef} />
       </Canvas>
     </div>
   );

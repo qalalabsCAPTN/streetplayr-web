@@ -53,6 +53,7 @@ export default function HomeHero({
 }: HomeHeroProps = {}) {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
   const [joinOpen, setJoinOpen] = useState(false);
   const [particles, setParticles] = useState<Array<{ left: number; delay: number; dur: number; size: number }>>([]);
 
@@ -123,7 +124,7 @@ export default function HomeHero({
   const isTablet = windowWidth !== null && windowWidth >= 768 && windowWidth < 1024;
 
   return (
-    <section className="relative min-h-screen w-full flex flex-col justify-end overflow-hidden bg-transparent">
+    <section ref={sectionRef} className="relative min-h-screen w-full flex flex-col justify-end overflow-hidden bg-transparent">
       {/* CSS-driven backdrop stages matching /enter-the-play page */}
       <div className="absolute inset-0 z-[-3] overflow-hidden pointer-events-none">
         <div className="absolute inset-0 bg-transparent" />
@@ -163,7 +164,7 @@ export default function HomeHero({
         <div 
           className="pointer-events-auto flex items-center justify-center w-60 h-60 md:w-[320px] md:h-[320px] lg:w-[420px] lg:h-[420px]"
         >
-          <NinjaStar scale={starScale} />
+          <NinjaStar scale={starScale} heroRef={sectionRef} />
         </div>
       </div>
 
