@@ -737,7 +737,7 @@ select {
   color: var(--sp-text-secondary);
 }
 
-/* ── Claude Preloader Animations ─────────────────────────── */
+/* ── Preloader Animations ─────────────────────────── */
 @keyframes blobP {
   0%,100% { transform: translate(-12%, -18%); }
   33%     { transform: translate(12%, 4%); }
@@ -773,7 +773,7 @@ select {
   50%     { transform: scale(1.6); opacity: 0.4; }
 }
 
-/* ── Claude IntroVideo Animations ──────────────────────────── */
+/* ── IntroVideo Animations ──────────────────────────── */
 @keyframes filmIn {
   from { opacity: 0; }
   to   { opacity: 1; }

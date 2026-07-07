@@ -118,24 +118,9 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
     },
     variants: buildVariants("star-tank-dark"),
   },
-  {
-    id: "olive-pant",
-    name: "playR Sweats",
-    price: 3499,
-    description:
-      "Relaxed, baggy sweatpants crafted from premium heavyweight cotton fleece for everyday comfort. Finished with a signature woven playR patch and subtle design detailing on the left leg, they strike the perfect balance between clean minimalism and understated streetwear. Soft, durable, and made to be worn on repeat.",
-    image_url: `/assets/products/olive-pant/image-1.jpg`,
-    slug: "olive-pant",
-    category: { name: "PANTS" },
-    metadata: {
-      points: "500",
-      gallery_images: GALLERY_IMAGES("olive-pant"),
-      colors: [
-        { id: "black", name: "Black", hex: "#1a1a1a", images: GALLERY_IMAGES("olive-pant") },
-      ],
-    },
-    variants: buildVariants("olive-pant"),
-  },
+  // playR Sweats (PS-PNT-CORE-BLK / -CRM, Rs.3499) — hidden until real product
+  // photos land. Black + Cream shots pending; the old olive images belonged to
+  // the Carpenter Olive colourway, not these.
   {
     id: "carpenter-grey",
     name: "Carpenter Pants",
@@ -150,24 +135,25 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
       gallery_images: GALLERY_IMAGES("carpenter-grey"),
       colors: [
         { id: "grey", name: "Grey", hex: "#8a8a8a", images: GALLERY_IMAGES("carpenter-grey") },
+        { id: "olive", name: "Olive", hex: "#5c5a3a", images: GALLERY_IMAGES("carpenter-olive") },
       ],
     },
     variants: buildVariants("carpenter-grey"),
   },
   {
     id: "stick-no-bills",
-    name: "Stick No Bills",
-    price: 1999,
+    name: "playR Street SNB Waffle Tee",
+    price: 2299,
     description:
-      "A statement tee for those who refuse to be ignored. Bold graphics meet heavyweight cotton — built for the streets that don't sleep.",
+      "Crafted from heavyweight acid-washed ribbed cotton, this oversized long sleeve features a structured, boxy fit with dropped shoulders and a worn-in vintage finish. The phrase \"Stick No Bills\" comes from the iconic notices painted on city walls to discourage posters and advertisements, becoming a recognizable part of the urban landscape. The graphics draw inspiration from this piece of street culture, reinterpreting a familiar symbol of the city.",
     image_url: `/assets/products/stick-no-bills/image-1.jpg`,
     slug: "stick-no-bills",
     category: { name: "TEES" },
     metadata: {
-      points: "200",
+      points: "300",
       gallery_images: GALLERY_IMAGES("stick-no-bills"),
       colors: [
-        { id: "default", name: "Standard", hex: "#ffffff", images: GALLERY_IMAGES("stick-no-bills") },
+        { id: "grey", name: "Grey", hex: "#8a8a8a", images: GALLERY_IMAGES("stick-no-bills") },
       ],
     },
     variants: buildVariants("stick-no-bills"),
