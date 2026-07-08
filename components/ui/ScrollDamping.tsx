@@ -34,9 +34,31 @@ export default function ScrollDamping() {
   }, [pathname]);
 
   useEffect(() => {
-    // If the user prefers reduced motion, do not apply custom scroll interpolation
+    // Check for prefers-reduced-motion
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReducedMotion) return;
+    
+    if (prefersReducedMotion) {
+      // In reduced motion mode, we still sync scroll position directly on scroll events
+      // to keep dependent animations updated immediately rather than frozen.
+      const handleReducedMotionScroll = () => {
+        if (typeof window !== "undefined") {
+          (window as any).__scrollDampingY = window.scrollY;
+        }
+      };
+      
+      window.addEventListener("scroll", handleReducedMotionScroll, { passive: true });
+      if (typeof window !== "undefined") {
+        (window as any).__scrollDampingY = window.scrollY;
+      }
+      return () => {
+        window.removeEventListener("scroll", handleReducedMotionScroll);
+      };
+    }
+
+    // Detect Safari or Apple platforms (where trackpad/inertial scrolling are common)
+    const isSafari = /Safari/i.test(navigator.userAgent) && !/Chrome/i.test(navigator.userAgent);
+    const isApplePlatform = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || navigator.userAgent || "");
+    const useNativeScroll = isSafari || isApplePlatform;
 
     targetScrollY.current = window.scrollY;
     currentScrollY.current = window.scrollY;
@@ -44,133 +66,206 @@ export default function ScrollDamping() {
       (window as any).__scrollDampingY = window.scrollY;
     }
 
-    const syncScroll = () => {
-      // Sync our tracking variables with the native scroll position.
-      // If a non-wheel scroll occurs (drag, keys, anchor), the difference from currentScrollY
-      // will be large. In that case, we cancel our animation and sync immediately.
-      const diff = Math.abs(window.scrollY - currentScrollY.current);
-      if (!isMoving.current || diff > 15) {
+    if (useNativeScroll) {
+      // ─── SAFARI / APPLE NATIVE SCROLL MODE ───
+      // We do not hijack wheel events (no preventDefault). This keeps trackpad and inertial scrolling
+      // buttery smooth using the browser's native engine. We only run the spring simulation to
+      // interpolate __scrollDampingY so that scroll-reactive 3D elements animate smoothly.
+      const handleNativeScroll = () => {
         targetScrollY.current = window.scrollY;
-        currentScrollY.current = window.scrollY;
-        velocity.current = 0;
-        isMoving.current = false;
-        lastTime.current = 0;
-        accumulator.current = 0;
-        if (typeof window !== "undefined") {
-          (window as any).__scrollDampingY = window.scrollY;
+        if (!isMoving.current) {
+          isMoving.current = true;
+          lastTime.current = 0;
+          accumulator.current = 0;
+          requestAnimationFrame(updateNativeScrollAnimation);
         }
-      }
-    };
+      };
 
-    const handleWheel = (e: WheelEvent) => {
-      // Don't intercept if body overflow is hidden (e.g. modals, navigation drawer open)
-      if (document.body.style.overflow === "hidden") return;
+      const updateNativeScrollAnimation = (timestamp: number) => {
+        if (!isMoving.current) return;
 
-      // Don't intercept if vertical scroll is zero (horizontal scroll only)
-      if (e.deltaY === 0) return;
-
-      // Check if target or any parent is scrollable to avoid hijacking nested scroll areas (modals, dropdowns, etc.)
-      let isInsideScrollable = false;
-      const eventTarget = e.target;
-      if (eventTarget && eventTarget === lastTarget.current) {
-        isInsideScrollable = lastIsInsideScrollable.current;
-      } else {
-        lastTarget.current = eventTarget;
-        let target = eventTarget as HTMLElement | null;
-        while (target && target !== document.body && target !== document.documentElement) {
-          const style = window.getComputedStyle(target);
-          const overflowY = style.overflowY;
-          const isScrollable = overflowY === "auto" || overflowY === "scroll";
-          const canScroll = target.scrollHeight > target.clientHeight;
-          if (isScrollable && canScroll) {
-            isInsideScrollable = true;
-            break;
-          }
-          target = target.parentElement;
+        if (!lastTime.current) {
+          lastTime.current = timestamp;
+          requestAnimationFrame(updateNativeScrollAnimation);
+          return;
         }
-        lastIsInsideScrollable.current = isInsideScrollable;
-      }
-      if (isInsideScrollable) return;
 
-      // Prevent native browser scroll
-      e.preventDefault();
-
-      // Make scroll 30% slower -> scale distance by 0.7
-      const scrollSpeedMultiplier = 0.7;
-      const scrollAmount = e.deltaY * scrollSpeedMultiplier;
-
-      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-      targetScrollY.current = Math.max(0, Math.min(maxScroll, targetScrollY.current + scrollAmount));
-
-      if (!isMoving.current) {
-        isMoving.current = true;
-        lastTime.current = 0;
-        accumulator.current = 0;
-        requestAnimationFrame(updateScroll);
-      }
-    };
-
-    const updateScroll = (timestamp: number) => {
-      if (!isMoving.current) return;
-
-      if (!lastTime.current) {
+        const deltaTime = Math.min(timestamp - lastTime.current, 100);
         lastTime.current = timestamp;
-        requestAnimationFrame(updateScroll);
-        return;
-      }
 
-      const deltaTime = Math.min(timestamp - lastTime.current, 100); // cap elapsed time at 100ms
-      lastTime.current = timestamp;
+        const timeStep = 2; // 2ms fixed timestep
+        accumulator.current += deltaTime;
 
-      // Integrate physics using a high-frequency fixed timestep (2ms / 500Hz)
-      // This eliminates refresh rate dependency and visual stutter across 60Hz - 240Hz screens
-      const timeStep = 2; // 2ms
-      accumulator.current += deltaTime;
+        const stepStiffness = 0.004;
+        const stepDamping = 0.98;
 
-      const stepStiffness = 0.004; // scaled stiffness for 2ms step size
-      const stepDamping = 0.98;    // scaled damping for 2ms step size
+        let current = currentScrollY.current;
+        const target = targetScrollY.current;
+        let vel = velocity.current;
 
-      let current = currentScrollY.current;
-      const target = targetScrollY.current;
-      let vel = velocity.current;
-
-      while (accumulator.current >= timeStep) {
-        const displacement = target - current;
-        vel = (vel + displacement * stepStiffness) * stepDamping;
-        current += vel;
-        accumulator.current -= timeStep;
-      }
-
-      currentScrollY.current = current;
-      velocity.current = vel;
-      if (typeof window !== "undefined") {
-        (window as any).__scrollDampingY = current;
-      }
-
-      const displacement = target - current;
-      if (Math.abs(displacement) > 0.05 || Math.abs(vel) > 0.02) {
-        window.scrollTo(0, current);
-        requestAnimationFrame(updateScroll);
-      } else {
-        currentScrollY.current = target;
-        window.scrollTo(0, target);
-        if (typeof window !== "undefined") {
-          (window as any).__scrollDampingY = target;
+        while (accumulator.current >= timeStep) {
+          const displacement = target - current;
+          vel = (vel + displacement * stepStiffness) * stepDamping;
+          current += vel;
+          accumulator.current -= timeStep;
         }
-        velocity.current = 0;
-        isMoving.current = false;
-        lastTime.current = 0;
-        accumulator.current = 0;
-      }
-    };
 
-    window.addEventListener("scroll", syncScroll, { passive: true });
-    window.addEventListener("wheel", handleWheel, { passive: false });
+        currentScrollY.current = current;
+        velocity.current = vel;
+        
+        if (typeof window !== "undefined") {
+          (window as any).__scrollDampingY = current;
+        }
 
-    return () => {
-      window.removeEventListener("scroll", syncScroll);
-      window.removeEventListener("wheel", handleWheel);
-    };
+        const displacement = target - current;
+        if (Math.abs(displacement) > 0.05 || Math.abs(vel) > 0.02) {
+          requestAnimationFrame(updateNativeScrollAnimation);
+        } else {
+          currentScrollY.current = target;
+          if (typeof window !== "undefined") {
+            (window as any).__scrollDampingY = target;
+          }
+          velocity.current = 0;
+          isMoving.current = false;
+          lastTime.current = 0;
+          accumulator.current = 0;
+        }
+      };
+
+      window.addEventListener("scroll", handleNativeScroll, { passive: true });
+
+      return () => {
+        window.removeEventListener("scroll", handleNativeScroll);
+      };
+    } else {
+      // ─── HIJACKED WHEEL SCROLL MODE (Chrome/Firefox/Windows etc) ───
+      const syncScroll = () => {
+        // Sync our tracking variables with the native scroll position.
+        // If a non-wheel scroll occurs (drag, keys, anchor), the difference from currentScrollY
+        // will be large. In that case, we cancel our animation and sync immediately.
+        const diff = Math.abs(window.scrollY - currentScrollY.current);
+        if (!isMoving.current || diff > 25) { // Increased threshold slightly to prevent premature cancellation on frame drops
+          targetScrollY.current = window.scrollY;
+          currentScrollY.current = window.scrollY;
+          velocity.current = 0;
+          isMoving.current = false;
+          lastTime.current = 0;
+          accumulator.current = 0;
+          if (typeof window !== "undefined") {
+            (window as any).__scrollDampingY = window.scrollY;
+          }
+        }
+      };
+
+      const handleWheel = (e: WheelEvent) => {
+        // Don't intercept if body overflow is hidden (e.g. modals, navigation drawer open)
+        if (document.body.style.overflow === "hidden") return;
+
+        // Don't intercept if vertical scroll is zero (horizontal scroll only)
+        if (e.deltaY === 0) return;
+
+        // Check if target or any parent is scrollable to avoid hijacking nested scroll areas (modals, dropdowns, etc.)
+        let isInsideScrollable = false;
+        const eventTarget = e.target;
+        if (eventTarget && eventTarget === lastTarget.current) {
+          isInsideScrollable = lastIsInsideScrollable.current;
+        } else {
+          lastTarget.current = eventTarget;
+          let target = eventTarget as HTMLElement | null;
+          while (target && target !== document.body && target !== document.documentElement) {
+            const style = window.getComputedStyle(target);
+            const overflowY = style.overflowY;
+            const isScrollable = overflowY === "auto" || overflowY === "scroll";
+            const canScroll = target.scrollHeight > target.clientHeight;
+            if (isScrollable && canScroll) {
+              isInsideScrollable = true;
+              break;
+            }
+            target = target.parentElement;
+          }
+          lastIsInsideScrollable.current = isInsideScrollable;
+        }
+        if (isInsideScrollable) return;
+
+        // Prevent native browser scroll
+        e.preventDefault();
+
+        // Make scroll 30% slower -> scale distance by 0.7
+        const scrollSpeedMultiplier = 0.7;
+        const scrollAmount = e.deltaY * scrollSpeedMultiplier;
+
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+        targetScrollY.current = Math.max(0, Math.min(maxScroll, targetScrollY.current + scrollAmount));
+
+        if (!isMoving.current) {
+          isMoving.current = true;
+          lastTime.current = 0;
+          accumulator.current = 0;
+          requestAnimationFrame(updateScroll);
+        }
+      };
+
+      const updateScroll = (timestamp: number) => {
+        if (!isMoving.current) return;
+
+        if (!lastTime.current) {
+          lastTime.current = timestamp;
+          requestAnimationFrame(updateScroll);
+          return;
+        }
+
+        const deltaTime = Math.min(timestamp - lastTime.current, 100); // cap elapsed time at 100ms
+        lastTime.current = timestamp;
+
+        // Integrate physics using a high-frequency fixed timestep (2ms / 500Hz)
+        const timeStep = 2; // 2ms
+        accumulator.current += deltaTime;
+
+        const stepStiffness = 0.004; // scaled stiffness for 2ms step size
+        const stepDamping = 0.98;    // scaled damping for 2ms step size
+
+        let current = currentScrollY.current;
+        const target = targetScrollY.current;
+        let vel = velocity.current;
+
+        while (accumulator.current >= timeStep) {
+          const displacement = target - current;
+          vel = (vel + displacement * stepStiffness) * stepDamping;
+          current += vel;
+          accumulator.current -= timeStep;
+        }
+
+        currentScrollY.current = current;
+        velocity.current = vel;
+        if (typeof window !== "undefined") {
+          (window as any).__scrollDampingY = current;
+        }
+
+        const displacement = target - current;
+        if (Math.abs(displacement) > 0.05 || Math.abs(vel) > 0.02) {
+          window.scrollTo(0, current);
+          requestAnimationFrame(updateScroll);
+        } else {
+          currentScrollY.current = target;
+          window.scrollTo(0, target);
+          if (typeof window !== "undefined") {
+            (window as any).__scrollDampingY = target;
+          }
+          velocity.current = 0;
+          isMoving.current = false;
+          lastTime.current = 0;
+          accumulator.current = 0;
+        }
+      };
+
+      window.addEventListener("scroll", syncScroll, { passive: true });
+      window.addEventListener("wheel", handleWheel, { passive: false });
+
+      return () => {
+        window.removeEventListener("scroll", syncScroll);
+        window.removeEventListener("wheel", handleWheel);
+      };
+    }
   }, []);
 
   return null;
