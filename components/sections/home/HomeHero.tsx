@@ -49,7 +49,7 @@ export default function HomeHero({
   ctaHref = "/collection",
   bgImageUrl,
   bgVideoUrl = "/assets/home-page-banner.mp4",
-  overlayOpacity = 0.4,
+  overlayOpacity = 0.15,
 }: HomeHeroProps = {}) {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -169,60 +169,58 @@ export default function HomeHero({
       </div>
 
       {/* Image Background */}
-      {bgImageUrl && (
+      {bgImageUrl ? (
         <img
-          className="absolute inset-0 w-full h-full object-cover z-[-3]"
+          className="absolute inset-0 w-full h-full object-cover z-[-2]"
           src={bgImageUrl}
           alt={title}
           decoding="async"
         />
+      ) : (
+        <>
+          {/* Desktop default banner */}
+          <img
+            className="absolute inset-0 w-full h-full object-cover z-[-2] hidden md:block"
+            src="/assets/main-web-banner-st.jpg"
+            alt={title}
+            decoding="async"
+          />
+          {/* Mobile default banner */}
+          <img
+            className="absolute inset-0 w-full h-full object-cover z-[-2] md:hidden"
+            src="/assets/st-banner-mobile.jpg"
+            alt={title}
+            decoding="async"
+          />
+        </>
       )}
 
       {/* Dynamic Overlay Dark Tint if Image background is present */}
-      {bgImageUrl && (
+      {bgImageUrl && overlayOpacity > 0 && (
         <div
           className="absolute inset-0 bg-black z-[-2] pointer-events-none"
           style={{ opacity: overlayOpacity }}
         />
       )}
 
+      {/* Subtle bottom fade to blend with the next section, keeping the rest of the image completely untouched, crisp, and vibrant */}
       <div className="absolute inset-0 z-[-2] pointer-events-none"
         style={{
-          background:
-            "radial-gradient(60% 55% at 18% 24%, rgba(221,183,255,0.18), transparent 64%), radial-gradient(46% 48% at 82% 78%, rgba(255,87,26,0.12), transparent 65%), linear-gradient(180deg, rgba(22,17,27,0.50) 0%, rgba(22,17,27,0.22) 38%, rgba(22,17,27,0.92) 100%)"
-        }}
-      />
-      <div className="absolute inset-0 z-[-2] pointer-events-none"
-        style={{
-          background: "radial-gradient(ellipse at center, transparent 40%, rgba(12,6,18,0.72) 100%)"
-        }}
-      />
-      <div
-        className="absolute inset-0 z-[-2] pointer-events-none opacity-45"
-        style={{
-          backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
-          backgroundSize: "256px",
-          mixBlendMode: "overlay",
+          background: "linear-gradient(180deg, transparent 75%, #16111b 100%)"
         }}
       />
 
-      {/* Hero Content with staggered reveals */}
+      {/* Hero Content with centered CTA */}
       <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="relative z-[2] flex flex-col items-start gap-4 px-[6vw] pb-16 max-w-[880px] pointer-events-none"
+        className="relative z-[2] flex flex-col items-center gap-4 w-full pb-16 pointer-events-none"
       >
-        <motion.h1
-          variants={itemVariants}
-          className="font-display text-[clamp(64px,10vw,168px)] leading-[0.88] tracking-[0.01em] uppercase text-[#eadfed] m-0 max-w-[7.8ch] whitespace-pre-line pointer-events-none"
-        >
-          {title}
-        </motion.h1>
         {subtitle && (
           <motion.p
             variants={itemVariants}
-            className="font-body text-base text-white/70 max-w-md mt-2 pointer-events-none"
+            className="font-body text-base text-white/70 max-w-md mt-2 text-center pointer-events-none"
           >
             {subtitle}
           </motion.p>

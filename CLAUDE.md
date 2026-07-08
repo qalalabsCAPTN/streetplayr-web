@@ -146,3 +146,28 @@ To keep the global floating particles animation (`GlobalParticles` at `z-[-1]`) 
 - **Targeting Fixed Background Overlays:** Any page-specific fixed background overlays that lack explicit z-indexes are forced to the correct layer in `app/globals.css` using the selector `.pointer-events-none.fixed.inset-0:not([class*="z-"]):not(.exempt-motion) { z-index: -2 !important; }`.
 - **Scoping Opaque Portal Backgrounds:** Dashboard/portal CSS (e.g., `app/nectar-portal.css`) that sets a solid background on the `body` must be scoped to a container class (e.g., `.nectar-portal-root` applied in `app/dashboard/layout.tsx`) to prevent it from globally rendering over and hiding the storefront's transparent page backgrounds and floating particles.
 
+### HomeHero Banner — Vibrancy Tuning (Session: 2026-07-08)
+The hero banner background image appeared washed out / heavily tinted. Fixed in [HomeHero.tsx](file:///e:/SP%20-%20Copy/streetplayr-web/components/sections/home/HomeHero.tsx):
+- **`overlayOpacity` default:** Reduced from `0.4` → `0.15` (the darkness multiplier applied to the base overlay div).
+- **Linear gradient overlay:** Top anchor `0.15`, mid-point `0.05` at 40%, bottom-fade `0.85` at 100% (preserves blending into the next section while keeping the image bright).
+- **Radial vignette:** Central transparent zone expanded to 50%; edge opacity reduced from `0.72` → `0.40`.
+- **Noise overlay opacity:** Container opacity dropped from `45%` → `15%` to remove the grey haze film over the image.
+- **Build verified:** Deleted `.next` cache, ran `npm run build` (zero TypeScript errors), restarted `npm run dev`.
+
+### HomeHero Banner — Model Cropping vs. Letterbox Tradeoff (Session: 2026-07-08)
+The desktop banner (`public/assets/main-web-banner-st.jpg`, 1920×720, 2.67:1) shows 4 models on each side. On typical viewport ratios (~1.6–1.9:1, narrower than the image), `object-cover` was cropping ~15–20% off each side, cutting off the outermost model.
+- **Fix applied:** Changed both banner `<img>` tags in [HomeHero.tsx](file:///e:/SP%20-%20Copy/streetplayr-web/components/sections/home/HomeHero.tsx) (desktop `main-web-banner-st.jpg` and mobile `st-banner-mobile.jpg`, 842×842) from `object-cover` to `object-contain`, so all models are always fully visible.
+- **Known tradeoff:** `object-contain` prevents cropping but leaves a letterboxed margin top/bottom (visible against the dark backdrop) since the image is wider than the viewport — there is no way to get zero-crop and zero-margin simultaneously with the image at its current pixel dimensions.
+- **Proper long-term fix (not yet applied):** Extend the banner's canvas vertically (outpaint matching studio backdrop above/below the photo) to bring its aspect ratio closer to typical screens (~1.9:1), then switch back to `object-cover` so it fills edge-to-edge while cropping only into the added background, never into a model.
+
+### HomeHero Banner — Outpaint Specifications (Session: 2026-07-08)
+Specifications for AI outpainting to achieve full-screen `object-cover` fill without model cropping:
+- **Desktop banner target:** `1920×1080` px (1.78:1 Full HD ratio, up from current 1920×720)
+  - **Outpaint instruction:** Extend studio backdrop vertically by +180px top and +180px bottom (+360px total height), matching existing lighting, color gradient (purple to dark), and particle density. Keep all 8 models fully visible and centered in frame.
+  - **Reasoning:** 1080p matches standard Full HD viewport ratio; vertical extension only affects backdrop area above/below models, never cropping them when using `object-cover`.
+- **Mobile banner:** Keep current `842×842` (1:1 square) or reframe to `375×812` (standard mobile portrait 0.46:1 ratio) depending on design preference.
+- **Implementation:** Once new banners received:
+  1. Replace `/public/assets/main-web-banner-st.jpg` (desktop) with outpainted 1920×1080 version.
+  2. Update `HomeHero.tsx` image tags to switch back from `object-contain` → `object-cover`.
+  3. Verify zero model cropping across desktop/tablet/mobile breakpoints.
+
