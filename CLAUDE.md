@@ -155,13 +155,11 @@ The hero banner background image appeared washed out / heavily tinted. Fixed in 
 - **Build verified:** Deleted `.next` cache, ran `npm run build` (zero TypeScript errors), restarted `npm run dev`.
 
 ### HomeHero Banner — Model Cropping vs. Letterbox Tradeoff (Session: 2026-07-08)
-The desktop banner (`public/assets/main-web-banner-st.jpg`, 1920×720, 2.67:1) shows 4 models on each side. On typical viewport ratios (~1.6–1.9:1, narrower than the image), `object-cover` was cropping ~15–20% off each side, cutting off the outermost model.
 - **Fix applied:** Changed both banner `<img>` tags in [HomeHero.tsx](file:///e:/SP%20-%20Copy/streetplayr-web/components/sections/home/HomeHero.tsx) (desktop `main-web-banner-st.jpg` and mobile `st-banner-mobile.jpg`, 842×842) from `object-cover` to `object-contain`, so all models are always fully visible.
 - **Known tradeoff:** `object-contain` prevents cropping but leaves a letterboxed margin top/bottom (visible against the dark backdrop) since the image is wider than the viewport — there is no way to get zero-crop and zero-margin simultaneously with the image at its current pixel dimensions.
 - **Proper long-term fix (not yet applied):** Extend the banner's canvas vertically (outpaint matching studio backdrop above/below the photo) to bring its aspect ratio closer to typical screens (~1.9:1), then switch back to `object-cover` so it fills edge-to-edge while cropping only into the added background, never into a model.
 
 ### HomeHero Banner — Outpaint Specifications (Session: 2026-07-08)
-Specifications for AI outpainting to achieve full-screen `object-cover` fill without model cropping:
 - **Desktop banner target:** `1920×1080` px (1.78:1 Full HD ratio, up from current 1920×720)
   - **Outpaint instruction:** Extend studio backdrop vertically by +180px top and +180px bottom (+360px total height), matching existing lighting, color gradient (purple to dark), and particle density. Keep all 8 models fully visible and centered in frame.
   - **Reasoning:** 1080p matches standard Full HD viewport ratio; vertical extension only affects backdrop area above/below models, never cropping them when using `object-cover`.
@@ -171,3 +169,14 @@ Specifications for AI outpainting to achieve full-screen `object-cover` fill wit
   2. Update `HomeHero.tsx` image tags to switch back from `object-contain` → `object-cover`.
   3. Verify zero model cropping across desktop/tablet/mobile breakpoints.
 
+### Banner Updates, Lightbox & Mobile Gallery Scroll (Session: 2026-07-09)
+- **PDP Zoom & Lightbox**: Main and secondary product images open a spring-animated modal overlay (`lightboxIndex`) with close button, next/prev arrow hotkeys, and slide counter. Uses custom styles with cursor-zoom-out inside the lightbox.
+- **PDP Mobile Snap Scrolling**: Mobile Embla carousel slides resized from `flex: "0 0 65%"` to `flex: "0 0 100%"` with padding offsets so that swipes snap exactly 1 image at a time.
+- **Home Banner Replacement**:
+  - Replaced default banners with `/assets/empty_centre.jpg` and removed old asset files (`main-web-banner-st.jpg`, `st-banner-mobile.jpg`).
+  - Reduced 3D star scale factors (`0.70` desktop, `0.60` tablet, `0.45` mobile) but preserved original centered layout (no translate-y offset).
+  - Pushed bottom CTA buttons up by changing content padding from `pb-16` to `pb-32` to avoid overlapping the scroll down indicator.
+- **Collections Page Motion Banners**:
+  - Replaced static hero banners with loop autoplaying `<video>` tags: `COLLECTION_MOTION_BANNER.mp4` on desktop (`hidden md:block`) and `FOR_MOBILE_ST_COLLECTION.mp4` on mobile (`md:hidden`).
+  - Removed title heading ("Current Release") and all background gradient overlay layers from the banner section.
+  - Configured video tags with `opacity-100` and removed saturation filter caps to render raw, unblended colors.

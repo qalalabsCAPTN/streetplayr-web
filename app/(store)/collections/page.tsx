@@ -74,21 +74,24 @@ function CollectionsInner() {
       <Navbar />
 
       <section className="relative z-[1] w-full h-[460px] overflow-hidden border-b border-white/[0.10] mt-20">
-        <img
-          alt="Collection visual"
-          src={products[0]?.image || "/assets/hero-tees.png"}
-          className="absolute inset-0 w-full h-full object-cover opacity-60 saturate-[0.85]"
+        {/* Desktop motion banner */}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover opacity-100 hidden md:block"
+          src="/assets/COLLECTION_MOTION_BANNER.mp4"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#16111b] via-[#16111b]/25 to-[#16111b]/55" />
-        <div className="absolute inset-0 bg-[radial-gradient(700px_360px_at_18%_10%,rgba(221,183,255,0.13),transparent_62%),radial-gradient(560px_340px_at_86%_82%,rgba(255,87,26,0.10),transparent_64%)]" />
-        <div className="absolute inset-0 flex items-end justify-start px-4 md:px-8 lg:px-12 pb-14">
-          <div className="max-w-[760px]">
-
-            <h1 className="font-display text-[clamp(56px,8vw,128px)] uppercase leading-[0.88] text-[#eadfed]">
-              Current Release
-            </h1>
-          </div>
-        </div>
+        {/* Mobile motion banner */}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover opacity-100 md:hidden"
+          src="/assets/FOR_MOBILE_ST_COLLECTION.mp4"
+        />
       </section>
 
       <main className="relative z-[1] pb-20 w-full max-w-[min(98vw,2560px)] mx-auto px-4 md:px-8 lg:px-12 pt-14">

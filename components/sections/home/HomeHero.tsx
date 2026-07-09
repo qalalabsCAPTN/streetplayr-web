@@ -75,10 +75,10 @@ export default function HomeHero({
   const windowWidth = useWindowWidth();
 
   const getStarScale = () => {
-    if (windowWidth === null) return 0.95;
-    if (windowWidth < 768) return 0.65;
-    if (windowWidth < 1024) return 0.85;
-    return 0.95;
+    if (windowWidth === null) return 0.70;
+    if (windowWidth < 768) return 0.45;
+    if (windowWidth < 1024) return 0.60;
+    return 0.70;
   };
   const starScale = getStarScale();
 
@@ -178,17 +178,10 @@ export default function HomeHero({
         />
       ) : (
         <>
-          {/* Desktop default banner */}
+          {/* Default banner */}
           <img
-            className="absolute inset-0 w-full h-full object-cover z-[-2] hidden md:block"
-            src="/assets/main-web-banner-st.jpg"
-            alt={title}
-            decoding="async"
-          />
-          {/* Mobile default banner */}
-          <img
-            className="absolute inset-0 w-full h-full object-cover z-[-2] md:hidden"
-            src="/assets/st-banner-mobile.jpg"
+            className="absolute inset-0 w-full h-full object-cover z-[-2]"
+            src="/assets/empty_centre.jpg"
             alt={title}
             decoding="async"
           />
@@ -215,7 +208,7 @@ export default function HomeHero({
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="relative z-[2] flex flex-col items-center gap-4 w-full pb-16 pointer-events-none"
+        className="relative z-[2] flex flex-col items-center gap-4 w-full pb-32 pointer-events-none"
       >
         {subtitle && (
           <motion.p

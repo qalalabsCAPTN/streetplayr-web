@@ -136,6 +136,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
   const [selectedSize, setSelectedSize] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [show3DViewer, setShow3DViewer] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [liveStock, setLiveStock] = useState<Record<string, number>>({});
 
   /* Mobile gallery state */
@@ -270,7 +271,10 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
               {props.title}
             </h1>
           </div>
-          <div className="relative aspect-[3/4] bg-[#050505] overflow-hidden border border-white/[0.08]">
+          <div 
+            className="relative aspect-[3/4] bg-[#050505] overflow-hidden border border-white/[0.08] cursor-zoom-in"
+            onClick={() => setLightboxIndex(0)}
+          >
             <Image
               src={heroImage}
               alt={props.title}
@@ -298,7 +302,8 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
           {allImages.slice(1).map((src, i) => (
             <div
               key={i}
-              className="relative aspect-[3/4] bg-[#050505] overflow-hidden border border-white/[0.08]"
+              className="relative aspect-[3/4] bg-[#050505] overflow-hidden border border-white/[0.08] cursor-zoom-in"
+              onClick={() => setLightboxIndex(i + 1)}
             >
               <Image
                 src={src}
@@ -358,18 +363,22 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
                   <div
                     key={i}
                     style={{
-                      flex: "0 0 65%",
+                      flex: "0 0 100%",
                       minWidth: 0,
                       paddingLeft: "10px",
+                      paddingRight: "10px",
                       transition: "transform 0.4s ease, opacity 0.4s ease",
-                      transform: isActive ? "scale(1)" : "scale(0.88)",
-                      opacity: isActive ? 1 : 0.55,
+                      transform: isActive ? "scale(1)" : "scale(0.96)",
+                      opacity: isActive ? 1 : 0.7,
                       willChange: "transform, opacity",
                       borderRadius: 16,
                       overflow: "hidden",
                     }}
                   >
-                    <div className="relative aspect-[4/5] bg-[#050505] overflow-hidden rounded-xl">
+                    <div 
+                      className="relative aspect-[4/5] bg-[#050505] overflow-hidden rounded-xl cursor-zoom-in"
+                      onClick={() => setLightboxIndex(i)}
+                    >
                       <Image
                         src={src}
                         alt={`${props.title} view ${i + 1}`}
@@ -393,7 +402,8 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
             {allImages.map((src, i) => (
               <div
                 key={i}
-                className="relative aspect-[4/5] flex-shrink-0 w-full snap-center bg-[#050505] overflow-hidden border-b border-white/[0.06]"
+                className="relative aspect-[4/5] flex-shrink-0 w-full snap-center bg-[#050505] overflow-hidden border-b border-white/[0.06] cursor-zoom-in"
+                onClick={() => setLightboxIndex(i)}
               >
                 <Image
                   src={src}
@@ -604,6 +614,92 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
               onClick={(e) => e.stopPropagation()}
             >
               <ProductViewer3D modelPath={props.model3d} />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ===== Lightbox Modal (shared desktop + mobile) ===== */}
+      <AnimatePresence>
+        {lightboxIndex !== null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[110] flex flex-col items-center justify-center bg-black/95 backdrop-blur-xl"
+            onClick={() => setLightboxIndex(null)}
+          >
+            {/* Close Button */}
+            <button
+              onClick={() => setLightboxIndex(null)}
+              className="absolute top-5 right-5 z-20 w-12 h-12 flex items-center justify-center border border-white/[0.12] text-white/50 hover:text-white hover:border-white/30 transition-all bg-black/40 backdrop-blur-sm cursor-pointer"
+              aria-label="Close image viewer"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+
+            {/* Navigation Buttons */}
+            {allImages.length > 1 && (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setLightboxIndex((prev) => (prev !== null ? (prev - 1 + allImages.length) % allImages.length : 0));
+                  }}
+                  className="absolute left-5 z-20 w-12 h-12 flex items-center justify-center border border-white/[0.12] text-white/50 hover:text-white hover:border-white/30 transition-all bg-black/40 backdrop-blur-sm cursor-pointer"
+                  aria-label="Previous image"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12" />
+                    <polyline points="12 19 5 12 12 5" />
+                  </svg>
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setLightboxIndex((prev) => (prev !== null ? (prev + 1) % allImages.length : 0));
+                  }}
+                  className="absolute right-5 z-20 w-12 h-12 flex items-center justify-center border border-white/[0.12] text-white/50 hover:text-white hover:border-white/30 transition-all bg-black/40 backdrop-blur-sm cursor-pointer"
+                  aria-label="Next image"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                    <polyline points="12 5 19 12 12 19" />
+                  </svg>
+                </button>
+              </>
+            )}
+
+            {/* Title / Counter Overlay */}
+            <div className="absolute top-5 left-5 z-20 flex items-center gap-3">
+              <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-[#ddb7ff]/70">Gallery</span>
+              <span className="h-px w-6 bg-white/15 block" />
+              <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-white/40">
+                {String(lightboxIndex + 1).padStart(2, "0")} / {String(allImages.length).padStart(2, "0")}
+              </span>
+            </div>
+
+            {/* Main Image in Lightbox */}
+            <motion.div
+              key={lightboxIndex}
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 120 }}
+              className="relative w-full max-w-4xl max-h-[85vh] aspect-[3/4] flex items-center justify-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Image
+                src={allImages[lightboxIndex]}
+                alt={`${props.title} full view`}
+                fill
+                className="object-contain cursor-zoom-out"
+                onClick={() => setLightboxIndex(null)}
+              />
             </motion.div>
           </motion.div>
         )}
