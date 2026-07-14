@@ -2,6 +2,7 @@
 
 import { useRef, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, useInView } from "framer-motion";
 import { animationController } from "@/lib/AnimationController";
 
@@ -51,12 +52,12 @@ const defaultLookbookItems: LookbookItem[] = [
 
 export default function Lookbook({
   title = "Lookbook",
-  description = "Lookbook",
   items,
 }: LookbookProps = {}) {
   const activeItems = items && items.length > 0 ? items : defaultLookbookItems;
 
   const [needsNavigation, setNeedsNavigation] = useState(false);
+  const [onScreen, setOnScreen] = useState(true);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -69,13 +70,23 @@ export default function Lookbook({
   const loopWidthRef = useRef(0);
 
   const lastTimeRef = useRef(0);
-  const rafIdRef = useRef(0);
 
   // Pointer drag state
   const pointerStartXRef = useRef(0);
   const dragStartTranslationRef = useRef<number | null>(null);
   const dragHistoryRef = useRef<{ x: number; t: number }[]>([]);
   const dragDistanceRef = useRef(0);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      ([entry]) => setOnScreen(entry.isIntersecting),
+      { rootMargin: "150px" }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   // Define calculateWidths first, before debouncedCalculateWidths
   const calculateWidths = useCallback(() => {
@@ -151,35 +162,52 @@ export default function Lookbook({
     const track = trackRef.current;
     if (!track) return;
     const children = Array.from(track.children) as HTMLElement[];
-    const currentTarget = targetXRef.current;
+    if (children.length === 0) return;
 
-    // Find closest card to current target
-    let closestIndex = 0;
+    const W = loopWidthRef.current;
+    if (W <= 0) return;
+
+    // Normalize current position
+    let curX = xRef.current;
+    while (curX < -2 * W) curX += W;
+    while (curX > -W) curX -= W;
+
+    let nextIndex = 0;
+    const N = activeItems.length;
+
+    // Find the current active item index based on closest offset
     let minDiff = Infinity;
-    children.forEach((child, index) => {
-      const diff = Math.abs(currentTarget - (-child.offsetLeft));
+    children.forEach((child, idx) => {
+      const offset = -child.offsetLeft;
+      let targetOffset = offset;
+      while (targetOffset < -2 * W) targetOffset += W;
+      while (targetOffset > -W) targetOffset -= W;
+
+      const diff = Math.abs(curX - targetOffset);
       if (diff < minDiff) {
         minDiff = diff;
-        closestIndex = index;
+        nextIndex = idx;
       }
     });
 
-    let nextIndex = closestIndex;
     if (direction === "next") {
-      nextIndex = closestIndex + 1;
+      nextIndex = (nextIndex + 1) % (N * 3);
     } else {
-      nextIndex = closestIndex - 1;
+      nextIndex = (nextIndex - 1 + N * 3) % (N * 3);
     }
-
-    nextIndex = Math.max(0, Math.min(nextIndex, children.length - 1));
 
     const targetSnap = -children[nextIndex].offsetLeft;
     targetXRef.current = targetSnap;
     modeRef.current = "animating";
-  }, []);
+  }, [activeItems.length]);
 
-  // Set up frame animation loop using unified animation controller
+  // Set up frame animation loop using unified animation coordinator
   useEffect(() => {
+    if (!onScreen) {
+      animationController.unregister("lookbook-carousel");
+      return;
+    }
+
     // Initial width calculation
     calculateWidths();
 
@@ -247,7 +275,7 @@ export default function Lookbook({
       animationController.unregister("lookbook-carousel");
       lastTimeRef.current = 0;
     };
-  }, [calculateWidths]);
+  }, [calculateWidths, onScreen]);
 
   // Recalculate dimensions on window resize (debounced to avoid cascading recalculations)
   useEffect(() => {
@@ -356,7 +384,7 @@ export default function Lookbook({
 
   return (
     <section className="relative py-14 md:py-18 overflow-hidden border-t border-white/[0.04]">
-      <div className="px-4 md:px-8 lg:px-12 max-w-[min(98vw,2560px)] mx-auto mb-6">
+      <div className="px-4 md:px-6 w-full max-w-[min(95vw,2400px)] mx-auto mb-6">
         <FadeIn>
           <div className="flex items-center gap-3 mb-4">
             <span className="h-px w-6 bg-white/20 block" />
@@ -368,7 +396,7 @@ export default function Lookbook({
         </FadeIn>
       </div>
 
-      <div className="relative max-w-[min(98vw,2560px)] mx-auto">
+      <div className="relative max-w-[min(95vw,2400px)] mx-auto">
         <button
           onClick={() => scroll("prev")}
           onMouseEnter={() => { isHoveredRef.current = true; }}
@@ -392,7 +420,7 @@ export default function Lookbook({
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerUp}
           onClickCapture={handleCaptureClick}
-          className="relative w-full overflow-hidden pb-6 cursor-grab active:cursor-grabbing select-none touch-pan-y px-4 md:px-8 lg:px-12 max-w-[min(98vw,2560px)] mx-auto h-[52vw] min-h-[320px] max-h-[580px]"
+          className="relative w-full overflow-hidden pb-6 cursor-grab active:cursor-grabbing select-none touch-pan-y px-4 md:px-6 max-w-[min(95vw,2400px)] mx-auto h-[52vw] min-h-[320px] max-h-[580px]"
         >
           <div
             ref={trackRef}
@@ -472,12 +500,13 @@ export default function Lookbook({
                       </div>
                     )}
                     {item.type === "image" && (
-                      <img
+                      <Image
                         className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                         src={item.src}
                         alt={item.label}
+                        fill
+                        sizes="(max-width: 768px) 36vw, (max-width: 1024px) 28vw, 22vw"
                         loading="lazy"
-                        decoding="async"
                       />
                     )}
 

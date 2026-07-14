@@ -2,7 +2,6 @@
 
 import { motion, type Variants } from "framer-motion";
 import { type ReactNode } from "react";
-import { useWindowWidth } from "@/hooks/useWindowWidth";
 
 type RevealProps = {
   children: ReactNode;
@@ -28,16 +27,13 @@ export default function Reveal({
   className = "",
   delay = 0,
 }: RevealProps) {
-  const width = useWindowWidth();
-  const viewportAmount = width < 768 ? 0.1 : width < 1024 ? 0.15 : 0.18;
-
   return (
     <motion.div
       className={className}
       custom={delay}
       initial="hidden"
       variants={revealVariants}
-      viewport={{ once: true, amount: viewportAmount }}
+      viewport={{ once: true, amount: 0.1 }}
       whileInView="visible"
     >
       {children}

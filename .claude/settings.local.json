@@ -24,7 +24,19 @@
       "Bash(dir /s /b app\\\\*layout.tsx)",
       "Bash(dir /b /s app\\\\product)",
       "Bash(dir /b app)",
-      "Bash(node -e \"const p = require\\('./lib/products/data'\\); console.log\\(JSON.stringify\\(p.getLocalProductBySlug\\('inspired'\\)\\)\\)\")"
+      "Bash(node -e \"const p = require\\('./lib/products/data'\\); console.log\\(JSON.stringify\\(p.getLocalProductBySlug\\('inspired'\\)\\)\\)\")",
+      "Bash(npm run *)",
+      "Bash(taskkill /PID 3004 /F)",
+      "Bash(taskkill /PID 24340 /F)",
+      "PowerShell(Get-Process node | Where-Object { $_.CommandLine -match \"next\" } | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 2; Write-Host \"Servers stopped\")",
+      "PowerShell(Get-Process | Where-Object { $_.ProcessName -eq 'node' } | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 1; Write-Host \"Ready for new dev server\")",
+      "Bash(curl -s http://localhost:3001)",
+      "Bash(curl -s -m 5 http://localhost:3001)",
+      "Bash(git reset *)",
+      "Bash(git commit -q -m 'Improve homepage scroll performance and add legal/SEO pages *)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(unset GITHUB_TOKEN)",
+      "Bash(git push *)"
     ]
   }
 }

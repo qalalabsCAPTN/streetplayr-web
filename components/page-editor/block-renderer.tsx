@@ -1,5 +1,7 @@
 'use client';
 
+/* eslint-disable @typescript-eslint/no-explicit-any, prefer-const */
+
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getSupabaseClient } from '@/lib/ops2/supabase';
@@ -7,12 +9,13 @@ import { cn } from '@/lib/ops2/cn';
 import ProductCarouselComponent from '@/components/ui/ProductCarousel';
 import type { PageBlock } from '@/lib/page-editor/get-page-blocks';
 
-// CMS Dynamic Wrappers
-import CMSHeroWrapper from './wrappers/CMSHeroWrapper';
-import CMSBestSellerWrapper from './wrappers/CMSBestSellerWrapper';
-import CMSBrandStoryWrapper from './wrappers/CMSBrandStoryWrapper';
-import CMSLookbookWrapper from './wrappers/CMSLookbookWrapper';
-import CMSReviewsWrapper from './wrappers/CMSReviewsWrapper';
+import dynamic from 'next/dynamic';
+
+const CMSHeroWrapper = dynamic(() => import('./wrappers/CMSHeroWrapper'), { ssr: true });
+const CMSBestSellerWrapper = dynamic(() => import('./wrappers/CMSBestSellerWrapper'), { ssr: true });
+const CMSBrandStoryWrapper = dynamic(() => import('./wrappers/CMSBrandStoryWrapper'), { ssr: true });
+const CMSLookbookWrapper = dynamic(() => import('./wrappers/CMSLookbookWrapper'), { ssr: true });
+const CMSReviewsWrapper = dynamic(() => import('./wrappers/CMSReviewsWrapper'), { ssr: true });
 
 
 // ============================================================
@@ -194,6 +197,7 @@ function BlockSwitch({ block }: { block: PageBlock }) {
             {images.map((img, i) => {
               const content = (
                 <div key={i} className="relative aspect-square overflow-hidden rounded-xl bg-base-elevated border border-border group">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={img.url}
                     alt={img.alt || ''}
@@ -438,6 +442,7 @@ function CollectionGridBlock({ heading }: { heading: string }) {
             href={`/collections`}
             className="group relative aspect-[4/5] bg-base-elevated overflow-hidden rounded-xl border border-border"
           >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={col.image}
               alt={col.name}

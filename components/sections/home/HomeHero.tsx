@@ -43,6 +43,37 @@ interface HomeHeroProps {
   overlayOpacity?: number;
 }
 
+const STATIC_PARTICLES = [
+  { left: 12, delay: -0.5, dur: 7.2, size: 1.8 },
+  { left: 45, delay: -1.2, dur: 5.4, size: 2.1 },
+  { left: 78, delay: -2.1, dur: 8.9, size: 1.2 },
+  { left: 23, delay: -3.4, dur: 6.1, size: 2.5 },
+  { left: 56, delay: -0.1, dur: 9.3, size: 1.5 },
+  { left: 89, delay: -4.5, dur: 4.8, size: 2.0 },
+  { left: 34, delay: -1.8, dur: 7.6, size: 1.4 },
+  { left: 67, delay: -2.9, dur: 5.9, size: 2.3 },
+  { left: 91, delay: -0.8, dur: 8.2, size: 1.6 },
+  { left: 5,  delay: -3.9, dur: 6.7, size: 2.2 },
+  { left: 41, delay: -2.4, dur: 9.8, size: 1.1 },
+  { left: 73, delay: -1.5, dur: 5.1, size: 2.4 },
+  { left: 19, delay: -4.1, dur: 7.9, size: 1.7 },
+  { left: 51, delay: -0.3, dur: 6.4, size: 2.0 },
+  { left: 84, delay: -2.7, dur: 8.5, size: 1.3 },
+  { left: 62, delay: -3.1, dur: 5.7, size: 2.6 },
+  { left: 28, delay: -1.0, dur: 9.1, size: 1.9 },
+  { left: 95, delay: -4.8, dur: 4.3, size: 1.5 },
+  { left: 15, delay: -2.3, dur: 7.0, size: 2.2 },
+  { left: 48, delay: -0.7, dur: 8.1, size: 1.8 },
+  { left: 81, delay: -3.6, dur: 6.3, size: 2.5 },
+  { left: 37, delay: -1.9, dur: 9.5, size: 1.2 },
+  { left: 70, delay: -4.2, dur: 5.2, size: 2.1 },
+  { left: 9,  delay: -0.2, dur: 7.5, size: 1.6 },
+  { left: 53, delay: -2.8, dur: 6.8, size: 2.3 },
+  { left: 86, delay: -1.4, dur: 8.7, size: 1.4 },
+  { left: 25, delay: -3.7, dur: 5.0, size: 2.0 },
+  { left: 59, delay: -0.9, dur: 9.2, size: 1.7 }
+];
+
 export default function HomeHero({
   title = "Dress for\npressure.",
   subtitle,
@@ -56,25 +87,10 @@ export default function HomeHero({
   const videoRef = useRef<HTMLVideoElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const [joinOpen, setJoinOpen] = useState(false);
-  const [particles, setParticles] = useState<Array<{ left: number; delay: number; dur: number; size: number }>>([]);
 
   const windowWidth = useWindowWidth();
-
-  useEffect(() => {
-    // Reduce particle count on mobile/tablet for better performance
-    const particleCount = windowWidth && windowWidth < 1024 ? 12 : 28;
-    const initParticles = () => {
-      setParticles(
-        Array.from({ length: particleCount }, () => ({
-          left: Math.random() * 100,
-          delay: Math.random() * 5,
-          dur: 4 + Math.random() * 6,
-          size: 1 + Math.random() * 2,
-        })),
-      );
-    };
-    initParticles();
-  }, [windowWidth]);
+  const isDesktop = windowWidth !== null && windowWidth >= 1024;
+  const activeParticles = isDesktop ? STATIC_PARTICLES : STATIC_PARTICLES.slice(0, 12);
 
   const getStarScale = () => {
     if (windowWidth === null) return 0.95;
@@ -149,10 +165,9 @@ export default function HomeHero({
         )}
       </div>
 
-      {/* Floating Particles Backdrop */}
       {!isMobile && (
         <div className="absolute inset-0 overflow-hidden pointer-events-none z-[-2]">
-          {particles.map((p, i) => (
+          {activeParticles.map((p, i) => (
             <span
               key={i}
               className="home-particle"
