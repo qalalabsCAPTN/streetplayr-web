@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // Demo user profile — Rahul M., BLOOM tier, StreetPlayR primary
 // Used across all portal pages as the authenticated user context.
 // ============================================================
@@ -10,7 +10,7 @@ export const DEMO_USER = {
   avatarInitials: 'RM',
   email: 'rahul@example.com',
   tier: 'bloom' as const,
-  platforms: ['streetplayr', 'playr', 'playr_club'],
+  platforms: ['streetplayr', 'playr', 'playr_club', 'playr_game'],
   primaryPlatform: 'streetplayr' as const,
   joinedAt: '2025-11-15T10:00:00Z',
 };

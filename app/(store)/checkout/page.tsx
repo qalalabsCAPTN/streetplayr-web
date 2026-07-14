@@ -36,7 +36,7 @@ function CheckoutInput({ label, id, type = "text", value, onChange, placeholder 
 
 const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }>(function CheckoutFormContent(props, ref) {
   const router = useRouter();
-  const { items, clearCart } = useCartStore();
+  const { items } = useCartStore();
   const [phase, setPhase] = useState<'form' | 'processing' | 'error'>('form');
   const [error, setError] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<'demo' | 'razorpay'>('demo');
@@ -107,11 +107,11 @@ const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }>(f
       }
 
       router.push(`/checkout/success?order_id=${createdOrderId}`);
-    } catch (e: any) {
-      setError(e.message ?? "An unexpected error occurred.");
+    } catch (e: unknown) {
+      setError((e as Error).message ?? "An unexpected error occurred.");
       setPhase('form');
     }
-  }, [email, firstName, lastName, address, city, state, postalCode, country, items, router, clearCart]);
+  }, [email, firstName, lastName, address, city, state, postalCode, country, items, router]);
 
   useImperativeHandle(ref, () => ({ completeOrder: handleCompleteOrder }), [handleCompleteOrder]);
 
@@ -257,7 +257,151 @@ function WalletModule() {
   );
 }
 
-function OrderSummary({ items, total }: { items: any[]; total: number }) {
+function MultiStoreOffers() {
+  const addItem = useCartStore((s) => s.addItem);
+  const [appliedPromo, setAppliedPromo] = useState(false);
+
+  const handleAddCrossSell = () => {
+    addItem({
+      id: "snb-beanie-default-os",
+      productId: "prod_beanie_001",
+      name: "SNB Beanie",
+      price: 499,
+      quantity: 1,
+      color: "Default",
+      size: "O/S",
+      image: "/assets/products/stick-no-bills/image-1.jpg",
+    });
+  };
+
+  const handleAddRecommended = () => {
+    addItem({
+      id: "run-shorts-black-m",
+      productId: "prod_shorts_001",
+      name: "playR Run Shorts",
+      price: 1499,
+      quantity: 1,
+      color: "Black",
+      size: "M",
+      image: "/assets/run-shorts.jpeg",
+    });
+  };
+
+  const handleAddBundle = () => {
+    addItem({
+      id: "snb-socks-white-m",
+      productId: "prod_socks_001",
+      name: "SNB Socks (Bundle)",
+      price: 399,
+      quantity: 1,
+      color: "White",
+      size: "M",
+      image: "/assets/products/inspired/image-1.jpg",
+    });
+    addItem({
+      id: "snb-cap-black-os",
+      productId: "prod_cap_001",
+      name: "SNB Cap (Bundle)",
+      price: 500,
+      quantity: 1,
+      color: "Black",
+      size: "O/S",
+      image: "/assets/products/inspired/image-2.jpg",
+    });
+  };
+
+  return (
+    <div className="border border-white/[0.06] p-5 bg-[#1f1a23]/50 rounded-xl space-y-6">
+      <div className="flex items-center gap-3">
+        <span className="inline-block w-1.5 h-1.5 bg-[#ddb7ff]" />
+        <h2 className="font-display text-3xl uppercase tracking-wide text-[#eadfed]">Special Offers</h2>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Cross Sell */}
+        <div className="p-4 border border-white/[0.05] bg-black/20 rounded-xl flex flex-col justify-between gap-4">
+          <div>
+            <div className="font-mono text-[9px] text-[#ddb7ff] uppercase tracking-wider">Cross-Sell Deal</div>
+            <h4 className="font-display text-lg text-white uppercase mt-1">SNB Beanie</h4>
+            <p className="font-mono text-[10px] text-white/50 mt-1">Add matching beanie for only Rs. 499 (Save 50%)</p>
+          </div>
+          <button
+            onClick={handleAddCrossSell}
+            className="w-full py-2.5 bg-white/10 hover:bg-[#ddb7ff] hover:text-[#16111b] border border-white/[0.08] rounded-lg font-mono text-[10px] uppercase tracking-wider text-white transition-all cursor-pointer"
+          >
+            Add to Order
+          </button>
+        </div>
+
+        {/* Recommended */}
+        <div className="p-4 border border-white/[0.05] bg-black/20 rounded-xl flex flex-col justify-between gap-4">
+          <div>
+            <div className="font-mono text-[9px] text-[#ddb7ff] uppercase tracking-wider">Recommended</div>
+            <h4 className="font-display text-lg text-white uppercase mt-1">playR Run Shorts</h4>
+            <p className="font-mono text-[10px] text-white/50 mt-1">Complete your look with our lightweight shorts</p>
+          </div>
+          <button
+            onClick={handleAddRecommended}
+            className="w-full py-2.5 bg-white/10 hover:bg-[#ddb7ff] hover:text-[#16111b] border border-white/[0.08] rounded-lg font-mono text-[10px] uppercase tracking-wider text-white transition-all cursor-pointer"
+          >
+            Add to Order
+          </button>
+        </div>
+
+        {/* Bundle */}
+        <div className="p-4 border border-white/[0.05] bg-black/20 rounded-xl flex flex-col justify-between gap-4 md:col-span-2">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2">
+            <div>
+              <div className="font-mono text-[9px] text-[#ddb7ff] uppercase tracking-wider">Bundle Deal</div>
+              <h4 className="font-display text-lg text-white uppercase mt-1">Socks + Cap Archive Bundle</h4>
+              <p className="font-mono text-[10px] text-white/50 mt-1">Add both signature accessories for only Rs. 899</p>
+            </div>
+            <button
+              onClick={handleAddBundle}
+              className="md:w-auto px-6 py-2.5 bg-white/10 hover:bg-[#ddb7ff] hover:text-[#16111b] border border-white/[0.08] rounded-lg font-mono text-[10px] uppercase tracking-wider text-white transition-all cursor-pointer"
+            >
+              Add Bundle
+            </button>
+          </div>
+        </div>
+
+        {/* Special Code Offer */}
+        <div className="p-4 border border-[#ddb7ff]/20 bg-[#ddb7ff]/5 rounded-xl flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:col-span-2">
+          <div>
+            <div className="font-mono text-[9px] text-[#ddb7ff] uppercase tracking-wider">Member Privilege</div>
+            <h4 className="font-display text-md text-white uppercase mt-0.5">Apply NECTAR10 (10% Off order)</h4>
+          </div>
+          <button
+            onClick={() => {
+              if (appliedPromo) return;
+              setAppliedPromo(true);
+            }}
+            disabled={appliedPromo}
+            className={`px-6 py-2 border rounded-lg font-mono text-[10px] uppercase tracking-wider transition-all cursor-pointer ${
+              appliedPromo 
+                ? "border-green-500/30 bg-green-500/10 text-green-400 cursor-default" 
+                : "border-[#ddb7ff]/30 bg-[#ddb7ff]/10 text-[#ddb7ff] hover:bg-[#ddb7ff] hover:text-[#16111b]"
+            }`}
+          >
+            {appliedPromo ? "Applied" : "Apply Code"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface CheckoutItemSummary {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  image?: string;
+  size: string;
+  color: string;
+}
+
+function OrderSummary({ items, total }: { items: CheckoutItemSummary[]; total: number }) {
   return (
     <div className="border border-white/[0.06] bg-[#2e2832]/40 p-5 backdrop-blur-xl relative overflow-hidden rounded-xl">
       <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#ddb7ff]/40 to-transparent" />
@@ -270,7 +414,7 @@ function OrderSummary({ items, total }: { items: any[]; total: number }) {
       <div className="space-y-5 mb-8">
         {items.map((item) => (
           <div key={item.id} className="flex gap-4 group">
-            <div className="w-20 h-24 bg-[#231e27] border border-white/[0.06] overflow-hidden shrink-0 relative rounded-lg">
+            <div className="w-20 h-24 bg-transparent border border-white/[0.12] overflow-hidden shrink-0 relative rounded-lg">
               <Image
                 src={item.image || "/images/placeholder.jpg"}
                 alt={item.name}
@@ -348,7 +492,9 @@ export default function CheckoutPage() {
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    requestAnimationFrame(() => {
+      setMounted(true);
+    });
     if (items.length === 0) {
       router.push("/cart");
     }
@@ -402,6 +548,7 @@ export default function CheckoutPage() {
             <div className="lg:col-span-7 space-y-6">
               <CheckoutFormContent ref={formRef} />
               <WalletModule />
+              <MultiStoreOffers />
               {/* CTA — always last on mobile */}
               <button
                 onClick={handleCheckout}

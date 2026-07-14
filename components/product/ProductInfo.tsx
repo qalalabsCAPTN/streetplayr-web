@@ -36,7 +36,7 @@ export default function ProductInfo({
   title,
   price,
   description,
-  points,
+  // points,
   colors,
   sizes,
   variants,
@@ -44,9 +44,9 @@ export default function ProductInfo({
   selectedColor: controlledColor,
   selectedSize: controlledSize,
   quantity: controlledQuantity,
-  onColorSelect,
+  // onColorSelect,
   onSizeSelect,
-  onQuantityChange,
+  // onQuantityChange,
 }: ProductInfoProps) {
   const [localSize, setLocalSize] = useState("");
   const [isAdded, setIsAdded] = useState(false);
@@ -129,33 +129,6 @@ export default function ProductInfo({
           )}
         </div>
 
-        {/* Color Selector */}
-        {colors.length > 0 && (
-          <div>
-            <label className="font-mono text-[10px] uppercase tracking-[0.15em] text-[rgba(234,223,237,0.65)] font-medium mb-4 block">Colorway</label>
-            <div className="flex flex-wrap gap-3">
-              {colors.map((color) => {
-                const isSelected = (controlledColor ?? colors[0]?.id) === color.id;
-                return (
-                  <button
-                    key={color.id}
-                    onClick={() => onColorSelect?.(color.id)}
-                    className="group relative flex h-11 w-11 items-center justify-center transition-colors duration-300"
-                    style={{
-                      border: isSelected ? "1px solid rgba(255,255,255,0.9)" : "1px solid rgba(255,255,255,0.12)",
-                    }}
-                    aria-label={`Select color ${color.name}`}
-                  >
-                    <span
-                      className="h-[80%] w-[80%] transition-transform duration-300 group-hover:scale-90"
-                      style={{ backgroundColor: color.hex }}
-                    />
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
 
         {/* Sizing */}
         <div>

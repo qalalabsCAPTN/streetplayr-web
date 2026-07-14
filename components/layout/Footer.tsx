@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useWindowWidth } from "@/hooks/useWindowWidth";
@@ -30,6 +29,7 @@ export default function Footer() {
         {/* 1. Logo Column: Centered at the top on mobile, column 4 on desktop */}
         <div className="col-span-2 lg:col-span-1 flex justify-center lg:justify-start order-1 lg:order-4 py-1 lg:py-0">
           <Link href="/home">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/assets/streetplayr-logo.png"
               alt="StreetPlayR"
@@ -45,7 +45,9 @@ export default function Footer() {
           </h3>
           <div className="flex flex-wrap items-center gap-2 mt-0.5">
             <a
-              href="#"
+              href="https://instagram.com/streetplayr"
+              target="_blank"
+              rel="noopener noreferrer"
               aria-label="Instagram"
               className="w-9 h-9 rounded-full border border-white/[0.08] flex items-center justify-center text-[rgba(234,223,237,0.48)] hover:text-[#eadfed] hover:border-[#ddb7ff]/30 hover:bg-white/[0.02] transition-all duration-300"
             >
@@ -56,7 +58,9 @@ export default function Footer() {
               </svg>
             </a>
             <a
-              href="#"
+              href="https://youtube.com/@streetplayr"
+              target="_blank"
+              rel="noopener noreferrer"
               aria-label="YouTube"
               className="w-9 h-9 rounded-full border border-white/[0.08] flex items-center justify-center text-[rgba(234,223,237,0.48)] hover:text-[#eadfed] hover:border-[#ddb7ff]/30 hover:bg-white/[0.02] transition-all duration-300"
             >
@@ -66,7 +70,9 @@ export default function Footer() {
               </svg>
             </a>
             <a
-              href="#"
+              href="https://linkedin.com/company/streetplayr"
+              target="_blank"
+              rel="noopener noreferrer"
               aria-label="LinkedIn"
               className="w-9 h-9 rounded-full border border-white/[0.08] flex items-center justify-center text-[rgba(234,223,237,0.48)] hover:text-[#eadfed] hover:border-[#ddb7ff]/30 hover:bg-white/[0.02] transition-all duration-300"
             >
@@ -77,16 +83,19 @@ export default function Footer() {
               </svg>
             </a>
             <a
-              href="#"
-              aria-label="Call Support"
+              href="mailto:support@streetplayr.com"
+              aria-label="Email Support"
               className="w-9 h-9 rounded-full border border-white/[0.08] flex items-center justify-center text-[rgba(234,223,237,0.48)] hover:text-[#eadfed] hover:border-[#ddb7ff]/30 hover:bg-white/[0.02] transition-all duration-300"
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                <polyline points="22,6 12,13 2,6" />
               </svg>
             </a>
             <a
-              href="#"
+              href="https://wa.me/919999999999"
+              target="_blank"
+              rel="noopener noreferrer"
               aria-label="WhatsApp"
               className="w-9 h-9 rounded-full border border-white/[0.08] flex items-center justify-center text-[rgba(234,223,237,0.48)] hover:text-[#eadfed] hover:border-[#ddb7ff]/30 hover:bg-white/[0.02] transition-all duration-300"
             >
@@ -106,18 +115,18 @@ export default function Footer() {
             <Link href="/about" className="font-mono text-[12px] md:text-[13px] tracking-[0.18em] text-[rgba(234,223,237,0.48)] hover:text-[#eadfed] transition-colors duration-300 uppercase">
               Our Story
             </Link>
-            <a href="#" className="font-mono text-[12px] md:text-[13px] tracking-[0.18em] text-[rgba(234,223,237,0.48)] hover:text-[#eadfed] transition-colors duration-300 uppercase">
+            <Link href="/collections" className="font-mono text-[12px] md:text-[13px] tracking-[0.18em] text-[rgba(234,223,237,0.48)] hover:text-[#eadfed] transition-colors duration-300 uppercase">
               Latest Collection
-            </a>
-            <a href="#" className="font-mono text-[12px] md:text-[13px] tracking-[0.18em] text-[rgba(234,223,237,0.48)] hover:text-[#eadfed] transition-colors duration-300 uppercase">
+            </Link>
+            <Link href="/shop" className="font-mono text-[12px] md:text-[13px] tracking-[0.18em] text-[rgba(234,223,237,0.48)] hover:text-[#eadfed] transition-colors duration-300 uppercase">
               New Drops
-            </a>
-            <a href="#" className="font-mono text-[12px] md:text-[13px] tracking-[0.18em] text-[rgba(234,223,237,0.48)] hover:text-[#eadfed] transition-colors duration-300 uppercase">
+            </Link>
+            <Link href="/product/inspired" className="font-mono text-[12px] md:text-[13px] tracking-[0.18em] text-[rgba(234,223,237,0.48)] hover:text-[#eadfed] transition-colors duration-300 uppercase">
               3D Experience
-            </a>
-            <a href="#" className="font-mono text-[12px] md:text-[13px] tracking-[0.18em] text-[rgba(234,223,237,0.48)] hover:text-[#eadfed] transition-colors duration-300 uppercase">
+            </Link>
+            <Link href="/journal" className="font-mono text-[12px] md:text-[13px] tracking-[0.18em] text-[rgba(234,223,237,0.48)] hover:text-[#eadfed] transition-colors duration-300 uppercase">
               Blogs & Media
-            </a>
+            </Link>
           </div>
         </div>
 
@@ -127,24 +136,24 @@ export default function Footer() {
             Order Support
           </h3>
           <div className="flex flex-col gap-1 md:gap-3.5">
-            <a href="#" className="font-mono text-[12px] md:text-[13px] tracking-[0.18em] text-[rgba(234,223,237,0.48)] hover:text-[#eadfed] transition-colors duration-300 uppercase">
+            <Link href="/shipping-policy" className="font-mono text-[12px] md:text-[13px] tracking-[0.18em] text-[rgba(234,223,237,0.48)] hover:text-[#eadfed] transition-colors duration-300 uppercase">
               Shipping Policy
-            </a>
-            <a href="#" className="font-mono text-[12px] md:text-[13px] tracking-[0.18em] text-[rgba(234,223,237,0.48)] hover:text-[#eadfed] transition-colors duration-300 uppercase">
+            </Link>
+            <Link href="/refund-policy" className="font-mono text-[12px] md:text-[13px] tracking-[0.18em] text-[rgba(234,223,237,0.48)] hover:text-[#eadfed] transition-colors duration-300 uppercase">
               Refund & Exchange
-            </a>
-            <a href="#" className="font-mono text-[12px] md:text-[13px] tracking-[0.18em] text-[rgba(234,223,237,0.48)] hover:text-[#eadfed] transition-colors duration-300 uppercase">
+            </Link>
+            <Link href="/profile/orders" className="font-mono text-[12px] md:text-[13px] tracking-[0.18em] text-[rgba(234,223,237,0.48)] hover:text-[#eadfed] transition-colors duration-300 uppercase">
               Track Your Order
-            </a>
-            <a href="#" className="font-mono text-[12px] md:text-[13px] tracking-[0.18em] text-[rgba(234,223,237,0.48)] hover:text-[#eadfed] transition-colors duration-300 uppercase">
-              FAQ's
-            </a>
+            </Link>
+            <Link href="/contact" className="font-mono text-[12px] md:text-[13px] tracking-[0.18em] text-[rgba(234,223,237,0.48)] hover:text-[#eadfed] transition-colors duration-300 uppercase">
+              FAQ&apos;s
+            </Link>
             <Link href="/contact" className="font-mono text-[12px] md:text-[13px] tracking-[0.18em] text-[rgba(234,223,237,0.48)] hover:text-[#eadfed] transition-colors duration-300 uppercase">
               Contact Us
             </Link>
-            <a href="#" className="font-mono text-[12px] md:text-[13px] tracking-[0.18em] text-[rgba(234,223,237,0.48)] hover:text-[#eadfed] transition-colors duration-300 uppercase">
+            <Link href="/terms" className="font-mono text-[12px] md:text-[13px] tracking-[0.18em] text-[rgba(234,223,237,0.48)] hover:text-[#eadfed] transition-colors duration-300 uppercase">
               Terms & Conditions
-            </a>
+            </Link>
           </div>
         </div>
 
@@ -156,9 +165,13 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="py-2.5 md:py-8 border-t border-white/[0.08] flex flex-col md:flex-row justify-between gap-2 md:gap-3 font-mono text-[11px] md:text-[12px] tracking-[0.22em] text-white/[0.26] uppercase text-center md:text-left">
+      <div className="py-2.5 md:py-8 border-t border-white/[0.08] flex flex-col md:flex-row justify-between items-center gap-2 md:gap-3 font-mono text-[11px] md:text-[12px] tracking-[0.22em] text-white/[0.26] uppercase text-center md:text-left">
         <span>&copy; 2026 STREETPLAYR PVT LTD · ALL RIGHTS RESERVED</span>
-        <span>Mumbai, India</span>
+        <div className="flex items-center gap-4">
+          <Link href="/privacy-policy" className="hover:text-[#eadfed] transition-colors">Privacy Policy</Link>
+          <span>·</span>
+          <span>Mumbai, India</span>
+        </div>
       </div>
     </footer>
   );

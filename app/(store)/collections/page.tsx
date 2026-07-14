@@ -2,6 +2,7 @@
 
 import { useState, Suspense } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -12,7 +13,7 @@ function CollectionsInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const initialCategory = searchParams.get("category")?.toUpperCase() || "ALL";
-  const validCategories = ["ALL", "TEES", "TANKS", "PANTS", "HOODIES", "OUTERWEAR"];
+  const validCategories = ["ALL", "TEES", "TANKS", "PANTS", "HOODIES", "OUTERWEAR", "JOGGERS", "ACCESSORIES"];
   const [activeFilter, setActiveFilter] = useState(
     validCategories.includes(initialCategory) ? initialCategory : "ALL"
   );
@@ -73,25 +74,24 @@ function CollectionsInner() {
 
       <Navbar />
 
-      <section className="relative z-[1] w-full h-[460px] overflow-hidden border-b border-white/[0.10] mt-20">
-        {/* Desktop motion banner */}
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover opacity-100 hidden md:block"
-          src="/assets/COLLECTION_MOTION_BANNER.mp4"
+      <section className="relative z-[1] w-full h-auto aspect-[16/9] md:h-[460px] md:aspect-auto overflow-hidden border-b border-white/[0.10] mt-20">
+        <Image
+          alt="Collection visual"
+          src="/assets/polo-editorial.png"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover opacity-60 saturate-[0.85]"
         />
-        {/* Mobile motion banner */}
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover opacity-100 md:hidden"
-          src="/assets/FOR_MOBILE_ST_COLLECTION.mp4"
-        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#16111b] via-[#16111b]/25 to-[#16111b]/55" />
+        <div className="absolute inset-0 bg-[radial-gradient(700px_360px_at_18%_10%,rgba(221,183,255,0.13),transparent_62%),radial-gradient(560px_340px_at_86%_82%,rgba(255,87,26,0.10),transparent_64%)]" />
+        <div className="absolute inset-0 flex items-end justify-start px-4 md:px-8 lg:px-12 pb-6 md:pb-14">
+          <div className="max-w-[760px]">
+            <h1 className="font-display text-[clamp(36px,8vw,128px)] uppercase leading-[0.88] text-[#eadfed]">
+              Current Release
+            </h1>
+          </div>
+        </div>
       </section>
 
       <main className="relative z-[1] pb-20 w-full max-w-[min(98vw,2560px)] mx-auto px-4 md:px-8 lg:px-12 pt-14">
@@ -111,7 +111,7 @@ function CollectionsInner() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-8">
             {filteredProducts.map((product) => (
               <Link
                 key={product.id}
@@ -136,6 +136,7 @@ function CollectionsInner() {
                     }
                   }}
                 >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     alt={product.name}
                     src={product.image}
@@ -150,6 +151,7 @@ function CollectionsInner() {
                       tappedId === product.id ? 'opacity-100' : 'opacity-0'
                     } md:opacity-0 md:group-hover:opacity-100`}
                     >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         alt={`${product.name} detail`}
                         src={product.altImage}

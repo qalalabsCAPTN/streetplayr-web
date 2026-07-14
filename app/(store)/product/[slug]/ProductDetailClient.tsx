@@ -180,7 +180,9 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
 
   /* Reset gallery position when the colour changes */
   useEffect(() => {
-    setActiveSlide(0);
+    requestAnimationFrame(() => {
+      setActiveSlide(0);
+    });
     if (emblaApi) emblaApi.reInit();
   }, [selectedColor, emblaApi]);
 
@@ -251,7 +253,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
     });
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
-  }, [selectedSize, selectedColor, quantity, props, liveVariants, addItem]);
+  }, [selectedSize, selectedColor, quantity, props, liveVariants, addItem, heroImage]);
 
   /* Mobile: buy now = add to cart then go to checkout */
   const handleBuyNow = useCallback(async () => {
@@ -454,37 +456,6 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
           </p>
         </div>
 
-        {/* ── 4. Colorway ── */}
-        {props.colors.length > 0 && (
-          <div className="px-4 pt-5">
-            <label className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/60 mb-3 block">
-              Colorway
-            </label>
-            <div className="flex flex-wrap gap-3">
-              {props.colors.map((color) => {
-                const isSelected = (selectedColor ?? props.colors[0]?.id) === color.id;
-                return (
-                  <button
-                    key={color.id}
-                    onClick={() => setSelectedColor(color.id)}
-                    aria-label={`Color: ${color.name}`}
-                    className="relative flex h-11 w-11 items-center justify-center transition-colors duration-300"
-                    style={{
-                      border: isSelected
-                        ? "1px solid rgba(255,255,255,0.9)"
-                        : "1px solid rgba(255,255,255,0.12)",
-                    }}
-                  >
-                    <span
-                      className="h-[80%] w-[80%]"
-                      style={{ backgroundColor: color.hex }}
-                    />
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
 
         {/* ── 5. Size selector ── */}
         <div className="px-4 pt-5">

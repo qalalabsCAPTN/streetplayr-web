@@ -592,6 +592,10 @@ function CompassStar({
   const lastMoveTime = useRef(0);
   const autoRotate   = useRef(true);
 
+  // Cache bounding rect to avoid layout thrashing on every pointer move
+  const cachedRect   = useRef<DOMRect | null>(null);
+  const rectCacheTime = useRef(0);
+
   // Interaction state machine refs
   const interactionState = useRef<"IDLE" | "INTERACTIVE" | "LERP_BACK">("IDLE");
   const targetPointer = useRef({ x: 0, y: 0 });
@@ -620,7 +624,14 @@ function CompassStar({
     const onMove = (e: PointerEvent) => {
       if (dragging.current) return;
 
-      const rect = heroElement.getBoundingClientRect();
+      // Cache bounding rect for 16ms (one frame) to avoid layout thrashing during rapid mouse moves
+      const now = performance.now();
+      if (!cachedRect.current || now - rectCacheTime.current > 16) {
+        cachedRect.current = heroElement.getBoundingClientRect();
+        rectCacheTime.current = now;
+      }
+      const rect = cachedRect.current;
+
       const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       const y = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
 
@@ -694,6 +705,10 @@ function CompassStar({
     const time = clock.getElapsedTime();
     const idle = time - lastMoveTime.current;
 
+    // Skip expensive scroll transforms and hover lerps if star is scrolled out of viewport
+    const isVisible = typeof window !== "undefined" &&
+      (window as any).__starOnScreen !== false;
+
     // Drag inertia deceleration physics
     if (Math.abs(vel.current.x) > 0.0001 || Math.abs(vel.current.y) > 0.0001) {
       if (idle < 1.2) {
@@ -746,16 +761,15 @@ function CompassStar({
     groupRef.current.position.y = Math.sin(time * 0.8) * 0.020;
 
     // Scroll-driven 3D rotation, tilt, and depth translation
-    if (scrollReactive && scrollRef.current && typeof window !== "undefined") {
-      const scrollY = (window as any).__scrollDampingY !== undefined ? (window as any).__scrollDampingY : window.scrollY;
+    // Only run if star is visible (on-screen). Skip expensive transforms when scrolled out.
+    if (scrollReactive && scrollRef.current && isVisible && typeof window !== "undefined") {
+      const scrollY = (window as any).__scrollDampingY !== undefined ? (window as any).__scrollDampingY : 0;
 
       const targetScrollRotY = scrollY * 0.0015;
       const targetScrollRotX = scrollY * 0.0008;
-      const targetScrollZ = -Math.min(scrollY * 0.002, 1.8); // Recede back in depth (Z axis)
+      const targetScrollZ = -Math.min(scrollY * 0.002, 1.8);
 
       const sr = scrollRef.current;
-      // Skip the lerp + matrix update once the values have settled onto their
-      // targets — avoids redundant transform work when nothing is scrolling.
       if (
         Math.abs(sr.rotation.y - targetScrollRotY) > 1e-5 ||
         Math.abs(sr.rotation.x - targetScrollRotX) > 1e-5 ||
@@ -800,7 +814,13 @@ export default function NinjaStar({
     const el = wrapRef.current;
     if (!el || typeof IntersectionObserver === "undefined") return;
     const io = new IntersectionObserver(
-      ([entry]) => setOnScreen(entry.isIntersecting),
+      ([entry]) => {
+        setOnScreen(entry.isIntersecting);
+        // Also broadcast visibility state to window for useFrame to check
+        if (typeof window !== "undefined") {
+          (window as any).__starOnScreen = entry.isIntersecting;
+        }
+      },
       { rootMargin: "150px" },
     );
     io.observe(el);

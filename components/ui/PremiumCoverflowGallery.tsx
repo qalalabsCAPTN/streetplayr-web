@@ -14,8 +14,9 @@
  *   • Snappy, high-performance spring dynamics
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { motion, useMotionValue, useTransform, animate, useReducedMotion } from "framer-motion";
+import { useCallback, useEffect, useState } from "react";
+import { motion, useMotionValue, useTransform, animate, useReducedMotion, type Transition, type MotionValue, type PanInfo } from "framer-motion";
+import Image from "next/image";
 
 interface PremiumCoverflowGalleryProps {
   images: string[];
@@ -30,7 +31,6 @@ const INSTANT = { duration: 0.01 };
 // Calculate 2D position transforms for mobile gallery images
 function calcGalleryTransform(offset: number) {
   const abs = Math.min(Math.abs(offset), 3);
-  const sign = Math.sign(offset);
 
   return {
     translateXPct: offset * 76, // spacing between stacked slides
@@ -46,7 +46,6 @@ export default function PremiumCoverflowGallery({
   className = "",
 }: PremiumCoverflowGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
   const count = images.length;
   const isReduced = useReducedMotion() ?? false;
 
@@ -68,7 +67,6 @@ export default function PremiumCoverflowGallery({
 
   const handleDragEnd = useCallback(
     (_: unknown, info: { offset: { x: number }; velocity: { x: number } }) => {
-      setIsDragging(false);
       const { offset, velocity } = info;
       const byVelocity = Math.abs(velocity.x) > 280;
       const byDistance = Math.abs(offset.x) > 48;
@@ -124,7 +122,7 @@ export default function PremiumCoverflowGallery({
               isActive={index === activeIndex}
               isReduced={isReduced}
               onClick={() => goTo(index)}
-              onDragStart={() => setIsDragging(true)}
+              onDragStart={() => {}}
               onDragEnd={handleDragEnd}
             />
           );
@@ -136,6 +134,7 @@ export default function PremiumCoverflowGallery({
         {Array.from({ length: count }).map((_, i) => (
           <button
             key={i}
+            role="tab"
             aria-selected={i === activeIndex}
             aria-label={`Go to slide ${i + 1}`}
             onClick={() => goTo(i)}
@@ -165,13 +164,13 @@ interface GalleryCardProps {
   index: number;
   count: number;
   transform: ReturnType<typeof calcGalleryTransform>;
-  transition: any;
-  dragX: any;
+  transition: Transition;
+  dragX: MotionValue<number>;
   isActive: boolean;
   isReduced: boolean;
   onClick: () => void;
   onDragStart: () => void;
-  onDragEnd: (event: any, info: any) => void;
+  onDragEnd: (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => void;
 }
 
 function GalleryCard({
@@ -194,7 +193,12 @@ function GalleryCard({
     if (isReduced) {
       baseXPct.set(transform.translateXPct);
     } else {
-      animate(baseXPct, transform.translateXPct, transition);
+      const diff = Math.abs(transform.translateXPct - baseXPct.get());
+      if (diff > 100) {
+        baseXPct.set(transform.translateXPct);
+      } else {
+        animate(baseXPct, transform.translateXPct, transition);
+      }
     }
   }, [transform.translateXPct, isReduced, transition, baseXPct]);
 
@@ -240,11 +244,12 @@ function GalleryCard({
         transition: "border-color 0.4s, box-shadow 0.4s",
       }}
     >
-      <img
+      <Image
         src={src}
         alt={alt}
-        loading={index === 0 ? "eager" : "lazy"}
-        decoding="async"
+        fill
+        priority={index === 0}
+        sizes="(max-width: 768px) 85vw, 400px"
         draggable={false}
         className="absolute inset-0 w-full h-full object-cover pointer-events-none"
         style={{
