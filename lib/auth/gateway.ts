@@ -61,8 +61,10 @@ export const AuthGateway = {
    * Check if a pathname requires authentication.
    */
   isProtectedRoute(pathname: string): boolean {
+    // '/profile' intentionally excluded: gated client-side by <ProfileGuard>,
+    // which renders an in-place Bluorng-style sign-in panel instead of a
+    // hard redirect. Do not add it back here without updating ProfileGuard.
     return (
-      pathname.startsWith('/profile') ||
       pathname.startsWith('/checkout') ||
       pathname.startsWith('/cart') ||
       pathname.startsWith('/ops')

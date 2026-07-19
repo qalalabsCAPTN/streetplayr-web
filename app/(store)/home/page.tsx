@@ -1,8 +1,8 @@
-import HomeHero from "@/components/sections/home/HomeHero";
-import BestSellersGate from "@/components/sections/home/BestSellersGate";
-import BrandStory from "@/components/sections/home/BrandStory";
-import Lookbook from "@/components/sections/home/Lookbook";
-import ReviewsSection from "@/components/sections/home/ReviewsSection";
+import Hero from "@/components/ui/Hero";
+import ProductSection from "@/components/ui/ProductSection";
+import BannerSlider from "@/components/ui/BannerSlider";
+import DiscoverCollections from "@/components/ui/DiscoverCollections";
+import StoresSection from "@/components/ui/StoresSection";
 import { BlockRenderer } from "@/components/page-editor/block-renderer";
 import { getPageBlocks } from "@/lib/page-editor/get-page-blocks";
 import { ProductQueries } from "@/lib/products/queries";
@@ -45,15 +45,33 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     );
   }
 
-  // DYNAMIC FALLBACK: Render identical static hardcoded components on empty blocks or DB down times
+  // DYNAMIC FALLBACK: Render the Bluorng-matched storefront layout on empty blocks or DB down times.
   const latestDrops = await ProductQueries.getLatestDrops();
+  const activeProducts = await ProductQueries.getActiveProducts();
+
+  const byCategory = (category: string) =>
+    activeProducts.filter((p) => p.category?.toLowerCase() === category.toLowerCase()).slice(0, 8);
+
+  const tees = byCategory("tees");
+  const pants = byCategory("pants");
+  const tanks = byCategory("tanks");
+
   return (
-    <div className="flex flex-col w-full overflow-x-clip bg-transparent text-[#eadfed]">
-      <HomeHero />
-      <BestSellersGate products={latestDrops} />
-      <BrandStory />
-      <Lookbook />
-      <ReviewsSection />
+    <div className="flex flex-col w-full">
+      <Hero />
+      <ProductSection title="Latest drop" products={latestDrops} moreHref="/collections?category=new-in" gallery flat />
+      {tees.length > 0 && (
+        <ProductSection title="Tees & T-Shirts" products={tees} moreHref="/collections?category=tees" gallery />
+      )}
+      <BannerSlider />
+      {pants.length > 0 && (
+        <ProductSection title="Pants & Sweatpants" products={pants} moreHref="/collections?category=pants" gallery />
+      )}
+      {tanks.length > 0 && (
+        <ProductSection title="Tank Tops" products={tanks} moreHref="/collections?category=tanks" gallery />
+      )}
+      <DiscoverCollections />
+      <StoresSection />
     </div>
   );
 }

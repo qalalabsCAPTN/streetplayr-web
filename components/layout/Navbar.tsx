@@ -1,126 +1,413 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-import { useCartStore } from "../../store/cartStore";
-import { useAuthStore } from "../../store/authStore";
-import MobileNavDock from "./MobileNavDock";
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { useCart } from '@/components/CartContext';
+import { useAuthStore } from '@/store/authStore';
+import { stories } from '@/lib/bluorng-data';
+import StoryViewer from './StoryViewer';
+import MobileNav from './MobileNav';
+import LoginModal from '@/components/auth/LoginModal';
 
-const navLinks = [
-  { label: "Home", href: "/home" },
-  { label: "Collection", href: "/collections" },
-  { label: "About Us", href: "/about" },
-  { label: "Contact Us", href: "/contact" },
-];
+const Icon = {
+  pin: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+      <path d="M12 21s-7-5.5-7-11a7 7 0 1 1 14 0c0 5.5-7 11-7 11Z" />
+      <circle cx="12" cy="10" r="2.6" />
+    </svg>
+  ),
+  search: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-3.5-3.5" />
+    </svg>
+  ),
+  user: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5" />
+    </svg>
+  ),
+  bookmark: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+      <path d="M6 3.5A1.5 1.5 0 0 1 7.5 2h9A1.5 1.5 0 0 1 18 3.5V22l-6-4-6 4V3.5Z" />
+    </svg>
+  ),
+  bag: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+      <path d="M5 8h14l-1.2 12.2a1.8 1.8 0 0 1-1.8 1.8H8a1.8 1.8 0 0 1-1.8-1.8L5 8Z" />
+      <path d="M9 10V6a3 3 0 0 1 6 0v4" />
+    </svg>
+  ),
+  menu: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M4 8h16M4 16h16" />
+    </svg>
+  ),
+};
+
+const menu = {
+  featured: [
+    { label: 'Latest Drop', href: '/collections?category=new-in' },
+    { label: 'T-Shirts & Tees', href: '/collections?category=tees' },
+    { label: 'Pants & Sweatpants', href: '/collections?category=pants' },
+    { label: 'Tank Tops', href: '/collections?category=tanks' },
+  ],
+  tees: [
+    { label: 'WARRIOR Graphic', href: '/product/black-warrior' },
+    { label: 'INSPIRED Graphic', href: '/product/inspired' },
+    { label: 'Waffle Textured', href: '/product/ctt-waffle' },
+    { label: 'Stick No Bills', href: '/product/stick-no-bills' },
+  ],
+  pants: [
+    { label: 'Carpenter Grey', href: '/product/carpenter-grey' },
+    { label: 'Carpenter Olive', href: '/product/carpenter-grey' },
+  ],
+  shop: [
+    { label: 'All Products', href: '/collections' },
+    { label: 'New In', href: '/collections' },
+  ],
+};
 
 export default function Navbar() {
+  const [megaOpen, setMegaOpen] = useState(false);
+  const [storyOpen, setStoryOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [theme, setTheme] = useState('default');
+  const [products, setProducts] = useState<any[]>([]);
+
+  const cart = useCart();
   const pathname = usePathname();
-  const isHome = pathname === "/home";
-
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  const items = useCartStore((state) => state.items);
-  const cartCount = items.reduce((count, item) => count + item.quantity, 0);
-
-  const user = useAuthStore((s) => s.user);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const isHydrated = useAuthStore((s) => s.isHydrated);
+  const [loginOpen, setLoginOpen] = useState(false);
+  const router = useRouter();
+
+  const handleAccount = () => {
+    if (isAuthenticated) {
+      router.push('/profile');
+    } else {
+      setLoginOpen(true);
+    }
+  };
 
   useEffect(() => {
-    setMounted(true);
-    const handleScroll = () => {
-      const scrollY = (window as any).__scrollDampingY !== undefined ? (window as any).__scrollDampingY : window.scrollY;
-      const scrolled = scrollY > 80;
-      setIsScrolled((prev) => {
-        if (prev === scrolled) return prev;
-        return scrolled;
-      });
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
+    const saved = localStorage.getItem('playr-theme') || 'default';
+    setTheme(saved);
   }, []);
+
+  useEffect(() => {
+    const root = document.querySelector('.storefront-root');
+    if (root) {
+      if (theme === 'dark') {
+        root.classList.add('theme-dark');
+        document.body.classList.add('theme-dark');
+      } else {
+        root.classList.remove('theme-dark');
+        document.body.classList.remove('theme-dark');
+      }
+    }
+  }, [theme]);
+
+  // Load products for dynamic search
+  useEffect(() => {
+    async function loadProducts() {
+      try {
+        const { getLocalActiveProducts } = await import('@/lib/products/data');
+        const local = getLocalActiveProducts();
+        
+        const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        if (!url || url.includes('mockproject')) {
+          setProducts(local);
+          return;
+        }
+
+        const { createClient } = await import('@/lib/supabase/client');
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from('products')
+          .select('id, title, slug, featured_image_url, metadata, status, product_variants(id, price)')
+          .eq('status', 'active')
+          .order('created_at', { ascending: false });
+
+        if (error || !data || data.length === 0) {
+          setProducts(local);
+          return;
+        }
+
+        const mapped = data.map((p) => {
+          const prices = (p.product_variants ?? []).map((v: any) => v.price).filter(Boolean);
+          const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+          return {
+            id: p.id,
+            name: p.title,
+            price: minPrice,
+            slug: p.slug,
+            image: p.featured_image_url,
+          };
+        });
+        setProducts(mapped);
+      } catch (err) {
+        console.error('Failed to load products for search:', err);
+      }
+    }
+    loadProducts();
+  }, []);
+
+  const toggleTheme = () => {
+    const next = theme === 'default' ? 'dark' : 'default';
+    setTheme(next);
+    localStorage.setItem('playr-theme', next);
+  };
+
+  const filteredProducts = products.filter((p) =>
+    p.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const solid = pathname !== '/' || scrolled || megaOpen || searchOpen;
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 60);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [pathname]);
+
+  useEffect(() => {
+    document.body.classList.toggle('hdr-solid', solid);
+  }, [solid]);
 
   return (
     <>
-      <header className={`w-full z-50 transition-all duration-300 ${
-        isScrolled 
-          ? "fixed top-0 bg-[#16111b]/85 backdrop-blur-md border-b border-white/[0.05] shadow-lg animate-in slide-in-from-top duration-300" 
-          : "absolute top-0 bg-transparent"
-      }`}>
-        <nav className={`grid grid-cols-3 items-center w-full mx-auto px-4 md:px-8 lg:px-12 transition-all duration-300 ${
-          isScrolled ? "h-16" : "h-20"
-        }`}>
-          {/* Logo — extreme left */}
-          <div className="flex items-center">
-            <Link href="/home">
-              <img 
-                src="/assets/streetplayr-logo.png" 
-                alt="StreetplayR" 
-                className={`w-auto object-contain opacity-95 transition-all duration-300 ${
-                  isScrolled ? "h-8 md:h-9" : "h-10 md:h-12"
-                }`} 
-              />
+      <header 
+        className={`header ${solid ? 'header--solid' : ''}`} 
+        onMouseLeave={() => {
+          if (typeof window !== 'undefined' && window.innerWidth > 900) {
+            setMegaOpen(false);
+          }
+        }}
+      >
+        <div className="header__inner">
+          <nav className="header__nav header__nav--desktop">
+            <Link href="/collections" className="header__link">
+              Shop
+            </Link>
+            <button 
+              className="header__link" 
+              onMouseEnter={() => setMegaOpen(true)} 
+              onClick={() => setMegaOpen((v) => !v)}
+            >
+              Collections
+            </button>
+          </nav>
+
+          <div className="header__logo">
+            <button className="header__pill-plus" onClick={() => setMegaOpen((v) => !v)} aria-label="Menu">
+              +
+            </button>
+            <Link href="/" className="header__pill-link">
+              <img src="/playR.street logo.png" alt="playR" />
             </Link>
           </div>
 
-          {/* Nav — perfectly centered */}
-          <div className="hidden md:flex justify-center gap-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.label}
-                href={link.href}
-                className="font-mono text-[10px] uppercase tracking-[0.28em] text-[rgba(234,223,237,0.55)] transition-colors duration-300 hover:text-[#eadfed]"
-              >
-                {link.label}
+          <div className="header__right">
+            <div
+              className="theme-toggle"
+              onClick={toggleTheme}
+              role="button"
+              aria-label="Toggle dark theme"
+            >
+              <div className="theme-toggle__thumb">
+                {theme === 'default' ? (
+                  <svg viewBox="0 0 24 24" fill="currentColor" style={{ width: '10px', height: '10px', display: 'block' }}>
+                    <path d="M12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6zm0-7a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1zm0 16a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0v-2a1 1 0 0 1 1-1zM5.64 4.22a1 1 0 0 1 0 1.42l-1.42 1.41a1 1 0 0 1-1.41-1.41l1.41-1.42a1 1 0 0 1 1.42 0zm14.14 14.14a1 1 0 0 1 0 1.42l-1.42 1.41a1 1 0 0 1-1.41-1.41l1.41-1.42a1 1 0 0 1 1.42 0zM3 11a1 1 0 1 1 0 2H1a1 1 0 1 1 0-2h2zm18 0a1 1 0 1 1 0 2h-2a1 1 0 1 1 0-2h2zm-12.76 4.76a1 1 0 0 1 0 1.42l-1.42 1.41a1 1 0 0 1-1.41-1.41l1.41-1.42a1 1 0 0 1 1.42 0zm14.14-14.14a1 1 0 0 1 0 1.42l-1.42 1.41a1 1 0 0 1-1.41-1.41l1.41-1.42a1 1 0 0 1 1.42 0z" />
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" fill="currentColor" style={{ width: '10px', height: '10px', display: 'block' }}>
+                    <path d="M12.3 22h-.1c-5.5 0-10-4.5-10-10 0-4.8 3.5-8.9 8.2-9.8.6-.1 1.2.3 1.3.9.1.6-.2 1.2-.8 1.4-3.5 1.1-5.7 4.5-5.7 8.1 0 4.4 3.6 8 8 8 3.6 0 7-2.2 8.1-5.7.2-.6.8-.9 1.4-.8.6.1 1 .7.9 1.3-.9 4.7-5 8.2-9.8 8.2z" />
+                  </svg>
+                )}
+              </div>
+            </div>
+
+            <button 
+              className="iconbtn iconbtn--story hide-mobile" 
+              onClick={() => setStoryOpen(true)} 
+              aria-label="Stories"
+            >
+              <img src={stories[0].image} alt="" />
+            </button>
+            <Link href="/collections" className="iconbtn hide-mobile" aria-label="Stores">
+              {Icon.pin}
+            </Link>
+            <button
+              className={`iconbtn hide-mobile ${searchOpen ? 'active' : ''}`}
+              onClick={() => {
+                setSearchOpen((v) => !v);
+                setMegaOpen(false);
+                setSearchQuery('');
+              }}
+              aria-label="Search"
+            >
+              {Icon.search}
+            </button>
+            <button
+              className="iconbtn hide-mobile"
+              aria-label="Account"
+              onClick={handleAccount}
+            >
+              {Icon.user}
+            </button>
+            <button 
+              className="iconbtn" 
+              aria-label="Wishlist" 
+              onClick={() => cart.showToast('Wishlist feature coming soon')}
+            >
+              {Icon.bookmark}
+            </button>
+            <button className="iconbtn" onClick={() => cart.setOpen(true)} aria-label="Bag">
+              {Icon.bag}
+              {cart.count > 0 && <span className="iconbtn__count">{cart.count}</span>}
+            </button>
+            <button 
+              className="iconbtn iconbtn--menu hide-mobile" 
+              onClick={() => setMegaOpen((v) => !v)} 
+              aria-label="Menu"
+            >
+              {Icon.menu}
+            </button>
+          </div>
+        </div>
+
+        {searchOpen && (
+          <div className="header__search-bar">
+            <div className="header__search-input-wrap">
+              <input
+                type="text"
+                placeholder="Search here....."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                autoFocus
+              />
+              <span className="header__search-icon-inside">{Icon.search}</span>
+            </div>
+            <button 
+              className="header__search-close" 
+              onClick={() => { setSearchOpen(false); setSearchQuery(''); }}
+            >
+              &times;
+            </button>
+          </div>
+        )}
+
+        {searchOpen && (
+          <div className="header__search-dropdown">
+            {searchQuery.trim() === '' ? (
+              <div className="header__search-results-inner">
+                <div className="header__search-title">Collections</div>
+                <div className="header__search-list">
+                  <Link href="/collections?category=tees" className="header__search-item" onClick={() => setSearchOpen(false)}>
+                    <img src="/products al/WARRIOR Tee Black/bob warrior 1.jpg" alt="" />
+                    <span>T-Shirts &amp; Tees</span>
+                  </Link>
+                  <Link href="/collections?category=pants" className="header__search-item" onClick={() => setSearchOpen(false)}>
+                    <img src="/products al/Carpenter Pants Grey/track pant 1.jpg" alt="" />
+                    <span>Pants &amp; Cargo</span>
+                  </Link>
+                  <Link href="/collections?category=tanks" className="header__search-item" onClick={() => setSearchOpen(false)}>
+                    <img src="/products al/staar tank white/staar tank white_.jpg" alt="" />
+                    <span>Tank Tops</span>
+                  </Link>
+                  <Link href="/collections" className="header__search-item" onClick={() => setSearchOpen(false)}>
+                    <img src="/products al/playR Create Waffle Tee/CTT 1.jpg" alt="" />
+                    <span>All Products</span>
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <div className="header__search-results-inner">
+                <div className="header__search-title">Products</div>
+                <div className="header__search-list">
+                  {filteredProducts.length > 0 ? (
+                    filteredProducts.slice(0, 5).map((p) => (
+                      <Link 
+                        key={p.slug} 
+                        href={`/product/${p.slug}`} 
+                        className="header__search-item" 
+                        onClick={() => { setSearchOpen(false); setSearchQuery(''); }}
+                      >
+                        <img src={p.image} alt="" />
+                        <div className="header__search-item-info">
+                          <span className="header__search-item-title">{p.name}</span>
+                          <span className="header__search-item-price">Rs. {p.price}</span>
+                        </div>
+                      </Link>
+                    ))
+                  ) : (
+                    <div className="header__search-no-results">No products found matching "{searchQuery}"</div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className={`mega ${megaOpen ? 'open' : ''}`}>
+          <div>
+            <h4>Featured</h4>
+            {menu.featured.map((l) => (
+              <Link key={l.label} href={l.href} onClick={() => setMegaOpen(false)}>
+                {l.label}
               </Link>
             ))}
           </div>
-
-          {/* Actions — extreme right */}
-          <div className="flex items-center justify-end gap-6">
-            <Link
-              href="/cart"
-              className="hidden md:block hover:text-[#eadfed] transition-colors text-[rgba(234,223,237,0.58)] relative"
-              aria-label={`Cart${mounted ? ` (${cartCount})` : ''}`}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-              </svg>
-              {mounted && cartCount > 0 && (
-                <span className="absolute -top-1.5 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#ddb7ff] font-mono text-[8px] font-bold text-[#1b1620] animate-in zoom-in duration-200">
-                  {cartCount > 99 ? "99+" : cartCount}
-                </span>
-              )}
-            </Link>
-            <Link
-              href={isAuthenticated ? "/profile/wallet" : "/login"}
-              className="hidden md:block hover:text-[#eadfed] transition-colors text-[rgba(234,223,237,0.58)]"
-              aria-label="Wallet"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
-              </svg>
-            </Link>
-            {mounted && isHydrated && isAuthenticated && user && (
-              <Link
-                href="/profile"
-                className="hidden md:grid h-8 w-8 place-items-center rounded-full bg-[#231e27]/80 border border-white/[0.12] text-xs font-bold text-[rgba(234,223,237,0.72)]"
-                aria-label="Profile"
-              >
-                {user.name?.charAt(0).toUpperCase() || "U"}
+          <div>
+            <h4>T-Shirts</h4>
+            {menu.tees.map((l) => (
+              <Link key={l.label} href={l.href} onClick={() => setMegaOpen(false)}>
+                {l.label}
               </Link>
-            )}
+            ))}
           </div>
-        </nav>
+          <div>
+            <h4>Pants &amp; Bottoms</h4>
+            {menu.pants.map((l) => (
+              <Link key={l.label} href={l.href} onClick={() => setMegaOpen(false)}>
+                {l.label}
+              </Link>
+            ))}
+          </div>
+          <div>
+            <h4>Shop</h4>
+            {menu.shop.map((l) => (
+              <Link key={l.label} href={l.href} onClick={() => setMegaOpen(false)}>
+                {l.label}
+              </Link>
+            ))}
+          </div>
+          <div>
+            <h4>Support</h4>
+            <Link href="/profile">Track your order</Link>
+            <Link href="/contact">Returns & exchange</Link>
+            <Link href="/contact">Shipping policy</Link>
+          </div>
+        </div>
       </header>
 
-      <MobileNavDock />
+      {storyOpen && <StoryViewer onClose={() => setStoryOpen(false)} />}
+
+      <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
+
+      <MobileNav
+        onSearch={() => {
+          setSearchOpen((v) => !v);
+          setMegaOpen(false);
+          setSearchQuery('');
+        }}
+        onAccount={handleAccount}
+      />
     </>
   );
 }

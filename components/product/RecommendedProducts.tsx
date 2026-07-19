@@ -1,10 +1,20 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { LOCAL_PRODUCTS } from "@/lib/products/data";
+import { LOCAL_PRODUCTS } from '@/lib/products/data';
+import ProductCard from '@/components/ui/ProductCard';
 
 export default function RecommendedProducts({ currentSlug }: { currentSlug: string }) {
-  const related = LOCAL_PRODUCTS.filter((p) => p.slug !== currentSlug).slice(0, 3);
+  const related = LOCAL_PRODUCTS.filter((p) => p.slug !== currentSlug)
+    .slice(0, 4) // Show up to 4 recommended products
+    .map((p) => ({
+      id: p.id,
+      name: p.name,
+      price: p.price,
+      slug: p.slug,
+      image: p.image_url,
+      category: p.category.name,
+      metadata: p.metadata,
+    }));
 
   if (related.length === 0) return null;
 
@@ -14,47 +24,11 @@ export default function RecommendedProducts({ currentSlug }: { currentSlug: stri
         <h2 className="font-display text-[28px] md:text-[42px] uppercase leading-[0.92] text-[#eadfed]">
           You May Also Like
         </h2>
-        <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-[rgba(234,223,237,0.62)] font-medium mt-2">
-          
-        </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="pgrid">
         {related.map((product) => (
-          <Link
-            key={product.id}
-            href={`/product/${product.slug}`}
-            className="group relative border border-white/[0.10] bg-[#1f1a23] transition-all duration-300 hover:border-white/[0.20] rounded-xl overflow-hidden"
-          >
-            <div className="relative aspect-[4/5] overflow-hidden bg-[#211c26]">
-              <img
-                src={product.metadata.gallery_images[0]}
-                alt={product.name}
-                decoding="async"
-                className="w-full h-full object-cover saturate-[0.92] transition-transform duration-700 group-hover:scale-[1.02]"
-              />
-            </div>
-            <div className="p-5 border-t border-white/[0.08]">
-              <div className="flex justify-between items-start mb-3">
-                <div className="min-w-0 mr-4">
-                  <p className="font-mono text-[10px] tracking-[0.22em] text-[rgba(234,223,237,0.65)] font-medium uppercase truncate">
-                    {product.category.name}
-                  </p>
-                  <h3 className="font-display text-xl uppercase mt-1.5 leading-tight text-[#eadfed]">
-                    {product.name}
-                  </h3>
-                </div>
-                <span className="font-mono text-[11px] tracking-[0.16em] text-[rgba(234,223,237,0.78)] font-medium whitespace-nowrap flex-shrink-0">
-                  ₹{product.price.toLocaleString("en-IN")}
-                </span>
-              </div>
-              <div className="flex justify-end">
-                <span className="font-mono text-[9px] tracking-[0.22em] uppercase font-medium text-[rgba(234,223,237,0.52)] group-hover:text-[rgba(234,223,237,0.82)] transition-colors duration-300">
-                  View Product →
-                </span>
-              </div>
-            </div>
-          </Link>
+          <ProductCard key={product.id} product={product} gallery={true} />
         ))}
       </div>
     </section>

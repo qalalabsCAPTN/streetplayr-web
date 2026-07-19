@@ -180,3 +180,30 @@ The hero banner background image appeared washed out / heavily tinted. Fixed in 
   - Replaced static hero banners with loop autoplaying `<video>` tags: `COLLECTION_MOTION_BANNER.mp4` on desktop (`hidden md:block`) and `FOR_MOBILE_ST_COLLECTION.mp4` on mobile (`md:hidden`).
   - Removed title heading ("Current Release") and all background gradient overlay layers from the banner section.
   - Configured video tags with `opacity-100` and removed saturation filter caps to render raw, unblended colors.
+
+---
+
+## Bluorng UI & Design System Migration Guidelines
+
+### 1. Style & Theme Isolation
+- All new Bluorng UI styling variables, color tokens, and utility classes are scoped under the `.storefront-root` container class in [storefront.css](file:///E:/SP%20-%20Copy/streetplayr-web/styles/storefront.css).
+- Theme toggler switches between default and dark themes by toggling the `.theme-dark` class on the `.storefront-root` and `body` elements.
+- The global layout wrappers in [app/(store)/layout.tsx](file:///E:/SP%20-%20Copy/streetplayr-web/app/%28store%29/layout.tsx) wrap children inside `<div className="storefront-root">` to load these styles securely.
+
+### 2. Cart Context & State Wrapping
+- To bridge the mockup design (which uses local `CartContext` hooks) with the live project's Zustand state manager, use the adapter hooks from [CartContext.tsx](file:///E:/SP%20-%20Copy/streetplayr-web/components/CartContext.tsx).
+- Call `useCart()` inside client components to query cart items, total count, total price, drawer open/close triggers, and to show toast messages.
+
+### 3. Unified Product Card Component
+- A unified product card component is defined at [ProductCard.tsx](file:///E:/SP%20-%20Copy/streetplayr-web/components/ui/ProductCard.tsx).
+- It handles both database-fetched products (Supabase query outputs) and local fallback products (`LOCAL_PRODUCTS`).
+- Integrates hover image cycling, wishlist saving, cart insertion, sold-out badges, and sale banners.
+
+### 4. Dynamic Page Tints
+- The product detail page uses the `pageTint(title)` helper to calculate a soft colorway-specific background color derived from the product's title.
+- Scoped inside the page wrapper container: `<div className="pdp-page" style={{ background: pageTint(product.name) }}>`.
+
+### 5. Supabase Database & Local Fallbacks
+- Page routes and queries automatically detect whether Supabase environment variables are configured.
+- When `NEXT_PUBLIC_SUPABASE_URL` is missing or is set to a mock project, the query layers in [queries.ts](file:///E:/SP%20-%20Copy/streetplayr-web/lib/products/queries.ts) automatically fall back to loading data from [data.ts](file:///E:/SP%20-%20Copy/streetplayr-web/lib/products/data.ts) without throwing network errors or breaking storefront render.
+

@@ -1,45 +1,28 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import dynamic from "next/dynamic";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import useEmblaCarousel from "embla-carousel-react";
-import { RealtimeSubscriptions } from "@/lib/realtime/subscriptions";
-import { useCartStore } from "@/store/cartStore";
-import ProductInfo from "@/components/product/ProductInfo";
-import RecommendedProducts from "@/components/product/RecommendedProducts";
+import { useState, useEffect, useCallback, useRef } from 'react';
+import Link from 'next/link';
+import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useCart } from '@/components/CartContext';
+import { RealtimeSubscriptions } from '@/lib/realtime/subscriptions';
+import RecommendedProducts from '@/components/product/RecommendedProducts';
 
 /* ── Lazy-load AI Try-On — no SSR ── */
 const AITryOn = dynamic(
-  () => import("@/components/product/AITryOn"),
+  () => import('@/components/product/AITryOn'),
   { ssr: false }
 );
 
-/* ── Lazy-load the 3D viewer — no SSR, only loads when modal opens ── */
+/* ── Lazy-load the 3D viewer — no SSR ── */
 const ProductViewer3D = dynamic(
-  () => import("@/components/product/ProductViewer3D"),
+  () => import('@/components/product/ProductViewer3D'),
   {
     ssr: false,
     loading: () => (
       <div className="w-full h-full flex flex-col items-center justify-center gap-4 bg-[#050505]">
-        <svg
-          width="32"
-          height="32"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="text-[#ddb7ff]/80 animate-spin"
-          style={{ animationDuration: "2s" }}
-        >
-          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-          <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-          <line x1="12" y1="22.08" x2="12" y2="12" />
-        </svg>
+        <div className="w-8 h-8 border-2 border-[#ddb7ff]/20 border-t-[#ddb7ff] rounded-full animate-spin" />
         <span className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-white/60">
           Loading 3D model…
         </span>
@@ -49,15 +32,9 @@ const ProductViewer3D = dynamic(
 );
 
 type Color = { id: string; name: string; hex: string; images?: string[] };
+type VariantInfo = { id: string; size: string; color: string; stockQuantity: number };
 
-type VariantInfo = {
-  id: string;
-  size: string;
-  color: string;
-  stockQuantity: number;
-};
-
-type ProductDetailClientProps = {
+interface ProductDetailClientProps {
   productId: string;
   title: string;
   price: string;
@@ -69,89 +46,45 @@ type ProductDetailClientProps = {
   sizes: string[];
   variants: VariantInfo[];
   slug: string;
-  /** Path to GLB in /public/models/ — when present, shows "View in 3D" */
   model3d?: string;
-};
-
-/* ── 3D button ── */
-function ViewIn3DButton({
-  onClick,
-  onMouseEnter,
-}: {
-  onClick: () => void;
-  onMouseEnter?: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      onMouseEnter={onMouseEnter}
-      className="w-full flex items-center justify-between border border-white/[0.12] px-5 py-3.5 font-mono text-[11px] font-bold uppercase tracking-[0.22em] text-white/80 hover:text-white hover:border-[#ddb7ff]/40 transition-all duration-300 group"
-    >
-      <span>View in 3D</span>
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="opacity-60 group-hover:opacity-100 transition-opacity"
-      >
-        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-        <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-        <line x1="12" y1="22.08" x2="12" y2="12" />
-      </svg>
-    </button>
-  );
 }
 
-/* ── Mobile accordion item ── */
-function MobileAccordion({ label, content }: { label: string; content: string }) {
-  const [open, setOpen] = useState(false);
+const TINTS = [
+  ['maroon', '#efe0e0'], ['red', '#f3e2df'], ['pink', '#f6e3ea'], ['orange', '#f5e8dc'],
+  ['blue', '#e1e8f2'], ['green', '#e2ece4'], ['grey', '#e9e9e9'], ['silver', '#eaeaec'],
+  ['black', '#e6e6e6'],
+];
+
+function pageTint(title: string) {
+  const t = title.toLowerCase();
+  const hit = TINTS.find(([k]) => t.includes(k));
+  return hit ? hit[1] : '#ececec';
+}
+
+function BookmarkIcon({ filled }: { filled: boolean }) {
   return (
-    <div className="border-b border-white/[0.06]">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="w-full flex justify-between items-center py-4 font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-white/80 hover:text-white transition-colors"
-      >
-        <span>{label}</span>
-        <span className="font-mono text-xs">{open ? "[-]" : "[+]"}</span>
-      </button>
-      {open && (
-        <div className="pb-5 text-white/80 text-sm leading-relaxed pr-4">
-          {content}
-        </div>
-      )}
-    </div>
+    <svg viewBox="0 0 18 22" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.6" style={{ width: '100%', height: '100%' }}>
+      <path d="M2 2.5A1.5 1.5 0 0 1 3.5 1h11A1.5 1.5 0 0 1 16 2.5V20l-7-4.5L2 20V2.5Z" />
+    </svg>
   );
 }
 
 export default function ProductDetailClient(props: ProductDetailClientProps) {
   const router = useRouter();
-  const addItem = useCartStore((s) => s.addItem);
+  const cart = useCart();
 
-  const [selectedColor, setSelectedColor] = useState(props.colors[0]?.id);
-  const [selectedSize, setSelectedSize] = useState("");
+  const [selectedColor, setSelectedColor] = useState(props.colors[0]?.id || 'default');
+  const [selectedSize, setSelectedSize] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [show3DViewer, setShow3DViewer] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [liveStock, setLiveStock] = useState<Record<string, number>>({});
+  const [spCredits, setSpCredits] = useState(500);
+  const [tab, setTab] = useState('details');
+  const [guideOpen, setGuideOpen] = useState(false);
+  const [activeImg, setActiveImg] = useState(0);
 
-  /* Mobile gallery state */
-  const [activeSlide, setActiveSlide] = useState(0);
-  const [emblaRef, emblaApi] = useEmblaCarousel({
-    align: "center",
-    containScroll: false,
-    skipSnaps: false,
-    dragFree: false,
-    loop: true,
-  });
-  const galleryRef = useRef<HTMLDivElement>(null);
-
-  /* Mobile purchase feedback */
-  const [isAdded, setIsAdded] = useState(false);
+  const carouselRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const unsubs: (() => void)[] = [];
@@ -171,60 +104,44 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
     stockQuantity: liveStock[v.id] ?? v.stockQuantity,
   }));
 
-  /* Gallery follows the selected colour swatch. Falls back to the
-     product's default images if a colour has no dedicated set. */
   const activeColor = props.colors.find((c) => c.id === selectedColor);
   const colorImages = activeColor?.images?.length ? activeColor.images : props.images;
   const heroImage = colorImages[0] ?? props.image;
-  const allImages = colorImages.length > 1 ? colorImages : [heroImage, heroImage];
+  const allImages = colorImages.length > 0 ? colorImages : [heroImage];
 
-  /* Reset gallery position when the colour changes */
+  // Set default size on mount (first available size)
   useEffect(() => {
-    setActiveSlide(0);
-    if (emblaApi) emblaApi.reInit();
-  }, [selectedColor, emblaApi]);
+    if (props.sizes.length > 0) {
+      const firstAvailable = props.sizes.find((s) => {
+        const matchingVariant = liveVariants.find((v) => v.size === s);
+        return matchingVariant && matchingVariant.stockQuantity > 0;
+      });
+      setSelectedSize(firstAvailable || props.sizes[0]);
+    }
+  }, [liveVariants, props.sizes]);
 
-  const handleGalleryScroll = useCallback(() => {
-    const el = galleryRef.current;
-    if (!el) return;
-    const index = Math.round(el.scrollLeft / el.clientWidth);
-    setActiveSlide(Math.min(index, allImages.length - 1));
-  }, [allImages.length]);
+  const onCarouselScroll = () => {
+    const el = carouselRef.current;
+    if (!el || el.clientWidth === 0) return;
+    setActiveImg(Math.round(el.scrollLeft / el.clientWidth));
+  };
 
-  useEffect(() => {
-    if (!emblaApi) return;
-
-    const onSelect = () => {
-      setActiveSlide(emblaApi.selectedScrollSnap());
-    };
-
-    onSelect();
-    emblaApi.on("select", onSelect);
-
-    return () => {
-      emblaApi.off("select", onSelect);
-    };
-  }, [emblaApi]);
-
-  /* Preload GLB on button hover */
   const handleButtonHover = useCallback(() => {
     if (props.model3d) {
-      import("@/components/product/ProductViewer3D").then(({ preload3DModel }) => {
+      import('@/components/product/ProductViewer3D').then(({ preload3DModel }) => {
         preload3DModel(props.model3d!);
       });
     }
   }, [props.model3d]);
 
-  /* Mobile: add to cart */
-  const handleMobileAddToCart = useCallback(async () => {
+  const addToBag = async () => {
     if (!selectedSize) {
-      alert("Please select a size.");
+      alert('Please select a size.');
       return;
     }
-    const colorName = props.colors.find((c) => c.id === selectedColor)?.name ?? "Standard";
     const matchingVariant = liveVariants.find((v) => v.size === selectedSize);
     if (!matchingVariant) {
-      alert("Selected size not available.");
+      alert('Selected size not available.');
       return;
     }
     if (matchingVariant.stockQuantity < quantity) {
@@ -232,346 +149,291 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
       return;
     }
     try {
-      const { getVariantStockAction } = await import("@/app/actions/stock");
+      const { getVariantStockAction } = await import('@/app/actions/stock');
       const res = await getVariantStockAction(matchingVariant.id);
       if (res.success && res.data && res.data.available < quantity) {
         alert(`Only ${res.data.available} units available.`);
         return;
       }
     } catch {}
-    addItem({
-      id: matchingVariant.id,
-      productId: props.productId,
-      name: props.title,
-      price: parseFloat(props.price.replace(/[^0-9.-]+/g, "")),
-      quantity,
-      color: colorName,
-      size: selectedSize,
-      image: heroImage,
-    });
-    setIsAdded(true);
-    setTimeout(() => setIsAdded(false), 2000);
-  }, [selectedSize, selectedColor, quantity, props, liveVariants, addItem]);
 
-  /* Mobile: buy now = add to cart then go to checkout */
-  const handleBuyNow = useCallback(async () => {
-    await handleMobileAddToCart();
-    router.push("/checkout");
-  }, [handleMobileAddToCart, router]);
+    const cartProduct = {
+      handle: props.slug,
+      title: props.title,
+      price: parseFloat(props.price.replace(/[^0-9.-]+/g, '')),
+      images: colorImages,
+    };
+    cart.addItem(cartProduct, selectedSize);
+    cart.showToast('Added to bag');
+  };
+
+  const buyNow = async () => {
+    await addToBag();
+    router.push('/checkout');
+  };
+
+  const [saved, setSaved] = useState(false);
 
   return (
-    <main className="pt-24">
-      {/* ===== DESKTOP: 3-column editorial layout (UNCHANGED) ===== */}
-      <section className="hidden lg:grid lg:grid-cols-[minmax(380px,1fr)_minmax(380px,1fr)_minmax(0,460px)] lg:gap-8 lg:items-start lg:mx-auto lg:max-w-[min(98vw,2560px)] lg:px-12">
+    <div className="pdp-page pt-20" style={{ background: pageTint(props.title) }}>
+      <nav className="pdp__breadcrumb">
+        <Link href="/">Home</Link>
+        <span>&gt;</span>
+        <Link href="/collections">Shop</Link>
+        <span>&gt;</span>
+        <span className="pdp__breadcrumb-current">{props.title}</span>
+      </nav>
 
-        {/* LEFT — Hero image (sticky) */}
-        <div className="lg:sticky lg:top-24 flex flex-col gap-3">
-          <div className="mb-3">
-            <h1 className="font-display text-5xl uppercase text-white leading-none">
-              {props.title}
-            </h1>
-          </div>
-          <div 
-            className="relative aspect-[3/4] bg-[#050505] overflow-hidden border border-white/[0.08] cursor-zoom-in"
-            onClick={() => setLightboxIndex(0)}
-          >
-            <Image
-              src={heroImage}
-              alt={props.title}
-              fill
-              sizes="(min-width: 1024px) 30vw, 100vw"
-              className="object-cover"
-              priority
-            />
-            <div className="absolute bottom-4 right-4 z-10">
-              <span className="font-mono text-[10px] font-bold tracking-[0.2em] text-white/80 bg-black/40 backdrop-blur-sm px-2.5 py-1 border border-white/[0.10]">
-                01 / {String(allImages.length).padStart(2, "0")}
-              </span>
-            </div>
-          </div>
-          {props.model3d && (
-            <ViewIn3DButton
-              onClick={() => setShow3DViewer(true)}
-              onMouseEnter={handleButtonHover}
-            />
-          )}
-        </div>
-
-        {/* CENTER — Editorial scrolling gallery */}
-        <div className="flex flex-col gap-4 pt-[88px]">
-          {allImages.slice(1).map((src, i) => (
-            <div
-              key={i}
-              className="relative aspect-[3/4] bg-[#050505] overflow-hidden border border-white/[0.08] cursor-zoom-in"
-              onClick={() => setLightboxIndex(i + 1)}
-            >
-              <Image
-                src={src}
-                alt={`${props.title} — view ${i + 2}`}
-                fill
-                sizes="(min-width: 1024px) 30vw, 100vw"
-                className="object-cover hover:scale-[1.02] transition-transform duration-700 ease-out"
-              />
-              <div className="absolute bottom-4 right-4 z-10">
-                <span className="font-mono text-[10px] font-bold tracking-[0.2em] text-white/80 bg-black/40 backdrop-blur-sm px-2.5 py-1 border border-white/[0.10]">
-                  {String(i + 2).padStart(2, "0")} / {String(allImages.length).padStart(2, "0")}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* RIGHT — Product info (sticky) */}
-        <aside className="lg:sticky lg:top-24">
-          <ProductInfo
-            productId={props.productId}
-            title={props.title}
-            price={props.price}
-            description={props.description}
-            points={props.points}
-            colors={props.colors}
-            sizes={props.sizes}
-            variants={liveVariants}
-            image={heroImage}
-            selectedColor={selectedColor}
-            selectedSize={selectedSize}
-            quantity={quantity}
-            onColorSelect={setSelectedColor}
-            onSizeSelect={setSelectedSize}
-            onQuantityChange={setQuantity}
-          />
-        </aside>
-      </section>
-
-      {/* ===== MOBILE: swipe gallery + immediate purchase block ===== */}
-      <section className="lg:hidden flex flex-col pb-24">
-
-        {/* ── 1. Title ── */}
-        <div className="px-4 pt-6 pb-4">
-          <h1 className="font-display text-[36px] uppercase text-white leading-none">
-            {props.title}
-          </h1>
-        </div>
-
-        {/* ── 2. Swipe gallery ── */}
-        <div className="relative">
-          <div className="overflow-hidden md:hidden" ref={emblaRef}>
-            <div className="flex" style={{ marginLeft: "-10px" }}>
-              {allImages.map((src, i) => {
-                const isActive = i === activeSlide;
-                return (
-                  <div
-                    key={i}
-                    style={{
-                      flex: "0 0 100%",
-                      minWidth: 0,
-                      paddingLeft: "10px",
-                      paddingRight: "10px",
-                      transition: "transform 0.4s ease, opacity 0.4s ease",
-                      transform: isActive ? "scale(1)" : "scale(0.96)",
-                      opacity: isActive ? 1 : 0.7,
-                      willChange: "transform, opacity",
-                      borderRadius: 16,
-                      overflow: "hidden",
-                    }}
-                  >
-                    <div 
-                      className="relative aspect-[4/5] bg-[#050505] overflow-hidden rounded-xl cursor-zoom-in"
-                      onClick={() => setLightboxIndex(i)}
-                    >
-                      <Image
-                        src={src}
-                        alt={`${props.title} view ${i + 1}`}
-                        fill
-                        sizes="100vw"
-                        className="object-cover saturate-[0.92]"
-                        priority={i === 0}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <div
-            ref={galleryRef}
-            onScroll={handleGalleryScroll}
-            className="hidden md:flex lg:hidden overflow-x-auto snap-x snap-mandatory no-scrollbar"
-          >
+      <div className="pdp">
+        {/* Mobile gallery */}
+        <div className="pdp__mgallery">
+          <div className="pdp__carousel" ref={carouselRef} onScroll={onCarouselScroll}>
             {allImages.map((src, i) => (
-              <div
-                key={i}
-                className="relative aspect-[4/5] flex-shrink-0 w-full snap-center bg-[#050505] overflow-hidden border-b border-white/[0.06] cursor-zoom-in"
-                onClick={() => setLightboxIndex(i)}
-              >
-                <Image
+              <div className="pdp__slide" key={src}>
+                <img
                   src={src}
-                  alt={`${props.title} view ${i + 1}`}
-                  fill
-                  sizes="100vw"
-                  className="object-cover"
-                  priority={i === 0}
+                  alt={`${props.title} — view ${i + 1}`}
+                  onClick={() => setLightboxIndex(i)}
+                  loading={i === 0 ? 'eager' : 'lazy'}
                 />
               </div>
             ))}
           </div>
-
-          <div className="md:hidden absolute inset-y-0 left-0 w-4 bg-gradient-to-r from-[#16111b] to-transparent pointer-events-none z-[1]" />
-          <div className="md:hidden absolute inset-y-0 right-0 w-4 bg-gradient-to-l from-[#16111b] to-transparent pointer-events-none z-[1]" />
-
-          {/* Counter — top right */}
-          <div className="absolute top-3 right-3 z-10">
-            <span className="font-mono text-[9px] font-bold tracking-[0.18em] text-white/80 bg-black/50 backdrop-blur-sm px-2 py-1 border border-white/[0.08]">
-              {String(activeSlide + 1).padStart(2, "0")} / {String(allImages.length).padStart(2, "0")}
-            </span>
-          </div>
-
-          {/* Dot indicators — bottom center */}
-          {allImages.length > 1 && (
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
-              {allImages.map((_, i) => (
-                <div
-                  key={i}
-                  className={`rounded-full transition-all duration-300 ${
-                    i === activeSlide
-                      ? "w-3.5 h-1.5 bg-white"
-                      : "w-1.5 h-1.5 bg-white/30"
-                  }`}
-                />
-              ))}
+          {allImages.length > 0 && (
+            <div className="pdp__counter">
+              {activeImg + 1} / {allImages.length}
             </div>
           )}
         </div>
 
-        {/* ── 3. Price ── */}
-        <div className="px-4 pt-5 pb-1">
-          <p className="font-display text-[44px] text-white tracking-tight leading-none">
-            {props.price}
-          </p>
-          <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/50 mt-1">
-            Limited Release
-          </p>
+        {/* Desktop gallery */}
+        <div className="pdp__gallery">
+          <div className="pdp__gallery-left">
+            {allImages[0] && (
+              <img
+                src={allImages[0]}
+                alt={`${props.title} — cover`}
+                onClick={() => setLightboxIndex(0)}
+                loading="eager"
+              />
+            )}
+          </div>
+          <div className="pdp__gallery-right">
+            {allImages.slice(1).map((src, i) => (
+              <img
+                key={src}
+                src={src}
+                alt={`${props.title} — view ${i + 2}`}
+                onClick={() => setLightboxIndex(i + 1)}
+                loading="lazy"
+              />
+            ))}
+          </div>
         </div>
 
-        {/* ── 4. Colorway ── */}
-        {props.colors.length > 0 && (
-          <div className="px-4 pt-5">
-            <label className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/60 mb-3 block">
-              Colorway
-            </label>
-            <div className="flex flex-wrap gap-3">
-              {props.colors.map((color) => {
-                const isSelected = (selectedColor ?? props.colors[0]?.id) === color.id;
+        {/* Side purchase column */}
+        <aside className="pdp__side">
+          <div className="pdp__panel">
+            <div className="pdp__toprow">
+              <div>
+                <h1 className="pdp__title">
+                  {props.title}
+                  <button
+                    onClick={() => {
+                      setSaved((v) => !v);
+                      cart.showToast(saved ? 'Removed from wishlist' : 'Saved to wishlist');
+                    }}
+                    aria-label="Save to wishlist"
+                  >
+                    <BookmarkIcon filled={saved} />
+                  </button>
+                </h1>
+                <div className="pdp__price">
+                  <span>{props.price}</span>
+                </div>
+              </div>
+              <button className="sizeguide-btn" onClick={() => setGuideOpen(true)}>
+                Size Guide
+              </button>
+            </div>
+
+            <div className="sizes">
+              {props.sizes.map((s) => {
+                const matchingVariant = liveVariants.find((v) => v.size === s);
+                const isSoldOut = !matchingVariant || matchingVariant.stockQuantity <= 0;
                 return (
                   <button
-                    key={color.id}
-                    onClick={() => setSelectedColor(color.id)}
-                    aria-label={`Color: ${color.name}`}
-                    className="relative flex h-11 w-11 items-center justify-center transition-colors duration-300"
-                    style={{
-                      border: isSelected
-                        ? "1px solid rgba(255,255,255,0.9)"
-                        : "1px solid rgba(255,255,255,0.12)",
-                    }}
+                    key={s}
+                    className={`size ${selectedSize === s && !isSoldOut ? 'active' : ''} ${isSoldOut ? 'disabled' : ''}`}
+                    onClick={() => !isSoldOut && setSelectedSize(s)}
                   >
-                    <span
-                      className="h-[80%] w-[80%]"
-                      style={{ backgroundColor: color.hex }}
-                    />
+                    {s}
                   </button>
                 );
               })}
             </div>
-          </div>
-        )}
 
-        {/* ── 5. Size selector ── */}
-        <div className="px-4 pt-5">
-          <div className="flex justify-between mb-3">
-            <label className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/60">
-              Select Size
-            </label>
-            <button className="font-mono text-[10px] uppercase tracking-[0.1em] text-white/45 underline underline-offset-4">
-              Size Guide
-            </button>
-          </div>
-          <div className="grid grid-cols-5 gap-2">
-            {props.sizes.map((size) => {
-              const isSelected = selectedSize === size;
-              return (
-                <button
-                  key={size}
-                  onClick={() => setSelectedSize(size)}
-                  className={`py-3.5 font-mono text-xs transition-all ${
-                    isSelected
-                      ? "border border-white/80 bg-white/5 text-white"
-                      : "border border-white/[0.14] hover:border-white/35 text-white/60"
-                  }`}
+            {/* Member Credits slider */}
+            <div className="mt-5 p-4 border border-white/[0.08] bg-white/[0.02] rounded-lg">
+              <div className="flex justify-between items-center mb-3">
+                <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/50">Member Credits</span>
+                <span className="font-mono text-[10px] font-medium text-white/70">{spCredits} / 2500</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="2500"
+                value={spCredits}
+                onChange={(e) => setSpCredits(Number(e.target.value))}
+                className="w-full h-[3px] bg-white/[0.08] appearance-none cursor-pointer accent-white/80 rounded-none"
+              />
+            </div>
+
+            {/* Purchase actions */}
+            <div className="pdp__actions mt-5">
+              <button 
+                className="pdp__atb" 
+                onClick={addToBag}
+              >
+                Add to Bag
+              </button>
+              <button 
+                className="pdp__buy" 
+                onClick={buyNow}
+              >
+                Buy Now
+              </button>
+            </div>
+
+            {/* View in 3D (if model available) */}
+            {props.model3d && (
+              <button
+                onClick={() => setShow3DViewer(true)}
+                onMouseEnter={handleButtonHover}
+                className="w-full mt-3 flex items-center justify-between border border-white/[0.12] px-5 py-3.5 font-mono text-[11px] font-bold uppercase tracking-[0.22em] text-white/80 hover:text-white hover:border-[#ddb7ff]/40 transition-all duration-300 group"
+              >
+                <span>View in 3D</span>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="opacity-60 group-hover:opacity-100 transition-opacity"
                 >
-                  {size}
-                </button>
-              );
-            })}
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                  <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                  <line x1="12" y1="22.08" x2="12" y2="12" />
+                </svg>
+              </button>
+            )}
+
+            {/* AI Try-on */}
+            <div className="mt-4">
+              <AITryOn
+                productImageUrl={heroImage}
+                productTitle={props.title}
+              />
+            </div>
+          </div>
+
+          {/* Details & Specs Tabs */}
+          <div className="pdp__panel">
+            <div className="tabs">
+              <button className={`tab ${tab === 'details' ? 'active' : ''}`} onClick={() => setTab('details')}>
+                Details &amp; Description
+              </button>
+              <button className={`tab ${tab === 'care' ? 'active' : ''}`} onClick={() => setTab('care')}>
+                Washcare
+              </button>
+              <button className={`tab ${tab === 'shipping' ? 'active' : ''}`} onClick={() => setTab('shipping')}>
+                Shipping
+              </button>
+            </div>
+
+            <div className="tabbody">
+              {tab === 'details' && (
+                <>
+                  <h6>Details</h6>
+                  <ul>
+                    {props.points && <li>Earn {props.points} Member Credits on purchase</li>}
+                    <li>Heavyweight premium fabric construction</li>
+                    <li>Oversized comfort with tailored drape</li>
+                  </ul>
+                  <h6>Description</h6>
+                  <p>{props.description}</p>
+                </>
+              )}
+              {tab === 'care' && (
+                <ul>
+                  <li>Wash inside out with cold water</li>
+                  <li>Do not tumble dry</li>
+                  <li>Do not iron directly on puff prints</li>
+                  <li>Hang to dry in shade</li>
+                </ul>
+              )}
+              {tab === 'shipping' && (
+                <ul>
+                  <li>Dispatched within 24-48 hours</li>
+                  <li>Free delivery across India</li>
+                  <li>10-day replacement policy for sizing</li>
+                </ul>
+              )}
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      {/* Size Guide Modal */}
+      {guideOpen && (
+        <div className="modal" onClick={() => setGuideOpen(false)}>
+          <div className="modal__card" onClick={(e) => e.stopPropagation()}>
+            <button className="modal__close" onClick={() => setGuideOpen(false)}>
+              ×
+            </button>
+            <h3>Size guide</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Size</th>
+                  <th>Chest / Waist</th>
+                  <th>Recommended Fit</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>S</td>
+                  <td>36&quot; / 30&quot;</td>
+                  <td>Slim fit / standard waist</td>
+                </tr>
+                <tr>
+                  <td>M</td>
+                  <td>38&quot; / 32&quot;</td>
+                  <td>Relaxed fit / standard waist</td>
+                </tr>
+                <tr>
+                  <td>L</td>
+                  <td>40&quot; / 34&quot;</td>
+                  <td>Relaxed fit / comfortable waist</td>
+                </tr>
+                <tr>
+                  <td>XL</td>
+                  <td>42&quot; / 36&quot;</td>
+                  <td>Oversized fit / comfortable waist</td>
+                </tr>
+              </tbody>
+            </table>
+            <p style={{ fontSize: 12, color: '#757575', marginTop: 14, lineHeight: 1.6 }}>
+              <b>How to measure:</b> Measure around the fullest part of your chest for tees, or around your natural waistline for pants.
+            </p>
           </div>
         </div>
+      )}
 
-        {/* ── 6. Add to Cart + Buy Now ── */}
-        <div className="px-4 pt-5 flex flex-col gap-3">
-          <button
-            onClick={handleMobileAddToCart}
-            className={`w-full py-4 font-mono text-[11px] uppercase tracking-[0.22em] transition-all duration-300 ${
-              isAdded
-                ? "bg-white/10 text-white/60 border border-white/[0.12]"
-                : "bg-white text-[#16111b] hover:bg-[#ddb7ff]"
-            }`}
-          >
-            {isAdded ? "Added to Cart ✓" : "Add to Cart"}
-          </button>
-          <button
-            onClick={handleBuyNow}
-            className="w-full py-4 font-mono text-[11px] uppercase tracking-[0.22em] border border-white/[0.14] text-white/70 hover:text-white hover:border-white/30 transition-all duration-300"
-          >
-            Buy Now
-          </button>
-        </div>
-
-        {/* ── 7. 3D View ── */}
-        {props.model3d && (
-          <div className="px-4 pt-3">
-            <ViewIn3DButton
-              onClick={() => setShow3DViewer(true)}
-              onMouseEnter={handleButtonHover}
-            />
-          </div>
-        )}
-
-        {/* ── 8. AI Try-On ── */}
-        <div className="mx-4 mt-5">
-          <AITryOn
-            productImageUrl={heroImage}
-            productTitle={props.title}
-          />
-        </div>
-
-        {/* ── 9. Accordion ── */}
-        <div className="px-4 pt-5 border-t border-white/[0.06] mt-5">
-          <MobileAccordion
-            label="Product Details"
-            content={props.description || "Tri-layer GORE-TEX membrane with liquid-chrome finish. Reinforced 500D Cordura panels."}
-          />
-          <MobileAccordion
-            label="Delivery & Returns"
-            content="Standard delivery: 5-7 business days. Express: 2-3 business days. International shipping available."
-          />
-          <MobileAccordion
-            label="Care Instructions"
-            content="Machine wash cold, gentle cycle. Hang to dry. Do not bleach, iron, or dry clean."
-          />
-        </div>
-      </section>
-
-      {/* ===== 3D Viewer Modal (shared desktop + mobile) ===== */}
+      {/* 3D Model Viewer Modal */}
       <AnimatePresence>
         {show3DViewer && props.model3d && (
           <motion.div
@@ -619,7 +481,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
         )}
       </AnimatePresence>
 
-      {/* ===== Lightbox Modal (shared desktop + mobile) ===== */}
+      {/* Lightbox Zoom Gallery */}
       <AnimatePresence>
         {lightboxIndex !== null && (
           <motion.div
@@ -630,7 +492,6 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
             className="fixed inset-0 z-[110] flex flex-col items-center justify-center bg-black/95 backdrop-blur-xl"
             onClick={() => setLightboxIndex(null)}
           >
-            {/* Close Button */}
             <button
               onClick={() => setLightboxIndex(null)}
               className="absolute top-5 right-5 z-20 w-12 h-12 flex items-center justify-center border border-white/[0.12] text-white/50 hover:text-white hover:border-white/30 transition-all bg-black/40 backdrop-blur-sm cursor-pointer"
@@ -642,7 +503,6 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
               </svg>
             </button>
 
-            {/* Navigation Buttons */}
             {allImages.length > 1 && (
               <>
                 <button
@@ -674,30 +534,27 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
               </>
             )}
 
-            {/* Title / Counter Overlay */}
             <div className="absolute top-5 left-5 z-20 flex items-center gap-3">
               <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-[#ddb7ff]/70">Gallery</span>
               <span className="h-px w-6 bg-white/15 block" />
               <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-white/40">
-                {String(lightboxIndex + 1).padStart(2, "0")} / {String(allImages.length).padStart(2, "0")}
+                {String(lightboxIndex + 1).padStart(2, '0')} / {String(allImages.length).padStart(2, '0')}
               </span>
             </div>
 
-            {/* Main Image in Lightbox */}
             <motion.div
               key={lightboxIndex}
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              transition={{ type: "spring", damping: 25, stiffness: 120 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 120 }}
               className="relative w-full max-w-4xl max-h-[85vh] aspect-[3/4] flex items-center justify-center"
               onClick={(e) => e.stopPropagation()}
             >
-              <Image
+              <img
                 src={allImages[lightboxIndex]}
                 alt={`${props.title} full view`}
-                fill
-                className="object-contain cursor-zoom-out"
+                className="max-w-full max-h-full object-contain cursor-zoom-out"
                 onClick={() => setLightboxIndex(null)}
               />
             </motion.div>
@@ -706,6 +563,6 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
       </AnimatePresence>
 
       <RecommendedProducts currentSlug={props.slug} />
-    </main>
+    </div>
   );
 }

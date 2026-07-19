@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import ProfileGuard from '@/components/auth/ProfileGuard';
 import Navbar from '@/components/layout/Navbar';
 import ProfileShell from './ProfileShell';
 
@@ -14,9 +14,11 @@ export default function ProfileLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ProtectedRoute>
+    <>
       <Navbar />
-      <ProfileShell>{children}</ProfileShell>
-    </ProtectedRoute>
+      <ProfileGuard>
+        <ProfileShell>{children}</ProfileShell>
+      </ProfileGuard>
+    </>
   );
 }

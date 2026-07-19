@@ -76,6 +76,7 @@ export const ProductQueries = {
           featured_image_url,
           metadata,
           status,
+          categories(name, slug),
           product_variants(id, price)
         `)
         .eq('status', 'active')
@@ -94,6 +95,7 @@ export const ProductQueries = {
       return data.map((p, idx) => {
         const prices = (p.product_variants ?? []).map((v: any) => v.price).filter(Boolean);
         const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+        const categoryData = (p as any).categories;
         return {
           id: p.id,
           name: p.title,
@@ -101,7 +103,7 @@ export const ProductQueries = {
           image: p.featured_image_url,
           image2: p.metadata?.gallery_images?.[1] || p.featured_image_url,
           slug: p.slug,
-          category: 'Street',
+          category: categoryData?.name || p.metadata?.category || 'Street',
           className: p.metadata?.className || getDefaultClassName(idx),
         };
       });
@@ -129,6 +131,7 @@ export const ProductQueries = {
           featured_image_url,
           metadata,
           status,
+          categories(name, slug),
           product_variants(id, price)
         `)
         .eq('status', 'active')
@@ -146,13 +149,14 @@ export const ProductQueries = {
       return data.map((p) => {
         const prices = (p.product_variants ?? []).map((v: any) => v.price).filter(Boolean);
         const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+        const categoryData = (p as any).categories;
         return {
           id: p.id,
           name: p.title,
           price: minPrice,
           slug: p.slug,
           image: p.featured_image_url,
-          category: 'Street',
+          category: categoryData?.name || p.metadata?.category || 'Street',
         };
       });
     } catch (err) {
