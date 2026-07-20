@@ -20,19 +20,19 @@ function FadeIn({ children, delay = 0 }: { children: React.ReactNode; delay?: nu
 
 export default function QuoteSection() {
   return (
-    <section className="relative py-28 sm:py-36 px-4 md:px-8 lg:px-12 w-full max-w-[min(98vw,2560px)] mx-auto border-t border-white/[0.04] overflow-hidden">
+    <section className="relative py-28 sm:py-36 px-4 md:px-8 lg:px-12 w-full max-w-[min(98vw,2560px)] mx-auto border-t border-[var(--fg-04)] overflow-hidden">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_50%,rgba(221,183,255,0.04)_0%,transparent_60%)]" />
       <div className="pointer-events-none absolute inset-0 opacity-[0.02]" style={{
-        backgroundImage: "linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)",
+        backgroundImage: "linear-gradient(var(--fg-08) 1px, transparent 1px), linear-gradient(90deg, var(--fg-08) 1px, transparent 1px)",
         backgroundSize: "60px 60px",
       }} />
 
       <div className="relative z-10 max-w-[900px] mx-auto text-center">
         <FadeIn>
           <div className="flex items-center justify-center gap-3 mb-10">
-            <span className="h-px w-8 bg-white/20 block" />
-            <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/30">Core Tenet</span>
-            <span className="h-px w-8 bg-white/20 block" />
+            <span className="h-px w-8 bg-[var(--fg-20)] block" />
+            <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-[var(--fg-30)]">Core Tenet</span>
+            <span className="h-px w-8 bg-[var(--fg-20)] block" />
           </div>
         </FadeIn>
 
@@ -45,7 +45,7 @@ export default function QuoteSection() {
         <FadeIn delay={0.4}>
           <div className="mt-12 flex items-center justify-center gap-4">
             <span className="w-px h-6 bg-[#ddb7ff]/30" />
-            <span className="font-mono text-[9px] uppercase tracking-[0.35em] text-white/25">
+            <span className="font-mono text-[9px] uppercase tracking-[0.35em] text-[var(--fg-25)]">
               The Streets &mdash; Since 2024
             </span>
             <span className="w-px h-6 bg-[#ddb7ff]/30" />

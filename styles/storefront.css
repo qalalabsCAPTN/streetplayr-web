@@ -12,6 +12,34 @@
   --radius-lg: 22px;
   --header-h: 58px;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Text/border opacity tiers — light values; overridden explicitly in .theme-dark below */
+  --fg-95: rgba(17,17,17,0.95);
+  --fg-82: rgba(17,17,17,0.82);
+  --fg-72: rgba(17,17,17,0.72);
+  --fg-65: rgba(17,17,17,0.65);
+  --fg-60: rgba(17,17,17,0.60);
+  --fg-50: rgba(17,17,17,0.50);
+  --fg-45: rgba(17,17,17,0.45);
+  --fg-35: rgba(17,17,17,0.35);
+  --fg-30: rgba(17,17,17,0.30);
+  --fg-25: rgba(17,17,17,0.25);
+  --fg-20: rgba(17,17,17,0.20);
+  --fg-15: rgba(17,17,17,0.15);
+  --fg-14: rgba(17,17,17,0.14);
+  --fg-12: rgba(17,17,17,0.12);
+  --fg-09: rgba(17,17,17,0.09);
+  --fg-08: rgba(17,17,17,0.08);
+  --fg-06: rgba(17,17,17,0.06);
+  --fg-05: rgba(17,17,17,0.05);
+  --fg-04: rgba(17,17,17,0.04);
+
+  /* Translucent panel tiers — light values; overridden explicitly in .theme-dark below */
+  --panel-40: rgba(255,255,255,0.40);
+  --panel-60: rgba(255,255,255,0.60);
+  --panel-75: rgba(255,255,255,0.75);
+  --panel-80: rgba(255,255,255,0.80);
+  --panel-90: rgba(255,255,255,0.90);
 }
 
 .storefront-root * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1006,6 +1034,32 @@ body.theme-light .carousel3d__dot.active {
   --muted: #a0a0a0;
   --line: #222222;
   --chip: #1c1c1c;
+
+  --fg-95: rgba(255,255,255,0.95);
+  --fg-82: rgba(255,255,255,0.82);
+  --fg-72: rgba(255,255,255,0.72);
+  --fg-65: rgba(255,255,255,0.65);
+  --fg-60: rgba(255,255,255,0.60);
+  --fg-50: rgba(255,255,255,0.50);
+  --fg-45: rgba(255,255,255,0.45);
+  --fg-35: rgba(255,255,255,0.35);
+  --fg-30: rgba(255,255,255,0.30);
+  --fg-25: rgba(255,255,255,0.25);
+  --fg-20: rgba(255,255,255,0.20);
+  --fg-15: rgba(255,255,255,0.15);
+  --fg-14: rgba(255,255,255,0.14);
+  --fg-12: rgba(255,255,255,0.12);
+  --fg-09: rgba(255,255,255,0.09);
+  --fg-08: rgba(255,255,255,0.08);
+  --fg-06: rgba(255,255,255,0.06);
+  --fg-05: rgba(255,255,255,0.05);
+  --fg-04: rgba(255,255,255,0.04);
+
+  --panel-40: rgba(17,17,17,0.40);
+  --panel-60: rgba(17,17,17,0.60);
+  --panel-75: rgba(17,17,17,0.75);
+  --panel-80: rgba(17,17,17,0.80);
+  --panel-90: rgba(17,17,17,0.90);
 }
 
 .storefront-root.theme-dark .header {
@@ -2229,6 +2283,105 @@ body.theme-light .carousel3d__dot.active {
   color: rgba(255,255,255,0.5);
   text-transform: uppercase;
   letter-spacing: 0.08em;
+}
+
+/* ============ LEGAL / POLICY PAGES ============ */
+.storefront-root .legal-page {
+  padding-top: calc(var(--header-h) + 40px);
+  padding-bottom: 96px;
+}
+.storefront-root .legal-shell {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+.storefront-root .legal-hero {
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--line);
+}
+.storefront-root .legal-hero__eyebrow {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.storefront-root .legal-hero h1 {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+.storefront-root .legal-hero__meta {
+  display: block;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.storefront-root .legal-section {
+  margin-bottom: 28px;
+}
+.storefront-root .legal-section h2 {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin-bottom: 10px;
+}
+.storefront-root .legal-section p {
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--fg);
+  opacity: 0.8;
+}
+.storefront-root .legal-contact {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+}
+.storefront-root .legal-contact h2 {
+  font-size: 15px;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+.storefront-root .legal-contact a {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fg);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.storefront-root .legal-contact__row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.storefront-root .legal-contact__row:last-child {
+  margin-bottom: 0;
+}
+.storefront-root .legal-contact__label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+.storefront-root .legal-back {
+  display: inline-block;
+  margin-top: 40px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--fg);
+}
+.storefront-root .legal-back:hover {
+  text-decoration: underline;
 }
 .storefront-root .acct-card--accent .pill {
   margin-top: 16px;

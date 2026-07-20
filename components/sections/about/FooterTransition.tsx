@@ -32,9 +32,9 @@ export default function FooterTransition() {
             transition={{ duration: 1.6, ease: "easeOut" }}
             className="flex items-center justify-center gap-4 mb-16"
           >
-            <span className="h-px w-8 bg-white/15 block" />
-            <span className="font-mono text-[10px] uppercase tracking-[0.32em] text-white/25">The Collection</span>
-            <span className="h-px w-8 bg-white/15 block" />
+            <span className="h-px w-8 bg-[var(--fg-15)] block" />
+            <span className="font-mono text-[10px] uppercase tracking-[0.32em] text-[var(--fg-25)]">The Collection</span>
+            <span className="h-px w-8 bg-[var(--fg-15)] block" />
           </motion.div>
 
           <div className="overflow-hidden mb-2">
@@ -52,7 +52,7 @@ export default function FooterTransition() {
               initial={{ y: "105%" }}
               animate={isInView ? { y: 0 } : {}}
               transition={{ duration: 1.6, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="font-display text-[clamp(72px,12vw,140px)] uppercase leading-[0.85] tracking-tight text-[#eadfed]/15"
+              className="font-display text-[clamp(72px,12vw,140px)] uppercase leading-[0.85] tracking-tight text-[var(--fg-15)]"
             >
               Archive
             </motion.h2>
@@ -62,7 +62,7 @@ export default function FooterTransition() {
             initial={{ opacity: 0 }}
             animate={isInView ? { opacity: 1 } : {}}
             transition={{ duration: 2, delay: 0.55, ease: "easeOut" }}
-            className="mt-12 mx-auto max-w-xs font-body text-sm leading-8 text-white/30 tracking-wide"
+            className="mt-12 mx-auto max-w-xs font-body text-sm leading-8 text-[var(--fg-30)] tracking-wide"
           >
             Limited drops. No restock. No noise. Only the pieces — and those who find them.
           </motion.p>
@@ -75,14 +75,14 @@ export default function FooterTransition() {
           >
             <Link
               href="/collections"
-              className="group relative inline-flex items-center gap-5 border border-white/[0.14] px-10 py-5 font-mono text-xs uppercase tracking-[0.2em] text-[#eadfed] transition-all duration-500 hover:bg-[#ddb7ff] hover:text-[#16111b] hover:border-[#ddb7ff] rounded-xl"
+              className="group relative inline-flex items-center gap-5 border border-[var(--fg-14)] px-10 py-5 font-mono text-xs uppercase tracking-[0.2em] text-[var(--fg)] transition-all duration-500 hover:bg-[#ddb7ff] hover:text-[#16111b] hover:border-[#ddb7ff] rounded-xl"
             >
               <span>Explore Archive</span>
               <span className="group-hover:translate-x-1 transition-transform">→</span>
             </Link>
             <Link
               href="/collections"
-              className="font-mono text-xs uppercase tracking-[0.2em] text-white/30 hover:text-white/60 transition-colors px-4 py-5"
+              className="font-mono text-xs uppercase tracking-[0.2em] text-[var(--fg-30)] hover:text-[var(--fg-60)] transition-colors px-4 py-5"
             >
               Shop All
             </Link>
@@ -92,7 +92,7 @@ export default function FooterTransition() {
             initial={{ opacity: 0 }}
             animate={isInView ? { opacity: 1 } : {}}
             transition={{ duration: 4, delay: 1.6, ease: "easeOut" }}
-            className="mt-32 font-display text-[clamp(14px,1.6vw,24px)] uppercase tracking-[0.6em] text-white/[0.04]"
+            className="mt-32 font-display text-[clamp(14px,1.6vw,24px)] uppercase tracking-[0.6em] text-[var(--fg-04)]"
           >
             STREET PLAYR — SP — EST. 2024
           </motion.p>

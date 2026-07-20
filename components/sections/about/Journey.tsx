@@ -332,14 +332,14 @@ export default function Journey() {
   };
 
   return (
-    <section className="relative py-28 sm:py-36 w-full max-w-none mx-auto border-t border-white/[0.04] overflow-hidden">
+    <section className="relative py-28 sm:py-36 w-full max-w-none mx-auto border-t border-[var(--fg-04)] overflow-hidden">
 
       <div className="px-4 md:px-6 w-full max-w-[min(95vw,2400px)] mx-auto relative z-10">
 
         {/* Section Header */}
         <FadeIn className="mb-12">
           <div className="flex items-center gap-3 mb-4">
-            <span className="h-px w-6 bg-white/20 block" />
+            <span className="h-px w-6 bg-[var(--fg-20)] block" />
             <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-[#ddb7ff]">
               The Journey
             </span>
@@ -347,12 +347,12 @@ export default function Journey() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-end">
             <div className="lg:col-span-7">
-              <h2 className="font-display text-[clamp(44px,5vw,84px)] leading-[0.95] tracking-[0.01em] uppercase text-[#eadfed] max-w-[15ch]">
+              <h2 className="font-display text-[clamp(44px,5vw,84px)] leading-[0.95] tracking-[0.01em] uppercase text-[var(--fg)] max-w-[15ch]">
                 From One Cricket Kit to Every Sport.
               </h2>
             </div>
             <div className="lg:col-span-5 lg:pl-10 pb-1.5">
-              <p className="font-body text-[15px] leading-relaxed text-white/50 tracking-wide font-light max-w-[460px]">
+              <p className="font-body text-[15px] leading-relaxed text-[var(--fg-50)] tracking-wide font-light max-w-[460px]">
                 Our journey is built on passion, performance and purpose. From a single kit to a movement that empowers every athlete.
               </p>
             </div>
@@ -453,7 +453,7 @@ export default function Journey() {
 
                 {/* Node — left/top % = SVG path x/10, y/10 → perfect alignment */}
                 <motion.div
-                  className="absolute rounded-full border-2 border-[#dfba89] bg-[#16111b] cursor-pointer z-20 flex items-center justify-center"
+                  className="absolute rounded-full border-2 border-[#dfba89] bg-[var(--panel)] cursor-pointer z-20 flex items-center justify-center"
                   style={{
                     left: `${leftPercent}%`,
                     top: `${topPercent}%`,
@@ -467,11 +467,11 @@ export default function Journey() {
                   onHoverEnd={() => setHoveredIndex(null)}
                 >
                   <motion.div
-                    className="rounded-full bg-white"
+                    className="rounded-full bg-[var(--fg)]"
                     style={{ width: "6px", height: "6px" }}
                     animate={{
                       scale: hoveredIndex === i ? [1, 1.5, 1] : 1,
-                      backgroundColor: hoveredIndex === i ? "#ddb7ff" : "#ffffff",
+                      backgroundColor: hoveredIndex === i ? "#ddb7ff" : "var(--fg)",
                     }}
                     transition={{ duration: 0.6, repeat: hoveredIndex === i ? Infinity : 0 }}
                   />
@@ -479,7 +479,7 @@ export default function Journey() {
 
                 {/* Card — 300px wide, verified safe at lg+ (no overflow) */}
                 <motion.div
-                  className="absolute z-10 bg-[#1a1622]/90 border border-white/[0.09] backdrop-blur-xl rounded-xl p-5 pt-10 shadow-[0_16px_48px_rgba(0,0,0,0.65)] hover:border-[#dfba89]/25 transition-colors duration-300"
+                  className="absolute z-10 bg-[var(--panel-90)] border border-[var(--fg-09)] backdrop-blur-xl rounded-xl p-5 pt-10 shadow-[0_16px_48px_rgba(0,0,0,0.65)] hover:border-[#dfba89]/25 transition-colors duration-300"
                   style={{
                     left: `${leftPercent}%`,
                     transform: "translateX(-50%)",
@@ -498,17 +498,17 @@ export default function Journey() {
                   }}
                   >
                     {/* Icon badge on top border */}
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full border border-[#dfba89]/40 bg-[#16111b] flex items-center justify-center text-[#dfba89] shadow-[0_0_12px_rgba(223,186,137,0.25)] z-10">
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full border border-[#dfba89]/40 bg-[var(--panel)] flex items-center justify-center text-[#dfba89] shadow-[0_0_12px_rgba(223,186,137,0.25)] z-10">
                       {item.icon}
                     </div>
 
                     {/* Date */}
-                    <span className="font-mono text-[11px] font-semibold tracking-[0.18em] leading-[1.2] text-white/72 uppercase block mb-1.5 text-center">
+                    <span className="font-mono text-[11px] font-semibold tracking-[0.18em] leading-[1.2] text-[var(--fg-72)] uppercase block mb-1.5 text-center">
                       {item.period.toUpperCase().replace(" - ", " • ")}
                     </span>
 
                     {/* Title */}
-                    <h3 className="font-display text-[18px] uppercase text-white/95 tracking-[-0.01em] leading-[1.1] mb-3.5 font-extrabold text-center">
+                    <h3 className="font-display text-[18px] uppercase text-[var(--fg-95)] tracking-[-0.01em] leading-[1.1] mb-3.5 font-extrabold text-center">
                       {item.title}
                     </h3>
 
@@ -517,7 +517,7 @@ export default function Journey() {
                       {item.details.map((detail, di) => {
                         const text = detail.startsWith("- ") ? detail.slice(2) : detail;
                         return (
-                          <p key={di} className="font-body text-[14px] leading-[1.65] text-white/82 tracking-normal flex items-start gap-2.5 font-medium">
+                          <p key={di} className="font-body text-[14px] leading-[1.65] text-[var(--fg-82)] tracking-normal flex items-start gap-2.5 font-medium">
                             <span className="flex-shrink-0 mt-[3px]">—</span>
                             <span>{text}</span>
                           </p>
@@ -542,30 +542,30 @@ export default function Journey() {
               <div key={i} className="relative w-full max-w-[420px] mb-12 flex flex-col items-center">
                 
                 {/* Node dot centered exactly on vertical timeline rail */}
-                <div className="w-5.5 h-5.5 rounded-full border-2 border-[#dfba89] bg-[#16111b] z-20 flex items-center justify-center mb-5 shadow-[0_0_12px_rgba(223,163,137,0.3)]">
-                  <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                <div className="w-5.5 h-5.5 rounded-full border-2 border-[#dfba89] bg-[var(--panel)] z-20 flex items-center justify-center mb-5 shadow-[0_0_12px_rgba(223,163,137,0.3)]">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[var(--fg)]" />
                 </div>
 
                 {/* Mobile screen-fitting full card sitting below center node */}
                 <motion.div
-                  className="w-full bg-[#221c27]/60 border border-white/[0.08] backdrop-blur-md rounded-2xl p-5 flex flex-col items-center text-center shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
+                  className="w-full bg-[var(--panel-60)] border border-[var(--fg-08)] backdrop-blur-md rounded-2xl p-5 flex flex-col items-center text-center shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-10% 0px" }}
                   transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                 >
                   {/* Circular gold icon at top of card */}
-                  <div className="w-11 h-11 rounded-full border border-[#dfba89]/40 bg-[#16111b] flex items-center justify-center text-[#dfba89] mb-3.5">
+                  <div className="w-11 h-11 rounded-full border border-[#dfba89]/40 bg-[var(--panel)] flex items-center justify-center text-[#dfba89] mb-3.5">
                     {item.icon}
                   </div>
 
                   {/* Period/Date */}
-                  <span className="font-mono text-[11px] font-semibold tracking-[0.18em] leading-[1.2] text-white/72 uppercase block mb-1.5">
+                  <span className="font-mono text-[11px] font-semibold tracking-[0.18em] leading-[1.2] text-[var(--fg-72)] uppercase block mb-1.5">
                     {item.period.toUpperCase().replace(" - ", " • ")}
                   </span>
                   
                   {/* Milestone Title */}
-                  <h3 className="font-display text-[18px] uppercase text-white/95 font-extrabold leading-[1.1] mb-3.5 tracking-[-0.01em]">
+                  <h3 className="font-display text-[18px] uppercase text-[var(--fg-95)] font-extrabold leading-[1.1] mb-3.5 tracking-[-0.01em]">
                     {item.title}
                   </h3>
                   
@@ -574,7 +574,7 @@ export default function Journey() {
                     {item.details.map((detail, di) => (
                       <p
                         key={di}
-                        className="font-body text-[14px] leading-[1.65] text-white/82 tracking-normal font-medium text-center"
+                        className="font-body text-[14px] leading-[1.65] text-[var(--fg-82)] tracking-normal font-medium text-center"
                       >
                         <span className="mr-1.5">—</span>
                         {detail}
@@ -591,7 +591,7 @@ export default function Journey() {
               <div className="relative w-full max-w-[420px] mt-4 flex justify-center z-30">
                 <button
                   onClick={() => setShowAllMobile(true)}
-                  className="w-full py-4.5 rounded-xl border border-white/[0.08] bg-[#221c27]/40 hover:bg-[#221c27]/80 hover:border-[#dfba89]/30 transition-all font-mono text-[11px] tracking-[0.25em] text-[#dfba89] uppercase font-bold backdrop-blur-sm active:scale-[0.98] shadow-lg"
+                  className="w-full py-4.5 rounded-xl border border-[var(--fg-08)] bg-[var(--panel-40)] hover:bg-[var(--panel-80)] hover:border-[#dfba89]/30 transition-all font-mono text-[11px] tracking-[0.25em] text-[#dfba89] uppercase font-bold backdrop-blur-sm active:scale-[0.98] shadow-lg"
                 >
                   + 6 More Milestones
                 </button>
@@ -602,7 +602,7 @@ export default function Journey() {
         </div>
 
         {/* ── 3. VALUES SECTION: Premium Snapping Carousel (All Devices) ── */}
-        <div className="mt-16 md:mt-24 relative z-10 border-t border-white/[0.05] pt-12 md:pt-16 w-full mx-auto">
+        <div className="mt-16 md:mt-24 relative z-10 border-t border-[var(--fg-05)] pt-12 md:pt-16 w-full mx-auto">
           
           {/* Unified Carousel View: Premium Mouse-Drag & Momentum Snapping Carousel */}
           <div 
@@ -616,21 +616,21 @@ export default function Journey() {
             {VALUE_PILLARS.map((val, vi) => (
               <div 
                 key={vi} 
-                className="snap-start flex-shrink-0 bg-[#221c27]/75 border border-white/[0.12] backdrop-blur-xl shadow-lg rounded-2xl p-6 md:p-7 flex flex-col items-start hover:border-[#dfba89]/30 transition-all duration-300 w-[85vw] sm:w-[340px] md:w-[calc((100%-24px*1)/2)] lg:w-[calc((100%-24px*2)/3)] xl:w-[calc((100%-24px*3)/4)]"
+                className="snap-start flex-shrink-0 bg-[var(--panel-75)] border border-[var(--fg-12)] backdrop-blur-xl shadow-lg rounded-2xl p-6 md:p-7 flex flex-col items-start hover:border-[#dfba89]/30 transition-all duration-300 w-[85vw] sm:w-[340px] md:w-[calc((100%-24px*1)/2)] lg:w-[calc((100%-24px*2)/3)] xl:w-[calc((100%-24px*3)/4)]"
               >
                 
                 {/* Circular Gold Icon */}
-                <div className="w-12 h-12 rounded-full border border-[#dfba89]/30 bg-[#16111b] flex items-center justify-center text-[#dfba89] mb-5">
+                <div className="w-12 h-12 rounded-full border border-[#dfba89]/30 bg-[var(--panel)] flex items-center justify-center text-[#dfba89] mb-5">
                   {val.icon}
                 </div>
 
                 {/* Title */}
-                <h4 className="font-display text-[15.5px] uppercase text-white/95 tracking-[-0.01em] leading-[1.1] font-extrabold mb-3">
+                <h4 className="font-display text-[15.5px] uppercase text-[var(--fg-95)] tracking-[-0.01em] leading-[1.1] font-extrabold mb-3">
                   {val.title}
                 </h4>
 
                 {/* Description */}
-                <p className="font-body text-[14px] leading-[1.65] text-white/82 tracking-normal font-medium max-w-[280px]">
+                <p className="font-body text-[14px] leading-[1.65] text-[var(--fg-82)] tracking-normal font-medium max-w-[280px]">
                   {val.desc}
                 </p>
                 

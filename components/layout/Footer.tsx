@@ -47,12 +47,13 @@ export default function Footer() {
           </div>
           <div>
             <h4>Order Support</h4>
-            <Link href="/contact">Make a return/Exchange</Link>
-            <Link href="/contact">Refund/Exchange policy</Link>
+            <Link href="/exchanges">Make a return/Exchange</Link>
+            <Link href="/refund-policy">Refund/Exchange policy</Link>
             <Link href="/profile">Track your order</Link>
-            <Link href="/contact">Shipping policy</Link>
+            <Link href="/shipping-policy">Shipping policy</Link>
             <Link href="/contact">FAQ&apos;s</Link>
-            <Link href="/contact">Terms</Link>
+            <Link href="/terms">Terms</Link>
+            <Link href="/privacy-policy">Privacy Policy</Link>
           </div>
           <div>
             <h4>We are playR</h4>

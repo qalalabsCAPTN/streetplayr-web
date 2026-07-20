@@ -28,19 +28,19 @@ export default function Manifesto() {
         <div className="flex flex-col">
           <FadeIn delay={0.1}>
             <div className="flex items-center gap-3 mb-6 lg:mb-8">
-              <span className="h-px w-6 bg-white/20 block" />
+              <span className="h-px w-6 bg-[var(--fg-20)] block" />
               <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-[#ddb7ff]">The Manifesto</span>
             </div>
           </FadeIn>
 
           <FadeIn delay={0.2}>
-            <h2 className="font-display text-[clamp(44px,7vw,110px)] leading-[0.9] tracking-[-0.02em] uppercase text-[#eadfed] max-w-[16ch]">
+            <h2 className="font-display text-[clamp(44px,7vw,110px)] leading-[0.9] tracking-[-0.02em] uppercase text-[var(--fg)] max-w-[16ch]">
               Made for those who refuse to be styled.
             </h2>
           </FadeIn>
 
           <FadeIn delay={0.35}>
-            <p className="font-body text-[14px] sm:text-[17px] leading-[1.8] text-white/60 font-medium max-w-[620px] mt-8 lg:mt-12">
+            <p className="font-body text-[14px] sm:text-[17px] leading-[1.8] text-[var(--fg-60)] font-medium max-w-[620px] mt-8 lg:mt-12">
               StreetPlayR exists at the intersection of raw urban energy and exacting craftsmanship. Every piece is a study in restraint — stripped of excess, defined by form. We do not overproduce. Each drop is limited — an artifact of a moment, not a commodity on a conveyor belt. The scarcity is intentional. The silence is part of the signal.
             </p>
           </FadeIn>
@@ -48,7 +48,7 @@ export default function Manifesto() {
 
         {/* Right Side: Editorial Image */}
         <FadeIn delay={0.45} className="w-full flex justify-center lg:justify-end">
-          <div className="relative group overflow-hidden rounded-2xl border border-white/[0.08] bg-[#221c27] shadow-[0_24px_80px_rgba(0,0,0,0.5)] max-w-[580px] w-full aspect-[4/5]">
+          <div className="relative group overflow-hidden rounded-2xl border border-[var(--fg-08)] bg-[var(--panel)] shadow-[0_24px_80px_rgba(0,0,0,0.5)] max-w-[580px] w-full aspect-[4/5]">
             {/* Ambient Background Glow on Hover */}
             <div className="absolute -inset-2 bg-gradient-to-r from-[#ddb7ff]/20 to-[#dfba89]/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
             
