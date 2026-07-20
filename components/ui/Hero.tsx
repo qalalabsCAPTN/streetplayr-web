@@ -1,7 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
+
+const NinjaStar = dynamic(() => import('./NinjaStar'), {
+  ssr: false,
+  loading: () => <div className="w-full h-full bg-transparent" />,
+});
 
 const SLIDES = [
   {
@@ -17,10 +23,24 @@ export default function Hero() {
   const [idx, setIdx] = useState(0);
   const [paused, setPaused] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [windowWidth, setWindowWidth] = useState<number | null>(null);
+  const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     setMounted(true);
+    const onResize = () => setWindowWidth(window.innerWidth);
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
   }, []);
+
+  const getStarScale = () => {
+    if (windowWidth === null) return 0.95;
+    if (windowWidth < 768) return 0.6175;
+    if (windowWidth < 1024) return 0.85;
+    return 0.95;
+  };
+  const starScale = getStarScale();
 
   const dropSlide = useCallback((src: string) => {
     setSlides((prev) => {
@@ -45,6 +65,7 @@ export default function Hero() {
 
   return (
     <section
+      ref={sectionRef}
       className="hero hero--banner"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
@@ -55,6 +76,13 @@ export default function Hero() {
           <img src={s.src} alt={s.alt} onError={() => dropSlide(s.src)} />
         </picture>
       ))}
+
+      {/* Interactive 3D Star Overlay — centered over banner */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[5]">
+        <div className="pointer-events-auto flex items-center justify-center w-60 h-60 md:w-[320px] md:h-[320px] lg:w-[420px] lg:h-[420px]">
+          <NinjaStar scale={starScale} heroRef={sectionRef} />
+        </div>
+      </div>
 
       {slides.length > 1 && (
         <>
