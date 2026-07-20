@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
+import { animationController } from "@/lib/AnimationController";
 
 export default function ScrollDamping() {
   const pathname = usePathname();
@@ -77,24 +78,27 @@ export default function ScrollDamping() {
           isMoving.current = true;
           lastTime.current = 0;
           accumulator.current = 0;
-          requestAnimationFrame(updateNativeScrollAnimation);
+          // Register with unified animation controller instead of RAF
+          animationController.register("scroll-damping", updateNativeScrollAnimation);
         }
       };
 
-      const updateNativeScrollAnimation = (timestamp: number) => {
-        if (!isMoving.current) return;
-
-        if (!lastTime.current) {
-          lastTime.current = timestamp;
-          requestAnimationFrame(updateNativeScrollAnimation);
+      const updateNativeScrollAnimation = (deltaTime: number, timestamp: number) => {
+        if (!isMoving.current) {
+          animationController.unregister("scroll-damping");
           return;
         }
 
-        const deltaTime = Math.min(timestamp - lastTime.current, 100);
+        if (!lastTime.current) {
+          lastTime.current = timestamp;
+          return;
+        }
+
+        const delta = Math.min(timestamp - lastTime.current, 100);
         lastTime.current = timestamp;
 
         const timeStep = 2; // 2ms fixed timestep
-        accumulator.current += deltaTime;
+        accumulator.current += delta;
 
         const stepStiffness = 0.004;
         const stepDamping = 0.98;
@@ -112,15 +116,13 @@ export default function ScrollDamping() {
 
         currentScrollY.current = current;
         velocity.current = vel;
-        
+
         if (typeof window !== "undefined") {
           (window as any).__scrollDampingY = current;
         }
 
         const displacement = target - current;
-        if (Math.abs(displacement) > 0.05 || Math.abs(vel) > 0.02) {
-          requestAnimationFrame(updateNativeScrollAnimation);
-        } else {
+        if (Math.abs(displacement) <= 0.05 && Math.abs(vel) <= 0.02) {
           currentScrollY.current = target;
           if (typeof window !== "undefined") {
             (window as any).__scrollDampingY = target;
@@ -129,6 +131,7 @@ export default function ScrollDamping() {
           isMoving.current = false;
           lastTime.current = 0;
           accumulator.current = 0;
+          animationController.unregister("scroll-damping");
         }
       };
 
@@ -201,28 +204,30 @@ export default function ScrollDamping() {
           isMoving.current = true;
           lastTime.current = 0;
           accumulator.current = 0;
-          requestAnimationFrame(updateScroll);
+          // Register with unified animation controller instead of RAF
+          animationController.register("scroll-damping", updateScroll);
         }
       };
 
-      const updateScroll = (timestamp: number) => {
-        if (!isMoving.current) return;
-
-        if (!lastTime.current) {
-          lastTime.current = timestamp;
-          requestAnimationFrame(updateScroll);
+      const updateScroll = (deltaTime: number, timestamp: number) => {
+        if (!isMoving.current) {
+          animationController.unregister("scroll-damping");
           return;
         }
 
-        const deltaTime = Math.min(timestamp - lastTime.current, 100); // cap elapsed time at 100ms
+        if (!lastTime.current) {
+          lastTime.current = timestamp;
+          return;
+        }
+
+        const delta = Math.min(timestamp - lastTime.current, 100);
         lastTime.current = timestamp;
 
-        // Integrate physics using a high-frequency fixed timestep (2ms / 500Hz)
-        const timeStep = 2; // 2ms
-        accumulator.current += deltaTime;
+        const timeStep = 2;
+        accumulator.current += delta;
 
-        const stepStiffness = 0.004; // scaled stiffness for 2ms step size
-        const stepDamping = 0.98;    // scaled damping for 2ms step size
+        const stepStiffness = 0.004;
+        const stepDamping = 0.98;
 
         let current = currentScrollY.current;
         const target = targetScrollY.current;
@@ -242,10 +247,7 @@ export default function ScrollDamping() {
         }
 
         const displacement = target - current;
-        if (Math.abs(displacement) > 0.05 || Math.abs(vel) > 0.02) {
-          window.scrollTo(0, current);
-          requestAnimationFrame(updateScroll);
-        } else {
+        if (Math.abs(displacement) <= 0.05 && Math.abs(vel) <= 0.02) {
           currentScrollY.current = target;
           window.scrollTo(0, target);
           if (typeof window !== "undefined") {
@@ -255,6 +257,9 @@ export default function ScrollDamping() {
           isMoving.current = false;
           lastTime.current = 0;
           accumulator.current = 0;
+          animationController.unregister("scroll-damping");
+        } else {
+          window.scrollTo(0, current);
         }
       };
 

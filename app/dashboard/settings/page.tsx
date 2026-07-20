@@ -1,6 +1,6 @@
 'use client';
 
-import { Settings, Bell, Globe, Shield, Smartphone, ChevronRight } from 'lucide-react';
+import { Settings, Bell, Globe, Shield, ChevronRight } from 'lucide-react';
 import { DEMO_USER, DEMO_REPUTATION, TIER_CONFIG } from '@/lib/nectar-portal/demo';
 import { cn } from '@/lib/nectar-portal/cn';
 
@@ -144,7 +144,7 @@ export default function SettingsPage() {
             { name: 'StreetPlayR', emoji: '👟', color: '#EF4444', connected: true, primary: true },
             { name: 'PlayR',       emoji: '🎯', color: '#8B5CF6', connected: true, primary: false },
             { name: 'PlayR Club',  emoji: '💎', color: '#06B6D4', connected: true, primary: false },
-            { name: 'PlayR Game',  emoji: '🎮', color: '#F97316', connected: false, primary: false },
+            { name: 'PlayR Game',  emoji: '🎮', color: '#F97316', connected: true, primary: false },
           ].map(p => (
             <div key={p.name} className="flex items-center gap-3 rounded-xl border border-border px-4 py-3">
               <span className="text-xl">{p.emoji}</span>

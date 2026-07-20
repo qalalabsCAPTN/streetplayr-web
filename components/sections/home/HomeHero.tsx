@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { motion, type Variants } from "framer-motion";
+import Image from "next/image";
 
 const NinjaStar = dynamic(() => import("@/components/ui/NinjaStar"), {
   ssr: false,
@@ -46,10 +47,10 @@ export default function HomeHero({
   title = "Dress for\npressure.",
   subtitle,
   ctaLabel = "Enter the Drop",
-  ctaHref = "/collection",
+  ctaHref = "/collections",
   bgImageUrl,
-  bgVideoUrl = "/assets/home-page-banner.mp4",
-  overlayOpacity = 0.15,
+  // bgVideoUrl = "/assets/home-page-banner.mp4",
+  overlayOpacity = 0.4,
 }: HomeHeroProps = {}) {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -57,10 +58,14 @@ export default function HomeHero({
   const [joinOpen, setJoinOpen] = useState(false);
   const [particles, setParticles] = useState<Array<{ left: number; delay: number; dur: number; size: number }>>([]);
 
+  const windowWidth = useWindowWidth();
+
   useEffect(() => {
+    // Reduce particle count on mobile/tablet for better performance
+    const particleCount = windowWidth && windowWidth < 1024 ? 12 : 28;
     const initParticles = () => {
       setParticles(
-        Array.from({ length: 28 }, () => ({
+        Array.from({ length: particleCount }, () => ({
           left: Math.random() * 100,
           delay: Math.random() * 5,
           dur: 4 + Math.random() * 6,
@@ -68,17 +73,14 @@ export default function HomeHero({
         })),
       );
     };
-    const frame = requestAnimationFrame(initParticles);
-    return () => cancelAnimationFrame(frame);
-  }, []);
-
-  const windowWidth = useWindowWidth();
+    initParticles();
+  }, [windowWidth]);
 
   const getStarScale = () => {
-    if (windowWidth === null) return 0.70;
-    if (windowWidth < 768) return 0.45;
-    if (windowWidth < 1024) return 0.60;
-    return 0.70;
+    if (windowWidth === null) return 0.95;
+    if (windowWidth < 768) return 0.65;
+    if (windowWidth < 1024) return 0.85;
+    return 0.95;
   };
   const starScale = getStarScale();
 
@@ -91,7 +93,15 @@ export default function HomeHero({
   const popupStarScale = getPopupStarScale();
 
   useEffect(() => {
-    const timer = setTimeout(() => setJoinOpen(true), 6000);
+    if (typeof window !== "undefined" && localStorage.getItem("streetplayr_popup_viewed") === "true") {
+      return;
+    }
+    const timer = setTimeout(() => {
+      setJoinOpen(true);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("streetplayr_popup_viewed", "true");
+      }
+    }, 6000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -169,29 +179,21 @@ export default function HomeHero({
       </div>
 
       {/* Image Background */}
-      {bgImageUrl ? (
-        <img
-          className="absolute inset-0 w-full h-full object-cover z-[-2]"
-          src={bgImageUrl}
+      <div className="absolute inset-0 w-full h-full z-[-2]">
+        <Image
+          className="object-cover"
+          src={bgImageUrl || "/assets/empty_centre.jpg"}
           alt={title}
-          decoding="async"
+          fill
+          sizes="100vw"
+          priority
         />
-      ) : (
-        <>
-          {/* Default banner */}
-          <img
-            className="absolute inset-0 w-full h-full object-cover z-[-2]"
-            src="/assets/empty_centre.jpg"
-            alt={title}
-            decoding="async"
-          />
-        </>
-      )}
+      </div>
 
       {/* Dynamic Overlay Dark Tint if Image background is present */}
-      {bgImageUrl && overlayOpacity > 0 && (
+      {overlayOpacity > 0 && (
         <div
-          className="absolute inset-0 bg-black z-[-2] pointer-events-none"
+          className="absolute inset-0 bg-[#16111b] pointer-events-none z-[-1]"
           style={{ opacity: overlayOpacity }}
         />
       )}
