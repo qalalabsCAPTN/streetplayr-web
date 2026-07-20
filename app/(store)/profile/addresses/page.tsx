@@ -1,6 +1,5 @@
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState, useCallback } from 'react';
 import {
   getAddressesAction,
@@ -24,71 +23,32 @@ function AddressCard({
   onSetPrimary: (id: string) => void;
 }) {
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className={`bg-[#1f1a23] border p-5 md:p-6 relative rounded-xl ${
-        address.is_primary ? 'border-[#ddb7ff]/30' : 'border-white/[0.06] hover:border-white/[0.1]'
-      } transition-colors`}
-    >
-      {/* Header */}
-      <div className="flex items-start justify-between mb-4 pb-4 border-b border-white/[0.05]">
-        <div className="flex items-center gap-3">
-          <span className="font-display text-xl uppercase text-[#eadfed]">{address.label}</span>
-          {address.is_primary && (
-            <span className="font-mono text-[8px] uppercase tracking-[0.15em] text-[#ddb7ff] border border-[#ddb7ff]/30 px-2 py-0.5 rounded">
-              Primary
-            </span>
-          )}
+    <div className={`acct-address ${address.is_primary ? 'primary' : ''}`}>
+      <div className="acct-address__head">
+        <div className="acct-address__label">
+          <span>{address.label}</span>
+          {address.is_primary && <span className="acct-address__badge">Primary</span>}
         </div>
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={() => onEdit(address.id)}
-            className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/30 hover:text-white transition-colors py-2"
-          >
-            Edit
-          </button>
-          <button
-            type="button"
-            onClick={() => onDelete(address.id)}
-            className="font-mono text-[10px] uppercase tracking-[0.15em] text-red-400/50 hover:text-red-400 transition-colors py-2"
-          >
-            Remove
-          </button>
+        <div className="acct-address__actions">
+          <button type="button" onClick={() => onEdit(address.id)}>Edit</button>
+          <button type="button" onClick={() => onDelete(address.id)} className="danger">Remove</button>
         </div>
       </div>
 
-      {/* Body */}
-      <div className="space-y-1.5 mb-4">
-        <p className="font-mono text-xs text-white/70">{address.name}</p>
-        <p className="font-mono text-[10px] text-white/40">{address.line1}</p>
-        {address.line2 && <p className="font-mono text-[10px] text-white/40">{address.line2}</p>}
-        <p className="font-mono text-[10px] text-white/40">{address.city}, {address.state} — {address.pincode}</p>
-        <p className="font-mono text-[10px] text-white/40">{address.phone}</p>
+      <div className="acct-address__body">
+        <p>{address.name}</p>
+        <p>{address.line1}</p>
+        {address.line2 && <p>{address.line2}</p>}
+        <p>{address.city}, {address.state} — {address.pincode}</p>
+        <p>{address.phone}</p>
       </div>
 
-      {/* Footer metadata */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="inline-block w-1.5 h-1.5 rounded-full border border-white/20" />
-          <span className="font-mono text-[7px] uppercase tracking-[0.2em] text-white/15">ADDRESS_ACTIVE</span>
-          <span className="font-mono text-[7px] uppercase tracking-[0.2em] text-white/10">ID: {address.id.slice(0, 6).toUpperCase()}</span>
-        </div>
-        {!address.is_primary && (
-          <button
-            type="button"
-            onClick={() => onSetPrimary(address.id)}
-            className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#ddb7ff]/[0.5] hover:text-[#ddb7ff] transition-colors py-2"
-          >
-            Set as Primary
-          </button>
-        )}
-      </div>
-    </motion.div>
+      {!address.is_primary && (
+        <button type="button" onClick={() => onSetPrimary(address.id)} className="acct-address__setprimary">
+          Set as primary
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -126,34 +86,35 @@ function AddressForm({
   }
 
   return (
-    <motion.form
-      onSubmit={handleSubmit}
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      transition={{ duration: 0.4 }}
-      className="bg-[#1f1a23] border border-white/[0.06] p-5 md:p-6"
-      noValidate
-    >
-      <h3 className="font-display text-2xl uppercase text-[#eadfed] mb-6 pb-4 border-b border-white/[0.05]">
-        {initial.label ? 'Edit Address' : 'New Address'}
-      </h3>
+    <form onSubmit={handleSubmit} className="checkout-panel" noValidate>
+      <h3 className="checkout-panel__title">{initial.label ? 'Edit address' : 'New address'}</h3>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div className="checkout-fields">
+        <div className="checkout-fields-row">
+          {[
+            { name: 'label', label: 'Label', placeholder: 'Home, Work…' },
+            { name: 'name', label: 'Full name', placeholder: 'Your name' },
+          ].map(({ name, label, placeholder }) => (
+            <div key={name} className="checkout-field">
+              <label htmlFor={`addr-${name}`}>{label}</label>
+              <input
+                id={`addr-${name}`}
+                name={name}
+                type="text"
+                value={(form as Record<string, string>)[name]}
+                onChange={handleChange}
+                placeholder={placeholder}
+                disabled={saving}
+              />
+            </div>
+          ))}
+        </div>
         {[
-          { name: 'label', label: 'Label', placeholder: 'Home, Work…' },
-          { name: 'name', label: 'Full Name', placeholder: 'Your name' },
-          { name: 'line1', label: 'Address Line 1', placeholder: 'Street, building, floor' },
-          { name: 'line2', label: 'Address Line 2', placeholder: 'Landmark, area (optional)' },
-          { name: 'city', label: 'City', placeholder: 'Mumbai' },
-          { name: 'state', label: 'State', placeholder: 'Maharashtra' },
-          { name: 'pincode', label: 'Pincode', placeholder: '400001' },
-          { name: 'phone', label: 'Phone', placeholder: '+91 98765 43210' },
+          { name: 'line1', label: 'Address line 1', placeholder: 'Street, building, floor' },
+          { name: 'line2', label: 'Address line 2', placeholder: 'Landmark, area (optional)' },
         ].map(({ name, label, placeholder }) => (
-          <div key={name} className={`space-y-1.5 ${name === 'line1' || name === 'line2' ? 'md:col-span-2' : ''}`}>
-            <label htmlFor={`addr-${name}`} className="block font-mono text-[9px] uppercase tracking-[0.2em] text-white/35">
-              {label}
-            </label>
+          <div key={name} className="checkout-field">
+            <label htmlFor={`addr-${name}`}>{label}</label>
             <input
               id={`addr-${name}`}
               name={name}
@@ -162,30 +123,52 @@ function AddressForm({
               onChange={handleChange}
               placeholder={placeholder}
               disabled={saving}
-              className="w-full bg-transparent border border-white/[0.08] px-4 py-2.5 font-mono text-xs text-white/70 outline-none transition-colors placeholder:text-white/20 focus:border-[#ddb7ff]/40"
             />
           </div>
         ))}
+        <div className="checkout-fields-row checkout-fields-row--3">
+          {[
+            { name: 'city', label: 'City', placeholder: 'Mumbai' },
+            { name: 'state', label: 'State', placeholder: 'Maharashtra' },
+            { name: 'pincode', label: 'Pincode', placeholder: '400001' },
+          ].map(({ name, label, placeholder }) => (
+            <div key={name} className="checkout-field">
+              <label htmlFor={`addr-${name}`}>{label}</label>
+              <input
+                id={`addr-${name}`}
+                name={name}
+                type="text"
+                value={(form as Record<string, string>)[name]}
+                onChange={handleChange}
+                placeholder={placeholder}
+                disabled={saving}
+              />
+            </div>
+          ))}
+        </div>
+        <div className="checkout-field">
+          <label htmlFor="addr-phone">Phone</label>
+          <input
+            id="addr-phone"
+            name="phone"
+            type="text"
+            value={form.phone}
+            onChange={handleChange}
+            placeholder="+91 98765 43210"
+            disabled={saving}
+          />
+        </div>
       </div>
 
-      <div className="flex items-center gap-4 mt-6 pt-4 border-t border-white/[0.05]">
-        <button
-          type="submit"
-          disabled={saving}
-          className="px-6 py-3 bg-[#ddb7ff] text-[#16111b] font-mono text-[10px] uppercase tracking-[0.2em] hover:bg-white transition-colors disabled:opacity-40"
-        >
-          {saving ? 'Saving...' : 'Save Address'}
+      <div className="acct-address-form__actions">
+        <button type="submit" disabled={saving} className="pill">
+          {saving ? 'Saving…' : 'Save address'}
         </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={saving}
-          className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/30 hover:text-white transition-colors py-2"
-        >
+        <button type="button" onClick={onCancel} disabled={saving} className="acct-address-form__cancel">
           Cancel
         </button>
       </div>
-    </motion.form>
+    </form>
   );
 }
 
@@ -239,133 +222,95 @@ export default function AddressesPage() {
     );
   }, []);
 
-  const editingAddress = addresses.find((a) => a.id === editingId);
   const primaryAddress = addresses.find((a) => a.is_primary);
   const otherAddresses = addresses.filter((a) => !a.is_primary);
 
   if (loading) {
     return (
-      <div className="max-w-[min(98vw,2560px)]">
-        <div className="mb-10 border-l-4 border-[#ddb7ff] pl-6">
-          <div className="h-3 w-48 bg-white/[0.04] mb-2" />
-          <div className="h-12 w-64 bg-white/[0.03]" />
+      <div>
+        <div className="acct-hero">
+          <h1>Saved Addresses</h1>
         </div>
-        <div className="flex h-[30vh] items-center justify-center">
-          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/30">Loading...</p>
-        </div>
+        <p className="acct-card__sub">Loading…</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-[min(98vw,2560px)]">
-      {/* ═══ HEADER ═══ */}
-      <motion.header
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="mb-10 border-l-4 border-[#ddb7ff] pl-6"
-      >
-        <h1 className="font-display text-5xl sm:text-6xl md:text-7xl uppercase tracking-tight text-[#eadfed] leading-none">
-          Saved Addresses
-        </h1>
-      </motion.header>
+    <div>
+      <div className="acct-hero">
+        <h1>Saved Addresses</h1>
+      </div>
 
-      {/* ═══ PRIMARY NODE ═══ */}
       {primaryAddress && (
-        <section className="mb-10">
-          <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/[0.05]">
-            <h2 className="font-display text-xl uppercase text-[#ddb7ff]">Primary Address</h2>
-            <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/20">ACTIVE</span>
+        <>
+          <div className="acct-section-head" style={{ marginTop: 0 }}>
+            <h2>Primary address</h2>
           </div>
-          <AnimatePresence mode="popLayout">
-            {editingId === primaryAddress.id ? (
-              <AddressForm
-                key={`form-${primaryAddress.id}`}
-                initial={primaryAddress}
-                onSave={(data) => handleEdit(primaryAddress.id, data)}
-                onCancel={() => setEditingId(null)}
-              />
-            ) : (
-              <AddressCard
-                key={primaryAddress.id}
-                address={primaryAddress}
-                onEdit={setEditingId}
-                onDelete={handleDelete}
-                onSetPrimary={handleSetPrimary}
-              />
-            )}
-          </AnimatePresence>
-        </section>
+          {editingId === primaryAddress.id ? (
+            <AddressForm
+              key={`form-${primaryAddress.id}`}
+              initial={primaryAddress}
+              onSave={(data) => handleEdit(primaryAddress.id, data)}
+              onCancel={() => setEditingId(null)}
+            />
+          ) : (
+            <AddressCard
+              key={primaryAddress.id}
+              address={primaryAddress}
+              onEdit={setEditingId}
+              onDelete={handleDelete}
+              onSetPrimary={handleSetPrimary}
+            />
+          )}
+        </>
       )}
 
-      {/* ═══ OTHER NODES ═══ */}
       {otherAddresses.length > 0 && (
-        <section className="mb-10">
-          <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/[0.05]">
-            <h2 className="font-display text-xl uppercase text-[#ddb7ff]">Saved Addresses</h2>
-            <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/20">{otherAddresses.length} ADDRESS{otherAddresses.length !== 1 ? 'ES' : ''}</span>
+        <>
+          <div className="acct-section-head">
+            <h2>Other addresses ({otherAddresses.length})</h2>
           </div>
-          <div className="space-y-4">
-            <AnimatePresence mode="popLayout">
-              {otherAddresses.map((addr) =>
-                editingId === addr.id ? (
-                  <AddressForm
-                    key={`form-${addr.id}`}
-                    initial={addr}
-                    onSave={(data) => handleEdit(addr.id, data)}
-                    onCancel={() => setEditingId(null)}
-                  />
-                ) : (
-                  <AddressCard
-                    key={addr.id}
-                    address={addr}
-                    onEdit={setEditingId}
-                    onDelete={handleDelete}
-                    onSetPrimary={handleSetPrimary}
-                  />
-                )
-              )}
-            </AnimatePresence>
+          <div className="acct-address-list">
+            {otherAddresses.map((addr) =>
+              editingId === addr.id ? (
+                <AddressForm
+                  key={`form-${addr.id}`}
+                  initial={addr}
+                  onSave={(data) => handleEdit(addr.id, data)}
+                  onCancel={() => setEditingId(null)}
+                />
+              ) : (
+                <AddressCard
+                  key={addr.id}
+                  address={addr}
+                  onEdit={setEditingId}
+                  onDelete={handleDelete}
+                  onSetPrimary={handleSetPrimary}
+                />
+              )
+            )}
           </div>
-        </section>
+        </>
       )}
 
-      {/* ═══ ADD NEW NODE ═══ */}
       {isAdding && (
-        <div className="mb-10">
-          <AddressForm
-            onSave={handleAdd}
-            onCancel={() => setIsAdding(false)}
-          />
+        <div style={{ marginTop: 20 }}>
+          <AddressForm onSave={handleAdd} onCancel={() => setIsAdding(false)} />
         </div>
       )}
 
       {!addresses.length && !isAdding && !editingId && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="border border-white/[0.06] p-12 text-center mb-10 rounded-xl"
-        >
-          <p className="font-display text-3xl uppercase text-white/15 mb-3">No addresses saved.</p>
-          <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/20 mb-6">
-            Add a delivery address to get started.
-          </p>
-        </motion.div>
+        <div className="acct-empty" style={{ margin: '20px 0' }}>
+          <p className="acct-empty__title">No addresses saved.</p>
+          <p className="acct-empty__sub">Add a delivery address to get started.</p>
+        </div>
       )}
 
       {!isAdding && !editingId && addresses.length > 0 && (
-        <motion.button
-          type="button"
-          onClick={() => setIsAdding(true)}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="w-full py-5 border border-dashed border-white/[0.1] hover:border-[#ddb7ff]/30 bg-transparent font-mono text-[10px] uppercase tracking-[0.2em] text-white/30 hover:text-[#ddb7ff]/70 rounded-xl transition-all"
-        >
-          + Add New Address
-        </motion.button>
+        <button type="button" onClick={() => setIsAdding(true)} className="acct-address-add">
+          + Add new address
+        </button>
       )}
     </div>
   );

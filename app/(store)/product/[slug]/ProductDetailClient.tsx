@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '@/components/CartContext';
 import { RealtimeSubscriptions } from '@/lib/realtime/subscriptions';
 import RecommendedProducts from '@/components/product/RecommendedProducts';
+import RecentlyVisited, { pushRecentlyVisited } from '@/components/ui/RecentlyVisited';
 
 /* ── Lazy-load AI Try-On — no SSR ── */
 const AITryOn = dynamic(
@@ -63,7 +64,7 @@ function pageTint(title: string) {
 
 function BookmarkIcon({ filled }: { filled: boolean }) {
   return (
-    <svg viewBox="0 0 18 22" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.6" style={{ width: '100%', height: '100%' }}>
+    <svg viewBox="0 0 18 22" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.6">
       <path d="M2 2.5A1.5 1.5 0 0 1 3.5 1h11A1.5 1.5 0 0 1 16 2.5V20l-7-4.5L2 20V2.5Z" />
     </svg>
   );
@@ -85,6 +86,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
   const [activeImg, setActiveImg] = useState(0);
 
   const carouselRef = useRef<HTMLDivElement>(null);
+  const galleryRightRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const unsubs: (() => void)[] = [];
@@ -98,6 +100,10 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
     }
     return () => unsubs.forEach((fn) => fn());
   }, [props.variants]);
+
+  useEffect(() => {
+    pushRecentlyVisited(props.slug);
+  }, [props.slug]);
 
   const liveVariants = props.variants.map((v) => ({
     ...v,
@@ -125,6 +131,28 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
     if (!el || el.clientWidth === 0) return;
     setActiveImg(Math.round(el.scrollLeft / el.clientWidth));
   };
+
+  // Scroll-reveal for the stacked gallery images (desktop only — mobile uses the swipe carousel)
+  useEffect(() => {
+    const container = galleryRightRef.current;
+    if (!container) return;
+    const targets = container.querySelectorAll('.pdp__reveal');
+    if (targets.length === 0) return;
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-in-view');
+            io.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.2, rootMargin: '0px 0px -10% 0px' }
+    );
+    targets.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, [allImages]);
 
   const handleButtonHover = useCallback(() => {
     if (props.model3d) {
@@ -218,10 +246,11 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
               />
             )}
           </div>
-          <div className="pdp__gallery-right">
+          <div className="pdp__gallery-right" ref={galleryRightRef}>
             {allImages.slice(1).map((src, i) => (
               <img
                 key={src}
+                className="pdp__reveal"
                 src={src}
                 alt={`${props.title} — view ${i + 2}`}
                 onClick={() => setLightboxIndex(i + 1)}
@@ -274,10 +303,23 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
             </div>
 
             {/* Member Credits slider */}
-            <div className="mt-5 p-4 border border-white/[0.08] bg-white/[0.02] rounded-lg">
+            <div
+              className="mt-5 p-4 rounded-lg"
+              style={{ border: '1px solid var(--line)', background: 'var(--chip)' }}
+            >
               <div className="flex justify-between items-center mb-3">
-                <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/50">Member Credits</span>
-                <span className="font-mono text-[10px] font-medium text-white/70">{spCredits} / 2500</span>
+                <span
+                  className="font-mono text-[10px] uppercase tracking-[0.15em]"
+                  style={{ color: 'var(--muted)' }}
+                >
+                  Member Credits
+                </span>
+                <span
+                  className="font-mono text-[10px] font-medium"
+                  style={{ color: 'var(--fg)' }}
+                >
+                  {spCredits} / 2500
+                </span>
               </div>
               <input
                 type="range"
@@ -285,7 +327,8 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
                 max="2500"
                 value={spCredits}
                 onChange={(e) => setSpCredits(Number(e.target.value))}
-                className="w-full h-[3px] bg-white/[0.08] appearance-none cursor-pointer accent-white/80 rounded-none"
+                className="w-full h-[3px] appearance-none cursor-pointer rounded-none"
+                style={{ background: 'var(--line)', accentColor: 'var(--fg)' }}
               />
             </div>
 
@@ -563,6 +606,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
       </AnimatePresence>
 
       <RecommendedProducts currentSlug={props.slug} />
+      <RecentlyVisited excludeSlug={props.slug} />
     </div>
   );
 }

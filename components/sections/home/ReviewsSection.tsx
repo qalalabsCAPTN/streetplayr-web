@@ -42,9 +42,9 @@ export default function ReviewsSection({
       <div className="mb-4 md:mb-12">
         <div className="flex items-center gap-3 mb-3">
           <span className="h-px w-6 bg-white/20 block" />
-          <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/30">Testimonials</span>
+          <span className="font-mono text-[10px] uppercase tracking-[0.3em] opacity-40">Testimonials</span>
         </div>
-        <h2 className="font-display text-[clamp(32px,4.5vw,64px)] uppercase leading-[0.92] text-[#eadfed]">
+        <h2 className="font-display text-[clamp(32px,4.5vw,64px)] uppercase leading-[0.92]">
           {heading}
         </h2>
       </div>
@@ -73,12 +73,12 @@ export default function ReviewsSection({
             </div>
           </div>
 
-          <p className="font-body text-base leading-[1.65] text-[rgba(234,223,237,0.72)]">
+          <p className="font-body text-base leading-[1.65] opacity-70">
             &ldquo;{activeReviews[current].text}&rdquo;
           </p>
 
           <div className="flex items-center gap-2 pt-3 border-t border-white/[0.06]">
-            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em] opacity-40">
               {activeReviews[current].author}
             </span>
             <span className="font-mono text-[7px] uppercase tracking-[0.15em] text-[#ddb7ff]/30 ml-auto">
@@ -92,7 +92,7 @@ export default function ReviewsSection({
           <button
             onClick={prev}
             aria-label="Previous review"
-            className="w-8 h-8 flex items-center justify-center rounded-full border border-white/10 text-white/40 hover:text-white/70 hover:border-white/25 transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-full border border-white/10 opacity-40 hover:opacity-70 hover:border-white/25 transition-all"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polyline points="15 18 9 12 15 6" />
@@ -117,7 +117,7 @@ export default function ReviewsSection({
           <button
             onClick={next}
             aria-label="Next review"
-            className="w-8 h-8 flex items-center justify-center rounded-full border border-white/10 text-white/40 hover:text-white/70 hover:border-white/25 transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-full border border-white/10 opacity-40 hover:opacity-70 hover:border-white/25 transition-all"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polyline points="9 18 15 12 9 6" />
@@ -127,7 +127,7 @@ export default function ReviewsSection({
       </div>
 
       <div className="mt-4 md:mt-12 text-center">
-        <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/[0.18]">
+        <span className="font-mono text-[9px] uppercase tracking-[0.2em] opacity-[0.18]">
           Verified purchases &middot; Real reviews
         </span>
       </div>
@@ -158,12 +158,12 @@ function ReviewCard({ review }: { review: { text: string; author: string } }) {
         ))}
       </div>
 
-      <p className="font-body text-sm md:text-base leading-relaxed text-[rgba(234,223,237,0.72)] flex-1">
+      <p className="font-body text-sm md:text-base leading-relaxed opacity-70 flex-1">
         &ldquo;{review.text}&rdquo;
       </p>
 
       <div className="flex items-center justify-between pt-4 border-t border-white/[0.06] mt-auto">
-        <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-[rgba(234,223,237,0.45)]">
+        <span className="font-mono text-[11px] uppercase tracking-[0.2em] opacity-45">
           {review.author}
         </span>
         <span className="font-mono text-[8px] uppercase tracking-[0.15em] text-[#ddb7ff]/40">

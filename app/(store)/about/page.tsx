@@ -8,7 +8,7 @@ import FooterTransition from "@/components/sections/about/FooterTransition";
 
 export default function AboutPage() {
   return (
-    <div className="flex flex-col w-full bg-transparent text-[#eadfed]">
+    <div className="flex flex-col w-full bg-transparent">
       <AboutHero />
       <Manifesto />
       <QuoteSection />

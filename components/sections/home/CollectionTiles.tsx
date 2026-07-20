@@ -79,7 +79,7 @@ export default function CollectionTiles() {
       <FadeIn>
         <div className="flex items-center gap-3 mb-4">
           <span className="h-px w-6 bg-white/20 block" />
-          <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/30">Collections</span>
+          <span className="font-mono text-[10px] uppercase tracking-[0.3em] opacity-40">Collections</span>
         </div>
       </FadeIn>
 

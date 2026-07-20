@@ -51,7 +51,7 @@ export default function BrandStory({
       <FadeIn>
         <div className="flex items-center gap-3 mb-6">
           <span className="h-px w-6 bg-white/20 block" />
-          <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/30">{subheading}</span>
+          <span className="font-mono text-[10px] uppercase tracking-[0.3em] opacity-40">{subheading}</span>
         </div>
       </FadeIn>
 
@@ -60,11 +60,11 @@ export default function BrandStory({
         <div className="lg:col-span-5 flex flex-col justify-center text-center lg:text-left">
           <FadeIn delay={0.15}>
             {heading ? (
-              <h2 className="font-display text-[clamp(28px,4vw,56px)] uppercase leading-[0.92] text-[#eadfed] whitespace-pre-line"
+              <h2 className="font-display text-[clamp(28px,4vw,56px)] uppercase leading-[0.92] whitespace-pre-line"
                   dangerouslySetInnerHTML={{ __html: heading }}
               />
             ) : (
-              <h2 className="font-display text-[clamp(28px,4vw,56px)] uppercase leading-[0.92] text-[#eadfed]">
+              <h2 className="font-display text-[clamp(28px,4vw,56px)] uppercase leading-[0.92]">
                 Create The Things
                 <br />
                 <span className="text-[#ddb7ff]">You Wish Existed</span>
@@ -72,12 +72,12 @@ export default function BrandStory({
             )}
           </FadeIn>
           <FadeIn delay={0.2}>
-            <div className="space-y-4 font-body text-sm leading-7 text-white/45 max-w-md mx-auto lg:mx-0 mt-6">
+            <div className="space-y-4 font-body text-sm leading-7 opacity-45 max-w-md mx-auto lg:mx-0 mt-6">
               {hasBlocks ? (
                 blocks.map((b, i) => (
                   <div key={i} className="mb-4 text-left">
-                    <h4 className="text-white text-sm font-bold uppercase tracking-wider mb-1">{b.title}</h4>
-                    <p className="text-white/45">{b.description}</p>
+                    <h4 className="text-sm font-bold uppercase tracking-wider mb-1 opacity-100">{b.title}</h4>
+                    <p>{b.description}</p>
                   </div>
                 ))
               ) : (
@@ -97,7 +97,7 @@ export default function BrandStory({
           <FadeIn delay={0.3}>
             <Link
               href={ctaHref}
-              className="inline-flex items-center gap-2 mt-8 font-mono text-[10px] uppercase tracking-[0.22em] text-white/50 hover:text-white transition-colors duration-300 mx-auto lg:mx-0"
+              className="inline-flex items-center gap-2 mt-8 font-mono text-[10px] uppercase tracking-[0.22em] opacity-50 hover:opacity-100 transition-opacity duration-300 mx-auto lg:mx-0"
             >
               <span>{ctaLabel}</span>
               <span className="text-[11px]">→</span>

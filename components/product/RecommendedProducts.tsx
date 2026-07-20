@@ -21,7 +21,7 @@ export default function RecommendedProducts({ currentSlug }: { currentSlug: stri
   return (
     <section className="w-full max-w-[min(98vw,2560px)] mx-auto px-4 md:px-8 lg:px-12 py-20 border-t border-white/[0.06]">
       <div className="mb-10">
-        <h2 className="font-display text-[28px] md:text-[42px] uppercase leading-[0.92] text-[#eadfed]">
+        <h2 className="font-display text-[28px] md:text-[42px] uppercase leading-[0.92]">
           You May Also Like
         </h2>
       </div>

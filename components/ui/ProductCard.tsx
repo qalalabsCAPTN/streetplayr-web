@@ -26,7 +26,7 @@ interface ProductCardProps {
 
 function BookmarkIcon({ filled }: { filled: boolean }) {
   return (
-    <svg viewBox="0 0 18 22" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.6" style={{ width: '100%', height: '100%' }}>
+    <svg viewBox="0 0 18 22" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.6">
       <path d="M2 2.5A1.5 1.5 0 0 1 3.5 1h11A1.5 1.5 0 0 1 16 2.5V20l-7-4.5L2 20V2.5Z" />
     </svg>
   );

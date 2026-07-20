@@ -76,7 +76,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [theme, setTheme] = useState('default');
+  const [theme, setTheme] = useState('dark');
   const [products, setProducts] = useState<any[]>([]);
 
   const cart = useCart();
@@ -94,7 +94,7 @@ export default function Navbar() {
   };
 
   useEffect(() => {
-    const saved = localStorage.getItem('playr-theme') || 'default';
+    const saved = localStorage.getItem('playr-theme') || 'dark';
     setTheme(saved);
   }, []);
 

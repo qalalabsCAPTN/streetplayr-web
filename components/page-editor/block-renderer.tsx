@@ -75,12 +75,12 @@ function BlockSwitch({ block }: { block: PageBlock }) {
           )}
           <div className="relative z-10 text-center px-6">
             {Boolean(c.title) && (
-              <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tighter text-white mb-4">
+              <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tighter mb-4">
                 {c.title as string}
               </h1>
             )}
             {Boolean(c.subtitle) && (
-              <p className="text-lg md:text-xl text-white/80 mb-8 max-w-xl mx-auto">
+              <p className="text-lg md:text-xl opacity-80 mb-8 max-w-xl mx-auto">
                 {c.subtitle as string}
               </p>
             )}
@@ -389,7 +389,7 @@ function ProductCarouselBlock({ heading, tag }: { heading: string; tag: string }
   return (
     <section className="py-12 w-full max-w-[min(95vw,2400px)] mx-auto px-4 md:px-6">
       <div className="flex justify-between items-end mb-6">
-        <h2 className="font-display text-[32px] md:text-[48px] uppercase leading-none text-[#eadfed]">
+        <h2 className="font-display text-[32px] md:text-[48px] uppercase leading-none">
           {heading}
         </h2>
       </div>
@@ -430,7 +430,7 @@ function CollectionGridBlock({ heading }: { heading: string }) {
 
   return (
     <section className="max-w-[min(95vw,2400px)] mx-auto px-4 md:px-6 py-12">
-      {heading && <h2 className="font-display text-[32px] md:text-[48px] uppercase leading-none text-[#eadfed] mb-8">{heading}</h2>}
+      {heading && <h2 className="font-display text-[32px] md:text-[48px] uppercase leading-none mb-8">{heading}</h2>}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {collections.map((col) => (
           <a

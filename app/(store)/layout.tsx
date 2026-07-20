@@ -11,7 +11,7 @@ export default function StoreLayout({
 }) {
   return (
     <CartProvider>
-      <div className="storefront-root min-h-screen relative flex flex-col">
+      <div className="storefront-root theme-dark min-h-screen relative flex flex-col">
         {children}
         <CartDrawer />
       </div>

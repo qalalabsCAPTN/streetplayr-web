@@ -149,9 +149,9 @@ export default function Lookbook({
         <FadeIn>
           <div className="flex items-center gap-3 mb-4">
             <span className="h-px w-6 bg-white/20 block" />
-            <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/30">Lookbook</span>
+            <span className="font-mono text-[10px] uppercase tracking-[0.3em] opacity-40">Lookbook</span>
           </div>
-          <h2 className="font-display text-[clamp(32px,4.5vw,64px)] uppercase leading-[0.92] text-[#eadfed]">
+          <h2 className="font-display text-[clamp(32px,4.5vw,64px)] uppercase leading-[0.92]">
             {title}
           </h2>
         </FadeIn>

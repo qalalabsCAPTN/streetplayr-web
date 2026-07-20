@@ -1,13 +1,12 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { useState, useEffect, useCallback, forwardRef, useImperativeHandle, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/cartStore";
-import Image from "next/image";
 import Link from "next/link";
 import { formatPrice, formatProductTitle } from "@/lib/utils/format";
 import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 
 function CheckoutInput({ label, id, type = "text", value, onChange, placeholder }: {
   label: string;
@@ -18,17 +17,14 @@ function CheckoutInput({ label, id, type = "text", value, onChange, placeholder 
   placeholder?: string;
 }) {
   return (
-    <div className="space-y-2">
-      <label htmlFor={id} className="block font-mono text-[10px] uppercase tracking-[0.2em] text-white/55">
-        {label}
-      </label>
+    <div className="checkout-field">
+      <label htmlFor={id}>{label}</label>
       <input
         id={id}
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full bg-transparent border border-white/[0.06] rounded-lg px-3 py-4 font-mono text-sm text-white/80 outline-none transition-colors placeholder:text-white/30 focus:border-[#ddb7ff]/60"
       />
     </div>
   );
@@ -117,116 +113,71 @@ const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }>(f
 
   if (phase === 'processing') {
     return (
-      <div className="flex flex-col items-center justify-center py-32 border border-white/[0.06] bg-[#1f1a23]/50 rounded-xl">
-        <motion.div
-          animate={{ opacity: [0.3, 1, 0.3] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-          className="font-mono text-xs uppercase tracking-[0.3em] text-white/40"
-        >
-          Processing
-        </motion.div>
+      <div className="checkout-panel checkout-panel--processing">
+        <span>Processing…</span>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="checkout-stack">
       {/* ── Shipping Form ── */}
-      <div className="border border-white/[0.06] p-5 bg-[#1f1a23]/50 rounded-xl">
-        <div className="flex items-center gap-3 mb-8">
-          <span className="inline-block w-1.5 h-1.5 bg-[#ddb7ff]" />
-          <h2 className="font-display text-3xl uppercase tracking-wide text-[#eadfed]">Shipping</h2>
-        </div>
+      <div className="checkout-panel">
+        <h2 className="checkout-panel__title">Shipping</h2>
 
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <CheckoutInput
-              id="firstName" label="Full Name" placeholder="FIRST NAME"
-              value={firstName} onChange={setFirstName}
-            />
-            <CheckoutInput
-              id="lastName" label="Last Name" placeholder="LAST NAME"
-              value={lastName} onChange={setLastName}
-            />
+        <div className="checkout-fields">
+          <div className="checkout-fields-row">
+            <CheckoutInput id="firstName" label="First name" placeholder="First name" value={firstName} onChange={setFirstName} />
+            <CheckoutInput id="lastName" label="Last name" placeholder="Last name" value={lastName} onChange={setLastName} />
           </div>
-          <CheckoutInput
-            id="email" type="email" label="Email" placeholder="EMAIL@ADDRESS.COM"
-            value={email} onChange={setEmail}
-          />
-          <CheckoutInput
-            id="address" label="Street Address" placeholder="ADDRESS"
-            value={address} onChange={setAddress}
-          />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <CheckoutInput id="city" label="City" placeholder="CITY" value={city} onChange={setCity} />
-            <CheckoutInput id="state" label="State" placeholder="STATE" value={state} onChange={setState} />
-            <CheckoutInput id="postalCode" label="Postal Code" placeholder="POSTAL CODE" value={postalCode} onChange={setPostalCode} />
+          <CheckoutInput id="email" type="email" label="Email" placeholder="email@address.com" value={email} onChange={setEmail} />
+          <CheckoutInput id="address" label="Street address" placeholder="Address" value={address} onChange={setAddress} />
+          <div className="checkout-fields-row checkout-fields-row--3">
+            <CheckoutInput id="city" label="City" placeholder="City" value={city} onChange={setCity} />
+            <CheckoutInput id="state" label="State" placeholder="State" value={state} onChange={setState} />
+            <CheckoutInput id="postalCode" label="Postal code" placeholder="Postal code" value={postalCode} onChange={setPostalCode} />
           </div>
-          <div className="space-y-2">
-            <label htmlFor="country" className="block font-mono text-[10px] uppercase tracking-[0.2em] text-white/55">Country</label>
-            <select
-              id="country"
-              value={country}
-              onChange={(e) => setCountry(e.target.value)}
-              className="w-full bg-transparent border border-white/[0.06] rounded-lg px-3 py-2.5 font-mono text-sm text-white/80 outline-none focus:border-[#ddb7ff]/60"
-            >
-              <option value="" className="bg-[#16111b]">SELECT COUNTRY</option>
-              <option value="IN" className="bg-[#16111b]">India</option>
-              <option value="US" className="bg-[#16111b]">United States</option>
-              <option value="GB" className="bg-[#16111b]">United Kingdom</option>
-              <option value="AE" className="bg-[#16111b]">UAE</option>
-              <option value="SG" className="bg-[#16111b]">Singapore</option>
+          <div className="checkout-field">
+            <label htmlFor="country">Country</label>
+            <select id="country" value={country} onChange={(e) => setCountry(e.target.value)}>
+              <option value="">Select country</option>
+              <option value="IN">India</option>
+              <option value="US">United States</option>
+              <option value="GB">United Kingdom</option>
+              <option value="AE">UAE</option>
+              <option value="SG">Singapore</option>
             </select>
           </div>
         </div>
 
-        {error && (
-          <p className="mt-6 font-mono text-xs uppercase tracking-[0.3em] text-[#ff3b30]">{error}</p>
-        )}
+        {error && <p className="checkout-error">{error}</p>}
       </div>
 
       {/* ── Payment Method ── */}
-      <div className="border border-white/[0.06] p-5 bg-[#1f1a23]/50 rounded-xl">
-        <div className="flex items-center gap-3 mb-6">
-          <span className="inline-block w-1.5 h-1.5 bg-[#ddb7ff]" />
-          <h2 className="font-display text-3xl uppercase tracking-wide text-[#eadfed]">Payment</h2>
-        </div>
+      <div className="checkout-panel">
+        <h2 className="checkout-panel__title">Payment</h2>
 
-        <div className="space-y-3">
+        <div className="checkout-payment-options">
           <button
+            type="button"
             onClick={() => setPaymentMethod('demo')}
-              className={`w-full flex items-center justify-between p-4 border transition-colors text-left rounded-xl ${
-              paymentMethod === 'demo'
-                ? 'border-[#ddb7ff]/40 bg-[#ddb7ff]/5'
-                : 'border-white/[0.08] bg-transparent hover:border-white/[0.15]'
-            }`}
+            className={`checkout-payment-option ${paymentMethod === 'demo' ? 'active' : ''}`}
           >
-            <div className="flex items-center gap-4">
-              <div className={`w-5 h-5 border-2 flex items-center justify-center ${
-                paymentMethod === 'demo' ? 'border-[#ddb7ff]' : 'border-white/20'
-              }`}>
-                {paymentMethod === 'demo' && <div className="w-2.5 h-2.5 bg-[#ddb7ff]" />}
-              </div>
-              <div>
-                <span className="font-mono text-xs uppercase text-white/70">Demo Payment</span>
-                <span className="font-mono text-[9px] uppercase text-green-400/70 block mt-0.5">Active</span>
-              </div>
-            </div>
-            <span className="font-mono text-[9px] uppercase text-white/35">Test Mode</span>
+            <span className="checkout-payment-option__radio" />
+            <span className="checkout-payment-option__label">
+              <span>Demo Payment</span>
+              <small>Active</small>
+            </span>
+            <span className="checkout-payment-option__tag">Test Mode</span>
           </button>
 
-          <button
-            disabled
-            className="w-full flex items-center justify-between p-4 border border-white/[0.05] bg-transparent opacity-50 cursor-not-allowed text-left rounded-xl"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-5 h-5 border-2 border-white/10" />
-              <div>
-                <span className="font-mono text-xs uppercase text-white/55">Razorpay</span>
-                <span className="font-mono text-[9px] uppercase text-white/35 block mt-0.5">Coming Soon</span>
-              </div>
-            </div>
-            <span className="font-mono text-[9px] uppercase text-white/25">Unavailable</span>
+          <button type="button" disabled className="checkout-payment-option disabled">
+            <span className="checkout-payment-option__radio" />
+            <span className="checkout-payment-option__label">
+              <span>Razorpay</span>
+              <small>Coming Soon</small>
+            </span>
+            <span className="checkout-payment-option__tag">Unavailable</span>
           </button>
         </div>
       </div>
@@ -236,22 +187,15 @@ const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }>(f
 
 function WalletModule() {
   return (
-    <div className="border border-white/[0.06] p-5 bg-[#1f1a23]/50 rounded-xl">
-      <div className="flex items-center gap-3 mb-6">
-        <span className="inline-block w-1.5 h-1.5 bg-[#ddb7ff]" />
-        <h2 className="font-display text-3xl uppercase tracking-wide text-[#eadfed]">Loyalty</h2>
-      </div>
-      <div className="p-4 border border-[#ddb7ff]/15 bg-[#ddb7ff]/5 flex items-center justify-between rounded-lg">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-[#ddb7ff]/10 border border-[#ddb7ff]/30 flex items-center justify-center rounded-lg">
-            <span className="text-[#ddb7ff] text-sm">✦</span>
-          </div>
-          <div>
-            <div className="font-mono text-xs text-white/80">Member Balance</div>
-            <div className="font-mono text-[10px] text-[#ddb7ff]/70 mt-0.5">2,450 Reward Points</div>
-          </div>
+    <div className="checkout-panel">
+      <h2 className="checkout-panel__title">Loyalty</h2>
+      <div className="checkout-loyalty">
+        <div className="checkout-loyalty__icon">✦</div>
+        <div className="checkout-loyalty__info">
+          <div>Member balance</div>
+          <small>2,450 Reward Points</small>
         </div>
-        <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/55">Active</span>
+        <span className="checkout-loyalty__status">Active</span>
       </div>
     </div>
   );
@@ -259,66 +203,42 @@ function WalletModule() {
 
 function OrderSummary({ items, total }: { items: any[]; total: number }) {
   return (
-    <div className="border border-white/[0.06] bg-[#2e2832]/40 p-5 backdrop-blur-xl relative overflow-hidden rounded-xl">
-      <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#ddb7ff]/40 to-transparent" />
+    <div className="checkout-summary">
+      <h3 className="checkout-summary__title">Order summary ({items.length})</h3>
 
-      <h3 className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#ddb7ff] mb-8 flex items-center gap-2">
-        <span className="inline-block w-1.5 h-1.5 bg-[#ddb7ff]" />
-        Order Summary ({items.length})
-      </h3>
-
-      <div className="space-y-5 mb-8">
+      <div className="checkout-summary__lines">
         {items.map((item) => (
-          <div key={item.id} className="flex gap-4 group">
-            <div className="w-20 h-24 bg-[#231e27] border border-white/[0.06] overflow-hidden shrink-0 relative rounded-lg">
-              <Image
-                src={item.image || "/images/placeholder.jpg"}
-                alt={item.name}
-                width={80}
-                height={96}
-                className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
-              />
-              <div className="absolute bottom-0 right-0 bg-[#ddb7ff] text-[#16111b] text-[10px] px-1 font-mono">
-                x{item.quantity}
-              </div>
+          <div key={item.id} className="checkout-summary__line">
+            <div className="checkout-summary__thumb">
+              <img src={item.image || "/images/placeholder.jpg"} alt={item.name} />
+              <span>x{item.quantity}</span>
             </div>
-            <div className="flex-1 flex flex-col justify-between py-0.5 min-w-0">
-              <div>
-                <p className="font-mono text-xs text-white/80 uppercase leading-tight">{formatProductTitle(item.name)}</p>
-                <p className="font-mono text-[10px] text-white/50 mt-1">
-                  {item.size} / {item.color}
-                </p>
-              </div>
-              <p className="font-mono text-sm text-[#ddb7ff]">{formatPrice(item.price)}</p>
+            <div className="checkout-summary__line-info">
+              <p>{formatProductTitle(item.name)}</p>
+              <p className="checkout-summary__line-meta">{item.size} / {item.color}</p>
+              <p className="checkout-summary__line-price">{formatPrice(item.price)}</p>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="border-t border-white/[0.06] pt-5 space-y-3">
-        <div className="flex justify-between font-mono text-xs text-white/55">
+      <div className="checkout-summary__rows">
+        <div>
           <span>Subtotal</span>
-          <span className="text-white/70">{formatPrice(total)}</span>
+          <span>{formatPrice(total)}</span>
         </div>
-        <div className="flex justify-between font-mono text-xs text-white/55">
+        <div>
           <span>Shipping</span>
-          <span className="text-white/45">Calculated at checkout</span>
+          <span className="muted">Calculated at checkout</span>
         </div>
       </div>
 
-      <div className="flex justify-between items-end mt-5 pt-5 border-t border-white/[0.06]">
-        <span className="font-display text-2xl uppercase text-white/60">Total</span>
-        <div className="text-right">
-          <span className="font-display text-4xl text-[#eadfed] tracking-wide tabular-nums leading-none">{formatPrice(total)}</span>
-        </div>
+      <div className="checkout-summary__total">
+        <span>Total</span>
+        <span>{formatPrice(total)}</span>
       </div>
 
-      <div className="mt-6 p-3 bg-black/40 border border-white/[0.06] flex items-center gap-3 rounded-lg">
-        <span className="text-white/50 text-[10px]">🔒</span>
-        <p className="font-mono text-[9px] text-white/40 uppercase leading-tight tracking-[0.1em]">
-          Encrypted checkout. Your information is secure.
-        </p>
-      </div>
+      <p className="checkout-summary__secure">🔒 Encrypted checkout. Your information is secure.</p>
     </div>
   );
 }
@@ -326,16 +246,9 @@ function OrderSummary({ items, total }: { items: any[]; total: number }) {
 function PromoCode() {
   const [code, setCode] = useState("");
   return (
-    <div className="flex gap-2">
-      <input
-        value={code}
-        onChange={(e) => setCode(e.target.value)}
-        placeholder="PROMO CODE"
-        className="flex-1 bg-[#1f1a23] border border-white/[0.06] px-4 py-3 font-mono text-xs text-white/60 outline-none focus:border-[#ddb7ff]/40 transition-colors placeholder:text-white/30 rounded-lg"
-      />
-      <button className="rounded-xl px-6 py-4 bg-[#2e2832] border border-white/[0.06] font-mono text-xs uppercase tracking-[0.15em] text-white/50 hover:bg-[#ddb7ff] hover:text-[#16111b] hover:border-[#ddb7ff] transition-all">
-        Apply
-      </button>
+    <div className="checkout-promo">
+      <input value={code} onChange={(e) => setCode(e.target.value)} placeholder="Promo code" />
+      <button type="button" className="pill">Apply</button>
     </div>
   );
 }
@@ -372,94 +285,41 @@ export default function CheckoutPage() {
   return (
     <>
       <Navbar />
-      <div className="relative min-h-screen bg-transparent pt-20 md:pt-32 pb-24 px-4 md:px-8 lg:px-12">
-        <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(0,0,0,0.65)_100%)]" />
-        <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.25)_0%,transparent_10%,transparent_90%,rgba(0,0,0,0.25)_100%)]" />
-        <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_50%_30%,rgba(221,183,255,0.05)_0%,transparent_55%)]" />
-        <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(255,87,26,0.03)_0%,transparent_60%)]" />
+      <div className="listing">
+        <div className="checkout-steps">
+          <span className="checkout-step active">01 Shipping</span>
+          <span className="checkout-step-sep" />
+          <span className="checkout-step">02 Payment</span>
+          <span className="checkout-step-sep" />
+          <span className="checkout-step">03 Confirmation</span>
+          <span className="checkout-step-count">{itemCount} items</span>
+        </div>
 
-        <div className="max-w-[min(98vw,2560px)] mx-auto relative z-10">
-          <div className="hidden md:block absolute left-0 top-0 bottom-0 w-px bg-white/[0.04]" />
-          <div className="hidden md:block absolute left-0 top-0 bottom-0 w-px bg-white/[0.02] translate-x-[7px]" />
-
-          <div className="flex items-center justify-between mb-6 md:mb-12 border-b border-white/[0.05] pb-6">
-            <div className="flex items-center gap-4">
-              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#ddb7ff] border border-[#ddb7ff]/40 px-3 py-1 flex items-center gap-2">
-                <span className="inline-block w-1.5 h-1.5 bg-[#ddb7ff]" />
-                01 Shipping
-              </div>
-              <div className="w-6 h-px bg-white/[0.1]" />
-              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">02 Payment</span>
-              <div className="w-6 h-px bg-white/[0.1]" />
-              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">03 Confirmation</span>
-            </div>
-            <div className="hidden md:block font-mono text-[10px] uppercase tracking-[0.15em] text-white/40">
-              {itemCount} Items
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            <div className="lg:col-span-7 space-y-6">
-              <CheckoutFormContent ref={formRef} />
-              <WalletModule />
-              {/* CTA — always last on mobile */}
-              <button
-                onClick={handleCheckout}
-                disabled={isProcessing}
-                className="rounded-xl group relative block w-full py-6 text-center overflow-hidden transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <span className="absolute inset-0 bg-[#ddb7ff] transition-transform duration-500 group-hover:scale-y-0 origin-bottom" />
-                <span className="absolute inset-0 bg-[#eadfed] scale-y-0 group-hover:scale-y-100 transition-transform duration-500 origin-top" />
-                <span className="relative z-10 text-sm uppercase tracking-[0.2em] text-[#16111b] font-light">
-                  Complete Order
-                </span>
-              </button>
-            </div>
-            <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-32">
-              <OrderSummary items={items} total={total} />
-              <PromoCode />
-            </div>
-          </div>
-
-          <div className="flex justify-between items-center mt-10 pt-6 border-t border-white/[0.05]">
-            <Link
-              href="/cart"
-              className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/45 hover:text-white transition-colors"
+        <div className="checkout-grid">
+          <div className="checkout-main">
+            <CheckoutFormContent ref={formRef} />
+            <WalletModule />
+            <button
+              type="button"
+              onClick={handleCheckout}
+              disabled={isProcessing}
+              className="checkout-submit"
             >
-              ← Return to Cart
-            </Link>
-            <span className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/25">
-              Secure checkout
-            </span>
+              {isProcessing ? 'Placing order…' : 'Complete order'}
+            </button>
+          </div>
+          <div className="checkout-aside">
+            <OrderSummary items={items} total={total} />
+            <PromoCode />
           </div>
         </div>
 
-        <footer className="relative z-10 max-w-[min(98vw,2560px)] mx-auto mt-20 pt-10 pb-10 border-t border-white/[0.05]">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="flex flex-col items-center md:items-start">
-              <span className="font-display text-lg uppercase tracking-wide text-white/60">Street PlayR</span>
-              <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-white/25 mt-2">&copy; 2024 Street PlayR</span>
-            </div>
-            <div className="flex gap-8 font-mono text-[9px] uppercase tracking-[0.2em]">
-              <Link href="/collections" className="text-white/30 hover:text-white/60 transition-colors">Collections</Link>
-              <Link href="/about" className="text-white/30 hover:text-white/60 transition-colors">About</Link>
-              <Link href="/contact" className="text-white/30 hover:text-white/60 transition-colors">Contact</Link>
-              <Link href="/faq" className="text-white/30 hover:text-white/60 transition-colors">FAQ</Link>
-            </div>
-            <div className="flex gap-3">
-              <div className="w-7 h-7 border border-white/[0.1] flex items-center justify-center hover:border-[#ddb7ff]/40 transition-colors cursor-pointer rounded">
-                <span className="text-[10px] text-white/40">IG</span>
-              </div>
-              <div className="w-7 h-7 border border-white/[0.1] flex items-center justify-center hover:border-[#ddb7ff]/40 transition-colors cursor-pointer rounded">
-                <span className="text-[10px] text-white/40">X</span>
-              </div>
-              <div className="w-7 h-7 border border-white/[0.1] flex items-center justify-center hover:border-[#ddb7ff]/40 transition-colors cursor-pointer rounded">
-                <span className="text-[10px] text-white/40">YT</span>
-              </div>
-            </div>
-          </div>
-        </footer>
+        <div className="checkout-footer-row">
+          <Link href="/cart">← Return to cart</Link>
+          <span>Secure checkout</span>
+        </div>
       </div>
+      <Footer />
     </>
   );
 }

@@ -111,7 +111,7 @@ function CollectionsInner() {
       );
 
   return (
-    <div className="min-h-screen bg-transparent text-[#eadfed] relative overflow-hidden">
+    <div className="min-h-screen bg-transparent relative overflow-hidden">
       <Navbar />
 
       <section className="relative z-[1] w-full h-[460px] overflow-hidden border-b border-white/[0.10] mt-20">

@@ -1,8 +1,7 @@
 import Hero from "@/components/ui/Hero";
 import ProductSection from "@/components/ui/ProductSection";
 import BannerSlider from "@/components/ui/BannerSlider";
-import DiscoverCollections from "@/components/ui/DiscoverCollections";
-import StoresSection from "@/components/ui/StoresSection";
+import RecentlyVisited from "@/components/ui/RecentlyVisited";
 import { BlockRenderer } from "@/components/page-editor/block-renderer";
 import { getPageBlocks } from "@/lib/page-editor/get-page-blocks";
 import { ProductQueries } from "@/lib/products/queries";
@@ -70,8 +69,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       {tanks.length > 0 && (
         <ProductSection title="Tank Tops" products={tanks} moreHref="/collections?category=tanks" gallery />
       )}
-      <DiscoverCollections />
-      <StoresSection />
+      <RecentlyVisited />
     </div>
   );
 }

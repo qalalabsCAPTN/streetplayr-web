@@ -67,11 +67,6 @@ export default function Footer() {
             <div className="w-full max-w-[140px] sm:max-w-[180px] md:max-w-[200px] aspect-square select-none pointer-events-auto flex items-center justify-center">
               <NinjaStar scale={starScale} scrollReactive={false} />
             </div>
-            <div className="footer__bag-shape mt-4" aria-hidden>
-              <span>
-                play<i>R</i>
-              </span>
-            </div>
           </div>
         </div>
         <p className="footer__bottom">© {new Date().getFullYear()} playR — All rights reserved</p>

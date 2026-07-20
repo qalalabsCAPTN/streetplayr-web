@@ -48,7 +48,7 @@ html { scroll-behavior: smooth; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
 
-.card {
+.nectar-portal-root .card {
   position: relative;
   border-radius: 16px;
   border: 1px solid var(--border);
@@ -56,9 +56,9 @@ html { scroll-behavior: smooth; }
   box-shadow: var(--shadow-card);
   transition: all 0.2s;
 }
-.card-hover { position: relative; border-radius: 16px; border: 1px solid var(--border); background: var(--bg-surface); box-shadow: var(--shadow-card); transition: all 0.2s; cursor: pointer; }
-.card-hover:hover { border-color: var(--border-strong); box-shadow: var(--shadow-card-hover); background: var(--bg-elevated); }
-.card-glass { border-radius: 16px; border: 1px solid var(--border); background: var(--bg-glass); box-shadow: var(--shadow-glass); backdrop-filter: blur(8px); }
+.nectar-portal-root .card-hover { position: relative; border-radius: 16px; border: 1px solid var(--border); background: var(--bg-surface); box-shadow: var(--shadow-card); transition: all 0.2s; cursor: pointer; }
+.nectar-portal-root .card-hover:hover { border-color: var(--border-strong); box-shadow: var(--shadow-card-hover); background: var(--bg-elevated); }
+.nectar-portal-root .card-glass { border-radius: 16px; border: 1px solid var(--border); background: var(--bg-glass); box-shadow: var(--shadow-glass); backdrop-filter: blur(8px); }
 
 .xp-bar-track { height: 0.5rem; width: 100%; border-radius: 999px; overflow: hidden; background: rgba(255,255,255,0.06); }
 .xp-bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #F97316 0%, #FBBF24 100%); box-shadow: 0 0 8px rgba(251,191,36,0.5); }

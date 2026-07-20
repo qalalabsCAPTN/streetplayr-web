@@ -24,11 +24,11 @@ export default function BestSellers({ products }: BestSellersProps) {
       <Reveal>
         <div className="flex justify-between items-end mb-10 md:mb-14">
           <div>
-            <h2 className="font-display text-[42px] md:text-[64px] uppercase leading-[0.92] text-[#eadfed]">
+            <h2 className="font-display text-[42px] md:text-[64px] uppercase leading-[0.92]">
               Best Sellers
             </h2>
           </div>
-          <Link href="/collections" className="font-mono text-[10px] tracking-[0.24em] uppercase text-[rgba(234,223,237,0.52)] hover:text-[#eadfed] transition-colors hidden md:block">
+          <Link href="/collections" className="font-mono text-[10px] tracking-[0.24em] uppercase opacity-50 hover:opacity-100 transition-opacity hidden md:block">
             View All
           </Link>
         </div>

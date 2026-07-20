@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -15,7 +14,7 @@ import { useAuthStore } from "@/store/authStore";
 
 function GoogleIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
       <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
       <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
       <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
@@ -26,13 +25,13 @@ function GoogleIcon() {
 
 function FacebookIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true" fill="#1877F2">
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="#1877F2">
       <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
     </svg>
   );
 }
 
-function SocialAuthButton({ provider, icon, label, action, isPending, onPending }: {
+function SocialAuthButton({ icon, label, action, isPending, onPending }: {
   provider: string;
   icon: React.ReactNode;
   label: string;
@@ -50,7 +49,6 @@ function SocialAuthButton({ provider, icon, label, action, isPending, onPending 
     const redirectTo = `${siteUrl}/auth/callback${params}`;
     const { data, error } = await action(redirectTo);
     if (error) {
-      console.error(`${provider} login error:`, error);
       onPending(false);
       return;
     }
@@ -60,12 +58,7 @@ function SocialAuthButton({ provider, icon, label, action, isPending, onPending 
   }
 
   return (
-    <button
-      type="button"
-      onClick={handleLogin}
-      disabled={isPending}
-      className="flex items-center justify-center gap-2.5 w-full py-3.5 border border-white/[0.15] font-mono text-[11px] font-bold uppercase tracking-[0.22em] text-white/90 hover:text-white hover:border-white/[0.30] hover:bg-white/[0.05] transition-all duration-300 disabled:opacity-40"
-    >
+    <button type="button" onClick={handleLogin} disabled={isPending} className="lmodal__social">
       {icon}
       <span>{label}</span>
     </button>
@@ -82,13 +75,11 @@ function LoginForm() {
   const [mode, setMode] = useState<AuthMode>("email");
   const [socialPending, setSocialPending] = useState(false);
 
-  // Email state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailPending, setEmailPending] = useState(false);
   const [emailError, setEmailError] = useState("");
 
-  // Phone state
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [phoneStep, setPhoneStep] = useState<PhoneStep>("enter");
@@ -159,255 +150,115 @@ function LoginForm() {
   const isAnyPending = socialPending || emailPending || phonePending;
 
   return (
-    <div className="w-full max-w-[420px] mx-auto">
-      <div className="border border-white/[0.08] bg-[#1b1620]/60">
-        <div className="p-6 sm:p-8">
-          <div className="flex justify-center mb-8">
-            <img src="/assets/streetplayr-logo.png" alt="StreetPlayR" width="160" height="40" className="h-10 w-auto object-contain opacity-90" />
-          </div>
+    <div className="lmodal" style={{ position: 'static', width: '100%', maxWidth: 420 }}>
+      <span className="lmodal__eyebrow">My Account</span>
+      <h2 className="lmodal__title">Member Access</h2>
+      <p className="lmodal__sub">Wallet, rewards, orders &amp; faster checkout.</p>
 
-          <div className="text-center mb-8">
-            <h1 className="font-display text-2xl sm:text-3xl uppercase tracking-[0.06em] text-[#eadfed] mb-2">
-              Member Access
-            </h1>
-            <div className="w-16 h-px bg-gradient-to-r from-transparent via-white/[0.18] to-transparent mx-auto" />
-          </div>
+      <div className="lmodal__tabs">
+        {(["email", "phone"] as AuthMode[]).map((m) => (
+          <button
+            key={m}
+            type="button"
+            onClick={() => { setMode(m); setEmailError(""); setPhoneError(""); setPhoneStep("enter"); }}
+            className={`lmodal__tab${mode === m ? ' active' : ''}`}
+          >
+            {m === 'email' ? 'Email' : 'Phone OTP'}
+          </button>
+        ))}
+      </div>
 
-          {/* Mode Tabs */}
-          <div className="flex gap-0 mb-6 border border-white/[0.10]">
-            {(["email", "phone"] as AuthMode[]).map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => { setMode(m); setEmailError(""); setPhoneError(""); setPhoneStep("enter"); }}
-                className={`flex-1 py-2.5 font-mono text-[10px] font-bold uppercase tracking-[0.22em] transition-all duration-200 ${
-                  mode === m
-                    ? "bg-[#ddb7ff]/[0.12] text-[#ddb7ff]"
-                    : "text-white/50 hover:text-white/70"
-                }`}
-              >
-                {m}
-              </button>
-            ))}
-          </div>
+      {mode === "email" && (
+        <div className="lmodal__form">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleEmailLogin()}
+            placeholder="Email"
+            autoComplete="email"
+            disabled={isAnyPending}
+          />
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleEmailLogin()}
+            placeholder="Password"
+            autoComplete="current-password"
+            disabled={isAnyPending}
+          />
 
-          {/* Email Mode */}
-          {mode === "email" && (
-            <div className="space-y-5">
-              <div>
-                <label className="block font-mono text-[11px] font-bold uppercase tracking-[0.22em] text-white/80 mb-2.5">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleEmailLogin()}
-                  autoComplete="email"
-                  className="w-full bg-transparent border-b border-white/[0.10] py-4 font-mono text-[13px] text-[#eadfed] outline-none focus:border-[#ddb7ff]/40 transition-colors"
-                />
-              </div>
+          {emailError && <p className="lmodal__error">{emailError}</p>}
 
-              <div>
-                <label className="block font-mono text-[11px] font-bold uppercase tracking-[0.22em] text-white/80 mb-2.5">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleEmailLogin()}
-                  autoComplete="current-password"
-                  className="w-full bg-transparent border-b border-white/[0.10] py-4 font-mono text-[13px] text-[#eadfed] outline-none focus:border-[#ddb7ff]/40 transition-colors"
-                />
-              </div>
-
-              {emailError && (
-                <p className="font-mono text-[11px] text-red-400/90 tracking-[0.1em]">{emailError}</p>
-              )}
-
-              <div className="flex justify-end pt-1">
-                <Link
-                  href="/forgot-password"
-                  className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-white/80 hover:text-[#ddb7ff] transition-colors py-2 inline-block"
-                >
-                  Forgot Password
-                </Link>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleEmailLogin}
-                disabled={isAnyPending}
-                className="relative w-full py-4 mt-2 overflow-hidden group border border-white/[0.12] transition-all duration-500 hover:border-[#ddb7ff] disabled:opacity-40"
-              >
-                <span className="absolute inset-0 bg-[#ddb7ff] transition-transform duration-500 group-hover:scale-y-0 origin-bottom" />
-                <span className="absolute inset-0 bg-[#eadfed] scale-y-0 group-hover:scale-y-100 transition-transform duration-500 origin-top" />
-                <span className="relative z-10 font-mono text-[11px] font-bold uppercase tracking-[0.28em] text-[#16111b]">
-                  {emailPending ? "Verifying..." : "Login"}
-                </span>
-              </button>
-            </div>
-          )}
-
-          {/* Phone Mode */}
-          {mode === "phone" && phoneStep === "enter" && (
-            <div className="space-y-5">
-              <div>
-                <label className="block font-mono text-[11px] font-bold uppercase tracking-[0.22em] text-white/80 mb-2.5">
-                  Phone Number
-                </label>
-                <div className="flex items-center border-b border-white/[0.10] focus-within:border-[#ddb7ff]/40 transition-colors">
-                  <span className="font-mono text-[13px] text-white/50 py-4 pr-2">+91</span>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleSendOTP()}
-                    placeholder="10-digit number"
-                    autoComplete="tel"
-                    className="flex-1 bg-transparent py-4 font-mono text-[13px] text-[#eadfed] outline-none placeholder:text-white/[0.15]"
-                  />
-                </div>
-              </div>
-
-              {phoneError && (
-                <p className="font-mono text-[11px] text-red-400/90 tracking-[0.1em]">{phoneError}</p>
-              )}
-
-              <button
-                type="button"
-                onClick={handleSendOTP}
-                disabled={isAnyPending}
-                className="relative w-full py-4 mt-2 overflow-hidden group border border-white/[0.12] transition-all duration-500 hover:border-[#ddb7ff] disabled:opacity-40"
-              >
-                <span className="absolute inset-0 bg-[#ddb7ff] transition-transform duration-500 group-hover:scale-y-0 origin-bottom" />
-                <span className="absolute inset-0 bg-[#eadfed] scale-y-0 group-hover:scale-y-100 transition-transform duration-500 origin-top" />
-                <span className="relative z-10 font-mono text-[11px] font-bold uppercase tracking-[0.28em] text-[#16111b]">
-                  {phonePending ? "Sending..." : "Send Code"}
-                </span>
-              </button>
-            </div>
-          )}
-
-          {mode === "phone" && phoneStep === "otp" && (
-            <div className="space-y-5">
-              <p className="font-mono text-[11px] text-white/60 tracking-[0.12em]">
-                Code sent to +91 {phone}
-              </p>
-
-              <div>
-                <label className="block font-mono text-[11px] font-bold uppercase tracking-[0.22em] text-white/80 mb-2.5">
-                  Verification Code
-                </label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                  onKeyDown={(e) => e.key === "Enter" && handleVerifyOTP()}
-                  autoComplete="one-time-code"
-                  className="w-full bg-transparent border-b border-white/[0.10] py-4 font-mono text-[18px] text-[#ddb7ff] outline-none focus:border-[#ddb7ff]/40 transition-colors tracking-[0.4em] text-center"
-                />
-              </div>
-
-              {phoneError && (
-                <p className="font-mono text-[11px] text-red-400/90 tracking-[0.1em]">{phoneError}</p>
-              )}
-
-              <button
-                type="button"
-                onClick={handleVerifyOTP}
-                disabled={isAnyPending}
-                className="relative w-full py-4 mt-2 overflow-hidden group border border-white/[0.12] transition-all duration-500 hover:border-[#ddb7ff] disabled:opacity-40"
-              >
-                <span className="absolute inset-0 bg-[#ddb7ff] transition-transform duration-500 group-hover:scale-y-0 origin-bottom" />
-                <span className="absolute inset-0 bg-[#eadfed] scale-y-0 group-hover:scale-y-100 transition-transform duration-500 origin-top" />
-                <span className="relative z-10 font-mono text-[11px] font-bold uppercase tracking-[0.28em] text-[#16111b]">
-                  {phonePending ? "Verifying..." : "Verify & Enter"}
-                </span>
-              </button>
-
-              <div className="flex items-center justify-between">
-                <button
-                  type="button"
-                  onClick={() => { setPhoneStep("enter"); setOtp(""); setPhoneError(""); }}
-                  className="font-mono text-[10px] text-white/50 hover:text-white/80 uppercase tracking-[0.18em] transition-colors"
-                >
-                  Change number
-                </button>
-                <button
-                  type="button"
-                  onClick={handleResendOTP}
-                  disabled={resendCooldown > 0 || isAnyPending}
-                  className="font-mono text-[10px] text-white/50 hover:text-[#ddb7ff] uppercase tracking-[0.18em] transition-colors disabled:opacity-40"
-                >
-                  {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend code"}
-                </button>
-              </div>
-            </div>
-          )}
-
-          <div className="flex items-center gap-4 my-6">
-            <span className="flex-1 h-px bg-white/[0.12]" />
-            <span className="font-mono text-[9px] font-bold uppercase tracking-[0.25em] text-white/60">or</span>
-            <span className="flex-1 h-px bg-white/[0.12]" />
-          </div>
-
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <SocialAuthButton
-                provider="google"
-                icon={<GoogleIcon />}
-                label="Google"
-                action={signInWithGoogleAction}
-                isPending={isAnyPending}
-                onPending={setSocialPending}
-              />
-            </div>
-            <div className="flex-1">
-              <SocialAuthButton
-                provider="facebook"
-                icon={<FacebookIcon />}
-                label="Facebook"
-                action={signInWithFacebookAction}
-                isPending={isAnyPending}
-                onPending={setSocialPending}
-              />
-            </div>
-          </div>
-
-          <div className="mt-6 pt-5 border-t border-white/[0.06] text-center">
-            <Link
-              href="/create-account"
-              className="font-mono text-[11px] font-bold uppercase tracking-[0.22em] text-white/80 hover:text-[#eadfed] transition-colors"
-            >
-              Create Account
+          <div style={{ textAlign: 'right' }}>
+            <Link href="/forgot-password" className="lmodal__foot-link" style={{ fontSize: 11 }}>
+              Forgot password
             </Link>
           </div>
-        </div>
 
-        <div className="border-t border-white/[0.06] px-8 sm:px-10 py-3.5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500/80 shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
-            <span className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-white/60">Terminal Active</span>
-          </div>
-          <div className="hidden sm:flex items-center gap-4">
-            <span className="font-mono text-[8px] font-bold tracking-[0.2em] text-white/50 uppercase flex items-center gap-1.5">
-              <span className="inline-block w-1 h-1 rounded-full bg-green-500/60 shadow-[0_0_6px_rgba(34,197,94,0.4)]" />
-              NETWORK ONLINE
-            </span>
-            <span className="font-mono text-[8px] font-bold tracking-[0.2em] text-white/50 uppercase flex items-center gap-1.5">
-              <span className="inline-block w-1 h-1 rounded-full bg-green-500/60 shadow-[0_0_6px_rgba(34,197,94,0.4)]" />
-              IDENTITY ACTIVE
-            </span>
-            <span className="font-mono text-[8px] font-bold tracking-[0.2em] text-white/50 uppercase flex items-center gap-1.5">
-              <span className="inline-block w-1 h-1 rounded-full bg-green-500/60 shadow-[0_0_6px_rgba(34,197,94,0.4)]" />
-              ACCESS READY
-            </span>
+          <button type="button" onClick={handleEmailLogin} disabled={isAnyPending} className="lmodal__submit">
+            {emailPending ? "Verifying…" : "Sign in"}
+          </button>
+        </div>
+      )}
+
+      {mode === "phone" && phoneStep === "enter" && (
+        <div className="lmodal__form">
+          <input
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSendOTP()}
+            placeholder="Phone number"
+            autoComplete="tel"
+            disabled={isAnyPending}
+          />
+          {phoneError && <p className="lmodal__error">{phoneError}</p>}
+          <button type="button" onClick={handleSendOTP} disabled={isAnyPending} className="lmodal__submit">
+            {phonePending ? "Sending…" : "Send code"}
+          </button>
+        </div>
+      )}
+
+      {mode === "phone" && phoneStep === "otp" && (
+        <div className="lmodal__form">
+          <p className="lmodal__sub" style={{ margin: 0 }}>Code sent to +91 {phone}</p>
+          <input
+            type="text"
+            inputMode="numeric"
+            value={otp}
+            onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+            onKeyDown={(e) => e.key === "Enter" && handleVerifyOTP()}
+            placeholder="Enter code"
+            autoComplete="one-time-code"
+            disabled={isAnyPending}
+          />
+          {phoneError && <p className="lmodal__error">{phoneError}</p>}
+          <button type="button" onClick={handleVerifyOTP} disabled={isAnyPending} className="lmodal__submit">
+            {phonePending ? "Verifying…" : "Verify & sign in"}
+          </button>
+          <div className="acct-confirm__actions" style={{ justifyContent: 'space-between' }}>
+            <button type="button" onClick={() => { setPhoneStep("enter"); setOtp(""); setPhoneError(""); }} className="acct-confirm__cancel">
+              Change number
+            </button>
+            <button type="button" onClick={handleResendOTP} disabled={resendCooldown > 0 || isAnyPending} className="lmodal__resend">
+              {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend code"}
+            </button>
           </div>
         </div>
+      )}
+
+      <div className="lmodal__divider"><span>or</span></div>
+
+      <div className="lmodal__socials">
+        <SocialAuthButton provider="google" icon={<GoogleIcon />} label="Continue with Google" action={signInWithGoogleAction} isPending={isAnyPending} onPending={setSocialPending} />
+        <SocialAuthButton provider="facebook" icon={<FacebookIcon />} label="Continue with Facebook" action={signInWithFacebookAction} isPending={isAnyPending} onPending={setSocialPending} />
       </div>
+
+      <p className="lmodal__foot">
+        New here? <Link href="/create-account" className="lmodal__foot-link">Create an account</Link>
+      </p>
     </div>
   );
 }
@@ -428,27 +279,9 @@ function LoginInner() {
   if (!isHydrated || isAuthenticated) return null;
 
   return (
-    <main className="relative min-h-screen bg-transparent flex items-center justify-center overflow-hidden">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(0,0,0,0.65)_100%)]" />
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_50%_30%,rgba(221,183,255,0.04)_0%,transparent_55%)]" />
-      <div
-        className="pointer-events-none fixed inset-0 opacity-[0.02]"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)",
-          backgroundSize: "40px 40px",
-        }}
-      />
-
-      <motion.div
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="relative z-10 w-full px-6 sm:px-8 py-12"
-      >
-        <LoginForm />
-      </motion.div>
-    </main>
+    <div className="listing" style={{ display: 'flex', justifyContent: 'center', paddingTop: 60, paddingBottom: 60 }}>
+      <LoginForm />
+    </div>
   );
 }
 
