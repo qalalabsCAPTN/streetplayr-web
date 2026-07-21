@@ -1,8 +1,9 @@
 # Production-optimized multi-stage Dockerfile for StreetPlayR
 # Conforms to Google Cloud Run and Next.js production best practices
+# Pinned to Node 20.12.0-alpine for absolute build reproducibility
 
 # --- Phase 1: Install dependencies with npm caching ---
-FROM node:20-alpine AS deps
+FROM node:20.12.0-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
@@ -11,7 +12,7 @@ COPY package.json package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm npm ci
 
 # --- Phase 2: Compile application & prune devDependencies ---
-FROM node:20-alpine AS builder
+FROM node:20.12.0-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -29,7 +30,7 @@ RUN --mount=type=cache,target=/app/.next/cache npm run build
 RUN npm prune --omit=dev
 
 # --- Phase 3: Runtime ---
-FROM node:20-alpine AS runner
+FROM node:20.12.0-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production

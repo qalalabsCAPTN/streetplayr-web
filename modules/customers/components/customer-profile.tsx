@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
-  Wallet, Trophy, GitBranch, Swords, Activity,
+  Wallet, Trophy, GitBranch, Activity,
   AlertTriangle, ShieldCheck, ShieldAlert, Calendar,
-  TrendingUp, ExternalLink,
+  TrendingUp,
 } from 'lucide-react';
 import { cn } from '@/lib/ops2/cn';
 import { formatRelativeTime, formatDateTime, formatPoints, formatCurrency, formatXp } from '@/lib/ops2/format';

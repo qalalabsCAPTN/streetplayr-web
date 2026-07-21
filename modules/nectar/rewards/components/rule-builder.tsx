@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, X, Zap, Play, Save, Trash2, ChevronDown } from 'lucide-react';
+import { Plus, X, Play, Save, Trash2, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/ops2/cn';
 import { Badge } from '@/components/ops2/ui/badge';
 import { api } from '@/lib/ops2/api-client';
@@ -395,7 +395,7 @@ export function RuleBuilder({ rule, onSave, onCancel }: RuleBuilderProps) {
                   onClick={() => toggleTier(tier)}
                   className={cn(
                     'px-3 py-1.5 rounded-lg border text-xs font-semibold uppercase tracking-wider transition-all duration-150',
-                    form.eligibleTiers.includes(tier) || form.eligibleTiers.length === 0
+                    selected
                       ? tier === 'seed'   ? 'bg-neutral-500/10 text-neutral-400 border-neutral-500/30' :
                         tier === 'sprout' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' :
                         tier === 'bloom'  ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' :

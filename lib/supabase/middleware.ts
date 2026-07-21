@@ -1,6 +1,5 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
-import { createStubClient } from './stub';
 
 /**
  * Session refresh middleware — handles Supabase cookie refresh.

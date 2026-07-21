@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
+// @ts-expect-error lenis package type declaration
 import Lenis from "lenis";
 
 /**

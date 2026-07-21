@@ -1,9 +1,9 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { Plus, Zap, Edit2, ToggleLeft, ToggleRight, Clock, Users } from 'lucide-react';
+import { Plus, Zap, Clock, Users } from 'lucide-react';
 import { cn } from '@/lib/ops2/cn';
-import { Badge, TierBadge } from '@/components/ops2/ui/badge';
+import { TierBadge } from '@/components/ops2/ui/badge';
 import { EmptyState } from '@/components/ops2/ui/empty-state';
 import { api } from '@/lib/ops2/api-client';
 import type { RewardRule } from '@nectar/types';

@@ -14,7 +14,10 @@ export default function RealtimeProvider({ children }: { children: React.ReactNo
   const isHydrated = useAuthStore((s) => s.isHydrated);
   const sync = useAuthStore((s) => s.sync);
   const syncRef = useRef(sync);
-  syncRef.current = sync;
+
+  useEffect(() => {
+    syncRef.current = sync;
+  }, [sync]);
 
   useEffect(() => {
     if (!isHydrated || !isAuthenticated || !user?.id) return;
