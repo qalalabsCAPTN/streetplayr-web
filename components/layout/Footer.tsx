@@ -13,10 +13,10 @@ export default function Footer() {
   const windowWidth = useWindowWidth();
 
   const getStarScale = () => {
-    if (windowWidth === null) return 0.70;
-    if (windowWidth < 768) return 0.45;
-    if (windowWidth < 1024) return 0.60;
-    return 0.70;
+    if (windowWidth === null) return 0.95;
+    if (windowWidth < 768) return 0.65;
+    if (windowWidth < 1024) return 0.85;
+    return 0.95;
   };
   const starScale = getStarScale();
 
@@ -65,7 +65,7 @@ export default function Footer() {
             <Link href="/contact">Blogs</Link>
           </div>
           <div className="footer__bag flex flex-col items-center justify-center" style={{ minHeight: '200px' }}>
-            <div className="w-full max-w-[140px] sm:max-w-[180px] md:max-w-[200px] aspect-square select-none pointer-events-auto flex items-center justify-center">
+            <div className="w-full max-w-[190px] sm:max-w-[240px] md:max-w-[280px] aspect-square select-none pointer-events-auto flex items-center justify-center">
               <NinjaStar scale={starScale} scrollReactive={false} />
             </div>
           </div>

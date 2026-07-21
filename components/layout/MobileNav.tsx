@@ -46,7 +46,7 @@ export default function MobileNav({ onSearch, onAccount }: MobileNavProps) {
 
   return (
     <nav className="mobilenav" aria-label="Primary">
-      <Link href="/" className="mobilenav__item" aria-label="Explore">
+      <Link href="/home" className="mobilenav__item" aria-label="Explore">
         {Icon.compass}
       </Link>
       <button className="mobilenav__item" aria-label="Account" onClick={onAccount}>

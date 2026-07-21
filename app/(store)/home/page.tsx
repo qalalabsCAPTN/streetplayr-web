@@ -60,11 +60,11 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       <Hero />
       <ProductSection title="Latest drop" products={latestDrops} moreHref="/collections?category=new-in" gallery flat />
       {tees.length > 0 && (
-        <ProductSection title="Tees & T-Shirts" products={tees} moreHref="/collections?category=tees" gallery />
+        <ProductSection title="Tees" products={tees} moreHref="/collections?category=tees" gallery />
       )}
       <BannerSlider />
       {pants.length > 0 && (
-        <ProductSection title="Pants & Sweatpants" products={pants} moreHref="/collections?category=pants" gallery />
+        <ProductSection title="Bottomwear" products={pants} moreHref="/collections?category=pants" gallery />
       )}
       {tanks.length > 0 && (
         <ProductSection title="Tank Tops" products={tanks} moreHref="/collections?category=tanks" gallery />

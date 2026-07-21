@@ -113,7 +113,7 @@ export default function CheckoutSuccessPage() {
             </h1>
             <div className="pt-8">
               <Link
-                href="/"
+                href="/home"
                 className="rounded-xl border border-white/[0.14] px-8 py-4 font-mono text-xs uppercase tracking-[0.3em] text-[#eadfed] hover:bg-[#ddb7ff] hover:text-[#16111b] transition-all"
               >
                 Return to Surface

@@ -317,9 +317,9 @@ export default function AITryOn({
   if (!isEnabled) return null;
 
   return (
-    <div className="border border-white/[0.06] bg-[#16111b] overflow-hidden">
+    <div className="rounded-2xl border border-[#ddb7ff]/15 bg-gradient-to-b from-[#1c1424] to-[#16111b] overflow-hidden shadow-[0_18px_40px_-24px_rgba(221,183,255,0.25)]">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.06]">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-[#ddb7ff]/10 bg-[#ddb7ff]/[0.03]">
         <div className="flex items-center gap-2.5">
           {/* Spark icon */}
           <svg width="12" height="12" viewBox="0 0 24 24" fill="#ddb7ff" className="opacity-80">
@@ -356,10 +356,10 @@ export default function AITryOn({
             <div
               onDrop={handleDrop}
               onDragOver={(e) => e.preventDefault()}
-              className="border border-dashed border-white/[0.12] hover:border-[#ddb7ff]/30 transition-colors cursor-pointer flex flex-col items-center justify-center gap-3 py-10 group"
+              className="rounded-xl border border-dashed border-[#ddb7ff]/20 hover:border-[#ddb7ff]/45 hover:bg-[#ddb7ff]/[0.03] transition-colors cursor-pointer flex flex-col items-center justify-center gap-3 py-10 group"
               onClick={() => fileInputRef.current?.click()}
             >
-              <div className="w-10 h-10 flex items-center justify-center border border-white/[0.10] group-hover:border-[#ddb7ff]/30 transition-colors">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center border border-[#ddb7ff]/15 group-hover:border-[#ddb7ff]/40 transition-colors">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-white/40 group-hover:text-[#ddb7ff]/60 transition-colors">
                   <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
                   <polyline points="17 8 12 3 7 8" />
@@ -395,7 +395,7 @@ export default function AITryOn({
               {/* User photo */}
               <div className="space-y-1.5">
                 <p className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/35">You</p>
-                <div className="relative aspect-[3/4] overflow-hidden border border-white/[0.08]">
+                <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-white/[0.08]">
                   <Image src={userPhotoPreview} alt="Your photo" fill className="object-cover" sizes="50vw" />
                   <button
                     onClick={() => fileInputRef.current?.click()}
@@ -409,7 +409,7 @@ export default function AITryOn({
               {/* Garment */}
               <div className="space-y-1.5">
                 <p className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/35">Garment</p>
-                <div className="relative aspect-[3/4] overflow-hidden border border-white/[0.08] bg-[#050505]">
+                <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-white/[0.08] bg-[#050505]">
                   <Image src={productImageUrl} alt={productTitle} fill className="object-cover" sizes="50vw" />
                 </div>
               </div>
@@ -417,7 +417,7 @@ export default function AITryOn({
 
             <button
               onClick={handleGenerate}
-              className="w-full py-4 font-mono text-[10px] uppercase tracking-[0.25em] font-semibold bg-[#ddb7ff]/10 border border-[#ddb7ff]/25 text-[#ddb7ff] hover:bg-[#ddb7ff]/20 hover:border-[#ddb7ff]/50 transition-all flex items-center justify-center gap-2"
+              className="w-full py-4 rounded-lg font-mono text-[10px] uppercase tracking-[0.25em] font-semibold bg-[#ddb7ff]/10 border border-[#ddb7ff]/25 text-[#ddb7ff] hover:bg-[#ddb7ff]/20 hover:border-[#ddb7ff]/50 transition-all flex items-center justify-center gap-2"
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="#ddb7ff" className="opacity-80 flex-shrink-0">
                 <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" />
@@ -447,7 +447,7 @@ export default function AITryOn({
               </div>
               <div className="space-y-1.5">
                 <p className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/35">Garment</p>
-                <div className="relative aspect-[3/4] overflow-hidden border border-white/[0.08] bg-[#050505]">
+                <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-white/[0.08] bg-[#050505]">
                   <Image src={productImageUrl} alt={productTitle} fill className="object-cover" sizes="50vw" />
                 </div>
               </div>
@@ -467,7 +467,7 @@ export default function AITryOn({
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <p className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/35">You</p>
-                <div className="relative aspect-[3/4] overflow-hidden border border-white/[0.08]">
+                <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-white/[0.08]">
                   {userPhotoPreview && (
                     <Image src={userPhotoPreview} alt="Your photo" fill className="object-cover opacity-40" sizes="50vw" />
                   )}

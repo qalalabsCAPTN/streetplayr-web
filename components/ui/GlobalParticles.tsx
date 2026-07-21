@@ -10,7 +10,7 @@ interface Particle {
   size: number;
 }
 
-const EXCLUDED_PATHS = ["/enter-the-play", "/entering-street-playR"];
+const EXCLUDED_PATHS = ["/entering-street-playR"];
 
 export default function GlobalParticles() {
   const pathname = usePathname();

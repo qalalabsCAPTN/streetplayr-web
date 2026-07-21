@@ -205,7 +205,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
   return (
     <div className="pdp-page pt-20" style={{ background: pageTint(props.title) }}>
       <nav className="pdp__breadcrumb">
-        <Link href="/">Home</Link>
+        <Link href="/home">Home</Link>
         <span>&gt;</span>
         <Link href="/collections">Shop</Link>
         <span>&gt;</span>
@@ -353,7 +353,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
               <button
                 onClick={() => setShow3DViewer(true)}
                 onMouseEnter={handleButtonHover}
-                className="w-full mt-3 flex items-center justify-between border border-white/[0.12] px-5 py-3.5 font-mono text-[11px] font-bold uppercase tracking-[0.22em] text-white/80 hover:text-white hover:border-[#ddb7ff]/40 transition-all duration-300 group"
+                className="w-full mt-4 flex items-center justify-between rounded-lg border border-white/[0.12] px-5 py-3.5 font-mono text-[11px] font-bold uppercase tracking-[0.22em] text-white/80 hover:text-white hover:border-[#ddb7ff]/40 transition-all duration-300 group"
               >
                 <span>View in 3D</span>
                 <svg

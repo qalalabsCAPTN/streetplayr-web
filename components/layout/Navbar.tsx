@@ -50,8 +50,8 @@ const Icon = {
 const menu = {
   featured: [
     { label: 'Latest Drop', href: '/collections?category=new-in' },
-    { label: 'T-Shirts & Tees', href: '/collections?category=tees' },
-    { label: 'Pants & Sweatpants', href: '/collections?category=pants' },
+    { label: 'Topwear', href: '/collections?category=tees' },
+    { label: 'Bottomwear', href: '/collections?category=pants' },
     { label: 'Tank Tops', href: '/collections?category=tanks' },
   ],
   tees: [
@@ -166,7 +166,18 @@ export default function Navbar() {
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const solid = pathname !== '/' || scrolled || megaOpen || searchOpen;
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 900);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // On mobile, the header stays transparent over the top of every page until
+  // the user scrolls — desktop keeps the route-based solid background.
+  const solid = scrolled || megaOpen || searchOpen || (!isMobile && pathname !== '/');
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
@@ -207,7 +218,7 @@ export default function Navbar() {
             <button className="header__pill-plus" onClick={() => setMegaOpen((v) => !v)} aria-label="Menu">
               +
             </button>
-            <Link href="/" className="header__pill-link">
+            <Link href="/home" className="header__pill-link">
               <img src="/playR.street logo.png" alt="playR" />
             </Link>
           </div>
