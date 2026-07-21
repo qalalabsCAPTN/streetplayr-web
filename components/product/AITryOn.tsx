@@ -30,7 +30,7 @@ function formatTime(ms: number) {
 function Shimmer({ className = "" }: { className?: string }) {
   return (
     <div
-      className={`relative overflow-hidden bg-white/[0.04] ${className}`}
+      className={`relative overflow-hidden bg-[var(--fg-04)] ${className}`}
       aria-hidden
     >
       <div
@@ -317,7 +317,7 @@ export default function AITryOn({
   if (!isEnabled) return null;
 
   return (
-    <div className="rounded-2xl border border-[#ddb7ff]/15 bg-gradient-to-b from-[#1c1424] to-[#16111b] overflow-hidden shadow-[0_18px_40px_-24px_rgba(221,183,255,0.25)]">
+    <div className="ai-tryon-panel rounded-2xl border border-[#ddb7ff]/15 overflow-hidden shadow-[0_18px_40px_-24px_rgba(221,183,255,0.25)]">
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-[#ddb7ff]/10 bg-[#ddb7ff]/[0.03]">
         <div className="flex items-center gap-2.5">
@@ -335,7 +335,7 @@ export default function AITryOn({
         {phase !== "idle" && phase !== "error" && (
           <button
             onClick={handleReset}
-            className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/30 hover:text-white/60 transition-colors"
+            className="font-mono text-[8px] uppercase tracking-[0.2em] text-[var(--fg-30)] hover:text-[var(--fg-60)] transition-colors"
           >
             Reset
           </button>
@@ -348,7 +348,7 @@ export default function AITryOn({
         {/* ── IDLE: no photo yet ── */}
         {phase === "idle" && !userPhotoPreview && (
           <div className="space-y-4">
-            <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-white/40 leading-relaxed">
+            <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-[var(--fg-45)] leading-relaxed">
               Upload a full-body photo — see yourself wearing {productTitle}
             </p>
 
@@ -360,17 +360,17 @@ export default function AITryOn({
               onClick={() => fileInputRef.current?.click()}
             >
               <div className="w-10 h-10 rounded-full flex items-center justify-center border border-[#ddb7ff]/15 group-hover:border-[#ddb7ff]/40 transition-colors">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-white/40 group-hover:text-[#ddb7ff]/60 transition-colors">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--fg-45)] group-hover:text-[#ddb7ff]/60 transition-colors">
                   <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
                   <polyline points="17 8 12 3 7 8" />
                   <line x1="12" y1="3" x2="12" y2="15" />
                 </svg>
               </div>
               <div className="text-center">
-                <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/50 group-hover:text-white/70 transition-colors">
+                <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-[var(--fg-50)] group-hover:text-[var(--fg-72)] transition-colors">
                   Drop photo here
                 </p>
-                <p className="font-mono text-[8px] text-white/25 mt-1">
+                <p className="font-mono text-[8px] text-[var(--fg-25)] mt-1">
                   or tap to browse · JPG PNG WEBP · max 8MB
                 </p>
               </div>
@@ -394,8 +394,8 @@ export default function AITryOn({
             <div className="grid grid-cols-2 gap-3">
               {/* User photo */}
               <div className="space-y-1.5">
-                <p className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/35">You</p>
-                <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-white/[0.08]">
+                <p className="font-mono text-[8px] uppercase tracking-[0.2em] text-[var(--fg-35)]">You</p>
+                <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-[var(--fg-08)]">
                   <Image src={userPhotoPreview} alt="Your photo" fill className="object-cover" sizes="50vw" />
                   <button
                     onClick={() => fileInputRef.current?.click()}
@@ -408,8 +408,8 @@ export default function AITryOn({
 
               {/* Garment */}
               <div className="space-y-1.5">
-                <p className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/35">Garment</p>
-                <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-white/[0.08] bg-[#050505]">
+                <p className="font-mono text-[8px] uppercase tracking-[0.2em] text-[var(--fg-35)]">Garment</p>
+                <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-[var(--fg-08)] bg-[var(--chip)]">
                   <Image src={productImageUrl} alt={productTitle} fill className="object-cover" sizes="50vw" />
                 </div>
               </div>
@@ -442,20 +442,20 @@ export default function AITryOn({
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <p className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/35">Uploading…</p>
+                <p className="font-mono text-[8px] uppercase tracking-[0.2em] text-[var(--fg-35)]">Uploading…</p>
                 <Shimmer className="aspect-[3/4]" />
               </div>
               <div className="space-y-1.5">
-                <p className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/35">Garment</p>
-                <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-white/[0.08] bg-[#050505]">
+                <p className="font-mono text-[8px] uppercase tracking-[0.2em] text-[var(--fg-35)]">Garment</p>
+                <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-[var(--fg-08)] bg-[var(--chip)]">
                   <Image src={productImageUrl} alt={productTitle} fill className="object-cover" sizes="50vw" />
                 </div>
               </div>
             </div>
-            <div className="w-full h-px bg-white/[0.04] overflow-hidden">
+            <div className="w-full h-px bg-[var(--fg-04)] overflow-hidden">
               <div className="h-full w-1/3 bg-gradient-to-r from-transparent via-[#ddb7ff]/40 to-transparent animate-[slide_1s_linear_infinite]" />
             </div>
-            <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/35 text-center">
+            <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-[var(--fg-35)] text-center">
               Uploading your photo…
             </p>
           </div>
@@ -466,8 +466,8 @@ export default function AITryOn({
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <p className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/35">You</p>
-                <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-white/[0.08]">
+                <p className="font-mono text-[8px] uppercase tracking-[0.2em] text-[var(--fg-35)]">You</p>
+                <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-[var(--fg-08)]">
                   {userPhotoPreview && (
                     <Image src={userPhotoPreview} alt="Your photo" fill className="object-cover opacity-40" sizes="50vw" />
                   )}
@@ -481,7 +481,7 @@ export default function AITryOn({
             </div>
 
             {/* Progress bar */}
-            <div className="w-full h-[2px] bg-white/[0.06] overflow-hidden">
+            <div className="w-full h-[2px] bg-[var(--fg-06)] overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-[#ddb7ff]/60 to-[#ddb7ff]/20 animate-[slide_2s_ease-in-out_infinite]"
                 style={{ width: "40%" }}
@@ -489,10 +489,10 @@ export default function AITryOn({
             </div>
 
             <div className="flex justify-between items-center">
-              <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/35">
+              <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-[var(--fg-35)]">
                 Fitting your look…
               </p>
-              <p className="font-mono text-[9px] text-white/25">
+              <p className="font-mono text-[9px] text-[var(--fg-25)]">
                 {formatTime(elapsed)}
               </p>
             </div>
@@ -504,14 +504,14 @@ export default function AITryOn({
           <div className="space-y-4">
             <CompareSlider before={userPhotoPreview} after={resultUrl} />
 
-            <p className="font-mono text-[8px] uppercase tracking-[0.2em] text-white/30 text-center">
+            <p className="font-mono text-[8px] uppercase tracking-[0.2em] text-[var(--fg-30)] text-center">
               ← Drag to compare →
             </p>
 
             <div className="flex gap-2">
               <button
                 onClick={handleReset}
-                className="flex-1 py-3 font-mono text-[9px] uppercase tracking-[0.2em] border border-white/[0.12] text-white/50 hover:text-white hover:border-white/30 transition-all"
+                className="flex-1 py-3 font-mono text-[9px] uppercase tracking-[0.2em] border border-[var(--fg-12)] text-[var(--fg-50)] hover:text-[var(--fg-95)] hover:border-[var(--fg-30)] transition-all"
               >
                 Try Again
               </button>
@@ -525,7 +525,7 @@ export default function AITryOn({
               )}
             </div>
 
-            <p className="font-mono text-[7px] text-white/20 text-center leading-relaxed">
+            <p className="font-mono text-[7px] text-[var(--fg-20)] text-center leading-relaxed">
               AI Style Preview — actual garment fits and print scales may vary.
             </p>
           </div>
@@ -546,7 +546,7 @@ export default function AITryOn({
             </div>
             <button
               onClick={handleReset}
-              className="w-full py-3.5 font-mono text-[9px] uppercase tracking-[0.22em] border border-white/[0.12] text-white/60 hover:text-white hover:border-white/30 transition-all"
+              className="w-full py-3.5 font-mono text-[9px] uppercase tracking-[0.22em] border border-[var(--fg-12)] text-[var(--fg-60)] hover:text-[var(--fg-95)] hover:border-[var(--fg-30)] transition-all"
             >
               Try Again
             </button>

@@ -139,6 +139,10 @@ When pushing local commits to GitHub from the Antigravity sandbox:
   git push origin main
   ```
 
+### Root Route Redirects Externally — Don't Link to "/"
+`app/(store)/page.tsx` (`/`) now does a hard `redirect()` to `https://streetplayr.qalalabs.com/entering-street-playR` (the `/enter-the-play` splash page was removed). Any internal `<Link href="/">` left pointing at the old root will get repeatedly prefetched by Next.js and hammer that external redirect — in one session this hung a headless browser tab in an infinite `HEAD /` loop.
+- **Fix:** Point all internal "home" links (mobile bottom nav, PDP breadcrumb, checkout-success "return" link, header logo, etc.) at `/home`, never `/`.
+
 ### Global Background Particles & Stacking Context Visibility
 To keep the global floating particles animation (`GlobalParticles` at `z-[-1]`) visible behind all text, images, videos, and products across the storefront:
 - **Layering Hierarchy:** The background layers are structured as: Body background gradient (`z-[-3]`) -> page-specific background overlays (`z-[-2]`) -> `GlobalParticles` (`z-[-1]`) -> content (`z-auto`/`0`/positive).

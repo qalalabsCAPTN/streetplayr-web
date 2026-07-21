@@ -671,6 +671,10 @@ body.theme-light .carousel3d__dot.active {
     filter: none;
   }
 }
+/* AI Try-On panel — purple accent stays constant across themes, base surface flips */
+.ai-tryon-panel { background: linear-gradient(to bottom, rgba(221,183,255,0.10), var(--panel)); }
+.storefront-root.theme-dark .ai-tryon-panel { background: linear-gradient(to bottom, #1c1424, #16111b); }
+
 .pdp__side { position: sticky; top: calc(var(--header-h) + 10px); display: flex; flex-direction: column; gap: 14px; }
 .pdp__panel { background: var(--panel); border-radius: var(--radius-lg); padding: 28px; }
 .pdp__toprow { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
