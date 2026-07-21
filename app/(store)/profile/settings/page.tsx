@@ -98,7 +98,7 @@ export default function SettingsPage() {
 
   function handleSignOut() {
     logout();
-    router.push('/');
+    router.push('/home');
   }
 
   if (!user) return null;
@@ -184,7 +184,7 @@ export default function SettingsPage() {
             <div className="acct-confirm">
               <p className="acct-danger__text">This cannot be undone. All data will be permanently erased.</p>
               <div className="acct-confirm__actions">
-                <button type="button" onClick={() => { logout(); router.push('/'); }} className="acct-btn-danger">
+                <button type="button" onClick={() => { logout(); router.push('/home'); }} className="acct-btn-danger">
                   Yes, delete everything
                 </button>
                 <button type="button" onClick={() => setShowDeleteConfirm(false)} className="acct-confirm__cancel">

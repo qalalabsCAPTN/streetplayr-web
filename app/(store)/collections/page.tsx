@@ -7,7 +7,11 @@ import Footer from '@/components/layout/Footer';
 import ProductCard from '@/components/ui/ProductCard';
 import { useCart } from '@/components/CartContext';
 
-const filterChips = ["View all", "Tees", "Tanks", "Pants", "Hoodies", "Outerwear"];
+const filterChips = ["View all", "Tees", "Tanks", "Pants", "Hoodies"];
+const disabledChips = ["Hoodies"];
+
+const sortOptions = ["Featured", "Price: Low to High", "Price: High to Low"] as const;
+type SortOption = typeof sortOptions[number];
 
 const chipToCategory = (chip: string) => {
   if (chip === "View all") return "ALL";
@@ -33,6 +37,7 @@ function CollectionsInner() {
     : 'View all';
 
   const [activeChip, setActiveChip] = useState(initialChip);
+  const [sortBy, setSortBy] = useState<SortOption>("Featured");
 
   // Sync state if URL search param changes
   useEffect(() => {
@@ -110,6 +115,15 @@ function CollectionsInner() {
         (p) => p.category?.toUpperCase() === chipToCategory(activeChip)
       );
 
+  const sortedProducts = [...filteredProducts];
+  if (sortBy === "Price: Low to High") {
+    sortedProducts.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
+  } else if (sortBy === "Price: High to Low") {
+    sortedProducts.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
+  }
+  // "Featured" keeps the catalog's default/curated order — there's no real
+  // popularity/sales signal in the product data to sort by yet.
+
   return (
     <div className="min-h-screen bg-transparent relative overflow-hidden">
       <Navbar />
@@ -148,13 +162,30 @@ function CollectionsInner() {
           </div>
 
           <div className="chips">
-            {filterChips.map((c) => (
-              <button 
-                key={c} 
-                className={`chip ${activeChip === c ? 'active' : ''}`} 
-                onClick={() => handleChipClick(c)}
+            {filterChips.map((c) => {
+              const isDisabled = disabledChips.includes(c);
+              return (
+                <button
+                  key={c}
+                  className={`chip ${activeChip === c ? 'active' : ''} ${isDisabled ? 'disabled' : ''}`}
+                  onClick={() => !isDisabled && handleChipClick(c)}
+                  disabled={isDisabled}
+                >
+                  {isDisabled ? `${c} (Soon)` : c}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="chips chips--sort">
+            <span className="chips__label">Sort:</span>
+            {sortOptions.map((s) => (
+              <button
+                key={s}
+                className={`chip ${sortBy === s ? 'active' : ''}`}
+                onClick={() => setSortBy(s)}
               >
-                {c}
+                {s}
               </button>
             ))}
           </div>
@@ -163,13 +194,13 @@ function CollectionsInner() {
             <div className="py-24 text-center">
               <div className="inline-block w-8 h-8 border-2 border-white/20 border-t-white/80 rounded-full animate-spin" />
             </div>
-          ) : filteredProducts.length === 0 ? (
+          ) : sortedProducts.length === 0 ? (
             <div className="py-24 text-center">
               <p style={{ color: '#757575', fontSize: 13 }}>No products in this filter yet.</p>
             </div>
           ) : (
             <div className="pgrid">
-              {filteredProducts.map((product) => (
+              {sortedProducts.map((product) => (
                 <ProductCard key={product.id} product={product} gallery={true} />
               ))}
             </div>

@@ -22,13 +22,6 @@ export default function Footer() {
 
   return (
     <>
-      <div className="popstrip">
-        <b>Popular searches</b>
-        <Link href="/collections?category=tees">Shop by category</Link>
-        <Link href="/collections">Shop by style</Link>
-        <Link href="/collections">Shop by color</Link>
-      </div>
-
       <footer className="footer">
         <div className="footer__grid">
           <div>
@@ -51,18 +44,15 @@ export default function Footer() {
             <Link href="/refund-policy">Refund/Exchange policy</Link>
             <Link href="/profile">Track your order</Link>
             <Link href="/shipping-policy">Shipping policy</Link>
-            <Link href="/contact">FAQ&apos;s</Link>
+            <Link href="/faq">FAQ&apos;s</Link>
             <Link href="/terms">Terms</Link>
             <Link href="/privacy-policy">Privacy Policy</Link>
           </div>
           <div>
             <h4>We are playR</h4>
             <Link href="/about">Our story</Link>
-            <Link href="/collections">Walk-in Stores</Link>
-            <Link href="/contact">Collaborations</Link>
-            <Link href="/contact">Careers</Link>
-            <Link href="/contact">Media</Link>
-            <Link href="/contact">Blogs</Link>
+            <Link href="/stores">Walk-in Stores</Link>
+            <Link href="/collaborations">Collaborations</Link>
           </div>
           <div className="footer__bag flex flex-col items-center justify-center" style={{ minHeight: '200px' }}>
             <div className="w-full max-w-[190px] sm:max-w-[240px] md:max-w-[280px] aspect-square select-none pointer-events-auto flex items-center justify-center">

@@ -28,7 +28,7 @@ export async function logoutAction(): Promise<ActionResponse> {
     console.error('Logout error:', e);
     return { success: false, error: e.message || 'Logout failed' };
   } finally {
-    redirect('/');
+    redirect('/home');
   }
 }
 

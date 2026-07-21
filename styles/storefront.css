@@ -42,7 +42,22 @@
   --panel-90: rgba(255,255,255,0.90);
 }
 
-.storefront-root * { box-sizing: border-box; margin: 0; padding: 0; }
+/* box-sizing applies to everything; margin/padding reset is scoped to native
+   elements that actually carry non-zero UA defaults (headings, text, lists,
+   form controls). Resetting the universal star-selector here used to also
+   zero out Tailwind's own padding and margin utility classes on div, span,
+   section, button etc throughout the app, since this stylesheet loads after
+   Tailwind's and ties on specificity -- that silently collapsed spacing
+   wherever a component relied on a Tailwind utility instead of a bespoke
+   class, causing text to sit flush or overlap on several pages. */
+.storefront-root * { box-sizing: border-box; }
+.storefront-root h1, .storefront-root h2, .storefront-root h3, .storefront-root h4, .storefront-root h5, .storefront-root h6,
+.storefront-root p, .storefront-root ul, .storefront-root ol, .storefront-root li,
+.storefront-root figure, .storefront-root blockquote, .storefront-root dl, .storefront-root dd,
+.storefront-root fieldset, .storefront-root button, .storefront-root input, .storefront-root select, .storefront-root textarea {
+  margin: 0;
+  padding: 0;
+}
 .storefront-root { scroll-behavior: smooth; }
 html.lenis, html.lenis .storefront-root {
   height: auto;
@@ -134,7 +149,7 @@ html.lenis, html.lenis .storefront-root {
   opacity: 0; visibility: hidden; transform: translateY(-8px);
   transition: all 0.32s var(--ease);
   padding: 34px 48px 42px;
-  display: grid; grid-template-columns: repeat(5, 1fr); gap: 32px;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px;
 }
 .mega.open { opacity: 1; visibility: visible; transform: translateY(0); }
 .mega h4 { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
@@ -597,6 +612,10 @@ body.theme-light .carousel3d__dot.active {
 }
 .chip:hover { border-color: #111; }
 .chip.active { background: #16181d; color: #fff; border-color: #16181d; }
+.chip.disabled { opacity: 0.45; cursor: not-allowed; }
+.chip.disabled:hover { border-color: var(--line); }
+.chips--sort { padding-top: 2px; align-items: center; }
+.chips__label { font-size: 11.5px; color: var(--muted); padding: 8px 2px 8px 4px; }
 
 /* ============ PDP ============ */
 .pdp-page { transition: background 0.5s ease; padding-bottom: 2px; padding-top: calc(var(--header-h) + 12px); }
@@ -746,15 +765,6 @@ body.theme-light .carousel3d__dot.active {
 .storefront-root .lightbox img { max-height: 92vh; max-width: 92vw; object-fit: contain; }
 
 /* ============ POPULAR SEARCHES STRIP ============ */
-.popstrip {
-  background: var(--panel); border-radius: var(--radius-lg); margin: 10px;
-  display: flex; align-items: center; justify-content: flex-end; gap: 26px;
-  padding: 16px 26px; flex-wrap: wrap;
-}
-.popstrip b { font-size: 12.5px; }
-.storefront-root .popstrip a { font-size: 12px; color: #111111; transition: opacity 0.2s; }
-.popstrip a:hover { opacity: 0.55; }
-
 /* ============ FOOTER ============ */
 .footer {
   background: var(--panel); border-radius: var(--radius-lg); margin: 0 10px 10px;
@@ -883,9 +893,10 @@ body.theme-light .carousel3d__dot.active {
   .pdp__panel { padding: 20px; }
 
   .header__logo {
-    background: #ececec; border-radius: 999px; padding: 5px 16px 5px 5px;
+    border-radius: 999px; padding: 5px 16px 5px 5px;
   }
-  .storefront-root.theme-dark .header__logo { background: var(--chip); }
+  .header--solid .header__logo { background: #ececec; }
+  .storefront-root.theme-dark .header--solid .header__logo { background: var(--chip); }
   .header__pill-plus { display: flex; }
   .storefront-root .header__logo img { height: 22px; }
 
@@ -2387,6 +2398,37 @@ body.theme-light .carousel3d__dot.active {
 }
 .storefront-root .legal-back:hover {
   text-decoration: underline;
+}
+.storefront-root .faq-list {
+  margin-bottom: 8px;
+}
+.storefront-root .faq-item {
+  border-bottom: 1px solid var(--line);
+}
+.storefront-root .faq-item__q {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 2px;
+  text-align: left;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+}
+.storefront-root .faq-item__toggle {
+  flex: 0 0 auto;
+  font-size: 18px;
+  color: var(--muted);
+}
+.storefront-root .faq-item__a {
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--fg);
+  opacity: 0.8;
+  padding: 0 2px 20px;
 }
 .storefront-root .acct-card--accent .pill {
   margin-top: 16px;

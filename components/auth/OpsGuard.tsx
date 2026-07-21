@@ -33,7 +33,7 @@ export default function OpsGuard({ children }: { children: React.ReactNode }) {
 
     const role = (user as { role?: UserRole } | null)?.role;
     if (!role || !isOpsRole(role)) {
-      router.push('/');
+      router.push('/home');
     }
   }, [isHydrated, isAuthenticated, user, router, pathname]);
 

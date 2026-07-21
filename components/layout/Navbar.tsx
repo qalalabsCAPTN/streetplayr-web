@@ -375,7 +375,7 @@ export default function Navbar() {
             ))}
           </div>
           <div>
-            <h4>T-Shirts</h4>
+            <h4>Topwear</h4>
             {menu.tees.map((l) => (
               <Link key={l.label} href={l.href} onClick={() => setMegaOpen(false)}>
                 {l.label}
@@ -383,7 +383,7 @@ export default function Navbar() {
             ))}
           </div>
           <div>
-            <h4>Pants &amp; Bottoms</h4>
+            <h4>Bottomwear</h4>
             {menu.pants.map((l) => (
               <Link key={l.label} href={l.href} onClick={() => setMegaOpen(false)}>
                 {l.label}
@@ -397,12 +397,6 @@ export default function Navbar() {
                 {l.label}
               </Link>
             ))}
-          </div>
-          <div>
-            <h4>Support</h4>
-            <Link href="/profile">Track your order</Link>
-            <Link href="/contact">Returns & exchange</Link>
-            <Link href="/contact">Shipping policy</Link>
           </div>
         </div>
       </header>
