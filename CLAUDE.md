@@ -211,3 +211,14 @@ The hero banner background image appeared washed out / heavily tinted. Fixed in 
 - Page routes and queries automatically detect whether Supabase environment variables are configured.
 - When `NEXT_PUBLIC_SUPABASE_URL` is missing or is set to a mock project, the query layers in [queries.ts](file:///E:/SP%20-%20Copy/streetplayr-web/lib/products/queries.ts) automatically fall back to loading data from [data.ts](file:///E:/SP%20-%20Copy/streetplayr-web/lib/products/data.ts) without throwing network errors or breaking storefront render.
 
+### 6. Easebuzz Payment Gateway Integration
+- **Primary Gateway**: Easebuzz selected for both domestic (INR/UPI/NetBanking) and international payment processing.
+- **Server Action**: [app/actions/easebuzz.ts](file:///e:/SP%20-%20Copy/streetplayr-web/app/actions/easebuzz.ts) initiates payment session with SHA-512 payload hash.
+- **Webhook Callback**: [app/api/webhooks/easebuzz/route.ts](file:///e:/SP%20-%20Copy/streetplayr-web/app/api/webhooks/easebuzz/route.ts) handles SURL/FURL callbacks with reverse hash verification to update order status (`paid` / `cancelled`) and fulfill inventory reservations (`inventory_reservations`).
+
+### 7. Database Migration 00016 Consolidation
+- **Consolidation Migration**: [00016_ecommerce_production_fix.sql](file:///e:/SP%20-%20Copy/streetplayr-web/supabase/migrations/00016_ecommerce_production_fix.sql) consolidates production schema requirements:
+  - Adds `sprr_balance`, `referral_code`, and `tier` columns to `profiles`.
+  - Creates `wallet_transactions`, `collections`, `collection_products`, and `operational_events` tables with Row Level Security (RLS) policies.
+
+
