@@ -71,7 +71,7 @@ export default function MobilePurchaseBar({ price, productId, title, image, sele
       initial={{ y: "100%" }}
       animate={{ y: isVisible ? "0%" : "100%" }}
       transition={{ type: "tween", duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-      className="fixed bottom-0 left-0 z-50 flex w-full items-center justify-between bg-gradient-to-t from-[#16111b] to-[#16111b]/80 px-6 py-6 pb-8 backdrop-blur-xl lg:hidden"
+      className="fixed bottom-[92px] left-4 right-4 z-40 flex items-center justify-between gap-4 rounded-full bg-gradient-to-t from-[#16111b] to-[#16111b]/90 px-6 py-4 backdrop-blur-xl border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.5)] lg:hidden"
     >
       <div className="flex flex-col">
         <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-white/30">
@@ -81,7 +81,7 @@ export default function MobilePurchaseBar({ price, productId, title, image, sele
       </div>
       <button
         onClick={handleAddToCart}
-        className={`rounded-xl h-12 px-8 font-mono text-[9px] uppercase tracking-[0.3em] transition-colors ${
+        className={`rounded-full h-10 px-6 font-mono text-[9px] uppercase tracking-[0.3em] transition-colors ${
           isAdded 
             ? "bg-white/10 text-white/60" 
             : "bg-white/5 text-white hover:bg-[#ddb7ff] hover:text-[#16111b]"
