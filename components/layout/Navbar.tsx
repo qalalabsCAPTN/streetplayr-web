@@ -357,7 +357,7 @@ export default function Navbar() {
                       </Link>
                     ))
                   ) : (
-                    <div className="header__search-no-results">No products found matching "{searchQuery}"</div>
+                    <div className="header__search-no-results">No products found matching &quot;{searchQuery}&quot;</div>
                   )}
                 </div>
               </div>

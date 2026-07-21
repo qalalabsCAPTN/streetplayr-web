@@ -40,7 +40,7 @@ export default function EditorialFeed({ activeCategory }: EditorialFeedProps) {
       >
         {filteredFeed.map((item, index) => {
           let desktopSpan = "md:col-span-6";
-          let alignClass = "";
+          const alignClass = "";
           let marginClass = "";
           let opacityClass = "opacity-100";
 

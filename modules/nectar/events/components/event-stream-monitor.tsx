@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Play, Pause, RefreshCw, AlertTriangle, CheckCircle2, Clock, ChevronRight, RotateCcw } from 'lucide-react';
+import { Play, Pause, RefreshCw, AlertTriangle, CheckCircle2, ChevronRight, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/ops2/cn';
 import { getSupabaseClient } from '@/lib/ops2/supabase';
 import { formatRelativeTime, formatDateTime } from '@/lib/ops2/format';

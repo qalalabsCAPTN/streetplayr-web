@@ -234,7 +234,7 @@ export default function LaunchExperience() {
               className="text-center"
             >
               <h2 className="font-display text-5xl md:text-7xl tracking-widest uppercase mb-4">
-                You're On The List
+                You&apos;re On The List
               </h2>
               <p className="font-mono text-sm text-gray-400 tracking-widest uppercase">
                 Keep an eye on your inbox.

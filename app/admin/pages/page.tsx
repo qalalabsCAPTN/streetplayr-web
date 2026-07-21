@@ -360,7 +360,7 @@ export default function PagesEditorPage() {
                 <div className="text-center py-16 border border-dashed border-border rounded-xl">
                   <div className="text-3xl mb-3">📄</div>
                   <p className="text-sm text-text-muted">No blocks yet.</p>
-                  <p className="text-xs text-text-muted mt-1">Click "Add Block" to start building this page.</p>
+                  <p className="text-xs text-text-muted mt-1">Click &quot;Add Block&quot; to start building this page.</p>
                 </div>
               )}
               {blocks.map((block, idx) => {

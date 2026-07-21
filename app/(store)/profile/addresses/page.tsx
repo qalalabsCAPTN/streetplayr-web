@@ -179,10 +179,6 @@ export default function AddressesPage() {
   const [isAdding, setIsAdding] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadAddresses();
-  }, []);
-
   async function loadAddresses() {
     setLoading(true);
     const result = await getAddressesAction();
@@ -191,6 +187,10 @@ export default function AddressesPage() {
     }
     setLoading(false);
   }
+
+  useEffect(() => {
+    loadAddresses();
+  }, []);
 
   const handleAdd = useCallback(async (data: Omit<AddressData, 'id' | 'is_primary' | 'user_id' | 'created_at'>) => {
     const result = await createAddressAction(data);

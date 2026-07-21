@@ -2,7 +2,7 @@
 
 import { cn } from '@/lib/ops2/cn';
 import { PLATFORMS } from '@/types/ops2/ops';
-import { formatCurrency, formatNumber } from '@/lib/ops2/format';
+import { formatNumber } from '@/lib/ops2/format';
 
 const MOCK_BREAKDOWN = [
   { id: 'streetplayr', gmv: 284500, users: 12400, events: 48200 },

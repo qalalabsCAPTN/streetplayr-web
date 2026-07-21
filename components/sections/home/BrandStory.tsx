@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 
 function FadeIn({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -47,7 +48,7 @@ export default function BrandStory({
   const hasBlocks = blocks && blocks.length > 0;
 
   return (
-    <section className="relative py-20 sm:py-24 px-4 md:px-8 lg:px-12 w-full max-w-[min(98vw,2560px)] mx-auto border-t border-white/[0.04]">
+    <section className="relative py-20 sm:py-24 px-4 md:px-6 w-full max-w-[min(95vw,2400px)] mx-auto border-t border-white/[0.04]">
       <FadeIn>
         <div className="flex items-center gap-3 mb-6">
           <span className="h-px w-6 bg-white/20 block" />
@@ -109,10 +110,11 @@ export default function BrandStory({
         <FadeIn delay={0.1} className="lg:col-span-7 relative overflow-hidden border border-white/[0.06] bg-[#0a0a0a] rounded-xl">
           <div className="aspect-[4/3] relative">
             {hasBlocks && blocks[0]?.image_url ? (
-              <img
+              <Image
                 src={blocks[0].image_url}
                 alt={blocks[0].title || "Brand Story"}
-                decoding="async"
+                fill
+                sizes="(max-width: 1024px) 100vw, 55vw"
                 className="absolute inset-0 w-full h-full object-cover"
               />
             ) : (

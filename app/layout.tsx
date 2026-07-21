@@ -14,18 +14,21 @@ const display = Anton({
   subsets: ["latin"],
   weight: "400",
   variable: "--font-sp-display",
+  display: "swap",
 });
 
 const body = Inter({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
   variable: "--font-sp-body",
+  display: "swap",
 });
 
 const mono = Space_Mono({
   subsets: ["latin"],
   weight: ["400", "700"],
   variable: "--font-sp-mono",
+  display: "swap",
 });
 
 export const metadata: Metadata = {

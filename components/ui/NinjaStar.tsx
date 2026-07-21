@@ -606,7 +606,9 @@ function CompassStar({
     if (!canvas) return;
 
     // Allow vertical scrolling (pan-y) to prevent scroll traps on mobile
-    canvas.style.touchAction = "pan-y";
+    if (canvas && canvas.style) {
+      canvas.style.setProperty("touch-action", "pan-y");
+    }
 
     const heroElement = heroRef?.current || canvas;
 
