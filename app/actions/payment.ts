@@ -69,17 +69,27 @@ export async function createPaymentAndConfirmAction(
 
     const admin = createAdminClient();
 
-    // 1. Verify the order exists, is in draft, and belongs to this user
+    // 1. Verify the order exists, is in draft/pending status, and belongs to this user
+    const { data: customer } = user.email
+      ? await admin.from('customers').select('id').eq('email', user.email).maybeSingle()
+      : { data: null };
+
     const { data: order } = await admin
       .from('orders')
-      .select('id, status, total')
+      .select('id, status, grand_total, customer_id, notes')
       .eq('id', orderId)
-      .eq('user_id', user.id)
       .single();
 
     if (!order) return { success: false, error: 'Order not found.', code: 'ORDER_NOT_FOUND' };
-    if (order.status !== 'draft') {
-      return { success: false, error: 'Order is not in draft status.', code: 'INVALID_STATE' };
+    
+    // Check ownership via customer_id match or notes match
+    const isOwner = (customer && order.customer_id === customer.id) || order.notes === user.id;
+    if (!isOwner) {
+      return { success: false, error: 'Order does not belong to user.', code: 'UNAUTHORIZED_ORDER' };
+    }
+
+    if (order.status !== 'draft' && order.status !== 'pending') {
+      return { success: false, error: 'Order is not in valid status for payment.', code: 'INVALID_STATE' };
     }
 
     // 2. Create Stripe PaymentIntent with order context in metadata
@@ -110,8 +120,6 @@ export async function createPaymentAndConfirmAction(
         payment_intent_id: intent.id,
       })
       .eq('id', orderId)
-      .eq('user_id', user.id)
-      .eq('status', 'draft')
       .select('id, status')
       .single();
 
