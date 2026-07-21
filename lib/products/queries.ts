@@ -56,6 +56,21 @@ const EDITORIAL_ITEMS: FeedItemData[] = [
   },
 ];
 
+function formatSupabaseError(error: unknown) {
+  if (!error) return 'Unknown error';
+  if (typeof error === 'object' && error !== null) {
+    const errObj = error as Record<string, unknown>;
+    return {
+      message: errObj.message || String(error),
+      code: errObj.code || undefined,
+      details: errObj.details || undefined,
+      hint: errObj.hint || undefined,
+      stack: (error as Error).stack || undefined,
+    };
+  }
+  return String(error);
+}
+
 export const ProductQueries = {
   /**
    * Fetches the latest arrivals/drops.
@@ -76,7 +91,6 @@ export const ProductQueries = {
           featured_image_url,
           metadata,
           status,
-          categories(name, slug),
           product_variants(id, price)
         `)
         .eq('status', 'active')
@@ -84,7 +98,7 @@ export const ProductQueries = {
         .limit(10);
 
       if (error) {
-        console.error('Error fetching drops:', error);
+        console.error('Error fetching drops:', formatSupabaseError(error));
         return getLocalLatestDrops();
       }
 
@@ -108,7 +122,7 @@ export const ProductQueries = {
         };
       });
     } catch (err) {
-      console.error('Exception in getLatestDrops:', err);
+      console.error('Exception in getLatestDrops:', formatSupabaseError(err));
       return getLocalLatestDrops();
     }
   },
@@ -131,14 +145,13 @@ export const ProductQueries = {
           featured_image_url,
           metadata,
           status,
-          categories(name, slug),
           product_variants(id, price)
         `)
         .eq('status', 'active')
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching active products:', error);
+        console.error('Error fetching active products:', formatSupabaseError(error));
         return getLocalActiveProducts();
       }
 
@@ -160,7 +173,7 @@ export const ProductQueries = {
         };
       });
     } catch (err) {
-      console.error('Exception in getActiveProducts:', err);
+      console.error('Exception in getActiveProducts:', formatSupabaseError(err));
       return getLocalActiveProducts();
     }
   },
@@ -213,7 +226,12 @@ export const ProductQueries = {
         .eq('status', 'active')
         .single();
 
-      if (error || !data) return getLocalProductBySlug(slug) || null;
+      if (error) {
+        console.error('Error fetching product by slug:', formatSupabaseError(error));
+        return getLocalProductBySlug(slug) || null;
+      }
+
+      if (!data) return getLocalProductBySlug(slug) || null;
 
       const variants = (data.product_variants ?? []).map((v: any) => ({
         id: v.id,
@@ -240,7 +258,7 @@ export const ProductQueries = {
         is_active: data.status === 'active',
       };
     } catch (err) {
-      console.error('Exception in getProductBySlug:', err);
+      console.error('Exception in getProductBySlug:', formatSupabaseError(err));
       return getLocalProductBySlug(slug) || null;
     }
   },
