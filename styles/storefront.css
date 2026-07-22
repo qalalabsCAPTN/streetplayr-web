@@ -204,83 +204,35 @@ html.lenis, html.lenis .storefront-root {
 @keyframes heroFloat { 0%, 100% { margin-top: 0; } 50% { margin-top: -14px; } }
 .hero__shop {
   position: relative; z-index: 2; margin-bottom: 42px;
-  color: #fff; font-size: 13.5px; letter-spacing: 0.02em;
-  border-bottom: 1px solid rgba(255,255,255,0.85); padding-bottom: 3px;
-  transition: opacity 0.2s;
+  color: #fff; font-size: 14px; letter-spacing: 0.1em;
+  text-transform: uppercase; font-weight: 600;
+  padding: 12px 32px; border-radius: 999px;
+  background: rgba(0, 0, 0, 0.75); color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  transition: all 0.3s ease;
 }
-.hero__shop:hover { opacity: 0.7; }
+.hero__shop:hover {
+  background: #ffffff; color: #000000;
+  border-color: #ffffff;
+  transform: translateX(-50%) scale(1.05);
+  box-shadow: 0 6px 24px rgba(255, 255, 255, 0.4);
+}
 
-/* banner-image hero — full-bleed slider; the page-frame below the header
-   provides the soft corners for every section that scrolls under the bar */
-.hero--banner {
-  height: auto; min-height: 0; background: #dfddd8;
-  display: block; position: relative;
-  margin: 0; border-radius: 0; overflow: hidden;
-  aspect-ratio: 16 / 9;
-}
-.hslide {
-  position: absolute; inset: 0; width: 100%; height: 100%;
-  opacity: 0; transform: scale(1.04);
-  transition: opacity 0.8s ease, transform 1.4s var(--ease);
-  pointer-events: none;
-}
-.storefront-root .hslide img {
-  width: 100%; height: 100%; object-fit: cover;
-}
-.hslide.active { opacity: 1; transform: scale(1); }
-.hero__arrow {
-  position: absolute; top: 50%; transform: translateY(-50%); z-index: 5;
-  width: 42px; height: 42px; border-radius: 50%;
-  background: rgba(255,255,255,0.85); color: #16181d; backdrop-filter: blur(4px);
-  display: flex; align-items: center; justify-content: center; font-size: 16px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.14);
-  opacity: 0; transition: opacity 0.25s, transform 0.2s;
-}
-.hero--banner:hover .hero__arrow { opacity: 1; }
-.hero__arrow:hover { background: #fff; transform: translateY(-50%) scale(1.08); }
-.hero__arrow--prev { left: 16px; }
-.hero__arrow--next { right: 16px; }
-.hero__dots {
-  position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 5;
-  display: flex; gap: 7px;
-}
-.hero__dot {
-  width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.5);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.25);
-  transition: background 0.2s, transform 0.2s;
-}
-.hero__dot.active { background: #fff; transform: scale(1.25); }
-
-/* Inverse-corner mask pinned under the header: two small white "notch"
-   shapes (quarter-circle cutouts) at the top corners of the viewport, so any
-   section scrolling beneath the white bar shows soft top corners through it. */
-.page-frame {
-  position: fixed; left: 0; right: 0; top: var(--header-h); height: 0;
-  pointer-events: none; z-index: 59;
-  opacity: 0; transition: opacity 0.4s var(--ease);
-}
-.page-frame::before,
-.page-frame::after {
-  content: ''; position: absolute; top: 0; width: 32px; height: 32px;
-}
-.page-frame::before {
-  left: 0;
-  background: radial-gradient(circle at 100% 100%, transparent 31.5px, #fff 32px);
-}
-.page-frame::after {
-  right: 0;
-  background: radial-gradient(circle at 0 100%, transparent 31.5px, #fff 32px);
-}
-body.hdr-solid .page-frame { opacity: 1; }
-.hero__banner {
-  width: 100%; height: auto; display: block;
-  min-height: 320px; object-fit: cover;
-  animation: heroBannerIn 1s var(--ease) both;
-}
-@keyframes heroBannerIn { from { opacity: 0; transform: scale(1.02); } to { opacity: 1; transform: scale(1); } }
 .hero__shop--dark {
-  position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%);
-  margin: 0; color: #16181d; border-bottom-color: rgba(22,24,29,0.85);
+  position: absolute; left: 50%; bottom: 32px; transform: translateX(-50%);
+  margin: 0; background: #ffffff; color: #000000;
+  font-size: 15px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+  padding: 14px 38px; border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+}
+.hero__shop--dark:hover {
+  background: #000000; color: #ffffff;
+  border-color: #000000;
+  transform: translateX(-50%) scale(1.06);
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.5);
 }
 
 /* ============ SECTION PANELS ============ */
@@ -1849,6 +1801,11 @@ body.theme-light .carousel3d__dot.active {
   padding: 12px 15px;
   outline: none;
   transition: border-color 0.2s, background 0.2s;
+}
+.storefront-root .checkout-field select option {
+  background-color: #16181d;
+  color: #eadfed;
+  padding: 8px;
 }
 .storefront-root .checkout-field input:focus,
 .storefront-root .checkout-field select:focus {

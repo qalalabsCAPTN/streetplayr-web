@@ -58,17 +58,11 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   return (
     <div className="flex flex-col w-full">
       <Hero />
-      <ProductSection title="Latest drop" products={latestDrops} moreHref="/collections?category=new-in" gallery flat />
-      {tees.length > 0 && (
-        <ProductSection title="Tees" products={tees} moreHref="/collections?category=tees" gallery />
-      )}
+      <ProductSection title="Short Sleeve T-Shirts" products={tees.length > 0 ? tees : latestDrops} moreHref="/collections?category=tees" gallery flat />
+      <ProductSection title="Long Sleeve T-Shirts" products={latestDrops} moreHref="/collections?category=long-sleeve" gallery />
       <BannerSlider />
-      {pants.length > 0 && (
-        <ProductSection title="Bottomwear" products={pants} moreHref="/collections?category=pants" gallery />
-      )}
-      {tanks.length > 0 && (
-        <ProductSection title="Tank Tops" products={tanks} moreHref="/collections?category=tanks" gallery />
-      )}
+      <ProductSection title="Tanks" products={tanks.length > 0 ? tanks : latestDrops} moreHref="/collections?category=tanks" gallery />
+      <ProductSection title="Sweatpants" products={pants.length > 0 ? pants : latestDrops} moreHref="/collections?category=pants" gallery />
       <RecentlyVisited />
     </div>
   );

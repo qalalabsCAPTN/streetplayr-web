@@ -48,25 +48,25 @@ const Icon = {
 };
 
 const menu = {
-  featured: [
-    { label: 'Latest Drop', href: '/collections?category=new-in' },
-    { label: 'Topwear', href: '/collections?category=tees' },
-    { label: 'Bottomwear', href: '/collections?category=pants' },
-    { label: 'Tank Tops', href: '/collections?category=tanks' },
+  collections: [
+    { label: 'All Collections', href: '/collections' },
+    { label: 'New In', href: '/collections?category=new-in' },
   ],
-  tees: [
-    { label: 'WARRIOR Graphic', href: '/product/black-warrior' },
-    { label: 'INSPIRED Graphic', href: '/product/inspired' },
-    { label: 'Waffle Textured', href: '/product/ctt-waffle' },
-    { label: 'Stick No Bills', href: '/product/stick-no-bills' },
+  topwear: [
+    { label: 'Short Sleeve T-Shirts', href: '/collections?category=tees' },
+    { label: 'Long Sleeve T-Shirts', href: '/collections?category=long-sleeve' },
+    { label: 'Tanks', href: '/collections?category=tanks' },
   ],
-  pants: [
-    { label: 'Carpenter Grey', href: '/product/carpenter-grey' },
-    { label: 'Carpenter Olive', href: '/product/carpenter-grey' },
+  bottomwear: [
+    { label: 'Sweatpants', href: '/collections?category=pants' },
+    { label: 'Pants & Cargo', href: '/collections?category=pants' },
   ],
-  shop: [
+  shopAndSupport: [
     { label: 'All Products', href: '/collections' },
-    { label: 'New In', href: '/collections' },
+    { label: 'FAQ', href: '/faq' },
+    { label: 'Collaborations', href: '/collaborations' },
+    { label: 'Shipping Policy', href: '/shipping-policy' },
+    { label: 'Refund Policy', href: '/refund-policy' },
   ],
 };
 
@@ -175,8 +175,6 @@ export default function Navbar() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // On mobile, the header stays transparent over the top of every page until
-  // the user scrolls — desktop keeps the route-based solid background.
   const solid = scrolled || megaOpen || searchOpen || (!isMobile && pathname !== '/');
 
   useEffect(() => {
@@ -202,16 +200,14 @@ export default function Navbar() {
       >
         <div className="header__inner">
           <nav className="header__nav header__nav--desktop">
-            <Link href="/collections" className="header__link">
-              Shop
-            </Link>
-            <button 
+            <Link 
+              href="/collections" 
               className="header__link" 
               onMouseEnter={() => setMegaOpen(true)} 
               onClick={() => setMegaOpen((v) => !v)}
             >
-              Collections
-            </button>
+              Collection
+            </Link>
           </nav>
 
           <div className="header__logo">
@@ -321,15 +317,15 @@ export default function Navbar() {
                 <div className="header__search-list">
                   <Link href="/collections?category=tees" className="header__search-item" onClick={() => setSearchOpen(false)}>
                     <img src="/products al/WARRIOR Tee Black/bob warrior 1.jpg" alt="" />
-                    <span>T-Shirts &amp; Tees</span>
+                    <span>Short Sleeve T-Shirts</span>
                   </Link>
                   <Link href="/collections?category=pants" className="header__search-item" onClick={() => setSearchOpen(false)}>
                     <img src="/products al/Carpenter Pants Grey/track pant 1.jpg" alt="" />
-                    <span>Pants &amp; Cargo</span>
+                    <span>Sweatpants &amp; Cargo</span>
                   </Link>
                   <Link href="/collections?category=tanks" className="header__search-item" onClick={() => setSearchOpen(false)}>
                     <img src="/products al/staar tank white/staar tank white_.jpg" alt="" />
-                    <span>Tank Tops</span>
+                    <span>Tanks</span>
                   </Link>
                   <Link href="/collections" className="header__search-item" onClick={() => setSearchOpen(false)}>
                     <img src="/products al/playR Create Waffle Tee/CTT 1.jpg" alt="" />
@@ -367,8 +363,8 @@ export default function Navbar() {
 
         <div className={`mega ${megaOpen ? 'open' : ''}`}>
           <div>
-            <h4>Featured</h4>
-            {menu.featured.map((l) => (
+            <h4>Collection</h4>
+            {menu.collections.map((l) => (
               <Link key={l.label} href={l.href} onClick={() => setMegaOpen(false)}>
                 {l.label}
               </Link>
@@ -376,7 +372,7 @@ export default function Navbar() {
           </div>
           <div>
             <h4>Topwear</h4>
-            {menu.tees.map((l) => (
+            {menu.topwear.map((l) => (
               <Link key={l.label} href={l.href} onClick={() => setMegaOpen(false)}>
                 {l.label}
               </Link>
@@ -384,15 +380,15 @@ export default function Navbar() {
           </div>
           <div>
             <h4>Bottomwear</h4>
-            {menu.pants.map((l) => (
+            {menu.bottomwear.map((l) => (
               <Link key={l.label} href={l.href} onClick={() => setMegaOpen(false)}>
                 {l.label}
               </Link>
             ))}
           </div>
           <div>
-            <h4>Shop</h4>
-            {menu.shop.map((l) => (
+            <h4>Shop &amp; Support</h4>
+            {menu.shopAndSupport.map((l) => (
               <Link key={l.label} href={l.href} onClick={() => setMegaOpen(false)}>
                 {l.label}
               </Link>

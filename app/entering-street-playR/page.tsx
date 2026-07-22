@@ -31,7 +31,7 @@ export default function EnteringStreetPlayR() {
       </video>
 
       <button className={styles["skip-button"]} onClick={handleSkip}>
-        SKIP
+        [ CLICK TO ENTER ]
       </button>
     </div>
   );

@@ -193,8 +193,8 @@ export default function ScrollDamping() {
         // Prevent native browser scroll
         e.preventDefault();
 
-        // Make scroll 30% slower -> scale distance by 0.7
-        const scrollSpeedMultiplier = 0.7;
+        // Responsive wheel scroll multiplier without artificial delay
+        const scrollSpeedMultiplier = 1.0;
         const scrollAmount = e.deltaY * scrollSpeedMultiplier;
 
         const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
@@ -226,8 +226,8 @@ export default function ScrollDamping() {
         const timeStep = 2;
         accumulator.current += delta;
 
-        const stepStiffness = 0.004;
-        const stepDamping = 0.98;
+        const stepStiffness = 0.018;
+        const stepDamping = 0.92;
 
         let current = currentScrollY.current;
         const target = targetScrollY.current;

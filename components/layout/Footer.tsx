@@ -50,7 +50,6 @@ export default function Footer() {
           </div>
           <div>
             <h4>We are playR</h4>
-            <Link href="/about">Our story</Link>
             <Link href="/stores">Walk-in Stores</Link>
             <Link href="/collaborations">Collaborations</Link>
           </div>
