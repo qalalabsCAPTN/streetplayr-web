@@ -72,6 +72,7 @@ const menu = {
 
 export default function Navbar() {
   const [megaOpen, setMegaOpen] = useState(false);
+  const [menuDrawerOpen, setMenuDrawerOpen] = useState(false);
   const [storyOpen, setStoryOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -175,7 +176,7 @@ export default function Navbar() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const solid = scrolled || megaOpen || searchOpen || (!isMobile && pathname !== '/');
+  const solid = scrolled || megaOpen || menuDrawerOpen || searchOpen || (!isMobile && pathname !== '/');
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
@@ -280,7 +281,11 @@ export default function Navbar() {
             </button>
             <button 
               className="iconbtn iconbtn--menu hide-mobile" 
-              onClick={() => setMegaOpen((v) => !v)} 
+              onClick={() => {
+                setMenuDrawerOpen((v) => !v);
+                setMegaOpen(false);
+                setSearchOpen(false);
+              }} 
               aria-label="Menu"
             >
               {Icon.menu}
@@ -363,14 +368,6 @@ export default function Navbar() {
 
         <div className={`mega ${megaOpen ? 'open' : ''}`}>
           <div>
-            <h4>Collection</h4>
-            {menu.collections.map((l) => (
-              <Link key={l.label} href={l.href} onClick={() => setMegaOpen(false)}>
-                {l.label}
-              </Link>
-            ))}
-          </div>
-          <div>
             <h4>Topwear</h4>
             {menu.topwear.map((l) => (
               <Link key={l.label} href={l.href} onClick={() => setMegaOpen(false)}>
@@ -386,16 +383,46 @@ export default function Navbar() {
               </Link>
             ))}
           </div>
-          <div>
-            <h4>Shop &amp; Support</h4>
+        </div>
+      </header>
+
+      <div className={`scrim ${menuDrawerOpen ? 'open' : ''}`} onClick={() => setMenuDrawerOpen(false)} />
+      <aside className={`drawer ${menuDrawerOpen ? 'open' : ''}`}>
+        <div className="drawer__head">
+          <h3>Menu</h3>
+          <button 
+            onClick={() => setMenuDrawerOpen(false)} 
+            className="modal__close" 
+            style={{ cursor: 'pointer', float: 'none', background: 'none', border: 'none', fontSize: '24px', padding: '0 4px' }}
+          >
+            &times;
+          </button>
+        </div>
+        <div className="drawer__body" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <h4 style={{ fontSize: '11px', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: '4px' }}>
+              Shop &amp; Support
+            </h4>
             {menu.shopAndSupport.map((l) => (
-              <Link key={l.label} href={l.href} onClick={() => setMegaOpen(false)}>
+              <Link
+                key={l.label}
+                href={l.href}
+                onClick={() => setMenuDrawerOpen(false)}
+                style={{
+                  fontSize: '15px',
+                  fontWeight: 500,
+                  padding: '8px 0',
+                  borderBottom: '1px solid var(--line)',
+                  display: 'block',
+                  transition: 'opacity 0.2s',
+                }}
+              >
                 {l.label}
               </Link>
             ))}
           </div>
         </div>
-      </header>
+      </aside>
 
       {storyOpen && <StoryViewer onClose={() => setStoryOpen(false)} />}
 

@@ -149,7 +149,8 @@ html.lenis, html.lenis .storefront-root {
   opacity: 0; visibility: hidden; transform: translateY(-8px);
   transition: all 0.32s var(--ease);
   padding: 34px 48px 42px;
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px;
+  display: grid; grid-template-columns: repeat(2, minmax(0, 240px)); gap: 48px;
+  max-width: 640px;
 }
 .mega.open { opacity: 1; visibility: visible; transform: translateY(0); }
 .mega h4 { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }

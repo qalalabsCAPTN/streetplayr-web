@@ -227,4 +227,25 @@ The hero banner background image appeared washed out / heavily tinted. Fixed in 
   - Adds `sprr_balance`, `referral_code`, and `tier` columns to `profiles`.
   - Creates `wallet_transactions`, `collections`, `collection_products`, and `operational_events` tables with Row Level Security (RLS) policies.
 
+---
+
+### Desktop UI, Navigation & Preloader Updates (Session: 2026-07-22)
+- **Preloader & Video Playback**: Direct load into preloader video (`WebAnimation_V1.mp4`) without pre-video click gates. Relabeled video preloader skip button to `[ CLICK TO ENTER ]` in [`app/entering-street-playR/page.tsx`](file:///e:/SP%20-%20Copy/streetplayr-web/app/entering-street-playR/page.tsx).
+- **Navigation & Top Bar**:
+  - Removed top-left "Shop" button, keeping `Collection` link in top-left navigation.
+  - Reorganized `Collection` dropdown in [`components/layout/Navbar.tsx`](file:///e:/SP%20-%20Copy/streetplayr-web/components/layout/Navbar.tsx) under **Topwear** (Short Sleeve T-Shirts, Long Sleeve T-Shirts, Tanks) and **Bottomwear** (Sweatpants, Pants & Cargo).
+  - Moved **Shop & Support** (FAQ, Collaborations, Shipping Policy, Refund Policy, Contact) into the top-right hamburger menu drawer (`{Icon.menu}`).
+  - Confirmed logo link redirects directly to `/home`.
+- **Homepage CTA & Rebranding**:
+  - Enlarged "Shop Now" button styling in [`styles/storefront.css`](file:///e:/SP%20-%20Copy/streetplayr-web/styles/storefront.css).
+  - Updated section titles in [`app/(store)/home/page.tsx`](file:///e:/SP%20-%20Copy/streetplayr-web/app/%28store%29/home/page.tsx) to `Short Sleeve T-Shirts`, `Long Sleeve T-Shirts`, `Tanks`, and `Sweatpants`.
+- **Page Visibility & Formatting**:
+  - Hidden "Our Story" link in [`components/layout/Footer.tsx`](file:///e:/SP%20-%20Copy/streetplayr-web/components/layout/Footer.tsx).
+  - Formatted [`app/(store)/faq/page.tsx`](file:///e:/SP%20-%20Copy/streetplayr-web/app/%28store%29/faq/page.tsx) and [`app/(store)/collaborations/page.tsx`](file:///e:/SP%20-%20Copy/streetplayr-web/app/%28store%29/collaborations/page.tsx) with the unified legal/policy shell (`legal-page`/`legal-shell`).
+- **Checkout Dark Mode & Scroll Responsiveness**:
+  - Added explicit dark background and text color rules for `<select id="country">` and `<option>` elements in dark mode.
+  - Re-tuned wheel scroll parameters in [`components/ui/ScrollDamping.tsx`](file:///e:/SP%20-%20Copy/streetplayr-web/components/ui/ScrollDamping.tsx) (increased spring stiffness to `0.018` and removed `0.7` speed penalty) to eliminate scroll delay.
+- **Domain Redirect**: Fixed root route redirect in [`app/(store)/page.tsx`](file:///e:/SP%20-%20Copy/streetplayr-web/app/%28store%29/page.tsx) to route internally to `/entering-street-playR` instead of external `streetplayr.qalalabs.com`.
+
+
 
