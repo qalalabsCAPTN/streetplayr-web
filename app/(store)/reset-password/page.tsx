@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Suspense, useState } from "react";
 import { resetPasswordAction } from "@/app/actions/auth";
 
@@ -43,7 +44,7 @@ function ResetPasswordForm() {
           <div className="border border-white/[0.08] bg-[#1b1620]/60">
             <div className="p-6 sm:p-8">
               <div className="flex justify-center mb-8">
-                <img src="/assets/streetplayr-logo.png" alt="StreetPlayR" width="160" height="40" className="h-10 w-auto object-contain opacity-90" />
+                <Image src="/assets/streetplayr-logo.png" alt="StreetPlayR" width={160} height={40} className="h-10 w-auto object-contain opacity-90" />
               </div>
 
               <div className="text-center mb-8">

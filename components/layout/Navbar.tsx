@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCart } from '@/components/CartContext';
 import { useAuthStore } from '@/store/authStore';
@@ -216,7 +217,7 @@ export default function Navbar() {
               +
             </button>
             <Link href="/home" className="header__pill-link">
-              <img src="/playR.street logo.png" alt="playR" />
+              <Image src="/playR.street logo.png" alt="playR" width={1024} height={660} priority />
             </Link>
           </div>
 

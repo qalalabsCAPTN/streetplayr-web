@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, forwardRef, useImperativeHandle, useR
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/cartStore";
 import Link from "next/link";
+import Image from "next/image";
 import { formatPrice, formatProductTitle } from "@/lib/utils/format";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -210,7 +211,7 @@ function OrderSummary({ items, total }: { items: any[]; total: number }) {
         {items.map((item) => (
           <div key={item.id} className="checkout-summary__line">
             <div className="checkout-summary__thumb">
-              <img src={item.image || "/images/placeholder.jpg"} alt={item.name} />
+              <Image src={item.image || "/images/placeholder.jpg"} alt={item.name} width={64} height={80} className="object-cover rounded" />
               <span>x{item.quantity}</span>
             </div>
             <div className="checkout-summary__line-info">

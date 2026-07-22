@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { checkEnvironment } from '@/lib/env/validate';
+import { UnicommerceService } from '@/src/integrations/unicommerce';
 
 interface HealthCheckReport {
   status: 'healthy' | 'degraded' | 'unhealthy';
@@ -14,6 +15,7 @@ interface HealthCheckReport {
     cron: { status: 'ok' | 'degraded'; releaseExpiryConfigured: boolean; reconciliationConfigured: boolean };
     webhooks: { status: 'ok' | 'degraded'; stripeVerification: 'enabled' | 'stub' | 'disabled'; error?: string };
     realtime: { status: 'ok' | 'degraded'; enabled: boolean };
+    unicommerce?: { status: 'ok' | 'degraded' | 'down'; details?: string; error?: string };
   };
 }
 
@@ -40,6 +42,7 @@ export async function GET() {
         stripeVerification: process.env.STRIPE_WEBHOOK_SECRET ? 'enabled' : 'stub',
       },
       realtime: { status: 'ok', enabled: true },
+      unicommerce: { status: 'ok', details: 'Checking connection...' },
     },
   };
 
@@ -92,6 +95,24 @@ export async function GET() {
     if (environment === 'production') {
       report.status = 'degraded';
     }
+  }
+
+  // ── Check Unicommerce Connectivity ─────────────────────────────────────
+  try {
+    const ucCheck = await UnicommerceService.checkConnection();
+    report.subsystems.unicommerce = {
+      status: ucCheck.success ? 'ok' : 'degraded',
+      details: ucCheck.message,
+    };
+    if (!ucCheck.success && environment === 'production') {
+      report.status = 'degraded';
+    }
+  } catch (e: any) {
+    report.subsystems.unicommerce = {
+      status: 'down',
+      error: e.message ?? 'Unicommerce check failed',
+    };
+    report.status = 'degraded';
   }
 
   // ── Determine overall status ───────────────────────────────────────────

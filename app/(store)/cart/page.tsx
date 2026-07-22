@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useCart } from '@/components/CartContext';
 import { formatPrice } from '@/lib/utils/format';
 import Navbar from '@/components/layout/Navbar';
@@ -29,7 +30,7 @@ export default function CartPage() {
           <div className="cart-page-lines">
             {cart.items.map((line: any) => (
               <div key={line.key} className="cartline">
-                <img src={line.product.images[0]} alt={line.product.title} />
+                <Image src={line.product.images[0]} alt={line.product.title} width={80} height={100} className="object-cover rounded" />
                 <div className="cartline__info">
                   <div className="cartline__title">{line.product.title}</div>
                   <div className="cartline__meta">

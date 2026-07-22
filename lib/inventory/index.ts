@@ -29,13 +29,13 @@ export async function getAvailableInventory(variantId: string): Promise<number> 
 async function getDatabaseInventory(variantId: string): Promise<number> {
   try {
     const admin = createAdminClient();
-    const { data: variant } = await admin
-      .from('product_variants')
-      .select('stock_quantity')
-      .eq('id', variantId)
-      .single();
+    const { data: inv } = await admin
+      .from('inventory')
+      .select('quantity')
+      .eq('variant_id', variantId)
+      .maybeSingle();
 
-    if (!variant) return 0;
+    if (!inv) return 0;
 
     const { data: reservations } = await admin
       .from('inventory_reservations')
@@ -48,7 +48,7 @@ async function getDatabaseInventory(variantId: string): Promise<number> {
       0
     );
 
-    return Math.max(0, (variant.stock_quantity ?? 0) - reserved);
+    return Math.max(0, (inv.quantity ?? 0) - reserved);
   } catch {
     return 0;
   }

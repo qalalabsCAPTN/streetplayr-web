@@ -1,0 +1,143 @@
+# SRE-hardened Cloud Build Pipeline for StreetPlayR Next.js Web App
+# Features: BuildKit Caching, Smart Auto-Healing Blue/Green Deployment, & Smoke Testing
+
+steps:
+  # --- Step 1: Build Docker Container with Remote Cache ---
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-and-push'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        docker buildx create --use
+        docker buildx build \
+          --cache-to=type=registry,ref=$_ARTIFACT_REGISTRY_REPO/web-app:cache,mode=max \
+          --cache-from=type=registry,ref=$_ARTIFACT_REGISTRY_REPO/web-app:cache \
+          --tag $_ARTIFACT_REGISTRY_REPO/web-app:$COMMIT_SHA \
+          --tag $_ARTIFACT_REGISTRY_REPO/web-app:latest \
+          --file Dockerfile \
+          --push \
+          .
+    env:
+      - 'DOCKER_BUILDKIT=1'
+
+  # --- Step 2: Smart Deployment (First-time vs. Canary Update) ---
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'smart-deploy'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "Querying if Cloud Run service $_SERVICE_NAME exists..."
+        service_exists=$(gcloud run services list --region=$_REGION --filter="metadata.name=$_SERVICE_NAME" --format="value(metadata.name)")
+        
+        if [ -z "$service_exists" ]; then
+          echo "=========================================================="
+          echo "STATUS: Service $_SERVICE_NAME does not exist."
+          echo "ACTION: Executing first-time deployment with 100% traffic..."
+          echo "=========================================================="
+          
+          gcloud run deploy $_SERVICE_NAME \
+            --image=$_ARTIFACT_REGISTRY_REPO/web-app:$COMMIT_SHA \
+            --region=$_REGION \
+            --platform=managed \
+            --service-account=sa-web-app@$PROJECT_ID.iam.gserviceaccount.com \
+            --revision-suffix=rev-$SHORT_SHA \
+            --cpu=2 --memory=1024Mi --concurrency=80 --min-instances=1 --max-instances=30 --no-cpu-throttling \
+            --cpu-boost \
+            --startup-probe=httpGet.path=/api/health,initialDelaySeconds=10,periodSeconds=5,failureThreshold=3 \
+            --liveness-probe=httpGet.path=/api/health,periodSeconds=20,failureThreshold=3 \
+            --set-env-vars=NODE_ENV=production,NEXT_PUBLIC_SITE_URL=$_SITE_URL,NEXT_PUBLIC_BRAND_ID=$_BRAND_ID,NEXT_PUBLIC_PHONE_PREFIX=$_PHONE_PREFIX,DEMO_INVENTORY_MODE=$_DEMO_INVENTORY_MODE,NEXT_PUBLIC_AI_TRYON_ENABLED=$_AI_TRYON_ENABLED,AI_TRYON_PROVIDER=$_AI_TRYON_PROVIDER,AI_TRYON_DAILY_LIMIT=$_AI_TRYON_DAILY_LIMIT,AI_TRYON_USER_DAILY_LIMIT=$_AI_TRYON_USER_DAILY_LIMIT,AI_TRYON_MODEL=$_AI_TRYON_MODEL,NEXT_PUBLIC_SUPABASE_URL=$_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY=$_SUPABASE_ANON_KEY \
+            --update-secrets=SUPABASE_SERVICE_ROLE_KEY=SUPABASE_SERVICE_ROLE_KEY:latest,STRIPE_SECRET_KEY=STRIPE_SECRET_KEY:latest,STRIPE_WEBHOOK_SECRET=STRIPE_WEBHOOK_SECRET:latest,GOOGLE_AI_API_KEY=GOOGLE_AI_API_KEY:latest,CRON_SECRET=CRON_SECRET:latest,PLATFORM_TOKEN_STREETPLAYR=PLATFORM_TOKEN_STREETPLAYR:latest \
+            --allow-unauthenticated
+            
+          echo "Starting post-deploy first-time validation..."
+          service_url=$(gcloud run services describe $_SERVICE_NAME --region=$_REGION --format="value(status.url)")
+          if [ -z "$service_url" ]; then
+            echo "FAILED: Could not retrieve service URL."
+            exit 1
+          fi
+          
+          for i in {1..6}; do
+            status_code=$(curl -s -o /dev/null -w "%{http_code}" "$service_url/api/health")
+            if [ "$status_code" -eq 200 ]; then
+              echo "SUCCESS: First-time deploy verified successfully on URL: $service_url"
+              exit 0
+            fi
+            echo "Verification probe returned $status_code, retrying in 10s ($i/6)..."
+            sleep 10
+          done
+          echo "FAILED: First-time deploy health checks failed."
+          exit 1
+          
+        else
+          echo "=========================================================="
+          echo "STATUS: Service $_SERVICE_NAME is active."
+          echo "ACTION: Performing Blue/Green canary deployment..."
+          echo "=========================================================="
+          
+          gcloud run deploy $_SERVICE_NAME \
+            --image=$_ARTIFACT_REGISTRY_REPO/web-app:$COMMIT_SHA \
+            --region=$_REGION \
+            --platform=managed \
+            --service-account=sa-web-app@$PROJECT_ID.iam.gserviceaccount.com \
+            --revision-suffix=rev-$SHORT_SHA \
+            --cpu=2 --memory=1024Mi --concurrency=80 --min-instances=1 --max-instances=30 --no-cpu-throttling \
+            --cpu-boost \
+            --startup-probe=httpGet.path=/api/health,initialDelaySeconds=10,periodSeconds=5,failureThreshold=3 \
+            --liveness-probe=httpGet.path=/api/health,periodSeconds=20,failureThreshold=3 \
+            --set-env-vars=NODE_ENV=production,NEXT_PUBLIC_SITE_URL=$_SITE_URL,NEXT_PUBLIC_BRAND_ID=$_BRAND_ID,NEXT_PUBLIC_PHONE_PREFIX=$_PHONE_PREFIX,DEMO_INVENTORY_MODE=$_DEMO_INVENTORY_MODE,NEXT_PUBLIC_AI_TRYON_ENABLED=$_AI_TRYON_ENABLED,AI_TRYON_PROVIDER=$_AI_TRYON_PROVIDER,AI_TRYON_DAILY_LIMIT=$_AI_TRYON_DAILY_LIMIT,AI_TRYON_USER_DAILY_LIMIT=$_AI_TRYON_USER_DAILY_LIMIT,AI_TRYON_MODEL=$_AI_TRYON_MODEL,NEXT_PUBLIC_SUPABASE_URL=$_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY=$_SUPABASE_ANON_KEY \
+            --update-secrets=SUPABASE_SERVICE_ROLE_KEY=SUPABASE_SERVICE_ROLE_KEY:latest,STRIPE_SECRET_KEY=STRIPE_SECRET_KEY:latest,STRIPE_WEBHOOK_SECRET=STRIPE_WEBHOOK_SECRET:latest,GOOGLE_AI_API_KEY=GOOGLE_AI_API_KEY:latest,CRON_SECRET=CRON_SECRET:latest,PLATFORM_TOKEN_STREETPLAYR=PLATFORM_TOKEN_STREETPLAYR:latest \
+            --no-traffic \
+            --tag=candidate
+            
+          echo "Retrieving candidate revision private URL..."
+          candidate_url=$(gcloud run services describe $_SERVICE_NAME \
+            --region=$_REGION \
+            --format="value(status.traffic)" | grep candidate | awk '{print $2}')
+            
+          if [ -z "$candidate_url" ]; then
+            echo "FAILED: Candidate URL resolution failed."
+            exit 1
+          fi
+          
+          echo "Candidate URL is: $candidate_url"
+          echo "Starting health probe validation..."
+          
+          for i in {1..6}; do
+            status_code=$(curl -s -o /dev/null -w "%{http_code}" "$candidate_url/api/health")
+            if [ "$status_code" -eq 200 ]; then
+              echo "SUCCESS: Candidate verified. Promoting revision to receive 100% traffic..."
+              gcloud run services update-traffic $_SERVICE_NAME \
+                --region=$_REGION \
+                --to-revisions=$_SERVICE_NAME-rev-$SHORT_SHA=100
+              exit 0
+            fi
+            echo "Candidate probe returned $status_code, retrying in 10s ($i/6)..."
+            sleep 10
+          done
+          echo "FAILED: Smoke testing failed. Aborting promotion."
+          exit 1
+        fi
+
+images:
+  - '$_ARTIFACT_REGISTRY_REPO/web-app:$COMMIT_SHA'
+  - '$_ARTIFACT_REGISTRY_REPO/web-app:latest'
+
+substitutions:
+  _SERVICE_NAME: 'streetplayr-web'
+  _REGION: 'asia-south1'
+  _ARTIFACT_REGISTRY_REPO: 'asia-south1-docker.pkg.dev/omega-dryad-496909-b4/streetplayr-containers'
+  # Default Environment configs
+  _SITE_URL: 'https://streetplayr.com'
+  _BRAND_ID: 'streetplayr'
+  _PHONE_PREFIX: '+91'
+  _DEMO_INVENTORY_MODE: 'true'
+  _AI_TRYON_ENABLED: 'true'
+  _AI_TRYON_PROVIDER: 'gemini'
+  _AI_TRYON_DAILY_LIMIT: '500'
+  _AI_TRYON_USER_DAILY_LIMIT: '3'
+  _AI_TRYON_MODEL: 'imagen-3.0-generate-002'
+  # Supabase public endpoints
+  _SUPABASE_URL: 'https://sayxtpglwjiinnrftifq.supabase.co'
+  _SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNheXh0cGdsd2ppaW5ucmZ0aWZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyODQxMzksImV4cCI6MjA5Mzg2MDEzOX0.NiT5r6z4HABTfP7LXYihnkic8xSLqldEoJ6KK4HLDVU'

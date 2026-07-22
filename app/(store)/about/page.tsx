@@ -5,10 +5,13 @@ import MaterialSpecs from "@/components/sections/about/MaterialSpecs";
 import Journey from "@/components/sections/about/Journey";
 import FounderCard from "@/components/sections/about/FounderCard";
 import FooterTransition from "@/components/sections/about/FooterTransition";
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 
 export default function AboutPage() {
   return (
     <div className="flex flex-col w-full bg-transparent">
+      <Navbar />
       <AboutHero />
       <Manifesto />
       <QuoteSection />
@@ -16,6 +19,7 @@ export default function AboutPage() {
       <Journey />
       <FounderCard />
       <FooterTransition />
+      <Footer />
     </div>
   );
 }

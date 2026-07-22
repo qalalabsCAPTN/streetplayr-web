@@ -8,6 +8,7 @@ import { getSupabaseClient } from '@/lib/ops2/supabase';
 import { cn } from '@/lib/ops2/cn';
 import ProductCarouselComponent from '@/components/ui/ProductCarousel';
 import type { PageBlock } from '@/lib/page-editor/get-page-blocks';
+import Image from 'next/image';
 
 import dynamic from 'next/dynamic';
 
@@ -114,23 +115,26 @@ function BlockSwitch({ block }: { block: PageBlock }) {
         </section>
       );
 
-    case 'image_full':
+    case 'image_full': {
+      const imageUrl = c.image_url as string;
+      const altText = (c.alt_text as string) ?? '';
+      // Same-origin assets go through Next's image optimizer (auto AVIF/WebP + responsive sizing);
+      // arbitrary CMS-pasted external URLs stay raw since their host may not be allowlisted.
+      const image = imageUrl?.startsWith('/') ? (
+        <Image src={imageUrl} alt={altText} width={1920} height={1080} sizes="100vw" className="w-full h-auto object-cover" />
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={imageUrl} alt={altText} className="w-full object-cover" />
+      );
       return (
         <section className="w-full">
-          {Boolean(c.link_href) ? (
-            <a href={c.link_href as string}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={c.image_url as string} alt={(c.alt_text as string) ?? ''} className="w-full object-cover" />
-            </a>
-          ) : (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={c.image_url as string} alt={(c.alt_text as string) ?? ''} className="w-full object-cover" />
-          )}
+          {Boolean(c.link_href) ? <a href={c.link_href as string}>{image}</a> : image}
           {Boolean(c.caption) && (
             <p className="text-center text-sm text-text-muted mt-2 px-4">{c.caption as string}</p>
           )}
         </section>
       );
+    }
 
     case 'cta_banner':
       return (

@@ -127,18 +127,25 @@ function CreateAccountForm() {
   );
 }
 
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
+
 export default function CreateAccountPage() {
   return (
-    <div className="listing" style={{ display: 'flex', justifyContent: 'center', paddingTop: 60, paddingBottom: 60 }}>
-      <div className="lmodal" style={{ position: 'static', width: '100%', maxWidth: 420 }}>
-        <span className="lmodal__eyebrow">My Account</span>
-        <h2 className="lmodal__title">Join Streetplayr</h2>
-        <p className="lmodal__sub">Wallet, rewards, orders &amp; faster checkout.</p>
+    <>
+      <Navbar />
+      <div className="listing" style={{ display: 'flex', justifyContent: 'center', paddingTop: 100, paddingBottom: 60 }}>
+        <div className="lmodal" style={{ position: 'static', width: '100%', maxWidth: 420 }}>
+          <span className="lmodal__eyebrow">My Account</span>
+          <h2 className="lmodal__title">Join Streetplayr</h2>
+          <p className="lmodal__sub">Wallet, rewards, orders &amp; faster checkout.</p>
 
-        <Suspense>
-          <CreateAccountForm />
-        </Suspense>
+          <Suspense>
+            <CreateAccountForm />
+          </Suspense>
+        </div>
       </div>
-    </div>
+      <Footer />
+    </>
   );
 }

@@ -36,7 +36,23 @@
       "Bash(git commit -q -m 'Improve homepage scroll performance and add legal/SEO pages *)",
       "Bash(echo \"EXIT: $?\")",
       "Bash(unset GITHUB_TOKEN)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(node -e \"const p=require\\('./node_modules/stripe/package.json'\\); console.log\\(p.version\\)\")",
+      "Bash(npx eslint *)",
+      "Bash(echo \"EXIT:$?\")",
+      "Read(//tmp/**)",
+      "Bash(cd \"C:\\\\Users\\\\pc\\\\Desktop\\\\streetplayr - open code\" && grep -B2 \"error \" /tmp/lintout.txt | grep -A2 \"error \")",
+      "Bash(grep -E \"home|First Load JS|└|┌|├ ○ /$\")",
+      "Bash(sed -n '18,25p;95,102p' /tmp/build.txt; echo ---; sed -n '/First Load JS shared/,/kB$/p' /tmp/build.txt | head -20)",
+      "Bash(node -e ' *)",
+      "Bash(curl -sS -o /dev/null -w \"HTTP:%{http_code} TIME:%{time_total}s\\\\n\" --max-time 8 \"https://cdn.jsdelivr.net/gh/pmndrs/drei-assets/hdri/city.hdr\")",
+      "Bash(npx lighthouse *)",
+      "Bash(cp /tmp/lh-mobile-before.json ./lh-mobile-before-raw.json)",
+      "Bash(curl -sS -o /dev/null -w \"STATUS:%{http_code} SIZE:%{size_download}\\\\n\" \"http://localhost:3900/_next/image?url=%2Flookbook%2Fartboard-1.jpg&w=64&q=75\" --max-time 15)",
+      "Bash(curl -sS -o /dev/null -w \"STATUS:%{http_code} SIZE:%{size_download}\\\\n\" \"http://localhost:3900/lookbook/artboard-1.jpg\" --max-time 15)",
+      "Bash(curl -sS \"http://localhost:3900/home\" --max-time 15)",
+      "Bash(curl -sS \"http://localhost:3900/home\" --max-time 15 -o /tmp/home.html)",
+      "Bash(npx react-doctor *)"
     ]
   }
 }

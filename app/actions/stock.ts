@@ -31,13 +31,19 @@ export async function getVariantStockAction(
 
     const { data: variant } = await admin
       .from('product_variants')
-      .select('id, stock_quantity')
+      .select('id')
       .eq('id', variantId)
       .single();
 
     if (!variant) {
       return { success: false, error: 'Variant not found.', code: 'VARIANT_NOT_FOUND' };
     }
+
+    const { data: inv } = await admin
+      .from('inventory')
+      .select('quantity')
+      .eq('variant_id', variantId)
+      .maybeSingle();
 
     const { data: reservations } = await admin
       .from('inventory_reservations')
@@ -52,7 +58,7 @@ export async function getVariantStockAction(
       success: true,
       data: {
         variantId: variant.id,
-        stockQuantity: variant.stock_quantity ?? 0,
+        stockQuantity: inv?.quantity ?? 0,
         reservedQuantity: reserved,
         available,
       },

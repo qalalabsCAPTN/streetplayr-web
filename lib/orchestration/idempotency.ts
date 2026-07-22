@@ -70,8 +70,8 @@ export async function idempotencyGuard(
     .select('*')
     .single();
 
-  // If insert conflicted, this key was already seen
-  if (insertError?.message?.includes('duplicate') || (existing && existing.status !== 'processing')) {
+  // If insert conflicted or returned no rows due to duplicate ignore, this key was already seen
+  if (insertError?.message?.includes('duplicate') || !existing || existing.status !== 'processing') {
     // Fetch the existing record
     const { data: record } = await admin
       .from(IDEMPOTENCY_TABLE)

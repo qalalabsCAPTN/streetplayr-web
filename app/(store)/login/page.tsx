@@ -263,6 +263,9 @@ function LoginForm() {
   );
 }
 
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
+
 function LoginInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -279,9 +282,13 @@ function LoginInner() {
   if (!isHydrated || isAuthenticated) return null;
 
   return (
-    <div className="listing" style={{ display: 'flex', justifyContent: 'center', paddingTop: 60, paddingBottom: 60 }}>
-      <LoginForm />
-    </div>
+    <>
+      <Navbar />
+      <div className="listing" style={{ display: 'flex', justifyContent: 'center', paddingTop: 100, paddingBottom: 60 }}>
+        <LoginForm />
+      </div>
+      <Footer />
+    </>
   );
 }
 
