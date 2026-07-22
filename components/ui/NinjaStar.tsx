@@ -297,6 +297,11 @@ function GLBStar() {
   return <primitive object={clonedScene} />;
 }
 
+// Kick the GLTF fetch off at module load (import time) instead of waiting for
+// the component to mount — shaves the network round-trip off the window
+// during which the fallback procedural blades are visible.
+useGLTF.preload("/models/3-d Star.glb");
+
 function StarBody() {
   return (
     <GLBErrorBoundary fallback={<StarBlades />}>
@@ -837,11 +842,18 @@ export default function NinjaStar({
         dpr={[1, 1.5]}
         style={{ width: "100%", height: "100%", touchAction: "pan-y" }}
       >
+        {/* Everything metallic (blades + core) needs the HDR environment map to
+            reflect, or it renders solid black for the frame(s) before it loads.
+            Gating the star + lights behind the SAME Suspense as the environment
+            means nothing paints until reflections are ready — the canvas stays
+            transparent for a beat instead of flashing a black star. The GLB vs.
+            procedural-blades swap still resolves independently via StarBody's
+            own nested Suspense underneath this one. */}
         <Suspense fallback={null}>
           <DreiEnvironment preset={current.envPreset} />
+          <SceneLights />
+          <CompassStar scale={scale} scrollReactive={scrollReactive} heroRef={heroRef} />
         </Suspense>
-        <SceneLights />
-        <CompassStar scale={scale} scrollReactive={scrollReactive} heroRef={heroRef} />
       </Canvas>
     </div>
   );

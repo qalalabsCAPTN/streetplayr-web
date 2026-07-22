@@ -128,7 +128,7 @@ function CollectionsInner() {
     <div className="min-h-screen bg-transparent relative overflow-hidden">
       <Navbar />
 
-      <section className="relative z-[1] w-full h-[460px] overflow-hidden border-b border-white/[0.10] mt-20">
+      <section className="relative z-[1] w-full h-[460px] md:h-[560px] overflow-hidden mt-20">
         {/* Desktop motion banner */}
         <video
           autoPlay
@@ -147,14 +147,19 @@ function CollectionsInner() {
           className="absolute inset-0 w-full h-full object-cover opacity-100 md:hidden"
           src="/assets/FOR_MOBILE_ST_COLLECTION.mp4"
         />
+        {/* Cinematic fade — blends the hero into the page instead of a hard cut */}
+        <div className="absolute inset-x-0 bottom-0 h-40 md:h-56 bg-gradient-to-t from-[var(--page-bg)] to-transparent pointer-events-none" />
       </section>
 
-      <main className="relative z-[1] pb-20 w-full max-w-[min(98vw,2560px)] mx-auto px-4 md:px-8 lg:px-12 pt-14">
+      <main className="relative z-[1] pb-20 w-full max-w-[min(98vw,2560px)] mx-auto px-4 md:px-8 lg:px-12">
         <div className="listing">
           <div className="listing__head">
-            <h1 className="listing__title">The Archive</h1>
-            <button 
-              className="listing__adv" 
+            <div>
+              <span className="listing__eyebrow">Collection / SS26</span>
+              <h1 className="listing__title">The Archive</h1>
+            </div>
+            <button
+              className="listing__adv"
               onClick={() => cart.showToast('Advanced filters coming soon')}
             >
               Advanced Filters

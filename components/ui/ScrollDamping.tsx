@@ -35,9 +35,21 @@ export default function ScrollDamping() {
   }, [pathname]);
 
   useEffect(() => {
+    // PDP owns its own scroll. The rAF-driven window.scrollTo() loop below fights
+    // CSS position:sticky (used for the pinned gallery/side panel) — every synthetic
+    // scroll frame recalculates sticky offsets, producing jitter/snapping on the PDP
+    // that doesn't happen on native scroll. PDP opts out entirely and gets pure
+    // native browser scrolling instead, isolated from homepage-tuned physics.
+    if (pathname?.startsWith("/product")) {
+      if (typeof window !== "undefined") {
+        (window as any).__scrollDampingY = window.scrollY;
+      }
+      return;
+    }
+
     // Check for prefers-reduced-motion
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    
+
     if (prefersReducedMotion) {
       // In reduced motion mode, we still sync scroll position directly on scroll events
       // to keep dependent animations updated immediately rather than frozen.
@@ -271,7 +283,7 @@ export default function ScrollDamping() {
         window.removeEventListener("wheel", handleWheel);
       };
     }
-  }, []);
+  }, [pathname]);
 
   return null;
 }

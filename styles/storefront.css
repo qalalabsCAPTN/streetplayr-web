@@ -80,7 +80,14 @@ html.lenis, html.lenis .storefront-root {
   color: var(--fg);
   font-family: 'Archivo', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  /* overflow-x: hidden here would pair with the default overflow-y: visible,
+     and per spec that mixed pairing gets silently force-converted to
+     overflow-y: auto — turning this element into an unintended scroll
+     container that hijacks position:sticky's containing block away from the
+     real window viewport for everything nested inside it (e.g. the PDP's
+     pinned gallery). overflow-x: clip prevents horizontal bleed without
+     establishing a scroll container or triggering that pairing quirk. */
+  overflow-x: clip;
 }
 
 .storefront-root a { color: inherit; text-decoration: none; }
@@ -383,7 +390,10 @@ body.theme-light .carousel3d__dot.active {
 }
 
 /* ============ PRODUCT CARD ============ */
-.pgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.pgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px 22px; margin-top: 36px; }
+@media (min-width: 1024px) {
+  .pgrid { gap: 28px 32px; margin-top: 44px; }
+}
 .prow { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
 .prow::-webkit-scrollbar { display: none; }
 .storefront-root .prow > * { flex: 0 0 calc(25% - 8px); min-width: 240px; scroll-snap-align: start; }
@@ -459,10 +469,10 @@ body.theme-light .carousel3d__dot.active {
 .card__dot.active { background: #fff; transform: scale(1.3); }
 .card__info {
   display: flex; align-items: flex-start; justify-content: space-between;
-  padding: 10px 2px 2px; gap: 8px;
+  padding: 16px 2px 2px; gap: 8px;
 }
-.card__title { font-size: 12px; font-weight: 600; line-height: 1.35; }
-.card__price { font-size: 11.5px; color: var(--muted); margin-top: 3px; display: flex; gap: 6px; }
+.card__title { font-size: 13px; font-weight: 600; letter-spacing: 0.01em; line-height: 1.35; }
+.card__price { font-size: 12px; color: var(--muted); margin-top: 4px; display: flex; gap: 6px; }
 .card__price s { opacity: 0.6; }
 .card__add {
   width: 26px; height: 26px; border-radius: 50%; flex: 0 0 auto;
@@ -553,22 +563,46 @@ body.theme-light .carousel3d__dot.active {
 .storefront-root .storyviewer__top button { color: #fff; font-size: 22px; }
 
 /* ============ FILTER CHIPS (listing) ============ */
-.listing { background: var(--panel); border-radius: var(--radius-lg); margin: calc(var(--header-h) + 10px) 10px 10px; padding: 18px 14px 26px; }
-.listing__head { display: flex; align-items: center; justify-content: space-between; padding: 0 4px 16px; }
-.listing__title { font-size: 14px; font-weight: 700; }
-.listing__adv { border: 1px solid var(--line); border-radius: 999px; padding: 8px 16px; font-size: 11.5px; transition: border-color 0.2s; }
-.listing__adv:hover { border-color: #111; }
-.chips { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 4px 18px; }
+.listing { padding: 40px 0 0; }
+.listing__eyebrow {
+  display: block; font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.24em; text-transform: uppercase; color: var(--muted); opacity: 0.6;
+  margin-bottom: 10px;
+}
+.listing__head {
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 24px;
+  padding-bottom: 28px; margin-bottom: 28px;
+  border-bottom: 1px solid var(--line);
+}
+.listing__title {
+  font-family: var(--font-sp-display), Impact, sans-serif; font-size: clamp(34px, 5.5vw, 64px);
+  font-weight: 400; line-height: 0.92; letter-spacing: 0.015em; text-transform: uppercase;
+}
+.listing__adv {
+  font-size: 11.5px; letter-spacing: 0.04em; color: var(--muted); opacity: 0.75;
+  padding-bottom: 6px; border-bottom: 1px solid transparent; transition: opacity 0.2s, border-color 0.2s;
+  flex: 0 0 auto;
+}
+.listing__adv:hover { opacity: 1; border-color: var(--line); }
+.chips { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; }
 .chip {
-  border: 1px solid var(--line); border-radius: 999px; padding: 8px 16px;
-  font-size: 11.5px; background: #fff; transition: all 0.2s;
+  border: 1px solid var(--line); border-radius: 999px; padding: 10px 20px;
+  font-size: 12px; font-weight: 600; letter-spacing: 0.02em; background: #fff; transition: all 0.2s;
 }
 .chip:hover { border-color: #111; }
 .chip.active { background: #16181d; color: #fff; border-color: #16181d; }
 .chip.disabled { opacity: 0.45; cursor: not-allowed; }
 .chip.disabled:hover { border-color: var(--line); }
-.chips--sort { padding-top: 2px; align-items: center; }
-.chips__label { font-size: 11.5px; color: var(--muted); padding: 8px 2px 8px 4px; }
+.chips--sort {
+  padding-top: 18px; margin-bottom: 0; margin-top: 4px;
+  border-top: 1px solid var(--line);
+}
+.chips--sort .chip {
+  padding: 6px 14px; font-size: 11px; font-weight: 500; background: transparent; border-color: transparent;
+}
+.chips--sort .chip:hover { border-color: var(--line); }
+.chips--sort .chip.active { background: var(--chip); color: var(--fg); border-color: var(--line); }
+.chips__label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); opacity: 0.55; padding: 6px 10px 6px 0; }
 
 /* ============ PDP ============ */
 .pdp-page { transition: background 0.5s ease; padding-bottom: 2px; padding-top: calc(var(--header-h) + 12px); }
@@ -589,39 +623,45 @@ body.theme-light .carousel3d__dot.active {
   -webkit-overflow-scrolling: touch; border-radius: 20px; scrollbar-width: none;
 }
 .pdp__carousel::-webkit-scrollbar { display: none; }
-.pdp__slide { flex: 0 0 100%; scroll-snap-align: start; }
-.storefront-root .pdp__slide img { width: 100%; aspect-ratio: 3/4; object-fit: cover; display: block; cursor: zoom-in; background: #f1f1f1; }
+/* aspect-ratio lives on the slide (not the <img>) because next/image's `fill`
+   mode writes an inline height:100% on the actual <img>, which silently beats
+   any external CSS height/aspect-ratio rule targeting the img tag — the slide
+   was collapsing to 0 height and the whole mobile gallery rendered invisible. */
+.pdp__slide { flex: 0 0 100%; scroll-snap-align: start; position: relative; aspect-ratio: 3/4; background: #f1f1f1; }
+.storefront-root .pdp__slide img { object-fit: cover; cursor: zoom-in; }
 .pdp__counter {
-  position: absolute; left: 14px; bottom: 14px; font-size: 13px; color: #111;
-  pointer-events: none;
+  position: absolute; left: 14px; bottom: 14px; z-index: 2;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.06em; color: #fff;
+  background: rgba(0,0,0,0.45); padding: 4px 10px; border-radius: 999px;
+  backdrop-filter: blur(6px); pointer-events: none;
 }
 .pdp__gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: start; }
 .pdp__gallery-left {
   position: sticky;
   top: calc(var(--header-h) + 12px);
-}
-.storefront-root .pdp__gallery-left img {
   width: 100%;
   height: calc(100vh - var(--header-h) - 24px);
   border-radius: 20px;
+  overflow: hidden;
   background: #f1f1f1;
-  object-fit: cover;
   cursor: zoom-in;
+}
+.storefront-root .pdp__gallery-left img {
+  object-fit: cover;
 }
 .pdp__gallery-right {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
-.storefront-root .pdp__gallery-right img {
+.pdp__gallery-right .pdp__reveal {
+  position: relative;
   width: 100%;
   height: calc(100vh - var(--header-h) - 24px);
   border-radius: 20px;
+  overflow: hidden;
   background: #f1f1f1;
-  object-fit: cover;
   cursor: zoom-in;
-}
-.storefront-root .pdp__gallery-right img.pdp__reveal {
   opacity: 0;
   transform: translateY(28px) scale(0.985);
   filter: saturate(0.85);
@@ -630,13 +670,16 @@ body.theme-light .carousel3d__dot.active {
     transform 0.7s cubic-bezier(0.16, 1, 0.3, 1),
     filter 0.7s ease;
 }
-.storefront-root .pdp__gallery-right img.pdp__reveal.is-in-view {
+.storefront-root .pdp__gallery-right .pdp__reveal img {
+  object-fit: cover;
+}
+.pdp__gallery-right .pdp__reveal.is-in-view {
   opacity: 1;
   transform: translateY(0) scale(1);
   filter: saturate(1);
 }
 @media (prefers-reduced-motion: reduce) {
-  .storefront-root .pdp__gallery-right img.pdp__reveal {
+  .pdp__gallery-right .pdp__reveal {
     transition: none;
     transform: none;
     opacity: 1;
@@ -729,6 +772,30 @@ body.theme-light .carousel3d__dot.active {
 .footer a:hover { color: var(--fg); }
 .footer__bag {
   display: flex; align-items: center; justify-content: center;
+}
+@media (max-width: 640px) {
+  /* Bluorng ref is flat/edge-to-edge — no boxed panel card, no rounded corners —
+     it just continues the page background. Overriding the desktop rounded-card
+     look here only; base .footer rule (line 759) stays untouched for desktop. */
+  .footer { background: transparent; border-radius: 0; margin: 0; padding: 32px 20px 20px; }
+  /* Compact 2-col layout — Connect + We are playR share row 1 (both short lists),
+     Order Support (longest list) spans full width below, star spans full width last.
+     Reordered visually via grid-area so it reads dense like a single continuous
+     scroll instead of the tall 2x2 auto-grid this used to fall back to. */
+  .footer .footer__grid {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas: "connect weare" "support support" "star star";
+    column-gap: 16px;
+    row-gap: 22px;
+  }
+  .footer .footer__grid > div:nth-child(1) { grid-area: connect; }
+  .footer .footer__grid > div:nth-child(2) { grid-area: support; }
+  .footer .footer__grid > div:nth-child(3) { grid-area: weare; }
+  .footer .footer__grid > div.footer__bag { grid-area: star; }
+  .footer h4 { font-size: 13px; margin-bottom: 10px; }
+  .storefront-root .footer a { padding: 3px 0; font-size: 13px; }
+  .footer__bag { min-height: 0 !important; padding: 24px 0 0; }
+  .footer .footer__bottom { text-align: center; margin-top: 32px; font-size: 9.5px; }
 }
 .footer__bag-shape {
   width: 130px; height: 170px; background: #f6f6f6; border-radius: 8px;

@@ -255,16 +255,17 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
           </div>
           <div className="pdp__gallery-right" ref={galleryRightRef}>
             {allImages.slice(1).map((src, i) => (
-              <Image
-                key={src}
-                className="pdp__reveal"
-                src={src}
-                alt={`${props.title} — view ${i + 2}`}
-                fill
-                onClick={() => setLightboxIndex(i + 1)}
-                loading="lazy"
-                sizes="(max-width: 1024px) 100vw, 30vw"
-              />
+              <div className="pdp__reveal" key={src}>
+                <Image
+                  src={src}
+                  alt={`${props.title} — view ${i + 2}`}
+                  fill
+                  onClick={() => setLightboxIndex(i + 1)}
+                  loading="lazy"
+                  sizes="(max-width: 1024px) 100vw, 30vw"
+                  className="object-cover"
+                />
+              </div>
             ))}
           </div>
         </div>
