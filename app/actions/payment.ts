@@ -27,7 +27,7 @@ export async function createPaymentIntentAction(
 
   try {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2026-04-22.dahlia',
+      apiVersion: '2026-06-24.dahlia',
     });
 
     const metadata: Record<string, string> = {};
@@ -98,7 +98,7 @@ export async function createPaymentAndConfirmAction(
     }
 
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2026-04-22.dahlia',
+      apiVersion: '2026-06-24.dahlia',
     });
 
     const intent = await stripe.paymentIntents.create({
