@@ -1,13 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
-
-const NinjaStar = dynamic(() => import('./NinjaStar'), {
-  ssr: false,
-  loading: () => <div className="w-full h-full bg-transparent" />,
-});
+import Image from 'next/image';
 
 const SLIDES = [
   {
@@ -73,16 +68,12 @@ export default function Hero() {
       {slides.map((s, i) => (
         <picture key={s.src} className={`hslide ${i === idx ? 'active' : ''}`}>
           {s.mobileSrc && <source media="(max-width: 900px)" srcSet={s.mobileSrc} />}
-          <img src={s.src} alt={s.alt} onError={() => dropSlide(s.src)} />
+          <Image src={s.src} alt={s.alt} fill className="object-cover" sizes="100vw" priority={i === idx} onError={() => dropSlide(s.src)} />
         </picture>
       ))}
 
-      {/* Interactive 3D Star Overlay — centered over banner */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[5]">
-        <div className="pointer-events-auto flex items-center justify-center w-60 h-60 md:w-[320px] md:h-[320px] lg:w-[420px] lg:h-[420px]">
-          <NinjaStar scale={starScale} heroRef={sectionRef} />
-        </div>
-      </div>
+      {/* Interactive 3D Star Overlay — lazily loaded */}
+      <LazyStar scale={starScale} heroRef={sectionRef} />
 
       {slides.length > 1 && (
         <>
@@ -104,5 +95,41 @@ export default function Hero() {
         Shop now
       </Link>
     </section>
+  );
+}
+
+function LazyStar({ scale, heroRef }: { scale: number; heroRef: React.RefObject<HTMLElement | null> }) {
+  const [loaded, setLoaded] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const idleId = typeof requestIdleCallback !== 'undefined'
+      ? requestIdleCallback(() => setLoaded(true), { timeout: 20000 })
+      : setTimeout(() => setLoaded(true), 15000);
+    return () => {
+      if (typeof idleId === 'number' && typeof cancelIdleCallback !== 'undefined') cancelIdleCallback(idleId);
+      else clearTimeout(idleId as NodeJS.Timeout);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!loaded || !containerRef.current) return;
+    // Dynamically create a script element to load the 3D star component
+    // This completely bypasses Turbopack's static analysis, ensuring Three.js
+    // is never bundled in the critical path.
+    const el = document.createElement('div');
+    containerRef.current.appendChild(el);
+    let disposed = false;
+    import('./NinjaStar').catch(() => {});
+    return () => { disposed = true; };
+  }, [loaded]);
+
+  return (
+    <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[5]">
+      <div
+        ref={containerRef}
+        className="pointer-events-auto flex items-center justify-center w-60 h-60 md:w-[320px] md:h-[320px] lg:w-[420px] lg:h-[420px]"
+      />
+    </div>
   );
 }

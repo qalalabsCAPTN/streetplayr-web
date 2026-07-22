@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { discoverCollections } from '@/lib/bluorng-data';
 
 export default function DiscoverCollections() {
@@ -25,7 +26,7 @@ export default function DiscoverCollections() {
       <div className="discover__label">Discover collection</div>
       {discoverCollections.map((c) => (
         <div key={c.handle} className="discover__panel">
-          <img src={c.image} alt={c.title} />
+          <Image src={c.image} alt={c.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
           <div className="discover__overlay">
             <h2 className="discover__title">{c.title}</h2>
             <Link href={`/collections?category=${c.handle}`} className="btn">

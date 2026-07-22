@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { stories } from '@/lib/bluorng-data';
 
 export default function StoriesBar() {
@@ -13,7 +14,7 @@ export default function StoriesBar() {
         {stories.map((s, i) => (
           <div key={s.label} className="story" onClick={() => setActive(i)}>
             <div className="story__ring">
-              <img src={s.image} alt={s.label} />
+              <Image src={s.image} alt={s.label} width={56} height={56} className="rounded-full object-cover" />
             </div>
             <p>{s.label}</p>
           </div>
@@ -26,7 +27,7 @@ export default function StoriesBar() {
             ×
           </button>
           <div className="storyviewer__card" onClick={(e) => e.stopPropagation()}>
-            <img src={stories[active].image} alt={stories[active].label} />
+            <Image src={stories[active].image} alt={stories[active].label} width={400} height={600} className="w-full h-full object-cover" />
             <Link href={stories[active].href} className="storyviewer__cta" onClick={() => setActive(null)}>
               {stories[active].cta}
             </Link>

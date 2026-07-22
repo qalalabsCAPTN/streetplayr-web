@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -218,11 +219,14 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
           <div className="pdp__carousel" ref={carouselRef} onScroll={onCarouselScroll}>
             {allImages.map((src, i) => (
               <div className="pdp__slide" key={src}>
-                <img
+                <Image
                   src={src}
                   alt={`${props.title} — view ${i + 1}`}
+                  fill
                   onClick={() => setLightboxIndex(i)}
                   loading={i === 0 ? 'eager' : 'lazy'}
+                  sizes="100vw"
+                  className="object-cover"
                 />
               </div>
             ))}
@@ -238,23 +242,28 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
         <div className="pdp__gallery">
           <div className="pdp__gallery-left">
             {allImages[0] && (
-              <img
+              <Image
                 src={allImages[0]}
                 alt={`${props.title} — cover`}
+                fill
                 onClick={() => setLightboxIndex(0)}
                 loading="eager"
+                sizes="(max-width: 1024px) 100vw, 60vw"
+                className="object-cover"
               />
             )}
           </div>
           <div className="pdp__gallery-right" ref={galleryRightRef}>
             {allImages.slice(1).map((src, i) => (
-              <img
+              <Image
                 key={src}
                 className="pdp__reveal"
                 src={src}
                 alt={`${props.title} — view ${i + 2}`}
+                fill
                 onClick={() => setLightboxIndex(i + 1)}
                 loading="lazy"
+                sizes="(max-width: 1024px) 100vw, 30vw"
               />
             ))}
           </div>
@@ -594,10 +603,12 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
               className="relative w-full max-w-4xl max-h-[85vh] aspect-[3/4] flex items-center justify-center"
               onClick={(e) => e.stopPropagation()}
             >
-              <img
+              <Image
                 src={allImages[lightboxIndex]}
                 alt={`${props.title} full view`}
-                className="max-w-full max-h-full object-contain cursor-zoom-out"
+                fill
+                className="object-contain cursor-zoom-out"
+                sizes="90vw"
                 onClick={() => setLightboxIndex(null)}
               />
             </motion.div>

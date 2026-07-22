@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useCart } from '@/components/CartContext';
 import { formatPrice } from '@/lib/utils/format';
 
@@ -74,12 +75,14 @@ export default function ProductCard({ product, gallery = true }: ProductCardProp
     <Link href={`/product/${product.slug}`} className="card">
       <div className="card__media">
         {imgs.map((src, i) => (
-          <img 
+          <Image 
             key={src} 
-            src={src} 
+            src={src ?? ''} 
             alt={product.name} 
+            fill
             loading="lazy" 
             className={i === idx ? 'active' : ''} 
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
         ))}
 

@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Reveal from './BluorngReveal';
 import { stores } from '@/lib/bluorng-data';
 
@@ -12,7 +13,7 @@ export default function StoresSection() {
       <Reveal stagger className="stores" as="div">
         {stores.map((s) => (
           <div key={s.city} className="store">
-            <img src={s.image} alt={s.city} loading="lazy" />
+            <Image src={s.image} alt={s.city} width={400} height={300} className="w-full h-48 object-cover" loading="lazy" />
             <span className="store__open">Open now</span>
             <div className="store__meta">
               <h3 className="store__city">{s.city}</h3>

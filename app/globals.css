@@ -1,6 +1,6 @@
 @import "tailwindcss";
-@import "./auth-profile.css";
-@import "./ecosystem-ops.css";
+@import "./auth-profile.css" layer(auth);
+@import "./ecosystem-ops.css" layer(ops);
 
 :root {
   /* ── Backgrounds ────────────────────────────────────────────── */

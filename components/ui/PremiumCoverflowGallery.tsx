@@ -12,6 +12,7 @@
  */
 
 import { useCallback, useRef, useState } from "react";
+import Image from "next/image";
 
 interface PremiumCoverflowGalleryProps {
   images: string[];
@@ -65,9 +66,11 @@ export default function PremiumCoverflowGallery({
               aria-label={`${index + 1} of ${count}`}
               style={{ flex: "0 0 100%", scrollSnapAlign: "start" }}
             >
-              <img
+              <Image
                 src={src}
                 alt={`${title} detail view ${index + 1}`}
+                width={600}
+                height={800}
                 loading={index === 0 ? "eager" : "lazy"}
                 decoding="async"
                 style={{

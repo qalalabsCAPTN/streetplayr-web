@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/client';
+import { createStaticClient } from '@/lib/supabase/static';
 
 // ============================================================
 // getPageBlocks — server-side fetch of ordered visible blocks
@@ -39,28 +39,31 @@ export async function getPageBlocks(
   isPreview: boolean = false
 ): Promise<PageBlock[]> {
   try {
-    const supabase = createClient();
+    const supabase = createStaticClient();
 
     // Resolve site UUID from slug
-    const { data: site } = await supabase
+    const siteResult = await supabase
       .from('sites')
       .select('id')
       .eq('slug', siteSlug)
-      .single();
+      .single() as unknown as { data: { id: string } | null; error: unknown };
+    const site = siteResult.data;
 
     if (!site) return [];
 
     // Query both content and published_content to support robust preview fallback
-    const { data, error } = await supabase
+    const blockResult = await supabase
       .from('page_blocks')
       .select('id, site_id, page_slug, block_type, content, published_content, block_order, is_visible')
       .eq('site_id', site.id)
       .eq('page_slug', pageSlug)
       .eq('is_visible', true)
-      .order('block_order', { ascending: true });
+      .order('block_order', { ascending: true }) as unknown as { data: unknown[] | null; error: unknown };
+    const error = blockResult.error;
+    const data = blockResult.data;
 
     if (error) {
-      console.error('[getPageBlocks]', error.message);
+      console.error('[getPageBlocks]', (error as { message?: string }).message ?? 'Unknown error');
       return [];
     }
 

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { formatPrice } from '@/lib/utils/format';
 
 interface CarouselProduct {
@@ -125,7 +126,7 @@ export default function Product3DCarousel({ products }: { products: CarouselProd
               onClick={(e) => handleCardClick(e, index, diff)}
             >
               <div className="carousel3d__media">
-                {imageSrc && <img src={imageSrc} alt={p.name} className="carousel3d__image" />}
+                {imageSrc && <Image src={imageSrc} alt={p.name} fill className="carousel3d__image object-cover" sizes="(max-width: 768px) 100vw, 50vw" />}
                 {onSale && !p.soldOut && <div className="carousel3d__badge">Sale</div>}
                 {p.soldOut && <div className="carousel3d__badge carousel3d__badge--soldout">Sold out</div>}
                 <div className="carousel3d__overlay">

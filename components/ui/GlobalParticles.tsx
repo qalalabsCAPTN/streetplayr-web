@@ -19,7 +19,7 @@ export default function GlobalParticles() {
   useEffect(() => {
     // Detect screen width to adjust particle count and size dynamically
     const isDesktop = window.innerWidth >= 1024;
-    const count = isDesktop ? 90 : 32;
+    const count = isDesktop ? 45 : 18;
     
     const generated = Array.from({ length: count }, () => {
       const dur = isDesktop ? (7 + Math.random() * 8) : (5 + Math.random() * 7);

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useCart } from '@/components/CartContext';
 import { LOCAL_PRODUCTS } from '@/lib/products/data';
 import { formatPrice } from '@/lib/utils/format';
@@ -39,7 +40,7 @@ export default function CartDrawer() {
                 <div className="drawer__suggest-track">
                   {suggestions.map((p) => (
                     <Link key={p.handle} href={`/product/${p.handle}`} onClick={() => cart.setOpen(false)}>
-                      <img src={p.images[0]} alt={p.title} />
+                      <Image src={p.images[0]} alt={p.title} width={80} height={100} className="object-cover rounded" />
                     </Link>
                   ))}
                 </div>
@@ -48,7 +49,7 @@ export default function CartDrawer() {
           ) : (
             cart.items.map((line: any) => (
               <div key={line.key} className="cartline">
-                <img src={line.product.images[0]} alt={line.product.title} />
+                <Image src={line.product.images[0]} alt={line.product.title} width={80} height={100} className="object-cover rounded" />
                 <div className="cartline__info">
                   <div className="cartline__title">{line.product.title}</div>
                   <div className="cartline__meta">

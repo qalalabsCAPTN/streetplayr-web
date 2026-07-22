@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { stories } from '@/lib/bluorng-data';
 
 interface StoryViewerProps {
@@ -67,7 +68,7 @@ export default function StoryViewer({ onClose }: StoryViewerProps) {
           ))}
         </div>
         <span className="storyviewer__label">{story.label}</span>
-        <img src={story.image} alt={story.label} />
+        <Image src={story.image} alt={story.label} width={400} height={600} className="w-full h-full object-cover" />
         <Link href={story.href} className="storyviewer__cta" onClick={onClose}>
           {story.cta}
         </Link>

@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createStaticClient } from '@/lib/supabase/static';
 import {
   getLocalProductBySlug,
   getLocalActiveProducts,
@@ -7,6 +7,8 @@ import {
 
 /**
  * Product Query Layer — centralized DB access.
+ * Uses a cookie-free static Supabase client so that Server Components
+ * can remain statically rendered / ISR-cached.
  *
  * Falls back to local product data when Supabase is not configured.
  */
@@ -80,19 +82,11 @@ export const ProductQueries = {
       return getLocalLatestDrops();
     }
     try {
-      const supabase = await createClient();
+      const supabase = createStaticClient();
 
       const { data, error } = await supabase
         .from('products')
-        .select(`
-          id,
-          title,
-          slug,
-          featured_image_url,
-          metadata,
-          status,
-          product_variants(id, price)
-        `)
+        .select(`id, title, slug, featured_image_url, metadata, status, product_variants(id, price)`)
         .eq('status', 'active')
         .order('created_at', { ascending: false })
         .limit(10);
@@ -135,7 +129,7 @@ export const ProductQueries = {
       return getLocalActiveProducts();
     }
     try {
-      const supabase = await createClient();
+      const supabase = createStaticClient();
       const { data, error } = await supabase
         .from('products')
         .select(`
@@ -209,7 +203,7 @@ export const ProductQueries = {
       return getLocalProductBySlug(slug) || null;
     }
     try {
-      const supabase = await createClient();
+      const supabase = createStaticClient();
       const { data, error } = await supabase
         .from('products')
         .select(`

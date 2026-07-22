@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import Image from "next/image";
 import { motion, useInView } from "framer-motion";
 
 function FadeIn({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
@@ -58,9 +59,11 @@ export default function Manifesto() {
             {/* Micro scanlines interaction */}
             <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,22,0)_96%,rgba(221,183,255,0.04)_96%)] bg-[size:100%_12px] opacity-0 group-hover:opacity-40 transition-opacity duration-500 z-10 pointer-events-none" />
             
-            <img
+            <Image
               src="/assets/about/manifesto_editorial.png"
               alt="StreetPlayR Manifesto Editorial"
+              width={580}
+              height={725}
               className="w-full h-full object-cover transition-transform duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
             />
           </div>

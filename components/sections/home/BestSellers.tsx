@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import ProductCarousel from "@/components/ui/ProductCarousel";
 import Reveal from "@/components/ui/Reveal";
 
@@ -49,11 +50,13 @@ export default function BestSellers({ products }: BestSellersProps) {
               href={product.slug ? `/product/${product.slug}` : "/collections"}
               className="group relative w-full aspect-[4/5] bg-[#231e27] overflow-hidden border border-white/[0.10] shadow-[0_22px_70px_rgba(12,6,18,0.30)]"
             >
-              <img
+              <Image
                 src={product.image}
                 alt={product.name}
+                fill
                 decoding="async"
-                className="w-full h-full object-cover saturate-[0.92] transition-transform duration-700 group-hover:scale-[1.025] group-hover:saturate-100"
+                className="object-cover saturate-[0.92] transition-transform duration-700 group-hover:scale-[1.025] group-hover:saturate-100"
+                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#16111b]/90 via-[#16111b]/15 to-transparent p-8 flex flex-col justify-end">
                 <h3 className="font-display text-[28px] text-[#eadfed] uppercase leading-none">

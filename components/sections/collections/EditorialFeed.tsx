@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 import ProductCard from "./ProductCard";
 import { useEffect, useState } from "react";
 import type { FeedItemData } from "@/lib/products/queries";
@@ -112,10 +113,12 @@ export default function EditorialFeed({ activeCategory }: EditorialFeedProps) {
                   className="relative aspect-[4/5] w-full overflow-hidden md:aspect-[21/9]"
                   data-cursor="video"
                 >
-                  <img
-                    src={item.image}
+                  <Image
+                    src={item.image ?? ''}
                     alt="Campaign Moment"
-                    className="h-full w-full object-cover grayscale mix-blend-luminosity opacity-40"
+                    fill
+                    className="object-cover grayscale mix-blend-luminosity opacity-40"
+                    sizes="(max-width: 768px) 100vw, 80vw"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-[#050505] opacity-80" />
                   {item.content && (

@@ -3,13 +3,10 @@ import Script from "next/script";
 import { Anton, Inter, Space_Mono } from "next/font/google";
 import AuthProvider from "@/components/auth/AuthProvider";
 import RealtimeProvider from "@/components/auth/RealtimeProvider";
-import { getProfileAction } from "@/app/actions/auth";
 import { QueryProvider } from "@/providers/query-provider";
 import ScrollDamping from "@/components/ui/ScrollDamping";
 import GlobalParticles from "@/components/ui/GlobalParticles";
 import "./globals.css";
-
-export const dynamic = 'force-dynamic';
 
 const display = Anton({
   subsets: ["latin"],
@@ -20,9 +17,10 @@ const display = Anton({
 
 const body = Inter({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["400", "600"],
   variable: "--font-sp-body",
-  display: "swap",
+  display: "optional",
+  preload: true,
 });
 
 const mono = Space_Mono({
@@ -57,13 +55,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const user = await getProfileAction();
-
   return (
     <html
       lang="en"
@@ -116,7 +112,7 @@ export default async function RootLayout({
         />
         <ScrollDamping />
         <QueryProvider>
-          <AuthProvider initialUser={user}>
+          <AuthProvider initialUser={null}>
             <RealtimeProvider>
               {children}
             </RealtimeProvider>

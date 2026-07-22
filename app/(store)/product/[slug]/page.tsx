@@ -5,7 +5,7 @@ import { ProductQueries } from "@/lib/products/queries";
 import { getLocalProductBySlug } from "@/lib/products/data";
 import { formatPrice, formatProductTitle } from "@/lib/utils/format";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 async function resolveProduct(slug: string) {
   // Always try local first — instant, no network, never fails
