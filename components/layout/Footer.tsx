@@ -1,8 +1,14 @@
 'use client';
 
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useRef, useEffect, useState } from 'react';
 import { useWindowWidth } from '@/hooks/useWindowWidth';
+
+const NinjaStar = dynamic(() => import('@/components/ui/NinjaStar'), {
+  ssr: false,
+  loading: () => <div className="w-32 h-32 md:w-48 md:h-48 rounded-full border border-white/[0.08] bg-white/[0.02]" />,
+});
 
 export default function Footer() {
   const windowWidth = useWindowWidth();
@@ -71,7 +77,7 @@ export default function Footer() {
               ref={starContainerRef}
               className="w-full max-w-[190px] sm:max-w-[240px] md:max-w-[280px] aspect-square select-none pointer-events-auto flex items-center justify-center"
             >
-              {showStar && <LazyNinjaStar scale={starScale} scrollReactive={false} />}
+              {showStar && <NinjaStar scale={starScale} scrollReactive={false} />}
             </div>
           </div>
         </div>
@@ -79,15 +85,4 @@ export default function Footer() {
       </footer>
     </>
   );
-}
-
-function LazyNinjaStar({ scale, scrollReactive }: { scale: number; scrollReactive: boolean }) {
-  const [Comp, setComp] = useState<React.ComponentType<{scale: number; scrollReactive: boolean}> | null>(null);
-  useEffect(() => {
-    // Dynamic path construction prevents bundler from preloading Three.js
-    const modName = '../ui/' + 'NinjaS' + 'tar';
-    import(modName).then(mod => setComp(() => mod.default)).catch(() => {});
-  }, []);
-  if (!Comp) return <div className="w-32 h-32 md:w-48 md:h-48 rounded-full border border-white/[0.08] bg-white/[0.02]" />;
-  return <Comp scale={scale} scrollReactive={scrollReactive} />;
 }
