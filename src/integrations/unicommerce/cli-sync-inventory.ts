@@ -1,5 +1,5 @@
 import { UnicommerceSyncService } from './sync';
-import { createAdminClient } from 'C:/Users/pc/Desktop/streetplayr - open code/lib/supabase/admin';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 async function main() {
   console.log('--- STARTING INVENTORY SYNC CLI ---');

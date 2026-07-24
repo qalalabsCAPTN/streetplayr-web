@@ -26,7 +26,7 @@ vi.mock('./logging', () => ({
 
 // Mock Supabase admin client
 const mockFrom = vi.fn();
-vi.mock('C:/Users/pc/Desktop/streetplayr - open code/lib/supabase/admin', () => ({
+vi.mock('@/lib/supabase/admin', () => ({
   createAdminClient: () => ({
     from: mockFrom,
   }),
