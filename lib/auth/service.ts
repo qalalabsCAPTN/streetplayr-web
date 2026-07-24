@@ -62,8 +62,8 @@ export const AuthService = {
 
       const admin = createAdminClient();
       const userEmail = session.user.email?.toLowerCase();
-      const bootstrapRole = userEmail === 'aayushsingh1107@gmail.com' ? 'super_admin' : 'member';
 
+      // Role is ALWAYS member on bootstrap. Ops roles are granted only via admin tooling.
       const { error: insertError } = await admin
         .from('profiles')
         .insert({
@@ -71,13 +71,13 @@ export const AuthService = {
           full_name: session.user.user_metadata?.full_name || null,
           avatar_url: session.user.user_metadata?.avatar_url || null,
           email: userEmail,
-          role: bootstrapRole,
+          role: 'member',
         });
 
       if (insertError) {
         debug('profile bootstrap insert error:', insertError.message);
       } else {
-        debug('profile created with role:', bootstrapRole);
+        debug('profile created with role: member');
       }
 
       profile = await fetchProfile();

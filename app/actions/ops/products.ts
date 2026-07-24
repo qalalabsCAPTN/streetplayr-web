@@ -1,6 +1,8 @@
 'use server';
 
 import { createAdminClient } from '@/lib/supabase/admin';
+import { requireSSRRole } from '@/lib/auth/ssr';
+import { OPS_ROLES } from '@/lib/auth/permissions';
 
 export async function upsertVariantAction(data: {
   id?: string;
@@ -10,6 +12,9 @@ export async function upsertVariantAction(data: {
   stock_quantity: number;
   price_override?: number | null;
 }): Promise<{ success: boolean; error?: string; id?: string }> {
+  const auth = await requireSSRRole(OPS_ROLES);
+  if ('error' in auth) return auth.error;
+
   try {
     const admin = createAdminClient();
     if (data.id) {
@@ -35,6 +40,9 @@ export async function upsertVariantAction(data: {
 }
 
 export async function deleteVariantAction(id: string): Promise<{ success: boolean; error?: string }> {
+  const auth = await requireSSRRole(OPS_ROLES);
+  if ('error' in auth) return auth.error;
+
   try {
     const admin = createAdminClient();
     await admin.from('product_variants').delete().eq('id', id);
@@ -48,6 +56,9 @@ export async function updateProductStatusAction(
   id: string,
   status: string
 ): Promise<{ success: boolean; error?: string }> {
+  const auth = await requireSSRRole(OPS_ROLES);
+  if ('error' in auth) return auth.error;
+
   try {
     const admin = createAdminClient();
     await admin.from('products').update({ status }).eq('id', id);
@@ -58,6 +69,9 @@ export async function updateProductStatusAction(
 }
 
 export async function getProductEventsAction(productId: string) {
+  const auth = await requireSSRRole(OPS_ROLES);
+  if ('error' in auth) return [];
+
   try {
     const admin = createAdminClient();
     const { data } = await admin

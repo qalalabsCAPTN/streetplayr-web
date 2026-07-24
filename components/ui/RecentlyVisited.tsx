@@ -23,6 +23,7 @@ function toCardProduct(p: LocalProduct) {
     image: p.image_url,
     image2: p.metadata?.gallery_images?.[1],
     category: p.category?.name,
+    variants: p.variants.map((v) => ({ id: v.id, size: v.size })),
   };
 }
 

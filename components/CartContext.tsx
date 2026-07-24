@@ -5,6 +5,19 @@ import { useCartStore, CartItem as ZustandCartItem } from '@/store/cartStore';
 
 const CartCtx = createContext<any>(null);
 
+/** Product payload for add-to-cart — variantId is required (product_variants.id). */
+export type CartAddProduct = {
+  handle: string;
+  title: string;
+  price: number;
+  images?: string[];
+  /** products.id when known */
+  productId?: string;
+  /** REQUIRED: product_variants.id — canonical cart line identity */
+  variantId: string;
+  color?: string;
+};
+
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const zustandCart = useCartStore();
   const [open, setOpen] = useState(false);
@@ -31,15 +44,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }));
   }, [zustandCart.items, mounted]);
 
-  const addItem = useCallback((product: any, size: string) => {
-    const key = `${product.handle}|${size}`;
+  const addItem = useCallback((product: CartAddProduct, size: string) => {
+    if (!product?.variantId) {
+      console.warn('[Cart] Rejected add-to-cart without variant UUID');
+      setToast('Unable to add — missing variant');
+      setTimeout(() => setToast(''), 2400);
+      return;
+    }
+
     const zustandItem: ZustandCartItem = {
-      id: key,
-      productId: product.handle,
+      id: product.variantId,
+      productId: product.productId || product.handle,
       name: product.title,
       price: product.price,
       quantity: 1,
-      color: 'default',
+      color: product.color || 'default',
       size: size,
       image: product.images?.[0] || '',
     };

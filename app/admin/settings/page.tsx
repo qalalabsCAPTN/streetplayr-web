@@ -5,33 +5,21 @@ import * as Tabs from '@radix-ui/react-tabs';
 import { Plus, Save } from 'lucide-react';
 import { TopBar } from '@/components/ops2/top-bar';
 import { cn } from '@/lib/ops2/cn';
-import { getSupabaseClient } from '@/lib/ops2/supabase';
+import {
+  listSitesAction,
+  toggleSiteActiveAction,
+  createSiteAction,
+  listSiteConfigsAction,
+  upsertSiteConfigAction,
+  listSiteAccessAction,
+  grantSiteAccessAction,
+  revokeSiteAccessAction,
+  type SiteRow,
+  type SiteConfigRow,
+  type SiteAccessRow,
+} from '@/app/actions/ops/admin-settings';
 
-type SiteRow = {
-  id: string;
-  slug: string;
-  name: string;
-  domain: string | null;
-  color: string | null;
-  is_active: boolean;
-};
-
-type SiteConfigRow = {
-  site_id: string;
-  earn_rate: number;
-  redeem_rate: number;
-  min_redeem_points: number;
-  allow_cross_site_redeem: boolean;
-};
-
-type AccessRow = {
-  id: string;
-  user_id: string;
-  site_id: string;
-  role: string;
-  profiles?: { email: string | null; full_name: string | null } | null;
-  sites?: { slug: string; name: string } | null;
-};
+type AccessRow = SiteAccessRow;
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -48,28 +36,33 @@ function SitesTab() {
   const [draft, setDraft]     = useState({ slug: '', name: '', domain: '', color: '#6366F1' });
 
   useEffect(() => {
-    const db = getSupabaseClient();
-    db.from('sites').select('id,slug,name,domain,color,is_active').order('created_at', { ascending: true })
-      .then(({ data }) => { setSites((data ?? []) as SiteRow[]); setLoading(false); });
+    listSitesAction().then((res) => {
+      if (res.success && res.data) setSites(res.data);
+      setLoading(false);
+    });
   }, []);
 
   async function toggleActive(site: SiteRow) {
     setSaving(site.id);
-    const db = getSupabaseClient();
-    await db.from('sites').update({ is_active: !site.is_active }).eq('id', site.id);
-    setSites(prev => prev.map(s => s.id === site.id ? { ...s, is_active: !s.is_active } : s));
+    const next = !site.is_active;
+    const res = await toggleSiteActiveAction(site.id, next);
+    if (res.success) {
+      setSites(prev => prev.map(s => s.id === site.id ? { ...s, is_active: next } : s));
+    }
     setSaving(null);
   }
 
   async function addSite() {
     if (!draft.slug || !draft.name) return;
     setSaving('new');
-    const db = getSupabaseClient();
-    const { data, error } = await db.from('sites')
-      .insert({ slug: draft.slug, name: draft.name, domain: draft.domain || null, color: draft.color, is_active: true })
-      .select().single();
-    if (!error && data) {
-      setSites(prev => [...prev, data as SiteRow]);
+    const res = await createSiteAction({
+      slug: draft.slug,
+      name: draft.name,
+      domain: draft.domain || null,
+      color: draft.color,
+    });
+    if (res.success && res.data) {
+      setSites(prev => [...prev, res.data!]);
       setDraft({ slug: '', name: '', domain: '', color: '#6366F1' });
       setAdding(false);
     }
@@ -173,16 +166,12 @@ function SiteConfigTab() {
   const [saved, setSaved]   = useState(false);
 
   useEffect(() => {
-    const db = getSupabaseClient();
-    Promise.all([
-      db.from('sites').select('id,slug,name').eq('is_active', true).order('created_at', { ascending: true }),
-      db.from('site_configs').select('*'),
-    ]).then(([{ data: siteData }, { data: cfgData }]) => {
-      const siteList = (siteData ?? []) as SiteRow[];
+    Promise.all([listSitesAction(), listSiteConfigsAction()]).then(([sitesRes, cfgRes]) => {
+      const siteList = (sitesRes.data ?? []).filter(s => s.is_active);
       setSites(siteList);
       if (siteList[0]) setSelected(siteList[0].id);
       const cfgMap: Record<string, SiteConfigRow> = {};
-      for (const row of (cfgData ?? []) as SiteConfigRow[]) cfgMap[row.site_id] = row;
+      for (const row of cfgRes.data ?? []) cfgMap[row.site_id] = row;
       setConfigs(cfgMap);
     });
   }, []);
@@ -201,11 +190,17 @@ function SiteConfigTab() {
 
   async function save() {
     setSaving(true);
-    const db = getSupabaseClient();
-    await db.from('site_configs').upsert({ ...cfg, site_id: selected }, { onConflict: 'site_id' });
+    const res = await upsertSiteConfigAction(selected, {
+      earn_rate: cfg.earn_rate,
+      redeem_rate: cfg.redeem_rate,
+      min_redeem_points: cfg.min_redeem_points,
+      allow_cross_site_redeem: cfg.allow_cross_site_redeem,
+    });
     setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    if (res.success) {
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    }
   }
 
   return (
@@ -263,49 +258,70 @@ function SiteConfigTab() {
 
 function AccessTab() {
   const [rows, setRows]       = useState<AccessRow[]>([]);
+  const [sites, setSites]     = useState<SiteRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [email, setEmail]     = useState('');
   const [siteSlug, setSiteSlug] = useState('');
-  const [role, setRole]       = useState('ops_viewer');
   const [saving, setSaving]   = useState(false);
+  const [error, setError]     = useState<string | null>(null);
 
   useEffect(() => {
-    const db = getSupabaseClient();
-    db.from('site_access')
-      .select('id, user_id, site_id, role, profiles(email, full_name), sites(slug, name)')
-      .order('created_at', { ascending: false })
-      .limit(100)
-      .then(({ data }) => { setRows((data ?? []) as unknown as AccessRow[]); setLoading(false); });
+    Promise.all([listSiteAccessAction(), listSitesAction()])
+      .then(([accessRes, sitesRes]) => {
+        if (accessRes.success && accessRes.data) setRows(accessRes.data);
+        else if (!accessRes.success) setError(accessRes.error ?? 'Failed to load access');
+        if (sitesRes.success && sitesRes.data) setSites(sitesRes.data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError('Failed to load access');
+        setLoading(false);
+      });
   }, []);
 
   async function grant() {
     if (!email || !siteSlug) return;
     setSaving(true);
-    const db = getSupabaseClient();
-    const [{ data: user }, { data: site }] = await Promise.all([
-      db.from('profiles').select('id').eq('email', email).single(),
-      db.from('sites').select('id').eq('slug', siteSlug).single(),
-    ]);
-    if (!user || !site) { setSaving(false); return; }
-    const { data, error } = await db.from('site_access')
-      .upsert({ user_id: (user as { id: string }).id, site_id: (site as { id: string }).id, role }, { onConflict: 'user_id,site_id' })
-      .select('id, user_id, site_id, role, profiles(email, full_name), sites(slug, name)')
-      .single();
-    if (!error && data) setRows(prev => [data as unknown as AccessRow, ...prev.filter(r => !(r.user_id === (user as { id: string }).id && r.site_id === (site as { id: string }).id))]);
-    setEmail(''); setSiteSlug(''); setSaving(false);
+    setError(null);
+    const site = sites.find(s => s.slug === siteSlug);
+    if (!site) {
+      setError('Unknown site slug');
+      setSaving(false);
+      return;
+    }
+    const res = await grantSiteAccessAction(site.id, email);
+    if (res.success && res.data) {
+      setRows(prev => [
+        res.data!,
+        ...prev.filter(r => !(r.user_id === res.data!.user_id && r.site_id === res.data!.site_id)),
+      ]);
+      setEmail('');
+      setSiteSlug('');
+    } else {
+      setError(res.error ?? 'Grant failed');
+    }
+    setSaving(false);
   }
 
-  async function revoke(id: string) {
-    const db = getSupabaseClient();
-    await db.from('site_access').delete().eq('id', id);
-    setRows(prev => prev.filter(r => r.id !== id));
+  async function revoke(siteId: string, userId: string) {
+    setError(null);
+    const res = await revokeSiteAccessAction(siteId, userId);
+    if (res.success) {
+      setRows(prev => prev.filter(r => !(r.site_id === siteId && r.user_id === userId)));
+    } else {
+      setError(res.error ?? 'Revoke failed');
+    }
   }
 
   return (
     <div className="p-6 flex flex-col gap-6">
       <div className="surface p-4 flex flex-col gap-3">
         <h4 className="text-xs font-semibold text-text-secondary uppercase tracking-widest">Grant Access</h4>
-        <div className="grid grid-cols-3 gap-3">
+        <p className="text-xs text-text-muted">
+          Grants site membership only. Global ops role lives on the user profile, not here.
+        </p>
+        {error && <p className="text-xs text-red-400">{error}</p>}
+        <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-xs text-text-muted mb-1">User Email</label>
             <input className={FIELD} placeholder="user@example.com" value={email} onChange={e => setEmail(e.target.value)} />
@@ -313,15 +329,6 @@ function AccessTab() {
           <div>
             <label className="block text-xs text-text-muted mb-1">Site Slug</label>
             <input className={FIELD} placeholder="streetplayr" value={siteSlug} onChange={e => setSiteSlug(e.target.value)} />
-          </div>
-          <div>
-            <label className="block text-xs text-text-muted mb-1">Role</label>
-            <select className={FIELD} value={role} onChange={e => setRole(e.target.value)}>
-              <option value="ops_viewer">ops_viewer</option>
-              <option value="ops_editor">ops_editor</option>
-              <option value="ops_admin">ops_admin</option>
-              <option value="super_admin">super_admin</option>
-            </select>
           </div>
         </div>
         <button onClick={grant} disabled={saving || !email || !siteSlug} className={cn(BTN, 'bg-nectar-400 text-black hover:bg-nectar-300 self-start disabled:opacity-40')}>
@@ -338,7 +345,7 @@ function AccessTab() {
               <tr>
                 <th>User</th>
                 <th>Site</th>
-                <th>Role</th>
+                <th>Granted</th>
                 <th></th>
               </tr>
             </thead>
@@ -346,19 +353,20 @@ function AccessTab() {
               {rows.length === 0 ? (
                 <tr><td colSpan={4} className="text-center text-text-muted py-8 text-sm">No access entries</td></tr>
               ) : rows.map(row => (
-                <tr key={row.id}>
+                <tr key={`${row.site_id}:${row.user_id}`}>
                   <td>
                     <div className="text-sm text-text-primary">{row.profiles?.full_name ?? '—'}</div>
                     <div className="text-xs text-text-muted">{row.profiles?.email ?? row.user_id.slice(0, 8) + '…'}</div>
                   </td>
                   <td><span className="font-mono text-xs text-text-secondary">{row.sites?.slug ?? '—'}</span></td>
-                  <td>
-                    <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-base-elevated text-text-secondary border border-border">
-                      {row.role}
-                    </span>
+                  <td className="text-xs text-text-muted">
+                    {row.granted_at ? new Date(row.granted_at).toLocaleDateString() : '—'}
                   </td>
                   <td>
-                    <button onClick={() => revoke(row.id)} className="text-xs text-red-400 hover:text-red-300 transition-colors">
+                    <button
+                      onClick={() => revoke(row.site_id, row.user_id)}
+                      className="text-xs text-red-400 hover:text-red-300 transition-colors"
+                    >
                       Revoke
                     </button>
                   </td>

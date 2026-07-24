@@ -187,13 +187,17 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
       }
     } catch {}
 
-    const cartProduct = {
-      handle: props.slug,
-      title: props.title,
-      price: parseFloat(props.price.replace(/[^0-9.-]+/g, '')),
-      images: colorImages,
-    };
-    cart.addItem(cartProduct, selectedSize);
+    cart.addItem(
+      {
+        handle: props.slug,
+        productId: props.productId,
+        title: props.title,
+        price: parseFloat(props.price.replace(/[^0-9.-]+/g, '')),
+        images: colorImages,
+        variantId: matchingVariant.id,
+      },
+      selectedSize
+    );
     cart.showToast('Added to bag');
   };
 

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -9,6 +10,14 @@ const MAX_BYTES = 8 * 1024 * 1024; // 8 MB
 
 export async function POST(req: Request) {
   try {
+    const supabaseAuth = await createClient();
+    const {
+      data: { user },
+    } = await supabaseAuth.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
 
@@ -34,16 +43,15 @@ export async function POST(req: Request) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Unique filename — no personal data in path
     const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
-    const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}.${ext}`;
+    const filename = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 9)}.${ext}`;
 
     const supabase = createAdminClient();
     const { error: uploadError } = await supabase.storage
       .from(BUCKET)
       .upload(filename, buffer, {
         contentType: file.type,
-        cacheControl: "86400", // 24h CDN cache
+        cacheControl: "86400",
         upsert: false,
       });
 

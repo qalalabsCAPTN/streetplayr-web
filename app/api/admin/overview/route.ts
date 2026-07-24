@@ -1,7 +1,11 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import { NextResponse } from 'next/server';
+import { isApiError, requireOpsApi } from '@/lib/auth/api-guard';
 
 export async function GET() {
+  const auth = await requireOpsApi();
+  if (isApiError(auth)) return auth;
+
   try {
     const admin = createAdminClient();
 

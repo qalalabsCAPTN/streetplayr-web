@@ -31,6 +31,12 @@ export interface FeedItemData {
   image?: string;
 }
 
+export type CatalogVariant = {
+  id: string;
+  size: string;
+  price?: number;
+};
+
 export type CatalogProduct = {
   id: string;
   name: string;
@@ -41,9 +47,21 @@ export type CatalogProduct = {
   /** Collection slugs this product belongs to. Empty = uncategorized (exclude from filters). */
   collections: CollectionSlug[];
   createdAt: number;
+  /** product_variants for cart line UUID resolution */
+  variants?: CatalogVariant[];
   metadata?: Record<string, unknown>;
   className?: string;
 };
+
+function mapCatalogVariants(
+  raw: { id: string; price?: number; title?: string; attributes?: { size?: string } }[] | null | undefined
+): CatalogVariant[] {
+  return (raw ?? []).map((v) => ({
+    id: v.id,
+    size: v.attributes?.size || v.title || 'M',
+    price: v.price,
+  }));
+}
 
 const EDITORIAL_ITEMS: FeedItemData[] = [
   {
@@ -103,6 +121,11 @@ function mapLocalCatalog(): CatalogProduct[] {
       image2: full?.metadata.gallery_images?.[1],
       collections,
       createdAt: Date.now() - i * 1000,
+      variants: (full?.variants ?? []).map((v) => ({
+        id: v.id,
+        size: v.size,
+        price: v.price_override ?? p.price,
+      })),
       metadata: full?.metadata as Record<string, unknown> | undefined,
     };
   });
@@ -148,7 +171,7 @@ export const ProductQueries = {
       const { data, error } = await supabase
         .from('products')
         .select(
-          `id, title, slug, featured_image_url, metadata, status, created_at, product_variants(id, price)`
+          `id, title, slug, featured_image_url, metadata, status, created_at, product_variants(id, price, title, attributes)`
         )
         .eq('status', 'active')
         .order('created_at', { ascending: false });
@@ -161,7 +184,8 @@ export const ProductQueries = {
       const membership = await fetchMembershipMap(supabase);
 
       return data.map((p) => {
-        const prices = (p.product_variants ?? []).map((v: any) => v.price).filter(Boolean);
+        const variants = mapCatalogVariants(p.product_variants as any);
+        const prices = variants.map((v) => v.price).filter((n): n is number => typeof n === 'number');
         const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
         let collections = membership.get(p.id) || [];
 
@@ -184,6 +208,7 @@ export const ProductQueries = {
           image2: p.metadata?.gallery_images?.[1] || p.featured_image_url,
           collections,
           createdAt: p.created_at ? Date.parse(p.created_at) : 0,
+          variants,
           metadata: p.metadata || {},
         };
       });
@@ -224,6 +249,7 @@ export const ProductQueries = {
       image: p.image,
       category: p.collections[0],
       collections: p.collections,
+      variants: p.variants,
     }));
   },
 

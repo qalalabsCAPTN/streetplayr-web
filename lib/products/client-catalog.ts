@@ -25,6 +25,11 @@ function mapLocal(): CatalogProduct[] {
       image2: full?.metadata.gallery_images?.[1],
       collections: localMembershipFor(p.id, p.slug),
       createdAt: Date.now() - i * 1000,
+      variants: (full?.variants ?? []).map((v) => ({
+        id: v.id,
+        size: v.size,
+        price: v.price_override ?? p.price,
+      })),
       metadata: full?.metadata as Record<string, unknown> | undefined,
     };
   });
@@ -40,7 +45,7 @@ export async function loadClientCatalog(): Promise<CatalogProduct[]> {
     const { data, error } = await supabase
       .from('products')
       .select(
-        'id, title, slug, featured_image_url, metadata, status, created_at, product_variants(id, price)'
+        'id, title, slug, featured_image_url, metadata, status, created_at, product_variants(id, price, title, attributes)'
       )
       .eq('status', 'active')
       .order('created_at', { ascending: false });
@@ -69,7 +74,12 @@ export async function loadClientCatalog(): Promise<CatalogProduct[]> {
     }
 
     const mapped: CatalogProduct[] = data.map((p) => {
-      const prices = (p.product_variants ?? []).map((v: any) => v.price).filter(Boolean);
+      const variants = (p.product_variants ?? []).map((v: any) => ({
+        id: v.id as string,
+        size: (v.attributes?.size as string) || (v.title as string) || 'M',
+        price: v.price as number | undefined,
+      }));
+      const prices = variants.map((v) => v.price).filter(Boolean) as number[];
       const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
       let collections = membership.get(p.id) || [];
       if (collections.length === 0) {
@@ -89,6 +99,7 @@ export async function loadClientCatalog(): Promise<CatalogProduct[]> {
         image2: p.metadata?.gallery_images?.[1] || p.featured_image_url,
         collections,
         createdAt: p.created_at ? Date.parse(p.created_at) : 0,
+        variants,
         metadata: p.metadata || {},
       };
     });

@@ -14,7 +14,8 @@ const ssrSafeStorage = createJSONStorage(() => {
 });
 
 export type CartItem = {
-  id: string; // Unique id combining product id + color + size
+  /** Canonical line identity = product_variants.id (UUID). Never handle|size. */
+  id: string;
   productId: string;
   name: string;
   price: number;
@@ -103,7 +104,10 @@ export const useCartStore = create<CartState>()(
           const { syncCartAction } = await import('@/app/actions/cart');
           const result = await syncCartAction(items);
           if (!result.success) {
-            set({ error: result.error ?? 'Sync failed', isSyncing: false });
+            set({
+              error: ('reason' in result && result.reason) || 'Sync failed',
+              isSyncing: false,
+            });
             return;
           }
           set({ isSyncing: false, error: null });

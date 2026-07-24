@@ -1,30 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { createClient } from '@/lib/supabase/server';
-
-async function requireAdmin() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
-
-  const admin = createAdminClient();
-  const { data: profile } = await admin
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single();
-
-  if (!profile || !['admin', 'super_admin', 'ops'].includes(profile.role ?? '')) return null;
-  return user;
-}
+import { isApiError, requireOpsApi } from '@/lib/auth/api-guard';
 
 /**
  * GET /api/admin/nectar/campaigns
  * Returns all bonus_campaigns ordered by created_at desc
  */
 export async function GET() {
-  const user = await requireAdmin();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const auth = await requireOpsApi();
+  if (isApiError(auth)) return auth;
 
   const admin = createAdminClient();
   const { data, error } = await admin
@@ -41,8 +25,8 @@ export async function GET() {
  * Create a new bonus campaign
  */
 export async function POST(req: NextRequest) {
-  const user = await requireAdmin();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const auth = await requireOpsApi(['super_admin', 'ops_admin']);
+  if (isApiError(auth)) return auth;
 
   const body = await req.json().catch(() => null);
   if (!body?.name) {
@@ -74,8 +58,8 @@ export async function POST(req: NextRequest) {
  * Body: { id, ...fields }
  */
 export async function PATCH(req: NextRequest) {
-  const user = await requireAdmin();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const auth = await requireOpsApi(['super_admin', 'ops_admin']);
+  if (isApiError(auth)) return auth;
 
   const body = await req.json().catch(() => null);
   if (!body?.id) return NextResponse.json({ error: 'id is required' }, { status: 400 });

@@ -47,8 +47,12 @@ function verifySignature(
     }
   }
 
-  // DEVELOPMENT ONLY: parse without verification
+  // DEVELOPMENT ONLY: parse without verification when secret unset
   if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      console.error('[Webhook] STRIPE_WEBHOOK_SECRET missing in production — rejecting');
+      return null;
+    }
     console.warn('[Webhook] STRIPE_WEBHOOK_SECRET not set — skipping signature verification');
     try {
       const parsed = JSON.parse(payload);

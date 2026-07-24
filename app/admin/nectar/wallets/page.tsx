@@ -5,75 +5,41 @@ import { useQuery } from '@tanstack/react-query';
 import { Search, ShieldCheck } from 'lucide-react';
 import { TopBar } from '@/components/ops2/top-bar';
 import { Badge } from '@/components/ops2/ui/badge';
-import { getSupabaseClient } from '@/lib/ops2/supabase';
 import { formatPoints, formatDateTime, formatRelativeTime } from '@/lib/ops2/format';
 import { cn } from '@/lib/ops2/cn';
 import { usePlatform } from '@/hooks/ops2/use-platform';
+import {
+  listAdminWalletTransactionsAction,
+  type AdminWalletTxRow,
+} from '@/app/actions/ops/wallets';
 
-interface TxRow {
-  id: string;
-  user_id: string;
-  type: string;
-  source: string;
-  amount: number;
-  balance_after: number;
-  description: string;
-  created_at: string;
-  wallet_type: string;
-}
-
-const TX_TYPE_BADGE: Record<string, { variant: 'success' | 'error' | 'info' | 'warning' | 'muted'; label: string }> = {
-  credit:  { variant: 'success', label: 'credit' },
-  debit:   { variant: 'error',   label: 'debit' },
-  hold:    { variant: 'warning', label: 'hold' },
-  release: { variant: 'info',    label: 'release' },
-  expire:  { variant: 'muted',   label: 'expire' },
+const TX_TYPE_BADGE: Record<
+  string,
+  { variant: 'success' | 'error' | 'info' | 'warning' | 'muted'; label: string }
+> = {
+  credit: { variant: 'success', label: 'credit' },
+  debit: { variant: 'error', label: 'debit' },
+  hold: { variant: 'warning', label: 'hold' },
+  release: { variant: 'info', label: 'release' },
+  expire: { variant: 'muted', label: 'expire' },
 };
 
 export default function WalletsPage() {
   const [search, setSearch] = useState('');
-  const [selectedTx, setSelectedTx] = useState<TxRow | null>(null);
+  const [selectedTx, setSelectedTx] = useState<AdminWalletTxRow | null>(null);
   const { apiParam } = usePlatform();
 
   const { data, isLoading } = useQuery({
     queryKey: ['wallet-transactions', apiParam, search],
     queryFn: async () => {
-      const db = getSupabaseClient();
-      let siteId: string | undefined;
-
-      if (apiParam) {
-        const { data: site } = await db.from('sites').select('id').eq('slug', apiParam).single();
-        siteId = (site as { id: string } | null)?.id;
-        if (!siteId) return { transactions: [] as TxRow[] };
-      }
-
-      let query = db
-        .from('wallet_transactions')
-        .select('id, user_id, type, source, delta, created_at')
-        .order('created_at', { ascending: false })
-        .limit(100);
-
-      if (siteId) query = query.eq('site_id', siteId);
-      if (search.trim()) query = query.or(`user_id.ilike.%${search.trim()}%,source.ilike.%${search.trim()}%`);
-
-      const { data: rows } = await query;
-      const txRows = (rows ?? []) as Array<{ id: string; user_id: string; type: string; source: string; delta: number; created_at: string }>;
-
-      const transactions: TxRow[] = txRows.map((row) => ({
-        id: row.id,
-        user_id: row.user_id,
-        type: row.type,
-        source: row.source,
-        amount: Math.abs(row.delta ?? 0),
-        balance_after: 0,
-        description: row.source || row.type || 'Transaction',
-        created_at: row.created_at,
-        wallet_type: 'sprr',
-      }));
-
-      return { transactions };
+      const result = await listAdminWalletTransactionsAction({
+        siteSlug: apiParam || undefined,
+        search: search || undefined,
+        limit: 100,
+      });
+      return { transactions: result.transactions ?? [] };
     },
-    placeholderData: prev => prev,
+    placeholderData: (prev) => prev,
   });
 
   const txs = data?.transactions ?? [];
@@ -98,7 +64,7 @@ export default function WalletsPage() {
                 className="field pl-8 text-xs"
                 placeholder="Search by user ID, description..."
                 value={search}
-                onChange={e => setSearch(e.target.value)}
+                onChange={(e) => setSearch(e.target.value)}
               />
             </div>
           </div>
@@ -120,44 +86,58 @@ export default function WalletsPage() {
                   Array.from({ length: 10 }).map((_, i) => (
                     <tr key={i}>
                       {Array.from({ length: 6 }).map((_, j) => (
-                        <td key={j}><div className="h-4 bg-base-elevated rounded animate-pulse" /></td>
+                        <td key={j}>
+                          <div className="h-4 bg-base-elevated rounded animate-pulse" />
+                        </td>
                       ))}
                     </tr>
                   ))
-                ) : txs.map(tx => {
-                  const badge = TX_TYPE_BADGE[tx.type] ?? TX_TYPE_BADGE['credit']!;
-                  return (
-                    <tr
-                      key={tx.id}
-                      onClick={() => setSelectedTx(selectedTx?.id === tx.id ? null : tx)}
-                      className={cn('cursor-pointer', selectedTx?.id === tx.id && 'bg-base-elevated')}
-                    >
-                      <td>
-                        <div className="font-mono text-xs text-text-muted">{tx.id.slice(0, 8)}…</div>
-                        <div className="text-xs text-text-secondary truncate max-w-xs">{tx.description}</div>
-                      </td>
-                      <td><Badge variant={badge.variant}>{badge.label}</Badge></td>
-                      <td>
-                        <span className="code text-[10px]">{tx.source}</span>
-                      </td>
-                      <td>
-                        <span className={cn(
-                          'font-semibold text-sm',
-                          tx.type === 'credit'  ? 'text-status-success' :
-                          tx.type === 'debit'   ? 'text-status-error' :
-                          'text-text-secondary'
-                        )}>
-                          {tx.type === 'credit' ? '+' : tx.type === 'debit' ? '-' : ''}
-                          {tx.amount.toLocaleString()}
-                        </span>
-                      </td>
-                      <td className="font-mono text-sm text-text-primary">
-                        {tx.balance_after.toLocaleString()}
-                      </td>
-                      <td className="text-text-muted">{formatRelativeTime(tx.created_at)}</td>
-                    </tr>
-                  );
-                })}
+                ) : (
+                  txs.map((tx) => {
+                    const badge = TX_TYPE_BADGE[tx.type] ?? TX_TYPE_BADGE['credit']!;
+                    return (
+                      <tr
+                        key={tx.id}
+                        onClick={() => setSelectedTx(selectedTx?.id === tx.id ? null : tx)}
+                        className={cn('cursor-pointer', selectedTx?.id === tx.id && 'bg-base-elevated')}
+                      >
+                        <td>
+                          <div className="font-mono text-xs text-text-muted">
+                            {tx.id.slice(0, 8)}…
+                          </div>
+                          <div className="text-xs text-text-secondary truncate max-w-xs">
+                            {tx.description}
+                          </div>
+                        </td>
+                        <td>
+                          <Badge variant={badge.variant}>{badge.label}</Badge>
+                        </td>
+                        <td>
+                          <span className="code text-[10px]">{tx.source}</span>
+                        </td>
+                        <td>
+                          <span
+                            className={cn(
+                              'font-semibold text-sm',
+                              tx.type === 'credit'
+                                ? 'text-status-success'
+                                : tx.type === 'debit'
+                                  ? 'text-status-error'
+                                  : 'text-text-secondary'
+                            )}
+                          >
+                            {tx.type === 'credit' ? '+' : tx.type === 'debit' ? '-' : ''}
+                            {tx.amount.toLocaleString()}
+                          </span>
+                        </td>
+                        <td className="font-mono text-sm text-text-primary">
+                          {tx.balance_after.toLocaleString()}
+                        </td>
+                        <td className="text-text-muted">{formatRelativeTime(tx.created_at)}</td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>
@@ -167,18 +147,20 @@ export default function WalletsPage() {
           <div className="w-72 shrink-0 surface flex flex-col animate-slide-in-right">
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
               <span className="text-sm font-semibold">Transaction</span>
-              <button onClick={() => setSelectedTx(null)} className="btn-ghost p-1 text-xs">✕</button>
+              <button onClick={() => setSelectedTx(null)} className="btn-ghost p-1 text-xs">
+                ✕
+              </button>
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {[
-                { label: 'ID',          value: selectedTx.id },
-                { label: 'User',        value: selectedTx.user_id },
-                { label: 'Type',        value: selectedTx.type },
-                { label: 'Source',      value: selectedTx.source },
-                { label: 'Amount',      value: formatPoints(selectedTx.amount) },
+                { label: 'ID', value: selectedTx.id },
+                { label: 'User', value: selectedTx.user_id },
+                { label: 'Type', value: selectedTx.type },
+                { label: 'Source', value: selectedTx.source },
+                { label: 'Amount', value: formatPoints(selectedTx.amount) },
                 { label: 'Balance After', value: formatPoints(selectedTx.balance_after) },
-                { label: 'Wallet',      value: selectedTx.wallet_type },
-                { label: 'Time',        value: formatDateTime(selectedTx.created_at) },
+                { label: 'Wallet', value: selectedTx.wallet_type },
+                { label: 'Time', value: formatDateTime(selectedTx.created_at) },
               ].map(({ label, value }) => (
                 <div key={label}>
                   <div className="text-xs text-text-muted mb-0.5">{label}</div>

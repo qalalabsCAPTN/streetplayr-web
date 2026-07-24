@@ -1,12 +1,16 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { deriveTier } from '@/lib/nectar/engine';
+import { isApiError, requireOpsApi } from '@/lib/auth/api-guard';
 
 /**
  * GET /api/admin/analytics/tiers
  * Returns real tier distribution counts from profiles.sprr_balance
  */
 export async function GET() {
+  const auth = await requireOpsApi();
+  if (isApiError(auth)) return auth;
+
   const admin = createAdminClient();
 
   const { data, error } = await admin

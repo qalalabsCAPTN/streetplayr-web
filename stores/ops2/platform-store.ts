@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { type PlatformId, PLATFORMS, type Platform } from '@/types/ops2/ops';
-import { getSupabaseClient } from '@/lib/ops2/supabase';
+import { listSitesAction, setActiveSiteAction } from '@/app/actions/ops/admin-settings';
 
 interface PlatformStore {
   activePlatformId: PlatformId;
@@ -9,6 +9,7 @@ interface PlatformStore {
   allPlatforms: Platform[];
   isHydrated: boolean;
   setPlatform: (id: PlatformId) => void;
+  hydrateSites: (sites: SiteRow[]) => void;
   loadSitesFromDB: () => Promise<void>;
 }
 
@@ -36,6 +37,19 @@ function siteRowToPlatform(row: SiteRow): Platform & { uuid: string } {
   };
 }
 
+function mergeSitesIntoPlatforms(sites: SiteRow[], currentId: PlatformId) {
+  const allOption = PLATFORMS[0]!;
+  const sitePlatforms = sites.map(row => siteRowToPlatform(row));
+  const merged: Platform[] = [allOption, ...sitePlatforms];
+  const stillValid = merged.find(p => p.id === currentId);
+  return {
+    allPlatforms:     merged,
+    activePlatform:   stillValid ?? allOption,
+    activePlatformId: (stillValid ? currentId : 'all') as PlatformId,
+    isHydrated:       true,
+  };
+}
+
 export const usePlatformStore = create<PlatformStore>()(
   persist(
     (set, get) => ({
@@ -46,42 +60,37 @@ export const usePlatformStore = create<PlatformStore>()(
 
       setPlatform: (id: PlatformId) => {
         const platform = get().allPlatforms.find(p => p.id === id) ?? get().allPlatforms[0]!;
+        // Optimistic local update
         set({ activePlatformId: id, activePlatform: platform });
-        try {
-          const db = getSupabaseClient();
-          db.auth.getUser().then(({ data }) => {
-            if (!data.user || id === 'all') return;
-            const site = get().allPlatforms.find(p => p.id === id) as (Platform & { uuid?: string }) | undefined;
-            if (site?.uuid) {
-              db.from('profiles').update({ active_site_id: site.uuid }).eq('id', data.user.id);
-            }
-          });
-        } catch { /* silent */ }
+
+        if (id === 'all') return;
+
+        const site = get().allPlatforms.find(p => p.id === id) as (Platform & { uuid?: string }) | undefined;
+        if (site?.uuid) {
+          void setActiveSiteAction(site.uuid).catch(() => { /* silent */ });
+        }
+      },
+
+      hydrateSites: (sites: SiteRow[]) => {
+        if (!sites.length) {
+          set({ isHydrated: true });
+          return;
+        }
+        set(mergeSitesIntoPlatforms(sites, get().activePlatformId));
       },
 
       loadSitesFromDB: async () => {
         try {
-          const db = getSupabaseClient();
-          const { data, error } = await db
-            .from('sites')
-            .select('id, slug, name, color')
-            .eq('is_active', true)
-            .order('created_at', { ascending: true });
-
-          if (error || !data || data.length === 0) { set({ isHydrated: true }); return; }
-
-          const allOption = PLATFORMS[0]!;
-          const sitePlatforms = (data as SiteRow[]).map(row => siteRowToPlatform(row));
-          const merged: Platform[] = [allOption, ...sitePlatforms];
-
-          const currentId = get().activePlatformId;
-          const stillValid = merged.find(p => p.id === currentId);
-          set({
-            allPlatforms:     merged,
-            activePlatform:   stillValid ?? allOption,
-            activePlatformId: stillValid ? currentId : 'all',
-            isHydrated:       true,
-          });
+          const res = await listSitesAction();
+          const active = (res.data ?? []).filter(s => s.is_active);
+          if (!res.success || active.length === 0) {
+            set({ isHydrated: true });
+            return;
+          }
+          set(mergeSitesIntoPlatforms(
+            active.map(s => ({ id: s.id, slug: s.slug, name: s.name, color: s.color })),
+            get().activePlatformId
+          ));
         } catch {
           set({ isHydrated: true });
         }

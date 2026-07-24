@@ -180,6 +180,23 @@ export async function releaseOrderReservationsAction(
 
     const admin = createAdminClient();
 
+    const { data: customer } = user.email
+      ? await admin.from('customers').select('id').eq('email', user.email).maybeSingle()
+      : { data: null };
+
+    const { data: order } = await admin
+      .from('orders')
+      .select('id, customer_id, notes')
+      .eq('id', orderId)
+      .single();
+
+    if (!order) return { success: false, error: 'Order not found.', code: 'ORDER_NOT_FOUND' };
+
+    const isOwner = (customer && order.customer_id === customer.id) || order.notes === user.id;
+    if (!isOwner) {
+      return { success: false, error: 'Order does not belong to user.', code: 'UNAUTHORIZED_ORDER' };
+    }
+
     const { data: reservations } = await admin
       .from('inventory_reservations')
       .select('id')

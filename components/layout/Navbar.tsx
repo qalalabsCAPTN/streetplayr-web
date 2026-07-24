@@ -186,7 +186,7 @@ export default function Navbar() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Transparent at top → solid dark on scroll. Overlays also force solid.
+  // Frosted glass at top → denser glass on scroll / overlays.
   const solid = scrolled || megaOpen || menuDrawerOpen || searchOpen;
 
   useEffect(() => {

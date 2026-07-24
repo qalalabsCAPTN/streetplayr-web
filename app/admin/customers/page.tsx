@@ -7,120 +7,9 @@ import { useRouter } from 'next/navigation';
 import { TopBar } from '@/components/ops2/top-bar';
 import { Badge, TierBadge, PlatformBadge } from '@/components/ops2/ui/badge';
 import { EmptyState } from '@/components/ops2/ui/empty-state';
-import { getSupabaseClient } from '@/lib/ops2/supabase';
 import { formatRelativeTime, formatCurrency, formatPoints } from '@/lib/ops2/format';
 import { usePlatform } from '@/hooks/ops2/use-platform';
-import type { CustomerOverview } from '@/types/ops2/ops';
-import { deriveTier } from '@/store/authStore';
-
-interface ProfileRow {
-  id: string;
-  email: string | null;
-  full_name: string | null;
-  sprr_balance: number | null;
-  lifetime_xp: number | null;
-  last_active_at: string | null;
-  created_at: string;
-}
-
-async function resolveSiteId(apiParam?: string) {
-  if (!apiParam) return undefined;
-
-  const db = getSupabaseClient();
-  const { data } = await db.from('sites').select('id').eq('slug', apiParam).single();
-  return (data as { id: string } | null)?.id;
-}
-
-async function fetchCustomers(apiParam?: string, search?: string) {
-  const db = getSupabaseClient();
-  const siteId = await resolveSiteId(apiParam);
-
-  let ordersQuery = db.from('orders').select('id, user_id, total, site_id').order('created_at', { ascending: false }).limit(500);
-  let txQuery = db.from('wallet_transactions').select('user_id, site_id').order('created_at', { ascending: false }).limit(1000);
-
-  if (siteId) {
-    ordersQuery = ordersQuery.eq('site_id', siteId);
-    txQuery = txQuery.eq('site_id', siteId);
-  }
-
-  const [{ data: siteRows }, { data: orders }, { data: walletTx }] = await Promise.all([
-    db.from('sites').select('id, slug'),
-    ordersQuery,
-    txQuery,
-  ]);
-
-  const siteList = (siteRows ?? []) as Array<{ id: string; slug: string }>;
-  const orderRows = (orders ?? []) as Array<{ user_id: string; total: number; site_id?: string | null }>;
-  const txRows = (walletTx ?? []) as Array<{ user_id: string; site_id?: string | null }>;
-
-  const relevantUserIds = new Set<string>();
-  const spendByUser: Record<string, number> = {};
-  const orderCountByUser: Record<string, number> = {};
-  const platformByUser: Record<string, Set<string>> = {};
-  const slugBySiteId = new Map(siteList.map((row) => [row.id, row.slug]));
-
-  for (const order of orderRows) {
-    relevantUserIds.add(order.user_id);
-    spendByUser[order.user_id] = (spendByUser[order.user_id] ?? 0) + (order.total ?? 0);
-    orderCountByUser[order.user_id] = (orderCountByUser[order.user_id] ?? 0) + 1;
-    const slug = order.site_id ? slugBySiteId.get(order.site_id) : undefined;
-    if (slug) {
-      if (!platformByUser[order.user_id]) platformByUser[order.user_id] = new Set<string>();
-      platformByUser[order.user_id]!.add(slug);
-    }
-  }
-
-  for (const tx of txRows) {
-    relevantUserIds.add(tx.user_id);
-    const slug = tx.site_id ? slugBySiteId.get(tx.site_id) : undefined;
-    if (slug) {
-      if (!platformByUser[tx.user_id]) platformByUser[tx.user_id] = new Set<string>();
-      platformByUser[tx.user_id]!.add(slug);
-    }
-  }
-
-  let profilesQuery = db
-    .from('profiles')
-    .select('id, email, full_name, sprr_balance, lifetime_xp, last_active_at, created_at')
-    .order('created_at', { ascending: false })
-    .limit(200);
-
-  if (siteId) {
-    const userIds = Array.from(relevantUserIds);
-    if (userIds.length === 0) {
-      return { customers: [] as CustomerOverview[], total: 0 };
-    }
-    profilesQuery = profilesQuery.in('id', userIds);
-  }
-
-  const term = search?.trim();
-  if (term) {
-    profilesQuery = profilesQuery.or(`full_name.ilike.%${term}%,email.ilike.%${term}%`);
-  }
-
-  const { data: profiles } = await profilesQuery;
-
-  const customers: CustomerOverview[] = (profiles as ProfileRow[] | null ?? []).map((profile) => ({
-    userId: profile.id,
-    displayName: profile.full_name || 'Unknown',
-    email: profile.email || '—',
-    status: 'active',
-    tier: deriveTier(profile.sprr_balance ?? 0),
-    lifetimeXp: profile.lifetime_xp ?? 0,
-    pointsBalance: profile.sprr_balance ?? 0,
-    totalSpend: spendByUser[profile.id] ?? 0,
-    orderCount: orderCountByUser[profile.id] ?? 0,
-    referralCount: 0,
-    joinedAt: profile.created_at,
-    lastActiveAt: profile.last_active_at ?? undefined,
-    riskScore: 0,
-    connectedPlatforms: apiParam
-      ? [apiParam]
-      : Array.from(platformByUser[profile.id] ?? []).slice(0, 4),
-  }));
-
-  return { customers, total: customers.length };
-}
+import { listAdminCustomersAction } from '@/app/actions/ops/customers';
 
 export default function CustomersPage() {
   const [search, setSearch] = useState('');
@@ -129,8 +18,17 @@ export default function CustomersPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['customers', apiParam, search],
-    queryFn: () => fetchCustomers(apiParam, search || undefined),
-    placeholderData: prev => prev,
+    queryFn: async () => {
+      const result = await listAdminCustomersAction({
+        siteSlug: apiParam || undefined,
+        search: search || undefined,
+      });
+      return {
+        customers: result.customers ?? [],
+        total: result.total ?? 0,
+      };
+    },
+    placeholderData: (prev) => prev,
   });
 
   const customers = data?.customers ?? [];
@@ -153,7 +51,7 @@ export default function CustomersPage() {
               className="field pl-9"
               placeholder="Search by name, email, or user ID..."
               value={search}
-              onChange={e => setSearch(e.target.value)}
+              onChange={(e) => setSearch(e.target.value)}
             />
           </div>
         </div>
@@ -180,18 +78,23 @@ export default function CustomersPage() {
                   Array.from({ length: 8 }).map((_, i) => (
                     <tr key={i}>
                       {Array.from({ length: 8 }).map((_, j) => (
-                        <td key={j}><div className="h-4 bg-base-elevated rounded animate-pulse" /></td>
+                        <td key={j}>
+                          <div className="h-4 bg-base-elevated rounded animate-pulse" />
+                        </td>
                       ))}
                     </tr>
                   ))
                 ) : customers.length === 0 ? (
                   <tr>
                     <td colSpan={8}>
-                      <EmptyState title="No customers found" description="Try adjusting your search or platform filter." />
+                      <EmptyState
+                        title="No customers found"
+                        description="Try adjusting your search or platform filter."
+                      />
                     </td>
                   </tr>
                 ) : (
-                  customers.map(c => (
+                  customers.map((c) => (
                     <tr
                       key={c.userId}
                       onClick={() => router.push(`/admin/customers/${c.userId}`)}
@@ -208,12 +111,18 @@ export default function CustomersPage() {
                           </div>
                         </div>
                       </td>
-                      <td><TierBadge tier={c.tier} /></td>
+                      <td>
+                        <TierBadge tier={c.tier} />
+                      </td>
                       <td>
                         <div className="flex gap-1 flex-wrap">
-                          {c.connectedPlatforms.slice(0, 2).map(p => <PlatformBadge key={p} platform={p} />)}
+                          {c.connectedPlatforms.slice(0, 2).map((p) => (
+                            <PlatformBadge key={p} platform={p} />
+                          ))}
                           {c.connectedPlatforms.length > 2 && (
-                            <span className="text-xs text-text-muted">+{c.connectedPlatforms.length - 2}</span>
+                            <span className="text-xs text-text-muted">
+                              +{c.connectedPlatforms.length - 2}
+                            </span>
                           )}
                         </div>
                       </td>
@@ -221,11 +130,17 @@ export default function CustomersPage() {
                       <td className="text-blue-400 font-medium">{c.lifetimeXp.toLocaleString()} XP</td>
                       <td>{formatCurrency(c.totalSpend)}</td>
                       <td>
-                        <Badge variant={
-                          c.status === 'active'    ? 'success' :
-                          c.status === 'flagged'   ? 'warning' :
-                          c.status === 'suspended' ? 'error' : 'muted'
-                        }>
+                        <Badge
+                          variant={
+                            c.status === 'active'
+                              ? 'success'
+                              : c.status === 'flagged'
+                                ? 'warning'
+                                : c.status === 'suspended'
+                                  ? 'error'
+                                  : 'muted'
+                          }
+                        >
                           {c.status}
                         </Badge>
                       </td>

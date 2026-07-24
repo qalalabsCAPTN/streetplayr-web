@@ -6,19 +6,29 @@ import { CartItem } from '@/store/cartStore';
 
 /**
  * Server Action: Sync Cart Checkpoint
+ * Guests keep Zustand-only cart — soft skip, never throw.
  */
 export async function syncCartAction(items: CartItem[]) {
   try {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    if (!user) return { success: false, error: 'Not authenticated' };
+    if (!user) {
+      return { success: true, skipped: true, reason: 'guest' as const };
+    }
 
-    await CartService.syncCart(user.id, items);
-    return { success: true };
+    const result = await CartService.syncCart(user.id, items, user.email);
+    return {
+      success: result.success,
+      skipped: result.skipped,
+      reason: result.reason,
+      schema: result.schema,
+    };
   } catch (e) {
-    console.error('syncCartAction error:', e);
-    return { success: false, error: 'Cart sync failed' };
+    console.error('syncCartAction error (soft):', e);
+    return { success: true, skipped: true, reason: 'exception' as const };
   }
 }
 
@@ -28,11 +38,13 @@ export async function syncCartAction(items: CartItem[]) {
 export async function pullCartAction() {
   try {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     if (!user) return [];
 
-    return await CartService.getCart(user.id);
+    return await CartService.getCart(user.id, user.email);
   } catch (e) {
     console.error('pullCartAction error:', e);
     return [];

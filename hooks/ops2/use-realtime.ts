@@ -1,8 +1,11 @@
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { getSupabaseClient } from '@/lib/ops2/supabase';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+
+// Admin realtime off by default until SSE API exists.
+const OPS_REALTIME_ENABLED = process.env.NEXT_PUBLIC_OPS_REALTIME === '1';
 
 type ChangeEvent = 'INSERT' | 'UPDATE' | 'DELETE' | '*';
 
@@ -17,37 +20,42 @@ interface UseRealtimeOptions<T> {
 }
 
 export function useRealtimeTable<T = Record<string, unknown>>({
-  table, event = '*', filter, onInsert, onUpdate, onDelete, enabled = true,
+  table,
+  event = '*',
+  filter,
+  onInsert,
+  onUpdate,
+  onDelete,
+  enabled = true,
 }: UseRealtimeOptions<T>) {
   const channelRef = useRef<RealtimeChannel | null>(null);
 
-  const handleChange = useCallback((payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => {
-    switch (payload.eventType) {
-      case 'INSERT':
-        onInsert?.(payload.new as T);
-        break;
-      case 'UPDATE':
-        onUpdate?.(payload.new as T, payload.old as Partial<T>);
-        break;
-      case 'DELETE':
-        onDelete?.(payload.old as Partial<T>);
-        break;
-    }
-  }, [onInsert, onUpdate, onDelete]);
+  const handleChange = useCallback(
+    (payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => {
+      switch (payload.eventType) {
+        case 'INSERT':
+          onInsert?.(payload.new as T);
+          break;
+        case 'UPDATE':
+          onUpdate?.(payload.new as T, payload.old as Partial<T>);
+          break;
+        case 'DELETE':
+          onDelete?.(payload.old as Partial<T>);
+          break;
+      }
+    },
+    [onInsert, onUpdate, onDelete]
+  );
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!OPS_REALTIME_ENABLED || !enabled) return;
 
     const client = getSupabaseClient();
     const channelName = `nectar-ops:${table}:${filter ?? 'all'}`;
 
     channelRef.current = client
       .channel(channelName)
-      .on(
-        'postgres_changes',
-        { event, schema: 'public', table, filter },
-        handleChange
-      )
+      .on('postgres_changes', { event, schema: 'public', table, filter }, handleChange)
       .subscribe();
 
     return () => {
@@ -56,8 +64,6 @@ export function useRealtimeTable<T = Record<string, unknown>>({
     };
   }, [table, event, filter, handleChange, enabled]);
 }
-
-import { useState } from 'react';
 
 interface UseEventStreamOptions {
   limit?: number;
@@ -77,10 +83,14 @@ export function useRealtimeEventStream({
   useRealtimeTable({
     table: 'events',
     event: 'INSERT',
-    filter: siteIdFilter ? `site_id=eq.${siteIdFilter}` : platformFilter ? `platform=eq.${platformFilter}` : undefined,
-    enabled,
+    filter: siteIdFilter
+      ? `site_id=eq.${siteIdFilter}`
+      : platformFilter
+        ? `platform=eq.${platformFilter}`
+        : undefined,
+    enabled: OPS_REALTIME_ENABLED && enabled,
     onInsert: (record) => {
-      setEvents(prev => [record as Record<string, unknown>, ...prev].slice(0, limit));
+      setEvents((prev) => [record as Record<string, unknown>, ...prev].slice(0, limit));
     },
   });
 
@@ -93,7 +103,7 @@ export function useRealtimeTransactions(enabled = true) {
   useRealtimeTable({
     table: 'wallet_transactions',
     event: 'INSERT',
-    enabled,
+    enabled: OPS_REALTIME_ENABLED && enabled,
     onInsert: (record) => setLatestTx(record as Record<string, unknown>),
   });
 

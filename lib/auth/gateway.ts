@@ -1,5 +1,4 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isOpsRole } from './permissions';
 
@@ -67,7 +66,9 @@ export const AuthGateway = {
     return (
       pathname.startsWith('/checkout') ||
       pathname.startsWith('/cart') ||
-      pathname.startsWith('/ops')
+      pathname.startsWith('/ops') ||
+      pathname.startsWith('/admin') ||
+      pathname.startsWith('/dashboard')
     );
   },
 
@@ -75,7 +76,7 @@ export const AuthGateway = {
    * Check if a pathname requires OpsOS role access.
    */
   isOpsRoute(pathname: string): boolean {
-    return pathname.startsWith('/ops');
+    return pathname.startsWith('/ops') || pathname.startsWith('/admin');
   },
 
   /**
@@ -104,12 +105,12 @@ export const AuthGateway = {
       return NextResponse.redirect(url);
     }
 
-    // Ops routes require OpsOS role
+    // Ops + Admin require OpsOS role. Dashboard only needs auth (member portal).
     if (this.isOpsRoute(pathname)) {
       const role = await this.resolveRole(userId);
       if (!isOpsRole(role)) {
         const url = request.nextUrl.clone();
-        url.pathname = '/';
+        url.pathname = '/home';
         return NextResponse.redirect(url);
       }
     }

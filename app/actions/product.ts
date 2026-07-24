@@ -3,6 +3,8 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
 import { recordEvent } from '@/lib/orchestration/events';
+import { requireSSRRole } from '@/lib/auth/ssr';
+import { OPS_ROLES } from '@/lib/auth/permissions';
 
 type ActionResponse<T = any> = {
   success: boolean;
@@ -18,6 +20,9 @@ export async function createProductAction(data: {
   category_id?: string;
   is_active?: boolean;
 }): Promise<ActionResponse> {
+  const auth = await requireSSRRole(OPS_ROLES);
+  if ('error' in auth) return { success: false, error: auth.error.error };
+
   try {
     const admin = createAdminClient();
     const { data: product, error } = await admin
@@ -39,7 +44,7 @@ export async function createProductAction(data: {
       domain: 'inventory',
       severity: 'info',
       action: 'product.created',
-      actorId: 'system',
+      actorId: auth.user.id,
       resourceType: 'products',
       resourceId: product.id,
       message: `Product created: ${product.name}`,
@@ -65,6 +70,9 @@ export async function updateProductAction(
     category_id?: string;
   }
 ): Promise<ActionResponse> {
+  const auth = await requireSSRRole(OPS_ROLES);
+  if ('error' in auth) return { success: false, error: auth.error.error };
+
   try {
     const admin = createAdminClient();
     const { data: product, error } = await admin
@@ -80,7 +88,7 @@ export async function updateProductAction(
       domain: 'inventory',
       severity: 'info',
       action: 'product.updated',
-      actorId: 'system',
+      actorId: auth.user.id,
       resourceType: 'products',
       resourceId: product.id,
       message: `Product updated: ${product.name}`,
@@ -96,6 +104,9 @@ export async function updateProductAction(
 }
 
 export async function toggleProductActiveAction(id: string, isActive: boolean): Promise<ActionResponse> {
+  const auth = await requireSSRRole(OPS_ROLES);
+  if ('error' in auth) return { success: false, error: auth.error.error };
+
   try {
     const admin = createAdminClient();
     const { data: product, error } = await admin
@@ -111,7 +122,7 @@ export async function toggleProductActiveAction(id: string, isActive: boolean): 
       domain: 'inventory',
       severity: isActive ? 'info' : 'warning',
       action: isActive ? 'product.published' : 'product.unpublished',
-      actorId: 'system',
+      actorId: auth.user.id,
       resourceType: 'products',
       resourceId: product.id,
       message: isActive ? `Product published: ${product.name}` : `Product unpublished: ${product.name}`,
@@ -130,6 +141,9 @@ export async function updateVariantStockAction(
   variantId: string,
   stockQuantity: number
 ): Promise<ActionResponse> {
+  const auth = await requireSSRRole(OPS_ROLES);
+  if ('error' in auth) return { success: false, error: auth.error.error };
+
   try {
     const admin = createAdminClient();
     const { data: variant, error } = await admin
@@ -145,7 +159,7 @@ export async function updateVariantStockAction(
       domain: 'inventory',
       severity: 'info',
       action: 'variant.stock_updated',
-      actorId: 'system',
+      actorId: auth.user.id,
       resourceType: 'product_variants',
       resourceId: variant.id,
       message: `Stock updated for ${variant.size}/${variant.color}: ${stockQuantity}`,

@@ -14,6 +14,7 @@ export default function RecommendedProducts({ currentSlug }: { currentSlug: stri
       image: p.image_url,
       category: p.category.name,
       metadata: p.metadata,
+      variants: p.variants.map((v) => ({ id: v.id, size: v.size })),
     }));
 
   if (related.length === 0) return null;

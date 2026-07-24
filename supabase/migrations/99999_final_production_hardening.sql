@@ -240,12 +240,8 @@ DO $$ BEGIN
   END IF;
 END $$;
 
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can insert own reservations' AND tablename = 'inventory_reservations') THEN
-    CREATE POLICY "Users can insert own reservations" ON inventory_reservations FOR INSERT
-      WITH CHECK (reservation_owner = auth.uid());
-  END IF;
-END $$;
+-- User INSERT on inventory_reservations removed — reservations only via
+-- service_role / SECURITY DEFINER RPCs (reserve_inventory). See 100000_*.sql
 
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Ops roles can read all reservations' AND tablename = 'inventory_reservations') THEN
@@ -254,10 +250,16 @@ DO $$ BEGIN
   END IF;
 END $$;
 
--- Operational events
+-- Operational events — INSERT service_role only (never WITH CHECK (true))
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow insert operational events' AND tablename = 'operational_events') THEN
-    CREATE POLICY "Allow insert operational events" ON operational_events FOR INSERT WITH CHECK (true);
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow insert operational events' AND tablename = 'operational_events') THEN
+    DROP POLICY "Allow insert operational events" ON operational_events;
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Service role inserts operational events' AND tablename = 'operational_events') THEN
+    CREATE POLICY "Service role inserts operational events" ON operational_events FOR INSERT
+      WITH CHECK (auth.role() = 'service_role');
   END IF;
 END $$;
 

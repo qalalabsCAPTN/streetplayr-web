@@ -1,6 +1,13 @@
+import { redirect } from 'next/navigation';
 import { DashboardSidebar } from '@/components/nectar/dashboard-sidebar';
+import { getSSRUser } from '@/lib/auth/ssr';
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const user = await getSSRUser();
+  if (!user) {
+    redirect('/login?redirect=/dashboard');
+  }
+
   return (
     <div className="flex min-h-screen nectar-portal-root">
       <DashboardSidebar />

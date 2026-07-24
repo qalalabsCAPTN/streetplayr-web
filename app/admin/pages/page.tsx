@@ -5,7 +5,15 @@ import { Plus, Eye, EyeOff, Trash2, GripVertical, ChevronDown, ChevronRight, Sav
 import { TopBar } from '@/components/ops2/top-bar';
 import { cn } from '@/lib/ops2/cn';
 import { usePlatformStore } from '@/stores/ops2/platform-store';
-import { getSupabaseClient } from '@/lib/ops2/supabase';
+import {
+  publishPageBlocksAction,
+  listSitesForCmsAction,
+  listPageBlocksAction,
+  reorderPageBlocksAction,
+  createPageBlockAction,
+  updatePageBlockAction,
+  deletePageBlockAction,
+} from '@/app/actions/cms';
 import type { BlockType } from '@/lib/page-editor/get-page-blocks';
 
 // ============================================================
@@ -85,15 +93,10 @@ export default function PagesEditorPage() {
     setDraggedIndex(null);
 
     try {
-      const db = getSupabaseClient();
       const orderedIds = blocks.map(b => b.id);
-      const { error } = await db.rpc('reorder_page_blocks', {
-        p_site_id: siteId,
-        p_page_slug: selectedPage,
-        p_block_ids: orderedIds,
-      });
+      const result = await reorderPageBlocksAction(siteId, selectedPage, orderedIds);
 
-      if (error) {
+      if (!result.success) {
         showToast('Error saving block order');
       } else {
         showToast('Block order saved');
@@ -106,10 +109,10 @@ export default function PagesEditorPage() {
 
   // Resolve siteId for active platform
   useEffect(() => {
-    const db = getSupabaseClient();
     const slug = activePlatformId === 'all' ? 'streetplayr' : activePlatformId;
-    db.from('sites').select('id').eq('slug', slug).single().then(({ data }) => {
-      setSiteId(data?.id ?? null);
+    listSitesForCmsAction().then((res) => {
+      const match = (res.data ?? []).find(s => s.slug === slug);
+      setSiteId(match?.id ?? null);
     });
   }, [activePlatformId]);
 
@@ -117,14 +120,8 @@ export default function PagesEditorPage() {
   const loadBlocks = useCallback(async () => {
     if (!siteId) return;
     setLoading(true);
-    const db = getSupabaseClient();
-    const { data } = await db
-      .from('page_blocks')
-      .select('id, block_type, content, block_order, is_visible')
-      .eq('site_id', siteId)
-      .eq('page_slug', selectedPage)
-      .order('block_order', { ascending: true });
-    setBlocks((data as Block[]) ?? []);
+    const res = await listPageBlocksAction(siteId, selectedPage);
+    setBlocks((res.data as Block[]) ?? []);
     setSelectedBlock(null);
     setLoading(false);
   }, [siteId, selectedPage]);
@@ -140,14 +137,10 @@ export default function PagesEditorPage() {
     if (!siteId) return;
     setPublishing(true);
     try {
-      const db = getSupabaseClient();
-      const { error } = await db.rpc('publish_page_blocks', {
-        p_site_id: siteId,
-        p_page_slug: selectedPage,
-      });
+      const result = await publishPageBlocksAction(siteId, selectedPage);
 
-      if (error) {
-        showToast('Error publishing page: ' + error.message);
+      if (!result.success) {
+        showToast('Error publishing page: ' + (result.error ?? 'unknown'));
       } else {
         // Trigger on-demand cache revalidation for the storefront homepage routes
         try {
@@ -175,41 +168,57 @@ export default function PagesEditorPage() {
 
   async function addBlock(type: BlockType) {
     if (!siteId) return;
-    const db = getSupabaseClient();
     const nextOrder = blocks.length > 0 ? Math.max(...blocks.map(b => b.block_order)) + 1 : 0;
-    const { data, error } = await db
-      .from('page_blocks')
-      .insert({ site_id: siteId, page_slug: selectedPage, block_type: type, content: {}, block_order: nextOrder })
-      .select()
-      .single();
-    if (!error && data) {
+    const res = await createPageBlockAction({
+      siteId,
+      pageSlug: selectedPage,
+      blockType: type,
+      content: {},
+      blockOrder: nextOrder,
+    });
+    if (res.success && res.data) {
       await loadBlocks();
-      setSelectedBlock(data as Block);
+      setSelectedBlock(res.data as Block);
       showToast('Block added');
+    } else {
+      showToast(res.error ?? 'Failed to add block');
     }
     setShowAddMenu(false);
   }
 
   async function saveBlock(block: Block) {
     setSaving(true);
-    const db = getSupabaseClient();
-    await db.from('page_blocks').update({ content: block.content, is_visible: block.is_visible }).eq('id', block.id);
+    const res = await updatePageBlockAction(block.id, {
+      content: block.content,
+      is_visible: block.is_visible,
+    });
+    if (!res.success) {
+      setSaving(false);
+      showToast(res.error ?? 'Save failed');
+      return;
+    }
     await loadBlocks();
     setSaving(false);
     showToast('Saved');
   }
 
   async function deleteBlock(id: string) {
-    const db = getSupabaseClient();
-    await db.from('page_blocks').delete().eq('id', id);
+    const res = await deletePageBlockAction(id);
+    if (!res.success) {
+      showToast(res.error ?? 'Delete failed');
+      return;
+    }
     setSelectedBlock(null);
     await loadBlocks();
     showToast('Block deleted');
   }
 
   async function toggleVisible(block: Block) {
-    const db = getSupabaseClient();
-    await db.from('page_blocks').update({ is_visible: !block.is_visible }).eq('id', block.id);
+    const res = await updatePageBlockAction(block.id, { is_visible: !block.is_visible });
+    if (!res.success) {
+      showToast(res.error ?? 'Update failed');
+      return;
+    }
     await loadBlocks();
   }
 

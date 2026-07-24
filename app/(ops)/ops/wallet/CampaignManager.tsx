@@ -16,31 +16,29 @@ export function CampaignManager() {
     e.preventDefault();
     setSaving(true);
     try {
-      const { createAdminClient } = await import('@/lib/supabase/admin');
-      const admin = createAdminClient();
-      await admin.from('bonus_campaigns').insert({
-        name,
-        description,
-        sprr_reward: sprrReward,
-        xp_reward: xpReward,
-        is_active: true,
-        starts_at: new Date().toISOString(),
+      const res = await fetch('/api/admin/nectar/campaigns', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          description,
+          sprrReward,
+          xpReward,
+          isActive: true,
+          startsAt: new Date().toISOString(),
+        }),
       });
+      if (!res.ok) throw new Error('create failed');
       setName('');
       setDescription('');
       setSprrReward(0);
       setXpReward(0);
       setShowForm(false);
       router.refresh();
-    } catch {}
+    } catch {
+      // keep form open on failure
+    }
     setSaving(false);
-  }
-
-  async function handleToggle(id: string, active: boolean) {
-    const { createAdminClient } = await import('@/lib/supabase/admin');
-    const admin = createAdminClient();
-    await admin.from('bonus_campaigns').update({ is_active: active }).eq('id', id);
-    router.refresh();
   }
 
   return (
@@ -48,8 +46,9 @@ export function CampaignManager() {
       <div className="flex items-center justify-between">
         <span className="text-[8px] font-mono text-[var(--ops-text-muted)] uppercase tracking-widest">Campaign Manager</span>
         <button
+          type="button"
           onClick={() => setShowForm(!showForm)}
-          className="text-[8px] font-mono text-[var(--sp-accent)] uppercase tracking-widest border border-[var(--sp-accent)]/30 px-3 py-1"
+          className="text-[8px] font-mono text-[var(--sp-accent)] uppercase tracking-widest border border-[var(--sp-accent)]/30 px-3 py-1 cursor-pointer"
         >
           {showForm ? 'Cancel' : '+ New Campaign'}
         </button>
@@ -90,7 +89,7 @@ export function CampaignManager() {
           <button
             type="submit"
             disabled={saving}
-            className="w-full border border-[var(--sp-accent)]/30 px-3 py-2 text-[9px] font-mono text-[var(--sp-accent)] uppercase tracking-widest"
+            className="w-full border border-[var(--sp-accent)]/30 px-3 py-2 text-[9px] font-mono text-[var(--sp-accent)] uppercase tracking-widest cursor-pointer"
           >
             {saving ? 'Creating...' : 'Create Campaign'}
           </button>

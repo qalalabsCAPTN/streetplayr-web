@@ -1,0 +1,10 @@
+- [x] Optimize Supabase middleware cookie management (`lib/supabase/middleware.ts`)
+- [x] Fix error handling and loading states in `components/auth/LoginModal.tsx`
+- [x] Fix error handling and loading states in `app/(store)/login/page.tsx`
+- [x] Fix error handling and loading states in `app/(store)/create-account/page.tsx`
+- [x] Make `app/layout.tsx` dynamic by fetching the user profile from `AuthService.getCurrentProfile()` on the server
+- [x] Implement smart fallback client-side hydration in `components/auth/AuthProvider.tsx`
+- [x] Create a database migration for `handle_new_user()` trigger updating email (`supabase/migrations/00017_fix_auth_trigger.sql`)
+- [x] Add self-healing profile email logic in `AuthService.getCurrentProfile()` (`lib/auth/service.ts`)
+- [x] Fix logout logic to trigger server-side logout in `app/(store)/profile/settings/page.tsx`
+- [x] Verify execution by running tests and checking status

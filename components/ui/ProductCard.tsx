@@ -19,6 +19,8 @@ interface ProductCardProps {
     category?: string;
     soldOut?: boolean;
     compareAt?: number;
+    /** product_variants — used to resolve UUID line id on quick-add */
+    variants?: { id: string; size: string }[];
     metadata?: {
       gallery_images?: string[];
     };
@@ -56,13 +58,24 @@ export default function ProductCard({ product, gallery = true }: ProductCardProp
       cart.showToast('This product is sold out');
       return;
     }
-    const cartProduct = {
-      handle: product.slug,
-      title: product.name,
-      price: product.price,
-      images: imgs,
-    };
-    cart.addItem(cartProduct, 'M');
+    const size = 'M';
+    const matching =
+      product.variants?.find((v) => v.size === size) ?? product.variants?.[0];
+    if (!matching?.id) {
+      cart.showToast('Open product to select size');
+      return;
+    }
+    cart.addItem(
+      {
+        handle: product.slug,
+        productId: product.id,
+        title: product.name,
+        price: product.price,
+        images: imgs,
+        variantId: matching.id,
+      },
+      matching.size || size
+    );
     cart.showToast('Added to bag');
   };
 
