@@ -38,7 +38,7 @@ interface BrandStoryProps {
 
 export default function BrandStory({
   heading,
-  subheading = "The Vision",
+  subheading = "Our Story",
   blocks,
   ctaLabel = "Explore The Archive",
   ctaHref = "/collections",
@@ -56,16 +56,16 @@ export default function BrandStory({
         </div>
       </FadeIn>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-10">
         {/* Text — left on desktop, above on mobile */}
         <div className="lg:col-span-5 flex flex-col justify-center text-center lg:text-left">
           <FadeIn delay={0.15}>
             {heading ? (
-              <h2 className="font-display text-[clamp(28px,4vw,56px)] uppercase leading-[0.92] whitespace-pre-line"
+              <h2 className="font-display text-[clamp(26px,7vw,56px)] uppercase leading-[1.05] whitespace-pre-line"
                   dangerouslySetInnerHTML={{ __html: heading }}
               />
             ) : (
-              <h2 className="font-display text-[clamp(28px,4vw,56px)] uppercase leading-[0.92]">
+              <h2 className="font-display text-[clamp(26px,7vw,56px)] uppercase leading-[1.05]">
                 Create The Things
                 <br />
                 <span className="text-[#ddb7ff]">You Wish Existed</span>
@@ -73,12 +73,12 @@ export default function BrandStory({
             )}
           </FadeIn>
           <FadeIn delay={0.2}>
-            <div className="space-y-4 font-body text-sm leading-7 opacity-45 max-w-md mx-auto lg:mx-0 mt-6">
+            <div className="space-y-5 font-body text-[14px] sm:text-sm leading-[1.75] opacity-55 max-w-md mx-auto lg:mx-0 mt-6 px-1 sm:px-0">
               {hasBlocks ? (
                 blocks.map((b, i) => (
                   <div key={i} className="mb-4 text-left">
-                    <h4 className="text-sm font-bold uppercase tracking-wider mb-1 opacity-100">{b.title}</h4>
-                    <p>{b.description}</p>
+                    <h4 className="text-sm font-bold uppercase tracking-wider mb-2 opacity-100 leading-snug">{b.title}</h4>
+                    <p className="leading-[1.75]">{b.description}</p>
                   </div>
                 ))
               ) : (

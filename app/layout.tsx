@@ -88,9 +88,13 @@ export default function RootLayout({
               "url": "https://streetplayr.com",
               "logo": "https://streetplayr.com/assets/streetplayr-logo.png",
               "sameAs": [
-                "https://instagram.com/streetplayr",
-                "https://linkedin.com/company/streetplayr"
-              ]
+                "https://www.instagram.com/playr.street/",
+                "https://www.facebook.com/people/StreetplayR/61590647487431/",
+                "https://www.youtube.com/@playR_vip",
+                "https://www.linkedin.com/company/playrbrand"
+              ],
+              "email": "orders@playR.in",
+              "telephone": "+91-95993-70409"
             })
           }}
         />

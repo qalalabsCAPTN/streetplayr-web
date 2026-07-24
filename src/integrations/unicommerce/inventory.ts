@@ -4,6 +4,7 @@
  */
 
 import { request } from './client';
+import { soapRequest } from './soapClient';
 import { getUnicommerceConfig } from './config';
 import { UnicommerceLogger } from './logging';
 import type {
@@ -37,15 +38,29 @@ export class UnicommerceInventoryService {
         `Fetching inventory snapshot for ${skus ? skus.length : 'all'} SKUs`
       );
 
-      const response = await request<UniwareInventorySnapshotResponse>(
-        '/services/rest/v1/inventory/inventorySnapshot/get',
-        {
-          body: {
-            itemTypeSKUs: skus,
-            updatedSinceInMinutes,
-          },
-        }
-      );
+      let response: UniwareInventorySnapshotResponse;
+      if (config.transportMode === 'SOAP') {
+        const skusXml = skus
+          ? skus.map((sku) => `<ser:ItemType><ser:ItemSKU>${sku}</ser:ItemSKU></ser:ItemType>`).join('')
+          : '';
+        response = await soapRequest<UniwareInventorySnapshotResponse>(
+          'GetInventorySnapshotRequest',
+          `<ser:GetInventorySnapshotRequest>
+            <ser:ItemTypes>${skusXml}</ser:ItemTypes>
+            <ser:UpdatedSinceInMinutes>${updatedSinceInMinutes ?? 480}</ser:UpdatedSinceInMinutes>
+          </ser:GetInventorySnapshotRequest>`
+        );
+      } else {
+        response = await request<UniwareInventorySnapshotResponse>(
+          '/services/rest/v1/inventory/inventorySnapshot/get',
+          {
+            body: {
+              itemTypeSKUs: skus,
+              updatedSinceInMinutes,
+            },
+          }
+        );
+      }
 
       const snapshots = response.inventorySnapshots || [];
       return snapshots.map((s) => ({
@@ -59,7 +74,7 @@ export class UnicommerceInventoryService {
         'Failed to retrieve inventory snapshot from Unicommerce',
         err
       );
-      return [];
+      throw err;
     }
   }
 
@@ -89,23 +104,39 @@ export class UnicommerceInventoryService {
         params.sku
       );
 
-      const response = await request<UniwareInventoryAdjustResponse>(
-        '/services/rest/v1/inventory/adjust/bulk',
-        {
-          body: {
-            inventoryAdjustments: [
-              {
-                itemSKU: params.sku,
-                quantity: params.quantity,
-                inventoryType: 'GOOD_INVENTORY',
-                adjustmentType: params.adjustmentType,
-                remarks: params.remarks ?? 'Adjusted via commerce service',
-                facilityCode: config.facilityCode,
-              },
-            ],
-          },
-        }
-      );
+      let response: UniwareInventoryAdjustResponse;
+      if (config.transportMode === 'SOAP') {
+        response = await soapRequest<UniwareInventoryAdjustResponse>(
+          'InventoryAdjustmentRequest',
+          `<ser:InventoryAdjustmentRequest>
+            <ser:FacilityContext>${config.facilityCode}</ser:FacilityContext>
+            <ser:ItemSKU>${params.sku}</ser:ItemSKU>
+            <ser:Quantity>${params.quantity}</ser:Quantity>
+            <ser:ShelfCode>DEFAULT</ser:ShelfCode>
+            <ser:AdjustmentType>${params.adjustmentType}</ser:AdjustmentType>
+            <ser:InventoryType>GOOD_INVENTORY</ser:InventoryType>
+            <ser:Remarks>${params.remarks ?? 'Adjusted via commerce service'}</ser:Remarks>
+          </ser:InventoryAdjustmentRequest>`
+        );
+      } else {
+        response = await request<UniwareInventoryAdjustResponse>(
+          '/services/rest/v1/inventory/adjust/bulk',
+          {
+            body: {
+              inventoryAdjustments: [
+                {
+                  itemSKU: params.sku,
+                  quantity: params.quantity,
+                  inventoryType: 'GOOD_INVENTORY',
+                  adjustmentType: params.adjustmentType,
+                  remarks: params.remarks ?? 'Adjusted via commerce service',
+                  facilityCode: config.facilityCode,
+                },
+              ],
+            },
+          }
+        );
+      }
 
       const result = response.adjustmentResults?.[0];
       if (result && result.successful) {

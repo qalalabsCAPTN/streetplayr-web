@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useCart } from '@/components/CartContext';
 
 const Icon = {
@@ -43,10 +44,19 @@ interface MobileNavProps {
 
 export default function MobileNav({ onSearch, onAccount }: MobileNavProps) {
   const cart = useCart();
+  const router = useRouter();
 
   return (
     <nav className="mobilenav" aria-label="Primary">
-      <Link href="/home" className="mobilenav__item" aria-label="Explore">
+      <Link
+        href="/home"
+        className="mobilenav__item"
+        aria-label="Home"
+        onClick={(e) => {
+          e.preventDefault();
+          router.push("/home");
+        }}
+      >
         {Icon.compass}
       </Link>
       <button className="mobilenav__item" aria-label="Account" onClick={onAccount}>

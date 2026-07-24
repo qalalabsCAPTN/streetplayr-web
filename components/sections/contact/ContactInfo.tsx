@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { SOCIAL_LINKS } from "@/lib/social";
 
 const infoItems = [
   {
@@ -9,17 +10,19 @@ const infoItems = [
     details: ["Street PlayR Pvt. Ltd.", "Lower Parel, Mumbai, MH 400013"],
   },
   {
-    category: "Direct Transmissions",
-    title: "support@streetplayr.com",
+    category: "Customer Care",
+    title: SOCIAL_LINKS.email,
+    href: SOCIAL_LINKS.emailHref,
     details: [
       "Order inquiries & exchanges",
       "Response window: 12-24 hours",
     ],
   },
   {
-    category: "Creative Collabs",
-    title: "partners@streetplayr.com",
-    details: ["Design collabs & PR proposals", "Send portfolio links"],
+    category: "Phone",
+    title: SOCIAL_LINKS.phoneDisplay,
+    href: SOCIAL_LINKS.phone,
+    details: ["Customer Care", "WhatsApp available"],
   },
 ];
 
@@ -46,7 +49,13 @@ export default function ContactInfo() {
               {item.category}
             </span>
             <h3 className="font-display text-[15px] sm:text-[17px] uppercase tracking-[0.08em] text-[#eadfed] group-hover:text-[#ddb7ff] transition-colors duration-300 mb-2">
-              {item.title}
+              {"href" in item && item.href ? (
+                <a href={item.href} className="hover:underline">
+                  {item.title}
+                </a>
+              ) : (
+                item.title
+              )}
             </h3>
             {item.details.map((detail, idx) => (
               <p key={idx} className="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-white/45 leading-relaxed">
@@ -69,14 +78,17 @@ export default function ContactInfo() {
         </span>
         <div className="flex flex-wrap gap-2.5">
           {[
-            { name: "Instagram", href: "#" },
-            { name: "YouTube", href: "#" },
-            { name: "LinkedIn", href: "#" },
-            { name: "WhatsApp", href: "#" },
+            { name: "Instagram", href: SOCIAL_LINKS.instagram },
+            { name: "Facebook", href: SOCIAL_LINKS.facebook },
+            { name: "YouTube", href: SOCIAL_LINKS.youtube },
+            { name: "LinkedIn", href: SOCIAL_LINKS.linkedin },
+            { name: "WhatsApp", href: SOCIAL_LINKS.whatsapp },
           ].map((social) => (
             <a
               key={social.name}
               href={social.href}
+              target="_blank"
+              rel="noopener noreferrer"
               className="px-4 py-2 border border-white/[0.08] rounded-lg font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/70 hover:text-[#ddb7ff] hover:border-[#ddb7ff]/30 hover:bg-white/[0.02] transition-all duration-300"
             >
               {social.name}

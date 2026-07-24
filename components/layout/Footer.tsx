@@ -4,6 +4,7 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useRef, useEffect, useState } from 'react';
 import { useWindowWidth } from '@/hooks/useWindowWidth';
+import { SOCIAL_LINKS } from '@/lib/social';
 
 const NinjaStar = dynamic(() => import('@/components/ui/NinjaStar'), {
   ssr: false,
@@ -33,7 +34,8 @@ export default function Footer() {
 
   const getStarScale = () => {
     if (windowWidth === null) return 0.95;
-    if (windowWidth < 768) return 0.65;
+    // Phone: bigger decorative star; tablet/desktop unchanged.
+    if (windowWidth < 768) return 1.2;
     if (windowWidth < 1024) return 0.85;
     return 0.95;
   };
@@ -45,17 +47,21 @@ export default function Footer() {
         <div className="footer__grid">
           <div>
             <h4>Connect with us</h4>
-            <a href="tel:+918448441388">Call</a>
-            <a href="https://wa.me/918448441388" target="_blank" rel="noreferrer">Text (WhatsApp)</a>
-            <a href="https://www.instagram.com/playr.in" target="_blank" rel="noreferrer">
+            <a href={SOCIAL_LINKS.phone}>Call</a>
+            <a href={SOCIAL_LINKS.whatsapp} target="_blank" rel="noopener noreferrer">Text (WhatsApp)</a>
+            <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer">
               Instagram
             </a>
-            <a href="https://www.playr.in" target="_blank" rel="noreferrer">
+            <a href={SOCIAL_LINKS.facebook} target="_blank" rel="noopener noreferrer">
+              Facebook
+            </a>
+            <a href={SOCIAL_LINKS.youtube} target="_blank" rel="noopener noreferrer">
               YouTube
             </a>
-            <a href="https://www.linkedin.com" target="_blank" rel="noreferrer">
+            <a href={SOCIAL_LINKS.linkedin} target="_blank" rel="noopener noreferrer">
               LinkedIn
             </a>
+            <a href={SOCIAL_LINKS.emailHref}>{SOCIAL_LINKS.email}</a>
           </div>
           <div>
             <h4>Order Support</h4>
@@ -75,7 +81,7 @@ export default function Footer() {
           <div className="footer__bag flex flex-col items-center justify-center" style={{ minHeight: '200px' }}>
             <div
               ref={starContainerRef}
-              className="w-full max-w-[190px] sm:max-w-[240px] md:max-w-[280px] aspect-square select-none pointer-events-auto flex items-center justify-center"
+              className="w-full max-w-[300px] sm:max-w-[260px] md:max-w-[280px] aspect-square select-none pointer-events-auto flex items-center justify-center"
             >
               {showStar && <NinjaStar scale={starScale} scrollReactive={false} />}
             </div>

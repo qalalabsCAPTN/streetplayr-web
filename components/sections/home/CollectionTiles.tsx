@@ -67,10 +67,10 @@ function ArchivePanel({ className = "", label }: { className?: string; label?: s
 }
 
 const collections = [
-  { id: "core", title: "Core", subtitle: "Foundation pieces", slug: "/collections?category=CORE" },
-  { id: "outerwear", title: "Outerwear", subtitle: "Shell & insulation", slug: "/collections?category=OUTERWEAR" },
-  { id: "sport", title: "Sport", subtitle: "Performance wear", slug: "/collections?category=SPORT" },
-  { id: "archive", title: "Archive", subtitle: "Past drops archive", slug: "/collections?category=ARCHIVE" },
+  { id: "core", title: "Core", subtitle: "Foundation pieces", slug: "/collections?category=CORE", hideOnMobile: false },
+  { id: "outerwear", title: "Outerwear", subtitle: "Shell & insulation", slug: "/collections?category=OUTERWEAR", hideOnMobile: true },
+  { id: "sport", title: "Sport", subtitle: "Performance wear", slug: "/collections?category=SPORT", hideOnMobile: false },
+  { id: "archive", title: "Archive", subtitle: "Past drops archive", slug: "/collections?category=ARCHIVE", hideOnMobile: false },
 ];
 
 export default function CollectionTiles() {
@@ -85,7 +85,7 @@ export default function CollectionTiles() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {collections.map((col, i) => (
-          <FadeIn key={col.id} delay={0.1 * i}>
+          <FadeIn key={col.id} delay={0.1 * i} className={col.hideOnMobile ? "hidden md:block" : undefined}>
             <Link
               href={col.slug}
               className="group relative block aspect-[4/3] overflow-hidden border border-white/[0.06] hover:border-[#ddb7ff]/20 transition-colors rounded-xl"

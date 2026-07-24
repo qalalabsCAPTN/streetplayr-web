@@ -1,7 +1,7 @@
 # Authentication Discovery and Verification Report
 
 **Base URL:** https://playr.unicommerce.com
-**Timestamp:** 2026-07-22T09:13:06.585Z
+**Timestamp:** 2026-07-22T13:28:40.551Z
 
 ## 1. REST Authentication Test
 *   **Endpoint:** `/oauth/token`

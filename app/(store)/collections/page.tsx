@@ -7,21 +7,90 @@ import Footer from '@/components/layout/Footer';
 import ProductCard from '@/components/ui/ProductCard';
 import { useCart } from '@/components/CartContext';
 
-const filterChips = ["View all", "Tees", "Tanks", "Pants", "Hoodies"];
-const disabledChips = ["Hoodies"];
+/** Desktop collection chips (req: Latest Drop + product lines). */
+const DESKTOP_CHIPS = [
+  "Latest Drop",
+  "Short Sleeve T-Shirts",
+  "Long Sleeve T-Shirts",
+  "Tanks",
+  "Sweatpants",
+] as const;
 
-const sortOptions = ["Featured", "Price: Low to High", "Price: High to Low"] as const;
+/** Mobile chips — preserve approved Topwear/Bottomwear naming. */
+const MOBILE_CHIPS = ["View all", "Topwear", "Bottomwear", "Hoodies"] as const;
+
+type DesktopChip = typeof DESKTOP_CHIPS[number];
+type MobileChip = typeof MOBILE_CHIPS[number];
+type FilterChip = DesktopChip | MobileChip;
+
+const DISABLED_MOBILE: MobileChip[] = ["Hoodies"];
+
+const sortOptions = ["Popular", "Price: Low to High", "Price: High to Low"] as const;
 type SortOption = typeof sortOptions[number];
 
-const chipToCategory = (chip: string) => {
-  if (chip === "View all") return "ALL";
-  return chip.toUpperCase();
+const TEES = new Set(["TEES", "TEE"]);
+const TANKS = new Set(["TANKS", "TANK"]);
+const LONG_SLEEVE = new Set(["LONG-SLEEVE", "LONG_SLEEVE", "LONGSLEEVE"]);
+const PANTS = new Set(["PANTS", "PANT", "SWEATPANTS", "BOTTOMWEAR", "BOTTOMS"]);
+const TOPWEAR = new Set([...TEES, ...TANKS, ...LONG_SLEEVE, "TOPWEAR", "TOPS"]);
+
+const chipToParam = (chip: FilterChip): string | null => {
+  switch (chip) {
+    case "View all":
+    case "Latest Drop":
+      return null;
+    case "Short Sleeve T-Shirts":
+    case "Topwear":
+      return chip === "Topwear" ? "topwear" : "tees";
+    case "Long Sleeve T-Shirts":
+      return "long-sleeve";
+    case "Tanks":
+      return "tanks";
+    case "Sweatpants":
+    case "Bottomwear":
+      return chip === "Bottomwear" ? "bottomwear" : "pants";
+    case "Hoodies":
+      return "hoodies";
+    default:
+      return null;
+  }
 };
 
-const categoryToChip = (category: string) => {
-  if (!category || category === "ALL") return "View all";
-  return category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
+const paramToChip = (category: string, mobile: boolean): FilterChip => {
+  if (!category || category === "ALL" || category === "LATEST") {
+    return mobile ? "View all" : "Latest Drop";
+  }
+  const upper = category.toUpperCase();
+  if (mobile) {
+    if (upper === "HOODIES" || upper === "HOODIE") return "Hoodies";
+    if (upper === "BOTTOMWEAR" || PANTS.has(upper)) return "Bottomwear";
+    if (upper === "TOPWEAR" || TOPWEAR.has(upper) || TEES.has(upper) || TANKS.has(upper) || LONG_SLEEVE.has(upper)) {
+      return "Topwear";
+    }
+    return "View all";
+  }
+  if (TEES.has(upper) || upper === "TEES") return "Short Sleeve T-Shirts";
+  if (LONG_SLEEVE.has(upper) || upper === "LONG-SLEEVE") return "Long Sleeve T-Shirts";
+  if (TANKS.has(upper)) return "Tanks";
+  if (PANTS.has(upper) || upper === "PANTS") return "Sweatpants";
+  if (upper === "TOPWEAR") return "Short Sleeve T-Shirts";
+  if (upper === "BOTTOMWEAR") return "Sweatpants";
+  if (upper === "OUTERWEAR" || upper === "HOODIES") return "Latest Drop";
+  return "Latest Drop";
 };
+
+function matchesChip(productCategory: string | undefined, chip: FilterChip): boolean {
+  if (chip === "View all" || chip === "Latest Drop") return true;
+  const cat = (productCategory || "").toUpperCase();
+  if (chip === "Short Sleeve T-Shirts") return TEES.has(cat);
+  if (chip === "Long Sleeve T-Shirts") return LONG_SLEEVE.has(cat);
+  if (chip === "Tanks") return TANKS.has(cat);
+  if (chip === "Sweatpants") return PANTS.has(cat);
+  if (chip === "Topwear") return TOPWEAR.has(cat);
+  if (chip === "Bottomwear") return PANTS.has(cat);
+  if (chip === "Hoodies") return cat === "HOODIES" || cat === "HOODIE";
+  return false;
+}
 
 function CollectionsInner() {
   const searchParams = useSearchParams();
@@ -30,22 +99,24 @@ function CollectionsInner() {
 
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
 
-  const initialCategory = searchParams.get('category')?.toUpperCase() || 'ALL';
-  const initialChip = filterChips.includes(categoryToChip(initialCategory)) 
-    ? categoryToChip(initialCategory) 
-    : 'View all';
-
-  const [activeChip, setActiveChip] = useState(initialChip);
-  const [sortBy, setSortBy] = useState<SortOption>("Featured");
-
-  // Sync state if URL search param changes
   useEffect(() => {
-    const cat = searchParams.get('category')?.toUpperCase() || 'ALL';
-    setActiveChip(categoryToChip(cat));
-  }, [searchParams]);
+    const check = () => setIsMobile(window.innerWidth <= 900);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
-  // Load products from DB or fallback
+  const chips: readonly FilterChip[] = isMobile ? MOBILE_CHIPS : DESKTOP_CHIPS;
+  const initialChip = paramToChip(searchParams.get('category') || 'ALL', isMobile);
+  const [activeChip, setActiveChip] = useState<FilterChip>(initialChip);
+  const [sortBy, setSortBy] = useState<SortOption>("Popular");
+
+  useEffect(() => {
+    setActiveChip(paramToChip(searchParams.get('category') || 'ALL', isMobile));
+  }, [searchParams, isMobile]);
+
   useEffect(() => {
     async function loadProducts() {
       try {
@@ -54,7 +125,7 @@ function CollectionsInner() {
         
         const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
         if (!url || url.includes('mockproject')) {
-          setProducts(local);
+          setProducts(local.map((p: any, i: number) => ({ ...p, createdAt: Date.now() - i * 1000 })));
           setLoading(false);
           return;
         }
@@ -63,12 +134,12 @@ function CollectionsInner() {
         const supabase = createClient();
         const { data, error } = await supabase
           .from('products')
-          .select('id, title, slug, featured_image_url, metadata, status, product_variants(id, price)')
+          .select('id, title, slug, featured_image_url, metadata, status, created_at, product_variants(id, price)')
           .eq('status', 'active')
           .order('created_at', { ascending: false });
 
         if (error || !data || data.length === 0) {
-          setProducts(local);
+          setProducts(local.map((p: any, i: number) => ({ ...p, createdAt: Date.now() - i * 1000 })));
           setLoading(false);
           return;
         }
@@ -84,6 +155,7 @@ function CollectionsInner() {
             image: p.featured_image_url,
             category: p.metadata?.category || 'TEES',
             metadata: p.metadata || {},
+            createdAt: p.created_at ? Date.parse(p.created_at) : 0,
           };
         });
         setProducts(mapped);
@@ -96,40 +168,36 @@ function CollectionsInner() {
     loadProducts();
   }, []);
 
-  const handleChipClick = (chip: string) => {
+  const handleChipClick = (chip: FilterChip) => {
+    if (isMobile && DISABLED_MOBILE.includes(chip as MobileChip)) return;
     setActiveChip(chip);
-    const category = chipToCategory(chip);
     const params = new URLSearchParams(searchParams.toString());
-    if (category === 'ALL') {
+    const param = chipToParam(chip);
+    if (!param) {
       params.delete('category');
     } else {
-      params.set('category', category.toLowerCase());
+      params.set('category', param);
     }
     const qs = params.toString();
     router.replace(qs ? `/collections?${qs}` : '/collections', { scroll: false });
   };
 
-  const filteredProducts = activeChip === 'View all'
-    ? products
-    : products.filter(
-        (p) => p.category?.toUpperCase() === chipToCategory(activeChip)
-      );
+  const filteredProducts = products.filter((p) => matchesChip(p.category, activeChip));
 
   const sortedProducts = [...filteredProducts];
   if (sortBy === "Price: Low to High") {
     sortedProducts.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
   } else if (sortBy === "Price: High to Low") {
     sortedProducts.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
+  } else {
+    sortedProducts.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
   }
-  // "Featured" keeps the catalog's default/curated order — there's no real
-  // popularity/sales signal in the product data to sort by yet.
 
   return (
     <div className="min-h-screen bg-transparent relative overflow-hidden">
       <Navbar />
 
       <section className="relative z-[1] w-full h-[460px] md:h-[560px] overflow-hidden mt-20">
-        {/* Desktop motion banner */}
         <video
           autoPlay
           loop
@@ -138,7 +206,6 @@ function CollectionsInner() {
           className="absolute inset-0 w-full h-full object-cover opacity-100 hidden md:block"
           src="/assets/COLLECTION_MOTION_BANNER.mp4"
         />
-        {/* Mobile motion banner */}
         <video
           autoPlay
           loop
@@ -147,7 +214,6 @@ function CollectionsInner() {
           className="absolute inset-0 w-full h-full object-cover opacity-100 md:hidden"
           src="/assets/FOR_MOBILE_ST_COLLECTION.mp4"
         />
-        {/* Cinematic fade — blends the hero into the page instead of a hard cut */}
         <div className="absolute inset-x-0 bottom-0 h-40 md:h-56 bg-gradient-to-t from-[var(--page-bg)] to-transparent pointer-events-none" />
       </section>
 
@@ -167,13 +233,13 @@ function CollectionsInner() {
           </div>
 
           <div className="chips">
-            {filterChips.map((c) => {
-              const isDisabled = disabledChips.includes(c);
+            {chips.map((c) => {
+              const isDisabled = isMobile && DISABLED_MOBILE.includes(c as MobileChip);
               return (
                 <button
                   key={c}
                   className={`chip ${activeChip === c ? 'active' : ''} ${isDisabled ? 'disabled' : ''}`}
-                  onClick={() => !isDisabled && handleChipClick(c)}
+                  onClick={() => handleChipClick(c)}
                   disabled={isDisabled}
                 >
                   {isDisabled ? `${c} (Soon)` : c}

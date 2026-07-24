@@ -61,17 +61,17 @@ export const banners = [
 export const discoverCollections = [
   {
     handle: 'tees',
-    title: 'T-Shirts & Tees',
+    title: 'Topwear',
     image: '/products al/INSPIRED Tee/INSPIRED 1.jpg',
   },
   {
     handle: 'pants',
-    title: 'Pants & Cargo',
+    title: 'Bottomwear',
     image: '/products al/Carpenter Pants Grey/track pant 1.jpg',
   },
   {
     handle: 'tanks',
-    title: 'Sleeveless Tanks',
+    title: 'Topwear',
     image: '/products al/staar tank white/staar tank white_.jpg',
   },
 ];

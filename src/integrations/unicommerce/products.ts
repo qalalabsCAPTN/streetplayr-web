@@ -4,6 +4,7 @@
  */
 
 import { request } from './client';
+import { soapRequest } from './soapClient';
 import { getUnicommerceConfig } from './config';
 import { UnicommerceLogger } from './logging';
 import { UnicommerceMapper } from './mapping';
@@ -50,12 +51,22 @@ export class UnicommerceProductService {
     try {
       await UnicommerceLogger.info('products.get_by_sku', `Fetching product for SKU: ${sku}`, sku);
 
-      const response = await request<UniwareProductGetResponse>(
-        '/services/rest/v1/catalog/itemType/get',
-        {
-          body: { skuCode: sku },
-        }
-      );
+      let response: UniwareProductGetResponse;
+      if (config.transportMode === 'SOAP') {
+        response = await soapRequest<UniwareProductGetResponse>(
+          'GetItemTypeRequest',
+          `<ser:GetItemTypeRequest>
+            <ser:SkuCode>${sku}</ser:SkuCode>
+          </ser:GetItemTypeRequest>`
+        );
+      } else {
+        response = await request<UniwareProductGetResponse>(
+          '/services/rest/v1/catalog/itemType/get',
+          {
+            body: { skuCode: sku },
+          }
+        );
+      }
 
       const rawProduct = response.itemTypeDTO;
       if (!rawProduct) {

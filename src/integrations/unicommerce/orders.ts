@@ -4,6 +4,7 @@
  */
 
 import { request } from './client';
+import { soapRequest } from './soapClient';
 import { getUnicommerceConfig } from './config';
 import { UnicommerceLogger } from './logging';
 import { UnicommerceMapper } from './mapping';
@@ -81,14 +82,75 @@ export class UnicommerceOrderService {
         order.id
       );
 
-      const payload = UnicommerceMapper.mapOrderToUniware(order, channelCode);
+      let response: UniwareOrderCreateResponse;
+      if (config.transportMode === 'SOAP') {
+        const billingAddress = order.billingAddress || order.shippingAddress;
+        const shippingAddress = order.shippingAddress;
+        const itemsXml = order.items.flatMap((item) =>
+          Array.from({ length: item.quantity }).map((_, i) => `
+          <ser:SaleOrderItem>
+            <ser:Code>${order.id}-${item.sku}-${i}</ser:Code>
+            <ser:ItemSKU>${item.sku}</ser:ItemSKU>
+            <ser:ShippingMethodCode>STD</ser:ShippingMethodCode>
+            <ser:TotalPrice>${item.price}</ser:TotalPrice>
+            <ser:SellingPrice>${item.price}</ser:SellingPrice>
+            <ser:Discount>${item.discountAmount || 0}</ser:Discount>
+          </ser:SaleOrderItem>
+          `)
+        ).join('');
 
-      const response = await request<UniwareOrderCreateResponse>(
-        '/services/rest/v1/oms/saleOrder/create',
-        {
-          body: payload,
+        const orderXml = `<ser:SaleOrder>
+          <ser:Code>${order.id}</ser:Code>
+          <ser:DisplayOrderCode>${order.displayCode}</ser:DisplayOrderCode>
+          <ser:DisplayOrderDateTime>${new Date(order.createdAt).toISOString()}</ser:DisplayOrderDateTime>
+          <ser:Channel>${channelCode}</ser:Channel>
+          <ser:CashOnDelivery>${order.paymentMethod === 'COD'}</ser:CashOnDelivery>
+          <ser:CurrencyCode>${order.currency || 'INR'}</ser:CurrencyCode>
+          <ser:Addresses>
+            <ser:Address id="billing_addr">
+              <ser:Name>${billingAddress.name}</ser:Name>
+              <ser:AddressLine1>${billingAddress.addressLine1}</ser:AddressLine1>
+              ${billingAddress.addressLine2 ? `<ser:AddressLine2>${billingAddress.addressLine2}</ser:AddressLine2>` : ''}
+              <ser:City>${billingAddress.city}</ser:City>
+              <ser:State>${billingAddress.state}</ser:State>
+              <ser:Country>${billingAddress.country === 'India' || billingAddress.country === 'IN' ? 'India' : billingAddress.country}</ser:Country>
+              <ser:Pincode>${billingAddress.pincode}</ser:Pincode>
+              <ser:Phone>${billingAddress.phone}</ser:Phone>
+              <ser:Email>${billingAddress.email || ''}</ser:Email>
+            </ser:Address>
+            <ser:Address id="shipping_addr">
+              <ser:Name>${shippingAddress.name}</ser:Name>
+              <ser:AddressLine1>${shippingAddress.addressLine1}</ser:AddressLine1>
+              ${shippingAddress.addressLine2 ? `<ser:AddressLine2>${shippingAddress.addressLine2}</ser:AddressLine2>` : ''}
+              <ser:City>${shippingAddress.city}</ser:City>
+              <ser:State>${shippingAddress.state}</ser:State>
+              <ser:Country>${shippingAddress.country === 'India' || shippingAddress.country === 'IN' ? 'India' : shippingAddress.country}</ser:Country>
+              <ser:Pincode>${shippingAddress.pincode}</ser:Pincode>
+              <ser:Phone>${shippingAddress.phone}</ser:Phone>
+              <ser:Email>${shippingAddress.email || ''}</ser:Email>
+            </ser:Address>
+          </ser:Addresses>
+          <ser:ShippingAddress ref="shipping_addr"/>
+          <ser:BillingAddress ref="billing_addr"/>
+          <ser:SaleOrderItems>${itemsXml}</ser:SaleOrderItems>
+        </ser:SaleOrder>`;
+
+        response = await soapRequest<UniwareOrderCreateResponse>(
+          'CreateSaleOrderRequest',
+          `<ser:CreateSaleOrderRequest>${orderXml}</ser:CreateSaleOrderRequest>`
+        );
+        if (response.successful) {
+          response.saleOrderCode = order.id;
         }
-      );
+      } else {
+        const payload = UnicommerceMapper.mapOrderToUniware(order, channelCode);
+        response = await request<UniwareOrderCreateResponse>(
+          '/services/rest/v1/oms/saleOrder/create',
+          {
+            body: payload,
+          }
+        );
+      }
 
       const uniwareCode = response.saleOrderCode ?? order.id;
 
@@ -173,12 +235,25 @@ export class UnicommerceOrderService {
     try {
       await UnicommerceLogger.info('orders.get_order', `Retrieving order details for: ${orderCode}`, orderCode);
 
-      const response = await request<UniwareOrderGetResponse>(
-        '/services/rest/v1/oms/saleOrder/get',
-        {
-          body: { code: orderCode },
-        }
-      );
+      let response: UniwareOrderGetResponse;
+      if (config.transportMode === 'SOAP') {
+        response = await soapRequest<UniwareOrderGetResponse>(
+          'GetSaleOrderRequest',
+          `<ser:GetSaleOrderRequest>
+            <ser:SaleOrder>
+              <ser:Code>${orderCode}</ser:Code>
+            </ser:SaleOrder>
+            <ser:IsPaymentDetailRequired>true</ser:IsPaymentDetailRequired>
+          </ser:GetSaleOrderRequest>`
+        );
+      } else {
+        response = await request<UniwareOrderGetResponse>(
+          '/services/rest/v1/oms/saleOrder/get',
+          {
+            body: { code: orderCode },
+          }
+        );
+      }
 
       if (!response.saleOrder) {
         await UnicommerceLogger.warn('orders.get_order_not_found', `Order ${orderCode} not found in Uniware`, orderCode);

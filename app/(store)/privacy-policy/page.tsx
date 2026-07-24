@@ -1,6 +1,6 @@
-import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import LegalContact, { LegalBackHome } from "@/components/ui/LegalContact";
 
 export default function PrivacyPolicyPage() {
   return (
@@ -34,21 +34,8 @@ export default function PrivacyPolicyPage() {
             <p>We use localized browser storage (localStorage) to store configuration parameters such as your closed popup status and session tokens to optimize visual performance and reduce layout shifts.</p>
           </div>
 
-          <div className="legal-contact">
-            <h2>5. Contact Us</h2>
-            <div className="legal-contact__row">
-              <span className="legal-contact__label">Email</span>
-              <a href="mailto:info@playR.in">info@playR.in</a>
-            </div>
-            <div className="legal-contact__row">
-              <span className="legal-contact__label">Phone</span>
-              <a href="tel:+919599220517">+91 95992 20517</a>
-            </div>
-          </div>
-
-          <Link href="/home" className="legal-back">
-            ← Return to Home
-          </Link>
+          <LegalContact title="5. Contact Us" />
+          <LegalBackHome />
         </div>
       </div>
       <Footer />

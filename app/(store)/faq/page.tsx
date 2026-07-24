@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import LegalContact, { LegalBackHome } from "@/components/ui/LegalContact";
 
 const FAQS = [
   {
@@ -69,21 +69,11 @@ export default function FaqPage() {
           })}
         </div>
 
-        <div className="legal-contact" style={{ marginTop: 28 }}>
-          <h2>Still need help?</h2>
-          <div className="legal-contact__row">
-            <span className="legal-contact__label">Email</span>
-            <a href="mailto:Orders@playR.in">Orders@playR.in</a>
-          </div>
-          <div className="legal-contact__row">
-            <span className="legal-contact__label">Phone</span>
-            <a href="tel:+919599220517">+91 95992 20517</a>
-          </div>
+        <div style={{ marginTop: 28 }}>
+          <LegalContact title="Still need help?" />
         </div>
 
-        <Link href="/home" className="legal-back">
-          ← Return to Home
-        </Link>
+        <LegalBackHome />
       </div>
     </div>
   );

@@ -4,9 +4,8 @@ import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 
 const categories = [
-  "OUTERWEAR",
-  "TOPS",
-  "BOTTOMS",
+  "TOPWEAR",
+  "BOTTOMWEAR",
   "HEADWEAR",
   "ACCESSORIES",
   "FOOTWEAR",

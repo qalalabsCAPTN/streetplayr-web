@@ -20,6 +20,8 @@ interface SectionProduct {
 
 interface ProductSectionProps {
   title: string;
+  /** Phone-only label (e.g. Topwear / Bottomwear). Desktop keeps `title`. */
+  mobileTitle?: string;
   products: SectionProduct[];
   moreHref?: string;
   gallery?: boolean;
@@ -31,7 +33,7 @@ interface ProductSectionProps {
  * Product row section. `flat` renders directly on the grey page (like "Latest drop"
  * in the reference); otherwise it's a white rounded panel.
  */
-export default function ProductSection({ title, products, moreHref, gallery = true, grid = false, flat = false }: ProductSectionProps) {
+export default function ProductSection({ title, mobileTitle, products, moreHref, gallery = true, grid = false, flat = false }: ProductSectionProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -45,10 +47,12 @@ export default function ProductSection({ title, products, moreHref, gallery = tr
 
   if (!products || products.length === 0) return null;
 
+  const displayTitle = isMobile && mobileTitle ? mobileTitle : title;
+
   return (
     <section className={`panel ${flat ? 'panel--flat' : ''}`}>
       <div className="panel__head">
-        <h2 className="panel__title">{title}</h2>
+        <h2 className="panel__title">{displayTitle}</h2>
         {moreHref && (
           <Link href={moreHref} className={`pill ${flat ? 'pill--ghost' : ''}`}>
             Discover more

@@ -27,29 +27,40 @@
   object-position: center center;
 }
 
-.skip-button {
+.skip-button,
+.enter-cta {
   position: fixed;
-  bottom: max(20px, env(safe-area-inset-bottom));
-  right: 20px;
-  border: 1px solid rgba(221,183,255,0.25);
-  background: transparent;
-  color: rgba(234,223,237,0.6);
-  padding: 14px 36px;
-  border-radius: 12px;
+  left: 50%;
+  bottom: max(28px, calc(env(safe-area-inset-bottom) + 16px));
+  transform: translateX(-50%);
+  border: 1px solid rgba(221,183,255,0.45);
+  background: rgba(0, 0, 0, 0.55);
+  color: #eadfed;
+  padding: 16px 44px;
+  border-radius: 999px;
   cursor: pointer;
-  font-size: 12px;
-  font-weight: 400;
-  letter-spacing: 0.5em;
+  font-size: clamp(12px, 2.2vw, 14px);
+  font-weight: 600;
+  letter-spacing: 0.35em;
   text-transform: uppercase;
   font-family: var(--font-sp-mono), 'Space Mono', monospace;
-  text-shadow: 0 0 8px rgba(221,183,255,0.12);
+  text-shadow: 0 0 12px rgba(221,183,255,0.25);
+  backdrop-filter: blur(10px);
   transition: all 0.3s ease;
   z-index: 1000;
 }
 
-.skip-button:hover {
-  color: rgba(234,223,237,0.9);
-  border-color: rgba(221,183,255,0.4);
-  text-shadow: 0 0 16px rgba(221,183,255,0.2);
-  box-shadow: 0 4px 20px rgba(221,183,255,0.08);
+.skip-button:hover,
+.enter-cta:hover {
+  color: #fff;
+  border-color: rgba(221,183,255,0.8);
+  background: rgba(221,183,255,0.12);
+  text-shadow: 0 0 18px rgba(221,183,255,0.35);
+  box-shadow: 0 8px 32px rgba(221,183,255,0.18);
+}
+
+.skip-button:focus-visible,
+.enter-cta:focus-visible {
+  outline: 2px solid #ddb7ff;
+  outline-offset: 3px;
 }

@@ -5,10 +5,19 @@ import { AuthGateway } from '@/lib/auth/gateway';
 const REDIRECT_MAP: Record<string, string> = {
   '/collection': '/collections',
   '/shop': '/collections',
+  // Retired standalone preloader — always Home (intro overlays /home).
+  '/entering-street-playR': '/home',
 };
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // `/` always serves Home. First-visit video is an overlay on `/home`, not a route.
+  if (pathname === '/' || pathname === '') {
+    const url = request.nextUrl.clone();
+    url.pathname = '/home';
+    return NextResponse.rewrite(url);
+  }
 
   // Legacy route redirects
   const target = REDIRECT_MAP[pathname];

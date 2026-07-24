@@ -1,6 +1,6 @@
-import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import LegalContact, { LegalBackHome } from "@/components/ui/LegalContact";
 
 export default function TermsPage() {
   return (
@@ -34,21 +34,8 @@ export default function TermsPage() {
             <p>All prices and transactions listed on the store are processed in Indian Rupees (INR) unless specified otherwise. We reserve the right to adjust product pricing, availability, and inventory allocation without notice.</p>
           </div>
 
-          <div className="legal-contact">
-            <h2>5. Contact Information</h2>
-            <div className="legal-contact__row">
-              <span className="legal-contact__label">Email</span>
-              <a href="mailto:Orders@playR.in">Orders@playR.in</a>
-            </div>
-            <div className="legal-contact__row">
-              <span className="legal-contact__label">Phone</span>
-              <a href="tel:+919599220517">+91 95992 20517</a>
-            </div>
-          </div>
-
-          <Link href="/home" className="legal-back">
-            ← Return to Home
-          </Link>
+          <LegalContact title="5. Contact Information" />
+          <LegalBackHome />
         </div>
       </div>
       <Footer />

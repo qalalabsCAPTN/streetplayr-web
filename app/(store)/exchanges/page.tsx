@@ -1,6 +1,6 @@
-import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import LegalContact, { LegalBackHome } from "@/components/ui/LegalContact";
 
 export default function ExchangesPage() {
   return (
@@ -29,21 +29,8 @@ export default function ExchangesPage() {
             <p>Once your returned item is received at our warehouse, we will email you a confirmation of receipt. Refunds or exchange credit are processed within 7 days of receiving the returned package.</p>
           </div>
 
-          <div className="legal-contact">
-            <h2>4. Contact Support</h2>
-            <div className="legal-contact__row">
-              <span className="legal-contact__label">Email</span>
-              <a href="mailto:Orders@playR.in">Orders@playR.in</a>
-            </div>
-            <div className="legal-contact__row">
-              <span className="legal-contact__label">Phone</span>
-              <a href="tel:+919599220517">+91 95992 20517</a>
-            </div>
-          </div>
-
-          <Link href="/home" className="legal-back">
-            ← Return to Home
-          </Link>
+          <LegalContact title="4. Contact Support" />
+          <LegalBackHome />
         </div>
       </div>
       <Footer />

@@ -74,13 +74,21 @@ export default function Hero() {
       {slides.map((s, i) => (
         <picture key={s.src} className={`hslide ${i === idx ? 'active' : ''}`}>
           {s.mobileSrc && <source media="(max-width: 900px)" srcSet={s.mobileSrc} />}
-          <Image src={s.src} alt={s.alt} fill className="object-cover" sizes="100vw" priority={i === idx} onError={() => dropSlide(s.src)} />
+          <Image
+            src={s.src}
+            alt={s.alt}
+            fill
+            className="object-cover hero__banner-img"
+            sizes="100vw"
+            priority={i === idx}
+            onError={() => dropSlide(s.src)}
+          />
         </picture>
       ))}
 
       {/* Interactive 3D Star Overlay — centered over banner, code-split via dynamic import */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[5]">
-        <div className="pointer-events-auto flex items-center justify-center w-60 h-60 md:w-[320px] md:h-[320px] lg:w-[420px] lg:h-[420px]">
+        <div className="pointer-events-auto flex items-center justify-center w-[min(72vw,280px)] h-[min(72vw,280px)] md:w-[320px] md:h-[320px] lg:w-[420px] lg:h-[420px]">
           <NinjaStar scale={starScale} heroRef={sectionRef} />
         </div>
       </div>

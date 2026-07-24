@@ -35,8 +35,18 @@ export class UnicommerceService {
         return { success: true, message: 'Connected in Demo/Mock mode' };
       }
 
+      if (config.transportMode === 'SOAP') {
+        const { soapRequest } = await import('./soapClient');
+        // A simple query to GetItemTypeRequest for a verified product
+        await soapRequest(
+          'GetItemTypeRequest',
+          '<ser:GetItemTypeRequest><ser:SkuCode>IK5737-M</ser:SkuCode></ser:GetItemTypeRequest>'
+        );
+        return { success: true, message: 'SOAP Connection successful' };
+      }
+
       // Check auth by trying to retrieve token
-      const { getAccessToken } = require('./auth');
+      const { getAccessToken } = await import('./auth');
       const token = await getAccessToken();
 
       if (token) {

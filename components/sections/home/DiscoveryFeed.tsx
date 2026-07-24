@@ -18,9 +18,8 @@ export default function DiscoveryFeed() {
           <p>StreetPlayR</p>
         </div>
         <nav className="flex flex-col gap-4 text-[10px] uppercase tracking-[0.22em] text-white/55">
-          <Link href="/collections" className="hover:text-white transition-colors">Shop</Link>
+          <Link href="/collections" className="hover:text-white transition-colors">Collection</Link>
           <Link href="/collections" className="hover:text-white transition-colors">Archive</Link>
-          <Link href="/about" className="hover:text-white transition-colors">About</Link>
         </nav>
         <div className="mt-auto">
           <p>FW26</p>

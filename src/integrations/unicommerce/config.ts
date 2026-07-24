@@ -10,6 +10,7 @@ export interface UnicommerceConfig {
   facilityCode: string;
   webhookSecret: string;
   isDemoMode: boolean;
+  transportMode: 'REST' | 'SOAP';
 }
 
 /**
@@ -26,6 +27,7 @@ export function getUnicommerceConfig(): UnicommerceConfig {
   const password = process.env.UNICOMMERCE_PASSWORD || '';
   const facilityCode = process.env.UNICOMMERCE_FACILITY_CODE || '';
   const webhookSecret = process.env.UNICOMMERCE_WEBHOOK_SECRET || '';
+  const transportMode = (process.env.UNICOMMERCE_TRANSPORT_MODE === 'REST' ? 'REST' : 'SOAP') as 'REST' | 'SOAP';
 
   const missing: string[] = [];
   if (!apiUrl) missing.push('UNICOMMERCE_API_URL');
@@ -49,5 +51,6 @@ export function getUnicommerceConfig(): UnicommerceConfig {
     facilityCode,
     webhookSecret,
     isDemoMode,
+    transportMode,
   };
 }

@@ -53,9 +53,9 @@ export default function BrandMessage() {
             </p>
             <Link
               className="mt-8 inline-flex font-mono text-xs uppercase tracking-[0.2em] text-white transition-colors duration-200 hover:text-[var(--sp-accent)]"
-              href="/about"
+              href="/collections"
             >
-              Read Our Story -&gt;
+              Shop Collection -&gt;
             </Link>
           </div>
 

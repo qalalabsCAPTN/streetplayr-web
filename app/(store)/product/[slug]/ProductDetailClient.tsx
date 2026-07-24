@@ -205,16 +205,16 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
 
   return (
     <div className="pdp-page pt-20" style={{ background: pageTint(props.title) }}>
-      <nav className="pdp__breadcrumb">
+      <nav className="pdp__breadcrumb" aria-label="Breadcrumb">
         <Link href="/home">Home</Link>
-        <span>&gt;</span>
-        <Link href="/collections">Shop</Link>
-        <span>&gt;</span>
+        <span aria-hidden="true">&gt;</span>
+        <Link href="/collections">Collection</Link>
+        <span aria-hidden="true">&gt;</span>
         <span className="pdp__breadcrumb-current">{props.title}</span>
       </nav>
 
       <div className="pdp">
-        {/* Mobile gallery */}
+        {/* Mobile gallery — full-bleed snap carousel */}
         <div className="pdp__mgallery">
           <div className="pdp__carousel" ref={carouselRef} onScroll={onCarouselScroll}>
             {allImages.map((src, i) => (
@@ -227,14 +227,35 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
                   loading={i === 0 ? 'eager' : 'lazy'}
                   sizes="100vw"
                   className="object-cover"
+                  priority={i === 0}
                 />
               </div>
             ))}
           </div>
-          {allImages.length > 0 && (
-            <div className="pdp__counter">
-              {activeImg + 1} / {allImages.length}
-            </div>
+          {allImages.length > 1 && (
+            <>
+              <div className="pdp__counter" aria-live="polite">
+                {activeImg + 1} / {allImages.length}
+              </div>
+              <div className="pdp__dots" role="tablist" aria-label="Gallery slides">
+                {allImages.map((_, i) => (
+                  <button
+                    key={`dot-${i}`}
+                    type="button"
+                    role="tab"
+                    aria-selected={activeImg === i}
+                    aria-label={`Image ${i + 1}`}
+                    className={`pdp__dot ${activeImg === i ? 'is-active' : ''}`}
+                    onClick={() => {
+                      const el = carouselRef.current;
+                      if (!el) return;
+                      el.scrollTo({ left: i * el.clientWidth, behavior: 'smooth' });
+                      setActiveImg(i);
+                    }}
+                  />
+                ))}
+              </div>
+            </>
           )}
         </div>
 
@@ -272,39 +293,45 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
 
         {/* Side purchase column */}
         <aside className="pdp__side">
-          <div className="pdp__panel">
-            <div className="pdp__toprow">
-              <div>
-                <h1 className="pdp__title">
-                  {props.title}
-                  <button
-                    onClick={() => {
-                      setSaved((v) => !v);
-                      cart.showToast(saved ? 'Removed from wishlist' : 'Saved to wishlist');
-                    }}
-                    aria-label="Save to wishlist"
-                  >
-                    <BookmarkIcon filled={saved} />
-                  </button>
-                </h1>
+          <div className="pdp__panel pdp__panel--buy">
+            <div className="pdp__head">
+              <div className="pdp__title-row">
+                <h1 className="pdp__title">{props.title}</h1>
+                <button
+                  type="button"
+                  className={`pdp__wish ${saved ? 'is-saved' : ''}`}
+                  onClick={() => {
+                    setSaved((v) => !v);
+                    cart.showToast(saved ? 'Removed from wishlist' : 'Saved to wishlist');
+                  }}
+                  aria-label="Save to wishlist"
+                  aria-pressed={saved}
+                >
+                  <BookmarkIcon filled={saved} />
+                </button>
+              </div>
+              <div className="pdp__meta-row">
                 <div className="pdp__price">
                   <span>{props.price}</span>
                 </div>
+                <button type="button" className="sizeguide-btn" onClick={() => setGuideOpen(true)}>
+                  Size Guide
+                </button>
               </div>
-              <button className="sizeguide-btn" onClick={() => setGuideOpen(true)}>
-                Size Guide
-              </button>
             </div>
 
-            <div className="sizes">
+            <div className="sizes" role="group" aria-label="Select size">
               {props.sizes.map((s) => {
                 const matchingVariant = liveVariants.find((v) => v.size === s);
                 const isSoldOut = !matchingVariant || matchingVariant.stockQuantity <= 0;
                 return (
                   <button
                     key={s}
+                    type="button"
                     className={`size ${selectedSize === s && !isSoldOut ? 'active' : ''} ${isSoldOut ? 'disabled' : ''}`}
                     onClick={() => !isSoldOut && setSelectedSize(s)}
+                    disabled={isSoldOut}
+                    aria-pressed={selectedSize === s && !isSoldOut}
                   >
                     {s}
                   </button>
@@ -312,22 +339,10 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
               })}
             </div>
 
-            {/* Member Credits slider */}
-            <div
-              className="mt-5 p-4 rounded-lg"
-              style={{ border: '1px solid var(--line)', background: 'var(--chip)' }}
-            >
-              <div className="flex justify-between items-center mb-3">
-                <span
-                  className="font-mono text-[10px] uppercase tracking-[0.15em]"
-                  style={{ color: 'var(--muted)' }}
-                >
-                  Member Credits
-                </span>
-                <span
-                  className="font-mono text-[10px] font-medium"
-                  style={{ color: 'var(--fg)' }}
-                >
+            <div className="pdp__credits">
+              <div className="pdp__credits-head">
+                <span className="pdp__credits-label">Member Credits</span>
+                <span className="pdp__credits-value">
                   {spCredits} / 2500
                 </span>
               </div>
@@ -335,48 +350,32 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
                 type="range"
                 min="0"
                 max="2500"
+                step="50"
                 value={spCredits}
                 onChange={(e) => setSpCredits(Number(e.target.value))}
-                className="w-full h-[3px] appearance-none cursor-pointer rounded-none"
-                style={{ background: 'var(--line)', accentColor: 'var(--fg)' }}
+                className="pdp__credits-range"
+                aria-label="Member credits to apply"
               />
             </div>
 
-            {/* Purchase actions */}
-            <div className="pdp__actions mt-5">
-              <button 
-                className="pdp__atb" 
-                onClick={addToBag}
-              >
+            <div className="pdp__actions">
+              <button type="button" className="pdp__atb" onClick={addToBag}>
                 Add to Bag
               </button>
-              <button 
-                className="pdp__buy" 
-                onClick={buyNow}
-              >
+              <button type="button" className="pdp__buy" onClick={buyNow}>
                 Buy Now
               </button>
             </div>
 
-            {/* View in 3D (if model available) */}
             {props.model3d && (
               <button
+                type="button"
                 onClick={() => setShow3DViewer(true)}
                 onMouseEnter={handleButtonHover}
-                className="w-full mt-4 flex items-center justify-between rounded-lg border border-[var(--fg-12)] px-5 py-3.5 font-mono text-[11px] font-bold uppercase tracking-[0.22em] text-[var(--fg-82)] hover:text-[var(--fg-95)] hover:border-[#ddb7ff]/40 transition-all duration-300 group"
+                className="pdp__3d"
               >
                 <span>View in 3D</span>
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="opacity-60 group-hover:opacity-100 transition-opacity"
-                >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
                   <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
                   <line x1="12" y1="22.08" x2="12" y2="12" />
@@ -384,8 +383,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
               </button>
             )}
 
-            {/* AI Try-on */}
-            <div className="mt-4">
+            <div className="pdp__tryon">
               <AITryOn
                 productImageUrl={heroImage}
                 productTitle={props.title}
@@ -393,21 +391,20 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
             </div>
           </div>
 
-          {/* Details & Specs Tabs */}
-          <div className="pdp__panel">
-            <div className="tabs">
-              <button className={`tab ${tab === 'details' ? 'active' : ''}`} onClick={() => setTab('details')}>
+          <div className="pdp__panel pdp__panel--tabs">
+            <div className="tabs" role="tablist">
+              <button type="button" role="tab" aria-selected={tab === 'details'} className={`tab ${tab === 'details' ? 'active' : ''}`} onClick={() => setTab('details')}>
                 Details &amp; Description
               </button>
-              <button className={`tab ${tab === 'care' ? 'active' : ''}`} onClick={() => setTab('care')}>
+              <button type="button" role="tab" aria-selected={tab === 'care'} className={`tab ${tab === 'care' ? 'active' : ''}`} onClick={() => setTab('care')}>
                 Washcare
               </button>
-              <button className={`tab ${tab === 'shipping' ? 'active' : ''}`} onClick={() => setTab('shipping')}>
+              <button type="button" role="tab" aria-selected={tab === 'shipping'} className={`tab ${tab === 'shipping' ? 'active' : ''}`} onClick={() => setTab('shipping')}>
                 Shipping
               </button>
             </div>
 
-            <div className="tabbody">
+            <div className="tabbody" role="tabpanel">
               {tab === 'details' && (
                 <>
                   <h6>Details</h6>

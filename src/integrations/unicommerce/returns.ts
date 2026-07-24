@@ -4,6 +4,7 @@
  */
 
 import { request } from './client';
+import { soapRequest } from './soapClient';
 import { getUnicommerceConfig } from './config';
 import { UnicommerceLogger } from './logging';
 import { UnicommerceMapper } from './mapping';
@@ -49,22 +50,52 @@ export class UnicommerceReturnService {
         params.saleOrderCode
       );
 
-      const uniAddress = UnicommerceMapper.mapAddressToUniware(params.shippingAddress);
-      const payload = {
-        reversePickup: {
-          saleOrderCode: params.saleOrderCode,
-          reason: params.reason,
-          shippingAddress: uniAddress,
-          reversePickupItems: params.items,
-        },
-      };
+      let response: UniwareReversePickupCreateResponse;
+      if (config.transportMode === 'SOAP') {
+        const addr = params.shippingAddress;
+        const itemsXml = params.items.map((item) => `
+          <ser:ReversePickupItem>
+            <ser:SaleOrderItemCode>${item.saleOrderItemCode}</ser:SaleOrderItemCode>
+            <ser:Reason>${params.reason || 'Return requested'}</ser:Reason>
+          </ser:ReversePickupItem>
+        `).join('');
 
-      const response = await request<UniwareReversePickupCreateResponse>(
-        '/services/rest/v1/oms/reversePickup/create',
-        {
-          body: payload,
-        }
-      );
+        response = await soapRequest<UniwareReversePickupCreateResponse>(
+          'CreateReversePickupRequest',
+          `<ser:CreateReversePickupRequest>
+            <ser:SaleOrderCode>${params.saleOrderCode}</ser:SaleOrderCode>
+            <ser:ReversePickupItems>${itemsXml}</ser:ReversePickupItems>
+            <ser:Address id="rp_addr">
+              <ser:Name>${addr.name}</ser:Name>
+              <ser:AddressLine1>${addr.addressLine1}</ser:AddressLine1>
+              ${addr.addressLine2 ? `<ser:AddressLine2>${addr.addressLine2}</ser:AddressLine2>` : ''}
+              <ser:City>${addr.city}</ser:City>
+              <ser:State>${addr.state}</ser:State>
+              <ser:Country>${addr.country === 'India' || addr.country === 'IN' ? 'India' : addr.country}</ser:Country>
+              <ser:Pincode>${addr.pincode}</ser:Pincode>
+              <ser:Phone>${addr.phone}</ser:Phone>
+              <ser:Email>${addr.email || ''}</ser:Email>
+            </ser:Address>
+            <ser:ActionCode>RETURN</ser:ActionCode>
+          </ser:CreateReversePickupRequest>`
+        );
+      } else {
+        const uniAddress = UnicommerceMapper.mapAddressToUniware(params.shippingAddress);
+        const payload = {
+          reversePickup: {
+            saleOrderCode: params.saleOrderCode,
+            reason: params.reason,
+            shippingAddress: uniAddress,
+            reversePickupItems: params.items,
+          },
+        };
+        response = await request<UniwareReversePickupCreateResponse>(
+          '/services/rest/v1/oms/reversePickup/create',
+          {
+            body: payload,
+          }
+        );
+      }
 
       return {
         success: true,
@@ -116,12 +147,22 @@ export class UnicommerceReturnService {
         reversePickupCode
       );
 
-      const response = await request<UniwareReturnGetResponse>(
-        '/services/rest/v1/oms/return/get',
-        {
-          body: { reversePickupCode },
-        }
-      );
+      let response: UniwareReturnGetResponse;
+      if (config.transportMode === 'SOAP') {
+        response = await soapRequest<UniwareReturnGetResponse>(
+          'GetReturnItemRequest',
+          `<ser:GetReturnItemRequest>
+            <ser:ReversePickupCode>${reversePickupCode}</ser:ReversePickupCode>
+          </ser:GetReturnItemRequest>`
+        );
+      } else {
+        response = await request<UniwareReturnGetResponse>(
+          '/services/rest/v1/oms/return/get',
+          {
+            body: { reversePickupCode },
+          }
+        );
+      }
 
       const details = response.returnDetails?.[0];
       if (!details) {

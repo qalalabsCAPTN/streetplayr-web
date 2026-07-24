@@ -49,25 +49,22 @@ const Icon = {
 };
 
 const menu = {
-  collections: [
-    { label: 'All Collections', href: '/collections' },
-    { label: 'New In', href: '/collections?category=new-in' },
-  ],
   topwear: [
+    { label: 'Latest Drop', href: '/collections' },
     { label: 'Short Sleeve T-Shirts', href: '/collections?category=tees' },
     { label: 'Long Sleeve T-Shirts', href: '/collections?category=long-sleeve' },
     { label: 'Tanks', href: '/collections?category=tanks' },
   ],
   bottomwear: [
     { label: 'Sweatpants', href: '/collections?category=pants' },
-    { label: 'Pants & Cargo', href: '/collections?category=pants' },
   ],
   shopAndSupport: [
     { label: 'All Products', href: '/collections' },
-    { label: 'FAQ', href: '/faq' },
     { label: 'Collaborations', href: '/collaborations' },
+    { label: 'FAQ', href: '/faq' },
     { label: 'Shipping Policy', href: '/shipping-policy' },
     { label: 'Refund Policy', href: '/refund-policy' },
+    { label: 'Contact', href: '/contact' },
   ],
 };
 
@@ -216,7 +213,16 @@ export default function Navbar() {
             <button className="header__pill-plus" onClick={() => setMegaOpen((v) => !v)} aria-label="Menu">
               +
             </button>
-            <Link href="/home" className="header__pill-link">
+            <Link
+              href="/home"
+              className="header__pill-link"
+              aria-label="playR Home"
+              onClick={(e) => {
+                // Force Home — never land on enter preloader via stale history / root.
+                e.preventDefault();
+                router.push("/home");
+              }}
+            >
               <Image src="/playR.street logo.png" alt="playR" width={1024} height={660} priority />
             </Link>
           </div>
@@ -315,10 +321,11 @@ export default function Navbar() {
           </div>
         )}
 
-        {searchOpen && (
+        {searchOpen && (searchQuery.trim() !== "" || !isMobile) && (
           <div className="header__search-dropdown">
             {searchQuery.trim() === '' ? (
-              <div className="header__search-results-inner">
+              /* Empty-state suggestions — not rendered on mobile (no Popular Searches strip / no empty gap). */
+              <div className="header__search-results-inner header__search-suggestions">
                 <div className="header__search-title">Collections</div>
                 <div className="header__search-list">
                   <Link href="/collections?category=tees" className="header__search-item" onClick={() => setSearchOpen(false)}>
@@ -327,15 +334,11 @@ export default function Navbar() {
                   </Link>
                   <Link href="/collections?category=pants" className="header__search-item" onClick={() => setSearchOpen(false)}>
                     <img src="/products al/Carpenter Pants Grey/track pant 1.jpg" alt="" />
-                    <span>Sweatpants &amp; Cargo</span>
-                  </Link>
-                  <Link href="/collections?category=tanks" className="header__search-item" onClick={() => setSearchOpen(false)}>
-                    <img src="/products al/staar tank white/staar tank white_.jpg" alt="" />
-                    <span>Tanks</span>
+                    <span>Sweatpants</span>
                   </Link>
                   <Link href="/collections" className="header__search-item" onClick={() => setSearchOpen(false)}>
                     <img src="/products al/playR Create Waffle Tee/CTT 1.jpg" alt="" />
-                    <span>All Products</span>
+                    <span>Latest Drop</span>
                   </Link>
                 </div>
               </div>

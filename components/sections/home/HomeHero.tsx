@@ -77,7 +77,7 @@ const STATIC_PARTICLES = [
 export default function HomeHero({
   title = "Dress for\npressure.",
   subtitle,
-  ctaLabel = "Enter the Drop",
+  ctaLabel = "Shop Now",
   ctaHref = "/collections",
   bgImageUrl,
   // bgVideoUrl = "/assets/home-page-banner.mp4",
@@ -196,7 +196,7 @@ export default function HomeHero({
       {/* Image Background */}
       <div className="absolute inset-0 w-full h-full z-[-2]">
         <Image
-          className="object-cover"
+          className={`object-cover ${isMobile ? "!object-cover object-[center_30%]" : ""}`}
           src={bgImageUrl || "/assets/empty_centre.jpg"}
           alt={title}
           fill
@@ -240,10 +240,11 @@ export default function HomeHero({
           className="flex gap-3 mt-4 pointer-events-auto"
         >
           <button
-            className="inline-flex items-center gap-3 px-7 py-4 bg-[#eadfed] text-[#16111b] border border-[#eadfed] font-mono text-[11px] tracking-[0.24em] font-bold uppercase transition-colors hover:bg-[#ddb7ff] rounded-xl cursor-pointer"
-            onClick={() => router.push(ctaHref)}
+            className="inline-flex items-center gap-3 px-8 py-4 md:px-10 md:py-5 bg-[#eadfed] text-[#16111b] border border-[#eadfed] font-mono text-[11px] md:text-[12px] tracking-[0.24em] md:tracking-[0.28em] font-bold uppercase transition-colors hover:bg-[#ddb7ff] rounded-xl cursor-pointer shadow-[0_8px_24px_rgba(0,0,0,0.35)] md:shadow-[0_12px_36px_rgba(0,0,0,0.45)]"
+            style={{ color: "#16111b" }}
+            onClick={() => router.push(ctaHref || "/collections")}
           >
-            {ctaLabel}
+            {ctaLabel?.trim() || "Shop Now"}
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="5" y1="12" x2="19" y2="12" />
               <polyline points="12 5 19 12 12 19" />

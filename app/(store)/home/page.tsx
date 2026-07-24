@@ -58,11 +58,11 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   return (
     <div className="flex flex-col w-full">
       <Hero />
-      <ProductSection title="Short Sleeve T-Shirts" products={tees.length > 0 ? tees : latestDrops} moreHref="/collections?category=tees" gallery flat />
-      <ProductSection title="Long Sleeve T-Shirts" products={latestDrops} moreHref="/collections?category=long-sleeve" gallery />
+      <ProductSection title="Short Sleeve T-Shirts" mobileTitle="Topwear" products={tees.length > 0 ? tees : latestDrops} moreHref="/collections?category=topwear" gallery flat />
+      <ProductSection title="Long Sleeve T-Shirts" mobileTitle="Topwear" products={latestDrops} moreHref="/collections?category=topwear" gallery />
       <BannerSlider />
-      <ProductSection title="Tanks" products={tanks.length > 0 ? tanks : latestDrops} moreHref="/collections?category=tanks" gallery />
-      <ProductSection title="Sweatpants" products={pants.length > 0 ? pants : latestDrops} moreHref="/collections?category=pants" gallery />
+      <ProductSection title="Tanks" mobileTitle="Topwear" products={tanks.length > 0 ? tanks : latestDrops} moreHref="/collections?category=topwear" gallery />
+      <ProductSection title="Sweatpants" mobileTitle="Bottomwear" products={pants.length > 0 ? pants : latestDrops} moreHref="/collections?category=bottomwear" gallery />
       <RecentlyVisited />
     </div>
   );
