@@ -21,7 +21,7 @@ export default function CartPage() {
       {cart.items.length === 0 ? (
         <div style={{ padding: '60px 4px', textAlign: 'center' }}>
           <p style={{ fontSize: 15, marginBottom: 20 }}>Your bag is empty.</p>
-          <Link href="/collections" className="pill">
+          <Link href="/collections" className="storefront-cta">
             Shop now
           </Link>
         </div>
@@ -47,7 +47,7 @@ export default function CartPage() {
                     </button>
                   </div>
                 </div>
-                <div style={{ fontSize: 14, fontWeight: 600 }}>{formatPrice(line.product.price * line.qty)}</div>
+                <div className="cartline__price">{formatPrice(line.product.price * line.qty)}</div>
               </div>
             ))}
           </div>
@@ -58,7 +58,7 @@ export default function CartPage() {
               <span>{formatPrice(cart.total)}</span>
             </div>
             <p className="drawer__note">Taxes included. Discounts and shipping calculated at checkout.</p>
-            <Link href="/checkout" className="drawer__checkout" style={{ display: 'block', textAlign: 'center', lineHeight: '46px', textDecoration: 'none' }}>
+            <Link href="/checkout" className="drawer__checkout storefront-cta">
               Check out
             </Link>
           </aside>

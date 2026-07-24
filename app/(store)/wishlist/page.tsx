@@ -33,7 +33,7 @@ export default function WishlistPage() {
             <p className="listing__empty mb-6">Sign in to save and sync your wishlist.</p>
             <button
               type="button"
-              className="contact-cta__btn"
+              className="storefront-cta storefront-cta--inline"
               onClick={() => setLoginOpen(true)}
             >
               Sign In
@@ -42,7 +42,7 @@ export default function WishlistPage() {
         ) : items.length === 0 ? (
           <div className="py-16 text-center">
             <p className="listing__empty mb-6">Your wishlist is empty.</p>
-            <Link href="/collections" className="contact-cta__btn">
+            <Link href="/collections" className="storefront-cta storefront-cta--inline">
               Browse Collections
             </Link>
           </div>

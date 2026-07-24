@@ -238,7 +238,7 @@ function CollectionsInner() {
                 ))}
               </div>
               <div className="collections-discover">
-                <Link href="/lookbook" className="contact-cta__btn">
+                <Link href="/lookbook" className="pill pill--ghost">
                   Discover more
                 </Link>
               </div>

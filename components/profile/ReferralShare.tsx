@@ -26,7 +26,7 @@ export function ReferralShare({ code, referralCount }: { code: string; referralC
           <span>{referralCount} referral{referralCount !== 1 ? 's' : ''}</span>
         </div>
       </div>
-      <button onClick={copyLink} className="pill">Copy link</button>
+      <button onClick={copyLink} className="storefront-cta storefront-cta--inline">Copy link</button>
     </section>
   );
 }

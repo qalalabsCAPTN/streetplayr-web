@@ -7,6 +7,7 @@ import { attributeSignup } from '@/lib/nectar/referrals';
 const ALLOWED_REDIRECT_PATHS = [
   '/', '/home', '/profile', '/profile/wallet', '/profile/orders',
   '/profile/addresses', '/profile/settings', '/cart', '/checkout',
+  '/dashboard', '/wishlist',
 ];
 
 function isValidRedirect(path: string): boolean {
@@ -15,6 +16,7 @@ function isValidRedirect(path: string): boolean {
   if (ALLOWED_REDIRECT_PATHS.includes(path)) return true;
   if (path.startsWith('/profile/')) return true;
   if (path.startsWith('/checkout/')) return true;
+  if (path.startsWith('/dashboard/')) return true;
   return false;
 }
 

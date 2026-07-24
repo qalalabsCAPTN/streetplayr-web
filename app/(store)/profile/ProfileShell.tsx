@@ -9,9 +9,10 @@ export default function ProfileShell({
 }) {
   return (
     <div className="listing acct-shell">
-      <div className="listing__head">
-        <h1 className="listing__title">My Account</h1>
-      </div>
+      <header className="acct-shell__header">
+        <span className="storefront-eyebrow acct-shell__eyebrow">StreetPlayR</span>
+        <h1 className="acct-shell__title">Account</h1>
+      </header>
 
       <ProfileTopTabs />
 

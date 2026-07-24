@@ -34,8 +34,8 @@ export default function Footer() {
 
   const getStarScale = () => {
     if (windowWidth === null) return 0.95;
-    // Phone: bigger decorative star; tablet/desktop unchanged.
-    if (windowWidth < 768) return 1.2;
+    // Mobile: visible but not oversized (was 1.2); tablet/desktop unified with hero.
+    if (windowWidth < 768) return 1.05;
     if (windowWidth < 1024) return 0.85;
     return 0.95;
   };
@@ -75,7 +75,7 @@ export default function Footer() {
           </div>
           <div>
             <h4>We are playR</h4>
-            <Link href="/stores">Walk-in Stores</Link>
+            <Link href="/stores">Coming soon</Link>
             <Link href="/collaborations">Collaborations</Link>
           </div>
           <div className="footer__bag flex flex-col items-center justify-center" style={{ minHeight: '200px' }}>

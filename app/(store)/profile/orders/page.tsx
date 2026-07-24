@@ -71,7 +71,8 @@ export default function OrdersPage() {
     return (
       <div>
         <div className="acct-hero">
-          <h1>Orders</h1>
+          <p className="acct-hero__greet">Purchases</p>
+          <h1 className="acct-hero__name">Orders</h1>
         </div>
         <p className="acct-card__sub">Loading…</p>
       </div>
@@ -81,7 +82,8 @@ export default function OrdersPage() {
   return (
     <div>
       <div className="acct-hero">
-        <h1>Orders</h1>
+        <p className="acct-hero__greet">Purchases</p>
+        <h1 className="acct-hero__name">Orders</h1>
       </div>
 
       {orders.length > 0 ? (
@@ -129,7 +131,7 @@ export default function OrdersPage() {
         <div className="acct-empty" style={{ margin: 0 }}>
           <p className="acct-empty__title">Nothing acquired yet.</p>
           <p className="acct-empty__sub">When you place your first order, it will appear here.</p>
-          <a href="/collections" className="pill">Explore collection</a>
+          <a href="/collections" className="storefront-cta storefront-cta--inline">Explore collection</a>
         </div>
       )}
     </div>

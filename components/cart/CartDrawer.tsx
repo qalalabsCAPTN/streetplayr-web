@@ -19,10 +19,19 @@ export default function CartDrawer() {
   return (
     <>
       <div className={`scrim ${cart.open ? 'open' : ''}`} onClick={() => cart.setOpen(false)} />
-      <aside className={`drawer ${cart.open ? 'open' : ''}`}>
+      <aside
+        className={`drawer ${cart.open ? 'open' : ''}`}
+        aria-hidden={!cart.open}
+        inert={!cart.open ? true : undefined}
+      >
         <div className="drawer__head">
           <h3>Your bag ({cart.count})</h3>
-          <button onClick={() => cart.setOpen(false)} aria-label="Close cart" style={{ fontSize: 22 }}>
+          <button
+            type="button"
+            className="drawer__close"
+            onClick={() => cart.setOpen(false)}
+            aria-label="Close cart"
+          >
             ×
           </button>
         </div>
@@ -32,7 +41,7 @@ export default function CartDrawer() {
             <div className="drawer__empty">
               <h2>Your bag is empty!</h2>
               <p>Let&apos;s get started</p>
-              <Link href="/collections" className="pill" onClick={() => cart.setOpen(false)}>
+              <Link href="/collections" className="storefront-cta" onClick={() => cart.setOpen(false)}>
                 Shop now
               </Link>
               <div className="drawer__suggest">
@@ -57,16 +66,16 @@ export default function CartDrawer() {
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center' }}>
                     <div className="qty">
-                      <button onClick={() => cart.updateQty(line.key, -1)}>−</button>
+                      <button type="button" onClick={() => cart.updateQty(line.key, -1)}>−</button>
                       <span>{line.qty}</span>
-                      <button onClick={() => cart.updateQty(line.key, 1)}>+</button>
+                      <button type="button" onClick={() => cart.updateQty(line.key, 1)}>+</button>
                     </div>
-                    <button className="cartline__remove" onClick={() => cart.removeItem(line.key)}>
+                    <button type="button" className="cartline__remove" onClick={() => cart.removeItem(line.key)}>
                       Remove
                     </button>
                   </div>
                 </div>
-                <div style={{ fontSize: 14, fontWeight: 600 }}>{formatPrice(line.product.price * line.qty)}</div>
+                <div className="cartline__price">{formatPrice(line.product.price * line.qty)}</div>
               </div>
             ))
           )}
@@ -79,7 +88,7 @@ export default function CartDrawer() {
               <span>{formatPrice(cart.total)}</span>
             </div>
             <p className="drawer__note">Taxes included. Discounts and shipping calculated at checkout.</p>
-            <Link href="/checkout" className="drawer__checkout" style={{ display: 'block', textAlign: 'center', lineHeight: '46px', textDecoration: 'none' }} onClick={() => cart.setOpen(false)}>
+            <Link href="/checkout" className="drawer__checkout storefront-cta" onClick={() => cart.setOpen(false)}>
               Check out
             </Link>
           </div>

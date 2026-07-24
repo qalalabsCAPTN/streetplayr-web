@@ -20,11 +20,9 @@ export default function RecommendedProducts({ currentSlug }: { currentSlug: stri
   if (related.length === 0) return null;
 
   return (
-    <section className="w-full max-w-[min(98vw,2560px)] mx-auto px-4 md:px-8 lg:px-12 py-20 border-t border-white/[0.06]">
-      <div className="mb-10">
-        <h2 className="font-display text-[28px] md:text-[42px] uppercase leading-[0.92]">
-          You May Also Like
-        </h2>
+    <section className="pdp-related">
+      <div className="pdp-related__head">
+        <h2 className="pdp-related__title">You May Also Like</h2>
       </div>
 
       <div className="pgrid">

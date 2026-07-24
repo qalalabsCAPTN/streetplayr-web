@@ -21,7 +21,8 @@ export default function WalletPage() {
   return (
     <div>
       <div className="acct-hero">
-        <h1>Universal Wallet</h1>
+        <p className="acct-hero__greet">Assets</p>
+        <h1 className="acct-hero__name">Wallet</h1>
       </div>
 
       <div className="acct-grid">

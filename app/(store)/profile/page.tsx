@@ -25,8 +25,16 @@ export default function ProfilePage() {
   return (
     <div>
       <div className="acct-hero">
-        <h1>{greeting}, {user.name.split(' ')[0]}.</h1>
-        <span>Member since {formatDate(user.memberSince)}</span>
+        <div className="acct-hero__row">
+          <div className="acct-hero__avatar" aria-hidden="true">
+            {user.name.split(' ')[0].charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <p className="acct-hero__greet">{greeting},</p>
+            <h1 className="acct-hero__name">{user.name.split(' ')[0]}</h1>
+            <span className="acct-hero__meta">Member since {formatDate(user.memberSince)}</span>
+          </div>
+        </div>
       </div>
 
       <div className="acct-grid">
@@ -69,7 +77,7 @@ export default function ProfilePage() {
           <span className="acct-card__eyebrow">Universal wallet</span>
           <h3>Rs. {formatBalance(user.sprrBalance)}</h3>
           <span className="acct-card__sub">{tierInfo.label} tier</span>
-          <Link href="/profile/wallet" className="pill">Manage assets →</Link>
+          <Link href="/profile/wallet" className="storefront-cta storefront-cta--inline">Manage assets →</Link>
         </div>
 
         <Link href="/profile/orders" className="acct-card acct-card--link">

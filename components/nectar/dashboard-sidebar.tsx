@@ -1,11 +1,12 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Wallet, Trophy, Medal, Scroll,
   GitBranch, Activity, BarChart3, Star, Settings,
-  ChevronRight, Zap, Bell,
+  ChevronRight, Zap, Bell, Menu, X,
 } from 'lucide-react';
 import { cn } from '@/lib/nectar-portal/cn';
 import { DEMO_USER, DEMO_PROGRESSION, DEMO_WALLET, TIER_CONFIG } from '@/lib/nectar-portal/demo';
@@ -23,14 +24,13 @@ const NAV = [
   { label: 'Settings',       href: '/dashboard/settings',       icon: Settings },
 ];
 
-export function DashboardSidebar() {
+function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const tierCfg = TIER_CONFIG[DEMO_PROGRESSION.tier];
   const xpPct = DEMO_PROGRESSION.xpProgressPct;
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-40 flex w-[220px] flex-col bg-base-surface border-r border-border">
-      {/* Logo */}
+    <>
       <div className="flex h-14 items-center gap-3 border-b border-border px-4">
         <div className="flex h-8 w-8 items-center justify-center rounded-xl shadow-glow-nectar"
           style={{ background: 'linear-gradient(135deg, #FBBF24 0%, #F59E14 100%)' }}>
@@ -40,13 +40,12 @@ export function DashboardSidebar() {
           <div className="text-sm font-black text-text-primary tracking-tight">NECTAR</div>
           <div className="text-[9px] text-text-muted uppercase tracking-widest">Ecosystem</div>
         </div>
-        <button className="ml-auto relative">
+        <button type="button" className="ml-auto relative" aria-label="Notifications">
           <Bell className="h-4 w-4 text-text-muted hover:text-text-primary transition-colors" />
           <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-nectar-400" />
         </button>
       </div>
 
-      {/* User tier card */}
       <div className="border-b border-border p-3">
         <div className="rounded-xl p-3" style={{ background: tierCfg.bg, border: `1px solid ${tierCfg.color}30` }}>
           <div className="flex items-center gap-2 mb-2">
@@ -60,7 +59,6 @@ export function DashboardSidebar() {
               </div>
             </div>
           </div>
-          {/* XP progress */}
           <div className="space-y-1">
             <div className="flex justify-between text-[10px]">
               <span className="text-text-muted">{DEMO_PROGRESSION.lifetimeXp.toLocaleString()} XP</span>
@@ -76,7 +74,6 @@ export function DashboardSidebar() {
         </div>
       </div>
 
-      {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-0.5">
         {NAV.map(item => {
           const active = pathname === item.href || (item.href !== '/dashboard/overview' && pathname.startsWith(item.href));
@@ -85,6 +82,7 @@ export function DashboardSidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={onNavigate}
               className={cn('portal-nav-item', active && 'active')}
             >
               <Icon className={cn('h-4 w-4 shrink-0', active ? 'opacity-100' : 'opacity-60')}
@@ -96,7 +94,6 @@ export function DashboardSidebar() {
         })}
       </nav>
 
-      {/* Wallet footer */}
       <div className="border-t border-border p-3">
         <div className="rounded-xl bg-base-overlay border border-border px-3 py-2.5">
           <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">NECTAR Points</div>
@@ -114,6 +111,53 @@ export function DashboardSidebar() {
           )}
         </div>
       </div>
-    </aside>
+    </>
+  );
+}
+
+export function DashboardSidebar() {
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  return (
+    <>
+      {/* Mobile top bar */}
+      <div className="md:hidden sticky top-0 z-50 flex h-14 items-center gap-3 border-b border-border bg-base-surface/95 px-4 backdrop-blur-md">
+        <button
+          type="button"
+          aria-label={open ? 'Close menu' : 'Open menu'}
+          onClick={() => setOpen((v) => !v)}
+          className="flex h-11 w-11 items-center justify-center rounded-xl border border-border text-text-primary"
+        >
+          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </button>
+        <div className="text-sm font-black text-text-primary tracking-tight">NECTAR</div>
+      </div>
+
+      {/* Mobile scrim */}
+      {open && (
+        <button
+          type="button"
+          aria-label="Close menu"
+          className="md:hidden fixed inset-0 z-40 bg-black/50"
+          onClick={() => setOpen(false)}
+        />
+      )}
+
+      {/* Drawer / desktop sidebar */}
+      <aside
+        className={cn(
+          'fixed inset-y-0 left-0 z-40 flex w-[220px] flex-col bg-base-surface border-r border-border transition-transform duration-300 ease-out',
+          'md:translate-x-0',
+          open ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+        )}
+      >
+        <SidebarBody onNavigate={() => setOpen(false)} />
+      </aside>
+    </>
   );
 }

@@ -38,6 +38,12 @@ interface ProductSectionProps {
 /**
  * Product row section. `flat` renders directly on the grey page (like "Latest drop"
  * in the reference); otherwise it's a white rounded panel.
+ *
+ * Discover more:
+ * - Desktop: pill in the section head (space to spare).
+ * - Mobile: no header pill — quiet "View all" under the row only when the
+ *   section is a partial sample (≤3 items). Full rows already show enough;
+ *   another fat CTA next to every title is noise.
  */
 export default function ProductSection({ title, mobileTitle, products, moreHref, gallery = true, grid = false, flat = false }: ProductSectionProps) {
   const [isMobile, setIsMobile] = useState(false);
@@ -54,13 +60,14 @@ export default function ProductSection({ title, mobileTitle, products, moreHref,
   if (!products || products.length === 0) return null;
 
   const displayTitle = isMobile && mobileTitle ? mobileTitle : title;
+  const showMobileViewAll = Boolean(moreHref) && products.length <= 3;
 
   return (
     <section className={`panel ${flat ? 'panel--flat' : ''}`}>
       <div className="panel__head">
         <h2 className="panel__title">{displayTitle}</h2>
         {moreHref && (
-          <Link href={moreHref} className={`pill ${flat ? 'pill--ghost' : ''}`}>
+          <Link href={moreHref} className="pill pill--ghost panel__more-desktop">
             Discover more
           </Link>
         )}
@@ -73,6 +80,12 @@ export default function ProductSection({ title, mobileTitle, products, moreHref,
             <ProductCard key={p.slug} product={p} gallery={gallery} />
           ))}
         </Reveal>
+      )}
+      {showMobileViewAll && (
+        <Link href={moreHref!} className="panel__view-all">
+          View all
+          <span aria-hidden="true"> →</span>
+        </Link>
       )}
     </section>
   );

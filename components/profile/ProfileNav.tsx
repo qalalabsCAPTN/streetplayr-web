@@ -95,27 +95,29 @@ export function ProfileSidebar() {
   );
 }
 
-// ─── Mobile pill tabs ────────────────────────────────────
+// ─── Mobile tabs — editorial rail, not chunky chips ─────────────────────
 export function ProfileTopTabs() {
   const pathname = usePathname();
 
   return (
     <nav className="acct-tabs" aria-label="Profile sections">
-      {NAV_ITEMS.map(({ label, href, icon: Icon }) => {
-        const active = pathname === href;
-        return (
-          <Link
-            key={href}
-            href={href}
-            id={`profile-pill-${label.toLowerCase()}`}
-            className={`chip ${active ? 'active' : ''}`}
-            aria-current={active ? 'page' : undefined}
-          >
-            <Icon active={active} />
-            <span>{label}</span>
-          </Link>
-        );
-      })}
+      <div className="acct-tabs__rail">
+        {NAV_ITEMS.map(({ label, href, icon: Icon }) => {
+          const active = pathname === href;
+          return (
+            <Link
+              key={href}
+              href={href}
+              id={`profile-pill-${label.toLowerCase()}`}
+              className={`acct-tabs__item ${active ? 'active' : ''}`}
+              aria-current={active ? 'page' : undefined}
+            >
+              <Icon active={active} />
+              <span>{label}</span>
+            </Link>
+          );
+        })}
+      </div>
     </nav>
   );
 }

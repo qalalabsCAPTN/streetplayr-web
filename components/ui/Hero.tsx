@@ -68,9 +68,10 @@ export default function Hero() {
     };
   }, []);
 
+  // Homepage banner star — kept smaller than footer decorative star on mobile.
   const getStarScale = () => {
     if (windowWidth === null) return 0.95;
-    if (windowWidth < 768) return 0.6175;
+    if (windowWidth < 768) return 0.65;
     if (windowWidth < 1024) return 0.85;
     return 0.95;
   };

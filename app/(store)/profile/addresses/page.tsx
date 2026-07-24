@@ -161,7 +161,7 @@ function AddressForm({
       </div>
 
       <div className="acct-address-form__actions">
-        <button type="submit" disabled={saving} className="pill">
+        <button type="submit" disabled={saving} className="storefront-cta storefront-cta--inline">
           {saving ? 'Saving…' : 'Save address'}
         </button>
         <button type="button" onClick={onCancel} disabled={saving} className="acct-address-form__cancel">
@@ -229,7 +229,8 @@ export default function AddressesPage() {
     return (
       <div>
         <div className="acct-hero">
-          <h1>Saved Addresses</h1>
+          <p className="acct-hero__greet">Delivery</p>
+          <h1 className="acct-hero__name">Addresses</h1>
         </div>
         <p className="acct-card__sub">Loading…</p>
       </div>
@@ -239,7 +240,8 @@ export default function AddressesPage() {
   return (
     <div>
       <div className="acct-hero">
-        <h1>Saved Addresses</h1>
+        <p className="acct-hero__greet">Delivery</p>
+        <h1 className="acct-hero__name">Addresses</h1>
       </div>
 
       {primaryAddress && (
@@ -307,7 +309,7 @@ export default function AddressesPage() {
         </div>
       )}
 
-      {!isAdding && !editingId && addresses.length > 0 && (
+      {!isAdding && !editingId && (
         <button type="button" onClick={() => setIsAdding(true)} className="acct-address-add">
           + Add new address
         </button>

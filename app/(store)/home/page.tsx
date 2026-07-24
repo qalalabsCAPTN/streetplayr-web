@@ -72,7 +72,6 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       <Hero />
       <ProductSection
         title="Short Sleeve T-Shirts"
-        mobileTitle="Topwear"
         products={tees}
         moreHref="/collections?category=tees"
         gallery
@@ -80,7 +79,6 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       />
       <ProductSection
         title="Long Sleeve T-Shirts"
-        mobileTitle="Topwear"
         products={longSleeve}
         moreHref="/collections?category=long-sleeve"
         gallery
@@ -88,14 +86,12 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       <BannerSlider />
       <ProductSection
         title="Tanks"
-        mobileTitle="Topwear"
         products={tanks}
         moreHref="/collections?category=tanks"
         gallery
       />
       <ProductSection
         title="Sweatpants"
-        mobileTitle="Bottomwear"
         products={pants}
         moreHref="/collections?category=pants"
         gallery

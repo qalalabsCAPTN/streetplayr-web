@@ -20,6 +20,12 @@ const Icon = {
       <path d="m20 20-3.5-3.5" />
     </svg>
   ),
+  location: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+      <path d="M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z" />
+      <circle cx="12" cy="10" r="2.5" />
+    </svg>
+  ),
   user: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
       <circle cx="12" cy="8" r="4" />
@@ -81,6 +87,7 @@ export default function Navbar() {
   const [loginRedirect, setLoginRedirect] = useState(pathname || '/profile');
   const wishlistCount = useWishlistStore((s) => s.items.length);
   const wishlistLoginOpen = useWishlistStore((s) => s.loginOpen);
+  const wishlistPending = useWishlistStore((s) => s.pending);
   const setWishlistLogin = useWishlistStore((s) => s.setLoginOpen);
   const clearWishlistPending = useWishlistStore((s) => s.clearPending);
   const router = useRouter();
@@ -96,7 +103,7 @@ export default function Navbar() {
 
   const handleWishlist = () => {
     if (!isAuthenticated) {
-      setLoginRedirect(pathname || '/wishlist');
+      setLoginRedirect('/wishlist');
       setWishlistLogin(true);
       cart.showToast('Sign in to view wishlist');
       return;
@@ -139,7 +146,7 @@ export default function Navbar() {
         const supabase = createClient();
         const { data, error } = await supabase
           .from('products')
-          .select('id, title, slug, featured_image_url, metadata, status, product_variants(id, price)')
+          .select('id, title, description, slug, featured_image_url, metadata, status, product_variants(id, price)')
           .eq('status', 'active')
           .order('created_at', { ascending: false });
 
@@ -154,6 +161,7 @@ export default function Navbar() {
           return {
             id: p.id,
             name: p.title,
+            description: p.description ?? '',
             price: minPrice,
             slug: p.slug,
             image: p.featured_image_url,
@@ -173,9 +181,13 @@ export default function Navbar() {
     localStorage.setItem('playr-theme', next);
   };
 
-  const filteredProducts = products.filter((p) =>
-    p.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredProducts = products.filter((p) => {
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return true;
+    const name = String(p.name ?? '').toLowerCase();
+    const description = String(p.description ?? '').toLowerCase();
+    return name.includes(q) || description.includes(q);
+  });
 
   const [isMobile, setIsMobile] = useState(false);
 
@@ -199,6 +211,15 @@ export default function Navbar() {
   useEffect(() => {
     document.body.classList.toggle('hdr-solid', solid);
   }, [solid]);
+
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    if (menuDrawerOpen) document.body.style.overflow = 'hidden';
+    else document.body.style.overflow = prev || '';
+    return () => {
+      document.body.style.overflow = prev || '';
+    };
+  }, [menuDrawerOpen]);
 
   return (
     <>
@@ -277,6 +298,17 @@ export default function Navbar() {
             >
               {Icon.search}
             </button>
+            <Link
+              href="/stores"
+              className="iconbtn hide-mobile"
+              aria-label="Walk-in Stores"
+              onClick={() => {
+                setMegaOpen(false);
+                setSearchOpen(false);
+              }}
+            >
+              {Icon.location}
+            </Link>
             <button className="iconbtn hide-mobile" aria-label="Account" onClick={handleAccount}>
               {Icon.user}
             </button>
@@ -291,13 +323,14 @@ export default function Navbar() {
               {cart.count > 0 && <span className="iconbtn__count">{cart.count}</span>}
             </button>
             <button
-              className="iconbtn iconbtn--menu hide-mobile"
+              className="iconbtn iconbtn--menu"
               onClick={() => {
                 setMenuDrawerOpen((v) => !v);
                 setMegaOpen(false);
                 setSearchOpen(false);
               }}
               aria-label="Menu"
+              aria-expanded={menuDrawerOpen}
             >
               {Icon.menu}
             </button>
@@ -328,9 +361,10 @@ export default function Navbar() {
           </div>
         )}
 
+        {/* Mobile: no empty-state suggestions / “Popular” chips — CSS also hides .header__search-suggestions */}
         {searchOpen && (searchQuery.trim() !== '' || !isMobile) && (
           <div className="header__search-dropdown">
-            {searchQuery.trim() === '' ? (
+            {searchQuery.trim() === '' && !isMobile ? (
               <div className="header__search-results-inner header__search-suggestions">
                 <div className="header__search-title">Collections</div>
                 <div className="header__search-list">
@@ -400,7 +434,11 @@ export default function Navbar() {
       </header>
 
       <div className={`scrim ${menuDrawerOpen ? 'open' : ''}`} onClick={() => setMenuDrawerOpen(false)} />
-      <aside className={`drawer drawer--menu ${menuDrawerOpen ? 'open' : ''}`}>
+      <aside
+        className={`drawer drawer--menu ${menuDrawerOpen ? 'open' : ''}`}
+        aria-hidden={!menuDrawerOpen}
+        inert={!menuDrawerOpen ? true : undefined}
+      >
         <div className="drawer__head">
           <h3>Menu</h3>
           <button
@@ -437,7 +475,13 @@ export default function Navbar() {
           setWishlistLogin(false);
           clearWishlistPending();
         }}
-        redirectTo={wishlistLoginOpen ? pathname || '/collections' : loginRedirect}
+        redirectTo={
+          wishlistLoginOpen
+            ? wishlistPending
+              ? pathname || '/collections'
+              : loginRedirect || '/wishlist'
+            : loginRedirect
+        }
       />
       <WishlistLoginBridge />
 

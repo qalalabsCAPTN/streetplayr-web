@@ -13,7 +13,7 @@ export default function ComingSoon({ eyebrow, title, message }: ComingSoonProps)
         <div className="legal-hero">
           <span className="legal-hero__eyebrow">{eyebrow}</span>
           <h1>{title}</h1>
-          <span className="legal-hero__meta">Coming Soon</span>
+          <span className="legal-hero__meta">Coming soon</span>
         </div>
 
         <div className="legal-section">

@@ -64,6 +64,7 @@ function CreateAccountForm() {
     }
 
     router.replace("/profile");
+    router.refresh();
   }
 
   async function handleOAuth(provider: 'google' | 'facebook') {

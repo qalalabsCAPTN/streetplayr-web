@@ -112,7 +112,8 @@ export default function SettingsPage() {
   return (
     <div>
       <div className="acct-hero">
-        <h1>Settings</h1>
+        <p className="acct-hero__greet">Account</p>
+        <h1 className="acct-hero__name">Settings</h1>
       </div>
 
       <div className="acct-settings">
@@ -144,7 +145,7 @@ export default function SettingsPage() {
             </SettingsField>
 
             <div className="acct-settings-save">
-              <button type="submit" className="pill">Save changes</button>
+              <button type="submit" className="storefront-cta storefront-cta--inline">Save changes</button>
               {nameSaved && <span className="acct-settings-saved">✓ Saved</span>}
             </div>
           </form>

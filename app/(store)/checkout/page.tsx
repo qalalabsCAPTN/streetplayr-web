@@ -304,7 +304,7 @@ export default function CheckoutPage() {
               type="button"
               onClick={handleCheckout}
               disabled={isProcessing}
-              className="checkout-submit"
+              className="checkout-submit storefront-cta"
             >
               {isProcessing ? 'Placing order…' : 'Complete order'}
             </button>
@@ -313,6 +313,17 @@ export default function CheckoutPage() {
             <OrderSummary items={items} total={total} />
             <PromoCode />
           </div>
+        </div>
+
+        <div className="checkout-sticky-bar">
+          <button
+            type="button"
+            onClick={handleCheckout}
+            disabled={isProcessing}
+            className="checkout-submit storefront-cta"
+          >
+            {isProcessing ? 'Placing order…' : 'Complete order'}
+          </button>
         </div>
 
         <div className="checkout-footer-row">

@@ -200,6 +200,7 @@ export function getLocalActiveProducts() {
     id: p.id,
     name: p.name,
     price: p.price,
+    description: p.description,
     image: p.image_url,
     slug: p.slug,
     category: p.category.name,

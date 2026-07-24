@@ -45,7 +45,8 @@ export default async function RewardsPage() {
   return (
     <div>
       <div className="acct-hero">
-        <h1>Rewards Center</h1>
+        <p className="acct-hero__greet">Loyalty</p>
+        <h1 className="acct-hero__name">Rewards</h1>
       </div>
 
       <div className="acct-grid">

@@ -11,7 +11,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <div className="flex min-h-screen nectar-portal-root">
       <DashboardSidebar />
-      <main className="flex-1 ml-[220px] min-h-screen">
+      <main className="flex-1 min-h-screen w-full ml-0 md:ml-[220px] transition-[margin] duration-300 ease-out">
         {children}
       </main>
     </div>

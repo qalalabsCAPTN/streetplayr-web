@@ -136,6 +136,7 @@ function LoginForm() {
     }
     const redirectPath = searchParams.get("redirect") ?? "/profile";
     router.replace(redirectPath);
+    router.refresh();
   }
 
   async function handleSendOTP() {
@@ -168,6 +169,7 @@ function LoginForm() {
     }
     const redirectPath = searchParams.get("redirect") ?? "/profile";
     router.replace(redirectPath);
+    router.refresh();
   }
 
   async function handleResendOTP() {
