@@ -6,18 +6,19 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getSupabaseClient } from '@/lib/ops2/supabase';
 import { cn } from '@/lib/ops2/cn';
-import ProductCarouselComponent from '@/components/ui/ProductCarousel';
 import type { PageBlock } from '@/lib/page-editor/get-page-blocks';
 import Image from 'next/image';
-
 import dynamic from 'next/dynamic';
 
+const ProductCarouselComponent = dynamic(() => import('@/components/ui/ProductCarousel'), {
+  ssr: false,
+  loading: () => <div className="w-full min-h-[200px]" aria-hidden />,
+});
 const CMSHeroWrapper = dynamic(() => import('./wrappers/CMSHeroWrapper'), { ssr: true });
 const CMSBestSellerWrapper = dynamic(() => import('./wrappers/CMSBestSellerWrapper'), { ssr: true });
 const CMSBrandStoryWrapper = dynamic(() => import('./wrappers/CMSBrandStoryWrapper'), { ssr: true });
 const CMSLookbookWrapper = dynamic(() => import('./wrappers/CMSLookbookWrapper'), { ssr: true });
 const CMSReviewsWrapper = dynamic(() => import('./wrappers/CMSReviewsWrapper'), { ssr: true });
-
 
 // ============================================================
 // BlockRenderer — renders a list of PageBlocks from the DB.
@@ -370,15 +371,17 @@ function ProductCarouselBlock({ heading, tag }: { heading: string; tag: string }
           image: p.featured_image_url,
           image2: p.metadata?.gallery_images?.[1] || p.featured_image_url,
           slug: p.slug,
-          category: p.metadata?.category || 'Street',
+          category: undefined as string | undefined,
         };
       });
 
       if (tag) {
-        return mapped.filter((p: any) => 
-          p.category?.toLowerCase() === tag.toLowerCase() || 
-          p.name?.toLowerCase().includes(tag.toLowerCase())
-        );
+        const { normalizeCollectionSlug, localMembershipFor } = await import('@/lib/products/collections');
+        const wanted = normalizeCollectionSlug(tag) || tag.toLowerCase();
+        return mapped.filter((p: any) => {
+          const membership = localMembershipFor(p.id, p.slug);
+          return membership.some((s) => s === wanted) || p.slug?.toLowerCase().includes(tag.toLowerCase());
+        });
       }
       return mapped;
     }
@@ -414,23 +417,28 @@ function CollectionGridBlock({ heading }: { heading: string }) {
     queryFn: async () => {
       const db = getSupabaseClient();
       const { data, error } = await db
-        .from('products')
-        .select('metadata')
-        .eq('status', 'active')
-        .limit(100);
-      if (error || !data) return [];
-      
-      const categories = Array.from(new Set(data.map((p: any) => p.metadata?.category || 'Street')));
-      return categories.slice(0, 3).map((cat, i) => ({
-        id: cat,
-        name: cat,
-        slug: cat.toLowerCase(),
-        image: [
-          'https://images.unsplash.com/photo-1544441893-675973e31985?q=80&w=600&auto=format&fit=crop',
-          'https://images.unsplash.com/photo-1603252109303-2751441dd157?q=80&w=600&auto=format&fit=crop',
-          'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?q=80&w=600&auto=format&fit=crop',
-        ][i % 3],
-      }));
+        .from('collections')
+        .select('id, name, slug, image_url')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true })
+        .limit(6);
+      if (error || !data || data.length === 0) return [];
+
+      return data
+        .filter((c: any) => c.slug !== 'latest-drop' && c.slug !== 'hoodies')
+        .slice(0, 3)
+        .map((c: any, i: number) => ({
+          id: c.id,
+          name: c.name,
+          slug: c.slug,
+          image:
+            c.image_url ||
+            [
+              'https://images.unsplash.com/photo-1544441893-675973e31985?q=80&w=600&auto=format&fit=crop',
+              'https://images.unsplash.com/photo-1603252109303-2751441dd157?q=80&w=600&auto=format&fit=crop',
+              'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?q=80&w=600&auto=format&fit=crop',
+            ][i % 3],
+        }));
     }
   });
 

@@ -1,5 +1,7 @@
 'use client';
 
+import { createClient as createBrowserSupabaseClient } from '@/lib/supabase/client';
+
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -49,6 +51,8 @@ export default function LoginModal({
 
   const [mode, setMode] = useState<AuthMode>('email');
   const [socialPending, setSocialPending] = useState(false);
+  const [activeSocialProvider, setActiveSocialProvider] = useState<'google' | 'facebook' | null>(null);
+  const [authError, setAuthError] = useState('');
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -79,19 +83,30 @@ export default function LoginModal({
     return () => clearTimeout(t);
   }, [resendCooldown]);
 
-  async function handleSocial(action: typeof signInWithGoogleAction) {
+  async function handleSocial(_action: typeof signInWithGoogleAction, provider: 'google' | 'facebook') {
+    setAuthError('');
     if (!isSupabaseConfigured) {
-      demoLogin({ provider: 'google' });
+      demoLogin({ provider: provider === 'facebook' ? 'google' : provider });
       finishLogin();
       return;
     }
     setSocialPending(true);
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+    setActiveSocialProvider(provider);
+    // IMPORTANT: Must use the BROWSER client here — signInWithOAuth must store
+    // the PKCE code_verifier in a browser cookie. Calling via a Server Action
+    // uses the server-side client which cannot write cookies to the browser,
+    // causing exchangeCodeForSession() to fail with a PKCE mismatch.
+    const supabase = createBrowserSupabaseClient();
+    const siteUrl = window.location.origin;
     const callback = `${siteUrl}/auth/callback?next=${encodeURIComponent(redirectTo)}`;
-    const { data, error } = await action(callback);
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: provider === 'facebook' ? 'facebook' : 'google',
+      options: { redirectTo: callback },
+    });
     if (error || !data?.url) {
       setSocialPending(false);
-      setEmailError('Sign-in failed. Please try again.');
+      setActiveSocialProvider(null);
+      setAuthError(error?.message || 'Sign-in failed. Please try again.');
       return;
     }
     window.location.href = data.url;
@@ -106,6 +121,7 @@ export default function LoginModal({
   async function handleEmailLogin(e: React.FormEvent) {
     e.preventDefault();
     setEmailError('');
+    setAuthError('');
     if (!email.trim()) { setEmailError('Email required.'); return; }
     if (!password) { setEmailError('Password required.'); return; }
     if (!isSupabaseConfigured) {
@@ -126,6 +142,7 @@ export default function LoginModal({
   async function handleSendOTP(e: React.FormEvent) {
     e.preventDefault();
     setPhoneError('');
+    setAuthError('');
     const cleaned = phone.replace(/\D/g, '');
     if (cleaned.length < 10) { setPhoneError('Enter a valid phone number.'); return; }
     if (!isSupabaseConfigured) {
@@ -147,6 +164,7 @@ export default function LoginModal({
   async function handleVerifyOTP(e: React.FormEvent) {
     e.preventDefault();
     setPhoneError('');
+    setAuthError('');
     if (otp.length < 4) { setPhoneError('Enter the code.'); return; }
     const cleaned = phone.replace(/\D/g, '');
     if (!isSupabaseConfigured) {
@@ -194,24 +212,54 @@ export default function LoginModal({
             <h2 className="lmodal__title">Sign in to Streetplayr</h2>
             <p className="lmodal__sub">Wallet, rewards, orders &amp; faster checkout.</p>
 
+            {authError && (
+              <p className="lmodal__error" style={{ marginBottom: 16, textAlign: 'center' }}>
+                {authError}
+              </p>
+            )}
+
             <div className="lmodal__socials">
               <button
                 type="button"
                 className="lmodal__social"
                 disabled={socialPending}
-                onClick={() => handleSocial(signInWithGoogleAction)}
+                onClick={() => handleSocial(signInWithGoogleAction, 'google')}
               >
-                <GoogleIcon />
-                <span>Continue with Google</span>
+                {activeSocialProvider === 'google' ? (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <svg className="animate-spin" viewBox="0 0 24 24" width="16" height="16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity="0.25"></circle>
+                      <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Signing in…
+                  </span>
+                ) : (
+                  <>
+                    <GoogleIcon />
+                    <span>Continue with Google</span>
+                  </>
+                )}
               </button>
               <button
                 type="button"
                 className="lmodal__social"
                 disabled={socialPending}
-                onClick={() => handleSocial(signInWithFacebookAction)}
+                onClick={() => handleSocial(signInWithFacebookAction, 'facebook')}
               >
-                <FacebookIcon />
-                <span>Continue with Facebook</span>
+                {activeSocialProvider === 'facebook' ? (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <svg className="animate-spin" viewBox="0 0 24 24" width="16" height="16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity="0.25"></circle>
+                      <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Signing in…
+                  </span>
+                ) : (
+                  <>
+                    <FacebookIcon />
+                    <span>Continue with Facebook</span>
+                  </>
+                )}
               </button>
             </div>
 

@@ -1,29 +1,75 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { checkEnvironment } from '@/lib/env/validate';
 import { UnicommerceService } from '@/src/integrations/unicommerce';
 
-interface HealthCheckReport {
+type SubStatus = 'ok' | 'degraded' | 'down';
+
+interface PublicHealthReport {
   status: 'healthy' | 'degraded' | 'unhealthy';
   timestamp: string;
   version: string;
   environment: string;
   subsystems: {
-    env: { status: 'ok' | 'degraded'; details: ReturnType<typeof checkEnvironment> };
-    supabase: { status: 'ok' | 'degraded' | 'down'; error?: string };
-    auth: { status: 'ok' | 'degraded' | 'down'; error?: string };
-    cron: { status: 'ok' | 'degraded'; releaseExpiryConfigured: boolean; reconciliationConfigured: boolean };
-    webhooks: { status: 'ok' | 'degraded'; stripeVerification: 'enabled' | 'stub' | 'disabled'; error?: string };
-    realtime: { status: 'ok' | 'degraded'; enabled: boolean };
-    unicommerce?: { status: 'ok' | 'degraded' | 'down'; details?: string; error?: string };
+    env: SubStatus;
+    supabase: SubStatus;
+    auth: SubStatus;
+    cron: SubStatus;
+    webhooks: SubStatus;
+    realtime: SubStatus;
+    unicommerce: SubStatus;
   };
 }
 
-export async function GET() {
+interface FullHealthReport {
+  status: 'healthy' | 'degraded' | 'unhealthy';
+  timestamp: string;
+  version: string;
+  environment: string;
+  subsystems: {
+    env: { status: SubStatus; details: ReturnType<typeof checkEnvironment> };
+    supabase: { status: SubStatus; error?: string };
+    auth: { status: SubStatus; error?: string };
+    cron: {
+      status: SubStatus;
+      releaseExpiryConfigured: boolean;
+      reconciliationConfigured: boolean;
+    };
+    webhooks: {
+      status: SubStatus;
+      stripeVerification: 'enabled' | 'stub' | 'disabled';
+      error?: string;
+    };
+    realtime: { status: SubStatus; enabled: boolean };
+    unicommerce?: { status: SubStatus; details?: string; error?: string };
+  };
+}
+
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, label: string): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(`${label} check timed out`)), timeoutMs);
+  });
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    if (timeoutId) clearTimeout(timeoutId);
+  });
+}
+
+function isAuthorizedDiagnostics(req: NextRequest): boolean {
+  const secret = process.env.CRON_SECRET;
+  if (!secret) return false;
+  const header = req.headers.get('authorization') || '';
+  const bearer = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
+  const query = req.nextUrl.searchParams.get('secret') || '';
+  return bearer === secret || query === secret;
+}
+
+export async function GET(req: NextRequest) {
   const timestamp = new Date().toISOString();
   const environment = process.env.NODE_ENV ?? 'development';
+  const detailed = isAuthorizedDiagnostics(req);
 
-  const report: HealthCheckReport = {
+  const report: FullHealthReport = {
     status: 'healthy',
     timestamp,
     version: process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ?? '0.1.0',
@@ -46,60 +92,56 @@ export async function GET() {
     },
   };
 
-  // ── Check Environment ──────────────────────────────────────────────────
   const envCheck = report.subsystems.env.details;
   if (!envCheck.valid) {
     report.subsystems.env.status = 'degraded';
     report.status = 'degraded';
   }
 
-  // ── Check Supabase Connectivity ────────────────────────────────────────
   try {
     const admin = createAdminClient();
-    const { error } = await admin.from('operational_events').select('id').limit(1).maybeSingle();
-    // No error = connected. A "no rows" response is fine — means table is empty, not unreachable.
-    if (error && error.code === 'PGRST301') {
-      // PGRST301 = "not authenticated" — means we reached the server but auth failed
-      // This is acceptable for a connectivity check since admin client bypasses RLS
-    } else if (error) {
+    const queryPromise = (async () => {
+      return await admin.from('operational_events').select('id').limit(1).maybeSingle();
+    })();
+    const { error } = await withTimeout(queryPromise, 2500, 'Supabase query');
+    if (error && error.code !== 'PGRST301') {
       throw error;
     }
-  } catch (e: any) {
-    report.subsystems.supabase.status = 'down';
-    report.subsystems.supabase.error = e.message ?? 'Connection failed';
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : 'Connection failed';
+    report.subsystems.supabase.status = 'degraded';
+    report.subsystems.supabase.error = message;
     report.status = 'degraded';
   }
 
-  // ── Check Auth Subsystem ───────────────────────────────────────────────
   try {
     const admin = createAdminClient();
-    const { error } = await admin.auth.getUser();
-    // Admin client doesn't have a user context — this is expected to "fail"
-    // The point is to verify Supabase Auth API is reachable (not necessarily authenticated)
+    const { error } = await withTimeout(admin.auth.getUser(), 2500, 'Supabase auth');
     if (error && !error.message?.includes('Auth session missing')) {
-      // Unexpected auth error
       report.subsystems.auth.status = 'degraded';
       report.subsystems.auth.error = error.message;
       report.status = 'degraded';
     }
-  } catch (e: any) {
-    report.subsystems.auth.status = 'down';
-    report.subsystems.auth.error = e.message ?? 'Auth check failed';
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : 'Auth check failed';
+    report.subsystems.auth.status = 'degraded';
+    report.subsystems.auth.error = message;
     report.status = 'degraded';
   }
 
-  // ── Check Webhook Status ───────────────────────────────────────────────
   if (!process.env.STRIPE_WEBHOOK_SECRET) {
     report.subsystems.webhooks.status = 'degraded';
-    // Only degrade if in production
     if (environment === 'production') {
       report.status = 'degraded';
     }
   }
 
-  // ── Check Unicommerce Connectivity ─────────────────────────────────────
   try {
-    const ucCheck = await UnicommerceService.checkConnection();
+    const ucCheck = await withTimeout(
+      UnicommerceService.checkConnection(),
+      2500,
+      'Unicommerce',
+    );
     report.subsystems.unicommerce = {
       status: ucCheck.success ? 'ok' : 'degraded',
       details: ucCheck.message,
@@ -107,23 +149,35 @@ export async function GET() {
     if (!ucCheck.success && environment === 'production') {
       report.status = 'degraded';
     }
-  } catch (e: any) {
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : 'Unicommerce check failed';
     report.subsystems.unicommerce = {
-      status: 'down',
-      error: e.message ?? 'Unicommerce check failed',
+      status: 'degraded',
+      error: message,
     };
     report.status = 'degraded';
   }
 
-  // ── Determine overall status ───────────────────────────────────────────
-  if (
-    report.subsystems.supabase.status === 'down' ||
-    report.subsystems.auth.status === 'down'
-  ) {
-    report.status = 'unhealthy';
+  // Always 200 so container boot / load balancers stay up; status field carries health.
+  if (detailed) {
+    return NextResponse.json(report, { status: 200 });
   }
 
-  const statusCode = report.status === 'healthy' ? 200 : report.status === 'degraded' ? 200 : 503;
+  const publicReport: PublicHealthReport = {
+    status: report.status,
+    timestamp: report.timestamp,
+    version: report.version,
+    environment: report.environment,
+    subsystems: {
+      env: report.subsystems.env.status,
+      supabase: report.subsystems.supabase.status,
+      auth: report.subsystems.auth.status,
+      cron: report.subsystems.cron.status,
+      webhooks: report.subsystems.webhooks.status,
+      realtime: report.subsystems.realtime.status,
+      unicommerce: report.subsystems.unicommerce?.status ?? 'degraded',
+    },
+  };
 
-  return NextResponse.json(report, { status: statusCode });
+  return NextResponse.json(publicReport, { status: 200 });
 }

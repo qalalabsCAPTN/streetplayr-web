@@ -300,7 +300,7 @@ function GLBStar() {
 // Kick the GLTF fetch off at module load (import time) instead of waiting for
 // the component to mount — shaves the network round-trip off the window
 // during which the fallback procedural blades are visible.
-useGLTF.preload("/models/3-d Star.glb");
+// Do NOT eager-preload the GLB — it races LCP (~1.7MB). Component loads it on mount.
 
 function StarBody() {
   return (

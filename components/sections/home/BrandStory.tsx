@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
+import LazyVideo from "@/components/ui/LazyVideo";
 
 function FadeIn({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -118,15 +119,12 @@ export default function BrandStory({
                 className="absolute inset-0 w-full h-full object-cover"
               />
             ) : (
-              <video
-                autoPlay
-                muted
-                loop
-                playsInline
+              <LazyVideo
+                src={videoUrl}
+                poster="/assets/empty_centre.jpg"
+                rootMargin="250px 0px"
                 className="absolute inset-0 w-full h-full object-cover"
-              >
-                <source src={videoUrl} type="video/mp4" />
-              </video>
+              />
             )}
             <div className="absolute inset-0 pointer-events-none border border-white/[0.04]" />
           </div>

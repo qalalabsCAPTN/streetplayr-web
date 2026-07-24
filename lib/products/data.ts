@@ -12,6 +12,8 @@ export interface LocalProduct {
     colors: { id: string; name: string; hex: string; images?: string[] }[];
     /** Path to GLB file in /public/models/ — enables "View in 3D" button on PDP */
     model3d?: string;
+    category?: string;
+    latest_drop?: boolean;
   };
   variants: {
     id: string;
@@ -54,11 +56,13 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
     category: { name: "TEES" },
     metadata: {
       points: "300",
+      category: "TEES",
       gallery_images: GALLERY_IMAGES("ctt-waffle"),
       colors: [
         { id: "white", name: "White", hex: "#f5f5f0", images: GALLERY_IMAGES("ctt-waffle") },
         { id: "maroon", name: "Maroon", hex: "#6b1c2a", images: GALLERY_IMAGES("ctt-maroon") },
       ],
+      latest_drop: true,
     },
     variants: buildVariants("ctt-waffle"),
   },
@@ -73,11 +77,13 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
     category: { name: "TEES" },
     metadata: {
       points: "300",
+      category: "TEES",
       gallery_images: GALLERY_IMAGES("black-warrior"),
       colors: [
         { id: "black", name: "Black", hex: "#1a1a1a", images: GALLERY_IMAGES("black-warrior") },
         { id: "brown", name: "Brown", hex: "#5c3a2e", images: GALLERY_IMAGES("brown-warrior") },
       ],
+      latest_drop: true,
     },
     variants: buildVariants("black-warrior"),
   },
@@ -92,11 +98,13 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
     category: { name: "TEES" },
     metadata: {
       points: "350",
+      category: "TEES",
       gallery_images: GALLERY_IMAGES("inspired"),
       colors: [
         { id: "purple", name: "Purple", hex: "#4a2d6b", images: GALLERY_IMAGES("inspired") },
       ],
       model3d: "/models/inspired.glb",
+      latest_drop: true,
     },
     variants: buildVariants("inspired"),
   },
@@ -111,6 +119,7 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
     category: { name: "TANKS" },
     metadata: {
       points: "350",
+      category: "TANKS",
       gallery_images: GALLERY_IMAGES("star-tank-dark"),
       colors: [
         { id: "dark", name: "Dark", hex: "#1a1a1a", images: GALLERY_IMAGES("star-tank-dark") },
@@ -129,9 +138,10 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
       "Crafted from premium heavyweight fabric, the playR Carpenter Pants are designed for everyday comfort with a clean, timeless silhouette. Featuring a relaxed fit, subtle carpenter-inspired detailing, and a discreet side pocket for quick access to your phone or everyday essentials, they balance functionality with effortless style. Minimal, durable, and versatile, they're built to pair seamlessly with any outfit.",
     image_url: `/assets/products/carpenter-grey/image-1.jpg`,
     slug: "carpenter-grey",
-    category: { name: "PANTS" },
+    category: { name: "SWEATPANTS" },
     metadata: {
       points: "500",
+      category: "SWEATPANTS",
       gallery_images: GALLERY_IMAGES("carpenter-grey"),
       colors: [
         { id: "grey", name: "Grey", hex: "#8a8a8a", images: GALLERY_IMAGES("carpenter-grey") },
@@ -148,13 +158,15 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
       "Crafted from heavyweight acid-washed ribbed cotton, this oversized long sleeve features a structured, boxy fit with dropped shoulders and a worn-in vintage finish. The phrase \"Stick No Bills\" comes from the iconic notices painted on city walls to discourage posters and advertisements, becoming a recognizable part of the urban landscape. The graphics draw inspiration from this piece of street culture, reinterpreting a familiar symbol of the city.",
     image_url: `/assets/products/stick-no-bills/image-1.jpg`,
     slug: "stick-no-bills",
-    category: { name: "TEES" },
+    category: { name: "LONG-SLEEVE" },
     metadata: {
       points: "300",
+      category: "LONG-SLEEVE",
       gallery_images: GALLERY_IMAGES("stick-no-bills"),
       colors: [
         { id: "grey", name: "Grey", hex: "#8a8a8a", images: GALLERY_IMAGES("stick-no-bills") },
       ],
+      latest_drop: true,
     },
     variants: buildVariants("stick-no-bills"),
   },
@@ -169,6 +181,7 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
     category: { name: "TEES" },
     metadata: {
       points: "300",
+      category: "TEES",
       gallery_images: GALLERY_IMAGES("warrior-bob"),
       colors: [
         { id: "default", name: "Standard", hex: "#ffffff", images: GALLERY_IMAGES("warrior-bob") },

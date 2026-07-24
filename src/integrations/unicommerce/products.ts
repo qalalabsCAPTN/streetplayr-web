@@ -43,7 +43,7 @@ export class UnicommerceProductService {
         name: `Mock Product ${sku}`,
         description: 'This is a mock product description generated in demo mode.',
         price: 1999,
-        category: 'TEES',
+        category: 'uncategorized',
         enabled: true,
       };
     }

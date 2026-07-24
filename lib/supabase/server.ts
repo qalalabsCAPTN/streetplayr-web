@@ -7,14 +7,8 @@ export async function createClient(): Promise<SupabaseClient<any, any, any>> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (!url || !key || url.includes('mockproject')) {
-    if (process.env.NODE_ENV === 'development') {
-      return createStubClient('server');
-    }
-    throw new Error(
-      'Missing Supabase client credentials. ' +
-      'Ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set.'
-    );
+  if (!url || !key || url.includes('mockproject') || process.env.NEXT_PHASE === 'phase-action-build') {
+    return createStubClient('server');
   }
 
   const cookieStore = await cookies();

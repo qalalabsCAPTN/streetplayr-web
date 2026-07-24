@@ -64,7 +64,7 @@ async function getClientLatestDrops() {
         image: p.featured_image_url,
         image2: p.metadata?.gallery_images?.[1] || p.featured_image_url,
         slug: p.slug,
-        category: p.metadata?.category || 'Street',
+        category: undefined,
       };
     });
   } catch (err) {
@@ -141,7 +141,7 @@ export default function CMSBestSellerWrapper({ content }: CMSBestSellerWrapperPr
             image: p.featured_image_url,
             image2: p.metadata?.gallery_images?.[1] || p.featured_image_url,
             slug: p.slug,
-            category: p.metadata?.category || 'Street',
+            category: undefined,
           };
         });
       } catch (err) {

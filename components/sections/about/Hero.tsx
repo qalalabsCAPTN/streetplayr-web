@@ -2,20 +2,18 @@
 
 import { useRef } from "react";
 import { motion } from "framer-motion";
+import LazyVideo from "@/components/ui/LazyVideo";
 
 export default function AboutHero() {
   const ref = useRef<HTMLDivElement>(null);
 
   return (
     <section ref={ref} className="relative min-h-screen w-full flex items-end overflow-hidden bg-transparent">
-      <video
+      <LazyVideo
         className="absolute inset-0 w-full h-full object-cover"
         src="/assets/home-page-banner.mp4"
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="auto"
+        poster="/assets/empty_centre.jpg"
+        rootMargin="100px 0px"
       />
       <div
         className="absolute inset-0 pointer-events-none"

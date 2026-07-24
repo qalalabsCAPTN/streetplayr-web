@@ -8,12 +8,7 @@ import { formatPrice, formatProductTitle } from "@/lib/utils/format";
 export const revalidate = 300;
 
 async function resolveProduct(slug: string) {
-  // Always try local first — instant, no network, never fails
-  const local = getLocalProductBySlug(slug);
-  if (local) return local;
-
-  // Then try DB (Supabase) with full exception guard so a network
-  // error or mis-configured project can never cause a 404
+  // Prefer live DB when Supabase is configured — local is fallback only
   try {
     const product = await ProductQueries.getProductBySlug(slug);
     if (product) return product;
@@ -21,7 +16,13 @@ async function resolveProduct(slug: string) {
     const productLower = await ProductQueries.getProductBySlug(slug.toLowerCase());
     if (productLower) return productLower;
   } catch {
-    // DB unavailable — already found local above if it existed
+    // fall through to local
+  }
+
+  const { allowLocalCatalog } = await import('@/lib/products/env');
+  if (allowLocalCatalog()) {
+    const local = getLocalProductBySlug(slug);
+    if (local) return local;
   }
 
   return null;

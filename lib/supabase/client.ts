@@ -7,13 +7,7 @@ export function createClient(): SupabaseClient<any, any, any> {
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!url || !key || (url && url.includes('mockproject'))) {
-    if (process.env.NODE_ENV === 'development') {
-      return createStubClient('browser');
-    }
-    throw new Error(
-      'Missing Supabase client credentials. ' +
-      'Ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set.'
-    );
+    return createStubClient('browser');
   }
 
   return createBrowserClient(url, key);

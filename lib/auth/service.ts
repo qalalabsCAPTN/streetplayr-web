@@ -81,6 +81,21 @@ export const AuthService = {
       }
 
       profile = await fetchProfile();
+    } else if (!profile.email && session.user.email) {
+      debug('profile email missing — executing self-healing update');
+      const admin = createAdminClient();
+      const userEmail = session.user.email.toLowerCase();
+      const { error: updateError } = await admin
+        .from('profiles')
+        .update({ email: userEmail })
+        .eq('id', session.user.id);
+
+      if (updateError) {
+        debug('profile email update error:', updateError.message);
+      } else {
+        debug('profile email updated successfully');
+        profile.email = userEmail;
+      }
     }
 
     if (!profile) {

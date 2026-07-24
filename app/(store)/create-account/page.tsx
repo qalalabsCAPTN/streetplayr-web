@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Suspense, useState } from "react";
 
-import { signUpWithEmailAction, signInWithGoogleAction, signInWithFacebookAction } from "@/app/actions/auth";
+import { signUpWithEmailAction } from "@/app/actions/auth";
+import { createClient as createBrowserSupabaseClient } from '@/lib/supabase/client';
+
 
 function GoogleIcon() {
   return (
@@ -33,6 +35,7 @@ function CreateAccountForm() {
   const [confirm, setConfirm] = useState("");
   const [pending, setPending] = useState(false);
   const [socialPending, setSocialPending] = useState(false);
+  const [activeSocialProvider, setActiveSocialProvider] = useState<'google' | 'facebook' | null>(null);
   const [error, setError] = useState("");
   const [verifyEmail, setVerifyEmail] = useState(false);
 
@@ -63,14 +66,26 @@ function CreateAccountForm() {
     router.replace("/profile");
   }
 
-  async function handleOAuth(action: (redirectTo: string) => Promise<any>, provider: string) {
+  async function handleOAuth(provider: 'google' | 'facebook') {
+    setError("");
     setSocialPending(true);
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+    setActiveSocialProvider(provider);
+    const siteUrl = window.location.origin;
     const redirectTo = `${siteUrl}/auth/callback`;
-    const { data, error } = await action(redirectTo);
-    if (error) {
-      console.error(`${provider} error:`, error);
+    // IMPORTANT: Must use the BROWSER client — signInWithOAuth must store the
+    // PKCE code_verifier in a browser cookie. Using a Server Action invokes the
+    // server-side Supabase client which cannot write cookies to the browser,
+    // so the verifier is never stored and exchangeCodeForSession() fails.
+    const supabase = createBrowserSupabaseClient();
+    const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo },
+    });
+    if (oauthError || !data?.url) {
+      console.error(`${provider} error:`, oauthError);
       setSocialPending(false);
+      setActiveSocialProvider(null);
+      setError(oauthError?.message || "Sign-in failed. Please try again.");
       return;
     }
     if (data?.url) window.location.href = data.url;
@@ -110,13 +125,37 @@ function CreateAccountForm() {
       <div className="lmodal__divider"><span>or</span></div>
 
       <div className="lmodal__socials">
-        <button type="button" onClick={() => handleOAuth(signInWithGoogleAction, "google")} disabled={isAnyPending} className="lmodal__social">
-          <GoogleIcon />
-          <span>Continue with Google</span>
+        <button type="button" onClick={() => handleOAuth("google")} disabled={isAnyPending} className="lmodal__social">
+          {activeSocialProvider === 'google' ? (
+            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <svg className="animate-spin" viewBox="0 0 24 24" width="16" height="16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity="0.25"></circle>
+                <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Signing in…
+            </span>
+          ) : (
+            <>
+              <GoogleIcon />
+              <span>Continue with Google</span>
+            </>
+          )}
         </button>
-        <button type="button" onClick={() => handleOAuth(signInWithFacebookAction, "facebook")} disabled={isAnyPending} className="lmodal__social">
-          <FacebookIcon />
-          <span>Continue with Facebook</span>
+        <button type="button" onClick={() => handleOAuth("facebook")} disabled={isAnyPending} className="lmodal__social">
+          {activeSocialProvider === 'facebook' ? (
+            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <svg className="animate-spin" viewBox="0 0 24 24" width="16" height="16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity="0.25"></circle>
+                <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Signing in…
+            </span>
+          ) : (
+            <>
+              <FacebookIcon />
+              <span>Continue with Facebook</span>
+            </>
+          )}
         </button>
       </div>
 

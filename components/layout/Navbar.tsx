@@ -6,18 +6,14 @@ import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCart } from '@/components/CartContext';
 import { useAuthStore } from '@/store/authStore';
+import { useWishlistStore } from '@/store/wishlistStore';
+import WishlistLoginBridge from '@/components/auth/WishlistLoginBridge';
 import { stories } from '@/lib/bluorng-data';
 import StoryViewer from './StoryViewer';
 import MobileNav from './MobileNav';
 import LoginModal from '@/components/auth/LoginModal';
 
 const Icon = {
-  pin: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
-      <path d="M12 21s-7-5.5-7-11a7 7 0 1 1 14 0c0 5.5-7 11-7 11Z" />
-      <circle cx="12" cy="10" r="2.6" />
-    </svg>
-  ),
   search: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
       <circle cx="11" cy="11" r="7" />
@@ -59,7 +55,7 @@ const menu = {
     { label: 'Sweatpants', href: '/collections?category=pants' },
   ],
   shopAndSupport: [
-    { label: 'All Products', href: '/collections' },
+    { label: 'All Products', href: '/collections?category=all' },
     { label: 'Collaborations', href: '/collaborations' },
     { label: 'FAQ', href: '/faq' },
     { label: 'Shipping Policy', href: '/shipping-policy' },
@@ -82,14 +78,30 @@ export default function Navbar() {
   const pathname = usePathname();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const [loginOpen, setLoginOpen] = useState(false);
+  const [loginRedirect, setLoginRedirect] = useState(pathname || '/profile');
+  const wishlistCount = useWishlistStore((s) => s.items.length);
+  const wishlistLoginOpen = useWishlistStore((s) => s.loginOpen);
+  const setWishlistLogin = useWishlistStore((s) => s.setLoginOpen);
+  const clearWishlistPending = useWishlistStore((s) => s.clearPending);
   const router = useRouter();
 
   const handleAccount = () => {
     if (isAuthenticated) {
       router.push('/profile');
     } else {
+      setLoginRedirect(pathname || '/profile');
       setLoginOpen(true);
     }
+  };
+
+  const handleWishlist = () => {
+    if (!isAuthenticated) {
+      setLoginRedirect(pathname || '/wishlist');
+      setWishlistLogin(true);
+      cart.showToast('Sign in to view wishlist');
+      return;
+    }
+    router.push('/wishlist');
   };
 
   useEffect(() => {
@@ -110,13 +122,13 @@ export default function Navbar() {
     }
   }, [theme]);
 
-  // Load products for dynamic search
   useEffect(() => {
     async function loadProducts() {
       try {
         const { getLocalActiveProducts } = await import('@/lib/products/data');
-        const local = getLocalActiveProducts();
-        
+        const { allowLocalCatalog } = await import('@/lib/products/env');
+        const local = allowLocalCatalog() ? getLocalActiveProducts() : [];
+
         const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
         if (!url || url.includes('mockproject')) {
           setProducts(local);
@@ -174,10 +186,11 @@ export default function Navbar() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const solid = scrolled || megaOpen || menuDrawerOpen || searchOpen || (!isMobile && pathname !== '/');
+  // Transparent at top → solid dark on scroll. Overlays also force solid.
+  const solid = scrolled || megaOpen || menuDrawerOpen || searchOpen;
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 60);
+    const onScroll = () => setScrolled(window.scrollY > 24);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
@@ -189,8 +202,8 @@ export default function Navbar() {
 
   return (
     <>
-      <header 
-        className={`header ${solid ? 'header--solid' : ''}`} 
+      <header
+        className={`header ${solid ? 'header--solid' : ''}`}
         onMouseLeave={() => {
           if (typeof window !== 'undefined' && window.innerWidth > 900) {
             setMegaOpen(false);
@@ -199,10 +212,10 @@ export default function Navbar() {
       >
         <div className="header__inner">
           <nav className="header__nav header__nav--desktop">
-            <Link 
-              href="/collections" 
-              className="header__link" 
-              onMouseEnter={() => setMegaOpen(true)} 
+            <Link
+              href="/collections"
+              className="header__link"
+              onMouseEnter={() => setMegaOpen(true)}
               onClick={() => setMegaOpen((v) => !v)}
             >
               Collection
@@ -218,9 +231,8 @@ export default function Navbar() {
               className="header__pill-link"
               aria-label="playR Home"
               onClick={(e) => {
-                // Force Home — never land on enter preloader via stale history / root.
                 e.preventDefault();
-                router.push("/home");
+                router.push('/home');
               }}
             >
               <Image src="/playR.street logo.png" alt="playR" width={1024} height={660} priority />
@@ -247,16 +259,13 @@ export default function Navbar() {
               </div>
             </div>
 
-            <button 
-              className="iconbtn iconbtn--story hide-mobile" 
-              onClick={() => setStoryOpen(true)} 
+            <button
+              className="iconbtn iconbtn--story hide-mobile"
+              onClick={() => setStoryOpen(true)}
               aria-label="Stories"
             >
               <img src={stories[0].image} alt="" />
             </button>
-            <Link href="/collections" className="iconbtn hide-mobile" aria-label="Stores">
-              {Icon.pin}
-            </Link>
             <button
               className={`iconbtn hide-mobile ${searchOpen ? 'active' : ''}`}
               onClick={() => {
@@ -268,31 +277,26 @@ export default function Navbar() {
             >
               {Icon.search}
             </button>
-            <button
-              className="iconbtn hide-mobile"
-              aria-label="Account"
-              onClick={handleAccount}
-            >
+            <button className="iconbtn hide-mobile" aria-label="Account" onClick={handleAccount}>
               {Icon.user}
             </button>
-            <button 
-              className="iconbtn" 
-              aria-label="Wishlist" 
-              onClick={() => cart.showToast('Wishlist feature coming soon')}
-            >
+            <button className="iconbtn" aria-label="Wishlist" onClick={handleWishlist}>
               {Icon.bookmark}
+              {isAuthenticated && wishlistCount > 0 && (
+                <span className="iconbtn__count">{wishlistCount}</span>
+              )}
             </button>
             <button className="iconbtn" onClick={() => cart.setOpen(true)} aria-label="Bag">
               {Icon.bag}
               {cart.count > 0 && <span className="iconbtn__count">{cart.count}</span>}
             </button>
-            <button 
-              className="iconbtn iconbtn--menu hide-mobile" 
+            <button
+              className="iconbtn iconbtn--menu hide-mobile"
               onClick={() => {
                 setMenuDrawerOpen((v) => !v);
                 setMegaOpen(false);
                 setSearchOpen(false);
-              }} 
+              }}
               aria-label="Menu"
             >
               {Icon.menu}
@@ -312,19 +316,21 @@ export default function Navbar() {
               />
               <span className="header__search-icon-inside">{Icon.search}</span>
             </div>
-            <button 
-              className="header__search-close" 
-              onClick={() => { setSearchOpen(false); setSearchQuery(''); }}
+            <button
+              className="header__search-close"
+              onClick={() => {
+                setSearchOpen(false);
+                setSearchQuery('');
+              }}
             >
               &times;
             </button>
           </div>
         )}
 
-        {searchOpen && (searchQuery.trim() !== "" || !isMobile) && (
+        {searchOpen && (searchQuery.trim() !== '' || !isMobile) && (
           <div className="header__search-dropdown">
             {searchQuery.trim() === '' ? (
-              /* Empty-state suggestions — not rendered on mobile (no Popular Searches strip / no empty gap). */
               <div className="header__search-results-inner header__search-suggestions">
                 <div className="header__search-title">Collections</div>
                 <div className="header__search-list">
@@ -348,11 +354,14 @@ export default function Navbar() {
                 <div className="header__search-list">
                   {filteredProducts.length > 0 ? (
                     filteredProducts.slice(0, 5).map((p) => (
-                      <Link 
-                        key={p.slug} 
-                        href={`/product/${p.slug}`} 
-                        className="header__search-item" 
-                        onClick={() => { setSearchOpen(false); setSearchQuery(''); }}
+                      <Link
+                        key={p.slug}
+                        href={`/product/${p.slug}`}
+                        className="header__search-item"
+                        onClick={() => {
+                          setSearchOpen(false);
+                          setSearchQuery('');
+                        }}
                       >
                         <img src={p.image} alt="" />
                         <div className="header__search-item-info">
@@ -391,35 +400,26 @@ export default function Navbar() {
       </header>
 
       <div className={`scrim ${menuDrawerOpen ? 'open' : ''}`} onClick={() => setMenuDrawerOpen(false)} />
-      <aside className={`drawer ${menuDrawerOpen ? 'open' : ''}`}>
+      <aside className={`drawer drawer--menu ${menuDrawerOpen ? 'open' : ''}`}>
         <div className="drawer__head">
           <h3>Menu</h3>
-          <button 
-            onClick={() => setMenuDrawerOpen(false)} 
-            className="modal__close" 
-            style={{ cursor: 'pointer', float: 'none', background: 'none', border: 'none', fontSize: '24px', padding: '0 4px' }}
+          <button
+            onClick={() => setMenuDrawerOpen(false)}
+            className="drawer__close"
+            aria-label="Close menu"
           >
             &times;
           </button>
         </div>
-        <div className="drawer__body" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <h4 style={{ fontSize: '11px', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: '4px' }}>
-              Shop &amp; Support
-            </h4>
+        <div className="drawer__body drawer__body--menu">
+          <div className="drawer__section">
+            <h4 className="drawer__section-label">Shop &amp; Support</h4>
             {menu.shopAndSupport.map((l) => (
               <Link
                 key={l.label}
                 href={l.href}
+                className="drawer__link"
                 onClick={() => setMenuDrawerOpen(false)}
-                style={{
-                  fontSize: '15px',
-                  fontWeight: 500,
-                  padding: '8px 0',
-                  borderBottom: '1px solid var(--line)',
-                  display: 'block',
-                  transition: 'opacity 0.2s',
-                }}
               >
                 {l.label}
               </Link>
@@ -430,7 +430,16 @@ export default function Navbar() {
 
       {storyOpen && <StoryViewer onClose={() => setStoryOpen(false)} />}
 
-      <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
+      <LoginModal
+        open={loginOpen || wishlistLoginOpen}
+        onClose={() => {
+          setLoginOpen(false);
+          setWishlistLogin(false);
+          clearWishlistPending();
+        }}
+        redirectTo={wishlistLoginOpen ? pathname || '/collections' : loginRedirect}
+      />
+      <WishlistLoginBridge />
 
       <MobileNav
         onSearch={() => {

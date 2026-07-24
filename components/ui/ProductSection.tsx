@@ -2,9 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import ProductCard from './ProductCard';
 import Reveal from './BluorngReveal';
-import Product3DCarousel from './Product3DCarousel';
+
+const Product3DCarousel = dynamic(() => import('./Product3DCarousel'), {
+  ssr: false,
+  loading: () => <div className="prow" aria-hidden />,
+});
 
 interface SectionProduct {
   id: string;

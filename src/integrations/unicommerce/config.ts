@@ -18,8 +18,8 @@ export interface UnicommerceConfig {
  * In production mode, throws an error if required configuration is missing.
  */
 export function getUnicommerceConfig(): UnicommerceConfig {
-  const isProd = process.env.NODE_ENV === 'production';
   const isDemoMode = process.env.DEMO_INVENTORY_MODE === 'true';
+
 
   const apiUrl = process.env.UNICOMMERCE_API_URL || '';
   const clientId = process.env.UNICOMMERCE_CLIENT_ID || 'my-trusted-client';
@@ -35,13 +35,17 @@ export function getUnicommerceConfig(): UnicommerceConfig {
   if (!password) missing.push('UNICOMMERCE_PASSWORD');
   if (!facilityCode) missing.push('UNICOMMERCE_FACILITY_CODE');
 
-  // During next build, we might not have these variables configured. Avoid blocking the build.
-  const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build';
-  if (missing.length > 0 && isProd && !isBuildPhase) {
-    throw new Error(
-      `[Unicommerce Integration] Missing required configuration parameters: ${missing.join(', ')}`
+  // Never throw — this function is called at module static-init time via
+  // `UnicommerceService.config = getUnicommerceConfig()` in index.ts.
+  // Throwing here crashes the entire Next.js server process on startup.
+  // Callers must check isDemoMode / apiUrl before making real API calls.
+  if (missing.length > 0 && !isDemoMode) {
+    console.warn(
+      `[Unicommerce] Missing config: ${missing.join(', ')}. ` +
+      `Set DEMO_INVENTORY_MODE=true or provide real credentials.`
     );
   }
+
 
   return {
     apiUrl: apiUrl.replace(/\/$/, ''), // Remove trailing slash if present

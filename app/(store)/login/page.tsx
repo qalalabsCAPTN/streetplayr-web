@@ -4,12 +4,11 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import {
-  signInWithGoogleAction,
-  signInWithFacebookAction,
   signInWithEmailAction,
   signInWithPhoneAction,
   verifyOTPAction,
 } from "@/app/actions/auth";
+import { createClient as createBrowserSupabaseClient } from '@/lib/supabase/client';
 import { useAuthStore } from "@/store/authStore";
 
 function GoogleIcon() {
@@ -31,25 +30,39 @@ function FacebookIcon() {
   );
 }
 
-function SocialAuthButton({ icon, label, action, isPending, onPending }: {
-  provider: string;
+function SocialAuthButton({ icon, label, provider, isPending, onPending, activeProvider, setActiveProvider, onError }: {
+  provider: 'google' | 'facebook';
   icon: React.ReactNode;
   label: string;
-  action: (redirectTo: string) => Promise<any>;
   isPending: boolean;
   onPending: (v: boolean) => void;
+  activeProvider: string | null;
+  setActiveProvider: (v: string | null) => void;
+  onError: (v: string) => void;
 }) {
   const searchParams = useSearchParams();
 
   async function handleLogin() {
+    onError("");
     onPending(true);
+    setActiveProvider(provider);
     const redirect = searchParams.get("redirect");
     const params = redirect ? `?next=${encodeURIComponent(redirect)}` : "";
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+    const siteUrl = window.location.origin;
     const redirectTo = `${siteUrl}/auth/callback${params}`;
-    const { data, error } = await action(redirectTo);
+    // IMPORTANT: Must use the BROWSER client — signInWithOAuth must store the
+    // PKCE code_verifier in a browser cookie. Using a Server Action invokes the
+    // server-side Supabase client which cannot write cookies to the browser,
+    // so the verifier is never stored and exchangeCodeForSession() fails.
+    const supabase = createBrowserSupabaseClient();
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo },
+    });
     if (error) {
       onPending(false);
+      setActiveProvider(null);
+      onError(error.message || "Sign-in failed. Please try again.");
       return;
     }
     if (data?.url) {
@@ -57,10 +70,24 @@ function SocialAuthButton({ icon, label, action, isPending, onPending }: {
     }
   }
 
+  const isCurrentPending = activeProvider === provider;
+
   return (
     <button type="button" onClick={handleLogin} disabled={isPending} className="lmodal__social">
-      {icon}
-      <span>{label}</span>
+      {isCurrentPending ? (
+        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <svg className="animate-spin" viewBox="0 0 24 24" width="16" height="16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity="0.25"></circle>
+            <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Signing in…
+        </span>
+      ) : (
+        <>
+          {icon}
+          <span>{label}</span>
+        </>
+      )}
     </button>
   );
 }
@@ -74,6 +101,8 @@ function LoginForm() {
 
   const [mode, setMode] = useState<AuthMode>("email");
   const [socialPending, setSocialPending] = useState(false);
+  const [activeSocialProvider, setActiveSocialProvider] = useState<string | null>(null);
+  const [authError, setAuthError] = useState("");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -95,6 +124,7 @@ function LoginForm() {
 
   async function handleEmailLogin() {
     setEmailError("");
+    setAuthError("");
     if (!email.trim()) { setEmailError("Email required."); return; }
     if (!password) { setEmailError("Password required."); return; }
     setEmailPending(true);
@@ -110,6 +140,7 @@ function LoginForm() {
 
   async function handleSendOTP() {
     setPhoneError("");
+    setAuthError("");
     const cleaned = phone.replace(/\D/g, "");
     if (cleaned.length < 10) { setPhoneError("Enter valid phone number."); return; }
     setPhonePending(true);
@@ -125,6 +156,7 @@ function LoginForm() {
 
   async function handleVerifyOTP() {
     setPhoneError("");
+    setAuthError("");
     if (otp.length < 4) { setPhoneError("Enter the code."); return; }
     setPhonePending(true);
     const cleaned = phone.replace(/\D/g, "");
@@ -155,12 +187,18 @@ function LoginForm() {
       <h2 className="lmodal__title">Member Access</h2>
       <p className="lmodal__sub">Wallet, rewards, orders &amp; faster checkout.</p>
 
+      {authError && (
+        <p className="lmodal__error" style={{ marginBottom: 16, textAlign: 'center' }}>
+          {authError}
+        </p>
+      )}
+
       <div className="lmodal__tabs">
         {(["email", "phone"] as AuthMode[]).map((m) => (
           <button
             key={m}
             type="button"
-            onClick={() => { setMode(m); setEmailError(""); setPhoneError(""); setPhoneStep("enter"); }}
+            onClick={() => { setMode(m); setEmailError(""); setPhoneError(""); setPhoneStep("enter"); setAuthError(""); }}
             className={`lmodal__tab${mode === m ? ' active' : ''}`}
           >
             {m === 'email' ? 'Email' : 'Phone OTP'}
@@ -252,8 +290,26 @@ function LoginForm() {
       <div className="lmodal__divider"><span>or</span></div>
 
       <div className="lmodal__socials">
-        <SocialAuthButton provider="google" icon={<GoogleIcon />} label="Continue with Google" action={signInWithGoogleAction} isPending={isAnyPending} onPending={setSocialPending} />
-        <SocialAuthButton provider="facebook" icon={<FacebookIcon />} label="Continue with Facebook" action={signInWithFacebookAction} isPending={isAnyPending} onPending={setSocialPending} />
+        <SocialAuthButton
+          provider="google"
+          icon={<GoogleIcon />}
+          label="Continue with Google"
+          isPending={isAnyPending}
+          onPending={setSocialPending}
+          activeProvider={activeSocialProvider}
+          setActiveProvider={setActiveSocialProvider}
+          onError={setAuthError}
+        />
+        <SocialAuthButton
+          provider="facebook"
+          icon={<FacebookIcon />}
+          label="Continue with Facebook"
+          isPending={isAnyPending}
+          onPending={setSocialPending}
+          activeProvider={activeSocialProvider}
+          setActiveProvider={setActiveSocialProvider}
+          onError={setAuthError}
+        />
       </div>
 
       <p className="lmodal__foot">

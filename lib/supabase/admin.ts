@@ -14,14 +14,8 @@ export function createAdminClient(): SupabaseClient<any, any, any> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!url || !key) {
-    if (process.env.NODE_ENV === 'development') {
-      return createStubSupabase('admin');
-    }
-    throw new Error(
-      'Missing Supabase admin credentials. ' +
-      'Ensure NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are set.'
-    );
+  if (!url || !key || process.env.NEXT_PHASE === 'phase-action-build') {
+    return createStubSupabase('admin');
   }
 
   return createClient(url, key, {

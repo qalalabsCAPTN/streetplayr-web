@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/components/CartContext';
 import { formatPrice } from '@/lib/utils/format';
+import { useWishlistStore } from '@/store/wishlistStore';
 
 interface ProductCardProps {
   product: {
@@ -35,8 +36,9 @@ function BookmarkIcon({ filled }: { filled: boolean }) {
 
 export default function ProductCard({ product, gallery = true }: ProductCardProps) {
   const [idx, setIdx] = useState(0);
-  const [saved, setSaved] = useState(false);
   const cart = useCart();
+  const isSaved = useWishlistStore((s) => s.isSaved(product.id));
+  const requestToggle = useWishlistStore((s) => s.requestToggle);
 
   const imgs = product.images || product.metadata?.gallery_images || [product.image, product.image2].filter(Boolean);
   const onSale = product.compareAt && product.compareAt > product.price;
@@ -60,34 +62,45 @@ export default function ProductCard({ product, gallery = true }: ProductCardProp
       price: product.price,
       images: imgs,
     };
-    cart.addItem(cartProduct, 'M'); // default to 'M' size for quick add
+    cart.addItem(cartProduct, 'M');
     cart.showToast('Added to bag');
   };
 
   const toggleSave = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setSaved((v) => !v);
-    cart.showToast(saved ? 'Removed from wishlist' : 'Saved to wishlist');
+    const result = requestToggle({
+      id: product.id,
+      slug: product.slug,
+      name: product.name,
+      price: product.price,
+      image: product.image,
+      addedAt: Date.now(),
+    });
+    if (result === 'login_required') {
+      cart.showToast('Sign in to save items');
+      return;
+    }
+    cart.showToast(result === 'added' ? 'Saved to wishlist' : 'Removed from wishlist');
   };
 
   return (
     <Link href={`/product/${product.slug}`} className="card">
       <div className="card__media">
         {imgs.map((src, i) => (
-          <Image 
-            key={src} 
-            src={src ?? ''} 
-            alt={product.name} 
+          <Image
+            key={src}
+            src={src ?? ''}
+            alt={product.name}
             fill
-            loading="lazy" 
-            className={i === idx ? 'active' : ''} 
+            loading="lazy"
+            className={i === idx ? 'active' : ''}
             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
         ))}
 
-        <button className="card__wish" onClick={toggleSave} aria-label="Save to wishlist">
-          <BookmarkIcon filled={saved} />
+        <button className="card__wish" onClick={toggleSave} aria-label="Save to wishlist" aria-pressed={isSaved}>
+          <BookmarkIcon filled={isSaved} />
         </button>
 
         {product.soldOut && <span className="card__badge">Sold out</span>}

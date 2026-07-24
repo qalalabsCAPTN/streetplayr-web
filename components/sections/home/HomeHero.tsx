@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { motion, type Variants } from "framer-motion";
-import Image from "next/image";
+import { getImageProps } from "next/image";
 
 const NinjaStar = dynamic(() => import("@/components/ui/NinjaStar"), {
   ssr: false,
@@ -13,6 +13,44 @@ const NinjaStar = dynamic(() => import("@/components/ui/NinjaStar"), {
 });
 
 import { useWindowWidth } from "@/hooks/useWindowWidth";
+
+function HeroArtImage({
+  desktopSrc,
+  mobileSrc,
+  alt,
+}: {
+  desktopSrc: string;
+  mobileSrc: string;
+  alt: string;
+}) {
+  const common = {
+    alt,
+    sizes: "100vw",
+    fill: true as const,
+    quality: 75,
+    priority: true,
+    className: "object-cover",
+  };
+  const {
+    props: { srcSet: desktopSrcSet, ...desktopRest },
+  } = getImageProps({ ...common, src: desktopSrc });
+  const { props: mobile } = getImageProps({ ...common, src: mobileSrc });
+
+  return (
+    <picture className="absolute inset-0 w-full h-full">
+      <source media="(max-width: 767px)" srcSet={mobile.srcSet} sizes={mobile.sizes} />
+      {/* eslint-disable-next-line jsx-a11y/alt-text -- alt from getImageProps */}
+      <img
+        {...desktopRest}
+        srcSet={desktopSrcSet}
+        className="object-cover absolute inset-0 w-full h-full"
+        fetchPriority="high"
+        decoding="sync"
+        loading="eager"
+      />
+    </picture>
+  );
+}
 
 const containerVariants: Variants = {
   hidden: {},
@@ -87,6 +125,7 @@ export default function HomeHero({
   const videoRef = useRef<HTMLVideoElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const [joinOpen, setJoinOpen] = useState(false);
+  const [loadStar, setLoadStar] = useState(false);
 
   const windowWidth = useWindowWidth();
   const isDesktop = windowWidth !== null && windowWidth >= 1024;
@@ -107,6 +146,32 @@ export default function HomeHero({
     return 1.45;
   };
   const popupStarScale = getPopupStarScale();
+
+  // Defer Three.js past LCP
+  useEffect(() => {
+    let idleId: number | undefined;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    const enable = () => setLoadStar(true);
+    const onInteract = () => enable();
+
+    window.addEventListener("pointerdown", onInteract, { once: true, passive: true });
+    window.addEventListener("touchstart", onInteract, { once: true, passive: true });
+
+    if ("requestIdleCallback" in window) {
+      idleId = window.requestIdleCallback(enable, { timeout: 2500 });
+    } else {
+      timeoutId = setTimeout(enable, 1800);
+    }
+
+    return () => {
+      window.removeEventListener("pointerdown", onInteract);
+      window.removeEventListener("touchstart", onInteract);
+      if (idleId !== undefined && "cancelIdleCallback" in window) {
+        window.cancelIdleCallback(idleId);
+      }
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window !== "undefined" && localStorage.getItem("streetplayr_popup_viewed") === "true") {
@@ -184,24 +249,23 @@ export default function HomeHero({
         </div>
       )}
 
-      {/* Interactive 3D Star Overlay */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[5]">
-        <div 
-          className="pointer-events-auto flex items-center justify-center w-60 h-60 md:w-[320px] md:h-[320px] lg:w-[420px] lg:h-[420px]"
-        >
-          <NinjaStar scale={starScale} heroRef={sectionRef} />
+      {/* Interactive 3D Star Overlay — deferred past LCP */}
+      {loadStar && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[5]">
+          <div
+            className="pointer-events-auto flex items-center justify-center w-60 h-60 md:w-[320px] md:h-[320px] lg:w-[420px] lg:h-[420px]"
+          >
+            <NinjaStar scale={starScale} heroRef={sectionRef} />
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Image Background */}
+      {/* Image Background — art-direction via picture; one LCP preload chain */}
       <div className="absolute inset-0 w-full h-full z-[-2]">
-        <Image
-          className={`object-cover ${isMobile ? "!object-cover object-[center_30%]" : ""}`}
-          src={bgImageUrl || "/assets/empty_centre.jpg"}
+        <HeroArtImage
+          desktopSrc={bgImageUrl || "/assets/empty_centre.jpg"}
+          mobileSrc={bgImageUrl || "/banners/st-mobile-banner.jpg"}
           alt={title}
-          fill
-          sizes="100vw"
-          priority
         />
       </div>
 

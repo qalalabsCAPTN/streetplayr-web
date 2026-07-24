@@ -29,8 +29,10 @@ export async function refreshSession(request: NextRequest): Promise<{
     );
   }
 
-  // Track cookie options so we can transfer them to the response
-  const cookieOptions = new Map<string, Record<string, unknown>>();
+  // Create an initial response
+  let response = NextResponse.next({
+    request,
+  });
 
   const supabase = createServerClient(url, key, {
     cookies: {
@@ -38,29 +40,20 @@ export async function refreshSession(request: NextRequest): Promise<{
         return request.cookies.getAll();
       },
       setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value, options }) => {
-          // Store options for later transfer to response
-          cookieOptions.set(name, options);
+        cookiesToSet.forEach(({ name, value }) => {
           request.cookies.set(name, value);
+        });
+        response = NextResponse.next({
+          request,
+        });
+        cookiesToSet.forEach(({ name, value, options }) => {
+          response.cookies.set(name, value, options);
         });
       },
     },
   });
 
   const { data: { user } } = await supabase.auth.getUser();
-
-  // Build response after all cookie sets are done — single response, all cookies accumulated
-  const response = NextResponse.next({ request });
-  const allCookies = request.cookies.getAll();
-  for (const cookie of allCookies) {
-    // Preserve original cookie options (path, secure, sameSite, httpOnly, maxAge, etc.)
-    const opts = cookieOptions.get(cookie.name);
-    if (opts) {
-      response.cookies.set(cookie.name, cookie.value, opts);
-    } else {
-      response.cookies.set(cookie.name, cookie.value);
-    }
-  }
 
   return { user, response };
 }

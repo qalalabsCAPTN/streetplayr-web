@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Anton, Inter, Space_Mono } from "next/font/google";
+import { Anton, Archivo, Inter, Space_Mono } from "next/font/google";
 import AuthProvider from "@/components/auth/AuthProvider";
 import RealtimeProvider from "@/components/auth/RealtimeProvider";
 import { QueryProvider } from "@/providers/query-provider";
-import ScrollDamping from "@/components/ui/ScrollDamping";
-import GlobalParticles from "@/components/ui/GlobalParticles";
+import DeferredChrome from "@/components/ui/DeferredChrome";
+import { AuthService } from "@/lib/auth/service";
 import "./globals.css";
 
 const display = Anton({
@@ -28,6 +28,16 @@ const mono = Space_Mono({
   weight: ["400", "700"],
   variable: "--font-sp-mono",
   display: "swap",
+  preload: false,
+});
+
+/** Replaces render-blocking fonts.googleapis.com Archivo CSS in storefront.css */
+const archivo = Archivo({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-archivo",
+  display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -55,16 +65,32 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+/**
+ * Auth still SSR'd for zero-flicker session (cookies() → dynamic).
+ * Public data fetches elsewhere use createStaticClient + revalidate for cache hits.
+ * GTM uses afterInteractive (non-blocking render, conversion-safe).
+ */
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  let user = null;
+  try {
+    user = await AuthService.getCurrentProfile();
+  } catch (err) {
+    console.error("Failed to load initial user on server layout:", err);
+  }
+
   return (
     <html
       lang="en"
-      className={`${display.variable} ${body.variable} ${mono.variable} h-full antialiased`}
+      className={`${display.variable} ${body.variable} ${mono.variable} ${archivo.variable} h-full antialiased`}
     >
+      <head>
+        <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+      </head>
       <body className="min-h-full bg-transparent text-white">
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=AW-18205202945"
@@ -105,24 +131,18 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "WebSite",
               "name": "Street PlayR",
-              "url": "https://streetplayr.com",
-              "potentialAction": {
-                "@type": "SearchAction",
-                "target": "https://streetplayr.com/search?q={search_term_string}",
-                "query-input": "required name=search_term_string"
-              }
+              "url": "https://streetplayr.com"
             })
           }}
         />
-        <ScrollDamping />
         <QueryProvider>
-          <AuthProvider initialUser={null}>
+          <AuthProvider initialUser={user}>
             <RealtimeProvider>
               {children}
             </RealtimeProvider>
           </AuthProvider>
         </QueryProvider>
-        <GlobalParticles />
+        <DeferredChrome />
       </body>
     </html>
   );

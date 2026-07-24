@@ -39,20 +39,10 @@ export async function submitContactAction(input: ContactInput): Promise<ActionRe
     // Simulate premium processing delay
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    // Log the contact submission in the server terminal
-    console.log('=== [CONTACT SUBMISSION] ===');
-    console.log(`Name: ${name}`);
-    console.log(`Email: ${email}`);
-    console.log(`Subject: ${subject}`);
-    console.log(`Message:\n${message}`);
-    console.log('============================');
-
-    // Attempt to insert into support_tickets or contact_submissions table if available
+    // Attempt to insert into support_tickets if available
     try {
       const supabase = await createClient();
       
-      // Let's attempt to insert it. If the table doesn't exist, it will catch and ignore
-      // so the app won't break in dev/production if migrations haven't run.
       const { error } = await supabase
         .from('support_tickets')
         .insert([
@@ -65,15 +55,11 @@ export async function submitContactAction(input: ContactInput): Promise<ActionRe
           }
         ]);
         
-      if (error) {
-        // Table probably doesn't exist or is different. We log and proceed as success
+      if (error && process.env.NODE_ENV !== 'production') {
         console.warn('Supabase support_tickets insert skipped or failed:', error.message);
-      } else {
-        console.log('Contact submission successfully saved to Supabase (support_tickets)');
       }
-    } catch (dbError) {
+    } catch {
       // Ignore database client or stub errors so submission still succeeds locally
-      console.warn('Database logging warning:', dbError);
     }
 
     return {

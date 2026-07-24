@@ -1,176 +1,92 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useMemo, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import ProductCard from '@/components/ui/ProductCard';
-import { useCart } from '@/components/CartContext';
+import LazyVideo from '@/components/ui/LazyVideo';
+import {
+  DESKTOP_CHIPS,
+  MOBILE_CHIPS,
+  DISABLED_MOBILE,
+  SORT_OPTIONS,
+  type FilterChip,
+  type SortOption,
+  chipToParam,
+  paramToChip,
+  chipToCollectionSlugs,
+  productInCollections,
+  COLLECTION_SLUG,
+} from '@/lib/products/collections';
+import type { CatalogProduct } from '@/lib/products/queries';
 
-/** Desktop collection chips (req: Latest Drop + product lines). */
-const DESKTOP_CHIPS = [
-  "Latest Drop",
-  "Short Sleeve T-Shirts",
-  "Long Sleeve T-Shirts",
-  "Tanks",
-  "Sweatpants",
-] as const;
-
-/** Mobile chips — preserve approved Topwear/Bottomwear naming. */
-const MOBILE_CHIPS = ["View all", "Topwear", "Bottomwear", "Hoodies"] as const;
-
-type DesktopChip = typeof DESKTOP_CHIPS[number];
-type MobileChip = typeof MOBILE_CHIPS[number];
-type FilterChip = DesktopChip | MobileChip;
-
-const DISABLED_MOBILE: MobileChip[] = ["Hoodies"];
-
-const sortOptions = ["Popular", "Price: Low to High", "Price: High to Low"] as const;
-type SortOption = typeof sortOptions[number];
-
-const TEES = new Set(["TEES", "TEE"]);
-const TANKS = new Set(["TANKS", "TANK"]);
-const LONG_SLEEVE = new Set(["LONG-SLEEVE", "LONG_SLEEVE", "LONGSLEEVE"]);
-const PANTS = new Set(["PANTS", "PANT", "SWEATPANTS", "BOTTOMWEAR", "BOTTOMS"]);
-const TOPWEAR = new Set([...TEES, ...TANKS, ...LONG_SLEEVE, "TOPWEAR", "TOPS"]);
-
-const chipToParam = (chip: FilterChip): string | null => {
-  switch (chip) {
-    case "View all":
-    case "Latest Drop":
-      return null;
-    case "Short Sleeve T-Shirts":
-    case "Topwear":
-      return chip === "Topwear" ? "topwear" : "tees";
-    case "Long Sleeve T-Shirts":
-      return "long-sleeve";
-    case "Tanks":
-      return "tanks";
-    case "Sweatpants":
-    case "Bottomwear":
-      return chip === "Bottomwear" ? "bottomwear" : "pants";
-    case "Hoodies":
-      return "hoodies";
-    default:
-      return null;
-  }
-};
-
-const paramToChip = (category: string, mobile: boolean): FilterChip => {
-  if (!category || category === "ALL" || category === "LATEST") {
-    return mobile ? "View all" : "Latest Drop";
-  }
-  const upper = category.toUpperCase();
-  if (mobile) {
-    if (upper === "HOODIES" || upper === "HOODIE") return "Hoodies";
-    if (upper === "BOTTOMWEAR" || PANTS.has(upper)) return "Bottomwear";
-    if (upper === "TOPWEAR" || TOPWEAR.has(upper) || TEES.has(upper) || TANKS.has(upper) || LONG_SLEEVE.has(upper)) {
-      return "Topwear";
-    }
-    return "View all";
-  }
-  if (TEES.has(upper) || upper === "TEES") return "Short Sleeve T-Shirts";
-  if (LONG_SLEEVE.has(upper) || upper === "LONG-SLEEVE") return "Long Sleeve T-Shirts";
-  if (TANKS.has(upper)) return "Tanks";
-  if (PANTS.has(upper) || upper === "PANTS") return "Sweatpants";
-  if (upper === "TOPWEAR") return "Short Sleeve T-Shirts";
-  if (upper === "BOTTOMWEAR") return "Sweatpants";
-  if (upper === "OUTERWEAR" || upper === "HOODIES") return "Latest Drop";
-  return "Latest Drop";
-};
-
-function matchesChip(productCategory: string | undefined, chip: FilterChip): boolean {
-  if (chip === "View all" || chip === "Latest Drop") return true;
-  const cat = (productCategory || "").toUpperCase();
-  if (chip === "Short Sleeve T-Shirts") return TEES.has(cat);
-  if (chip === "Long Sleeve T-Shirts") return LONG_SLEEVE.has(cat);
-  if (chip === "Tanks") return TANKS.has(cat);
-  if (chip === "Sweatpants") return PANTS.has(cat);
-  if (chip === "Topwear") return TOPWEAR.has(cat);
-  if (chip === "Bottomwear") return PANTS.has(cat);
-  if (chip === "Hoodies") return cat === "HOODIES" || cat === "HOODIE";
-  return false;
+function ProductSkeletonGrid() {
+  return (
+    <div className="pgrid" aria-busy="true" aria-label="Loading products">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <div key={i} className="collections-skel-card">
+          <div className="collections-skel-media" />
+          <div className="collections-skel-line" />
+          <div className="collections-skel-line collections-skel-line--short" />
+        </div>
+      ))}
+    </div>
+  );
 }
 
 function CollectionsInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const cart = useCart();
 
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<CatalogProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [sortBy, setSortBy] = useState<SortOption>('Popular');
+  const prevChipRef = useRef<FilterChip | null>(null);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth <= 900);
     check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
   }, []);
 
   const chips: readonly FilterChip[] = isMobile ? MOBILE_CHIPS : DESKTOP_CHIPS;
-  const initialChip = paramToChip(searchParams.get('category') || 'ALL', isMobile);
-  const [activeChip, setActiveChip] = useState<FilterChip>(initialChip);
-  const [sortBy, setSortBy] = useState<SortOption>("Popular");
+  const categoryParam = searchParams.get('category') || '';
+  const activeChip = paramToChip(categoryParam || '', isMobile);
 
   useEffect(() => {
-    setActiveChip(paramToChip(searchParams.get('category') || 'ALL', isMobile));
-  }, [searchParams, isMobile]);
-
-  useEffect(() => {
-    async function loadProducts() {
-      try {
-        const { getLocalActiveProducts } = await import('@/lib/products/data');
-        const local = getLocalActiveProducts();
-        
-        const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        if (!url || url.includes('mockproject')) {
-          setProducts(local.map((p: any, i: number) => ({ ...p, createdAt: Date.now() - i * 1000 })));
-          setLoading(false);
-          return;
-        }
-
-        const { createClient } = await import('@/lib/supabase/client');
-        const supabase = createClient();
-        const { data, error } = await supabase
-          .from('products')
-          .select('id, title, slug, featured_image_url, metadata, status, created_at, product_variants(id, price)')
-          .eq('status', 'active')
-          .order('created_at', { ascending: false });
-
-        if (error || !data || data.length === 0) {
-          setProducts(local.map((p: any, i: number) => ({ ...p, createdAt: Date.now() - i * 1000 })));
-          setLoading(false);
-          return;
-        }
-
-        const mapped = data.map((p) => {
-          const prices = (p.product_variants ?? []).map((v: any) => v.price).filter(Boolean);
-          const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
-          return {
-            id: p.id,
-            name: p.title,
-            price: minPrice,
-            slug: p.slug,
-            image: p.featured_image_url,
-            category: p.metadata?.category || 'TEES',
-            metadata: p.metadata || {},
-            createdAt: p.created_at ? Date.parse(p.created_at) : 0,
-          };
-        });
-        setProducts(mapped);
-      } catch (err) {
-        console.error('Failed to load products for collections:', err);
-      } finally {
-        setLoading(false);
-      }
+    if (prevChipRef.current && prevChipRef.current !== activeChip) {
+      setSortBy('Popular');
     }
+    prevChipRef.current = activeChip;
+  }, [activeChip]);
+
+  async function loadProducts() {
+    setLoading(true);
+    setError(null);
+    try {
+      const { loadClientCatalog } = await import('@/lib/products/client-catalog');
+      const catalog = await loadClientCatalog();
+      setProducts(catalog);
+    } catch (err) {
+      console.error('[collections] load failed:', err);
+      setError('Could not load products. Please try again.');
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
     loadProducts();
   }, []);
 
   const handleChipClick = (chip: FilterChip) => {
-    if (isMobile && DISABLED_MOBILE.includes(chip as MobileChip)) return;
-    setActiveChip(chip);
+    if (isMobile && DISABLED_MOBILE.includes(chip)) return;
     const params = new URLSearchParams(searchParams.toString());
     const param = chipToParam(chip);
     if (!param) {
@@ -182,63 +98,84 @@ function CollectionsInner() {
     router.replace(qs ? `/collections?${qs}` : '/collections', { scroll: false });
   };
 
-  const filteredProducts = products.filter((p) => matchesChip(p.category, activeChip));
+  const required = chipToCollectionSlugs(activeChip);
 
-  const sortedProducts = [...filteredProducts];
-  if (sortBy === "Price: Low to High") {
-    sortedProducts.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
-  } else if (sortBy === "Price: High to Low") {
-    sortedProducts.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
-  } else {
-    sortedProducts.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
-  }
+  const filteredProducts = useMemo(() => {
+    return products.filter((p) => {
+      if (required === 'ALL') return true;
+      const ok = productInCollections(p.collections, required);
+      if (!ok && p.collections.length === 0 && process.env.NODE_ENV !== 'production') {
+        // already warned at catalog load
+      }
+      return ok;
+    });
+  }, [products, required]);
+
+  const sortedProducts = useMemo(() => {
+    const list = [...filteredProducts];
+    if (sortBy === 'Price: Low to High') {
+      list.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
+    } else if (sortBy === 'Price: High to Low') {
+      list.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
+    } else {
+      list.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
+    }
+    return list;
+  }, [filteredProducts, sortBy]);
+
+  const titleForChip =
+    activeChip === 'Latest Drop'
+      ? 'Latest Drop'
+      : activeChip === 'View all' || activeChip === 'All Products'
+        ? 'All Products'
+        : activeChip;
 
   return (
-    <div className="min-h-screen bg-transparent relative overflow-hidden">
+    <div className="min-h-screen bg-transparent relative overflow-x-clip">
       <Navbar />
 
-      <section className="relative z-[1] w-full h-[460px] md:h-[560px] overflow-hidden mt-20">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover opacity-100 hidden md:block"
+      <section className="collections-hero relative z-[1] w-full overflow-hidden">
+        <LazyVideo
+          className="absolute inset-0 w-full h-full object-cover object-center opacity-100 hidden md:block"
           src="/assets/COLLECTION_MOTION_BANNER.mp4"
+          poster="/assets/empty_centre.jpg"
+          rootMargin="0px"
+          deferMs={2000}
         />
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover opacity-100 md:hidden"
+        <LazyVideo
+          className="absolute inset-0 w-full h-full object-cover object-[center_35%] opacity-100 md:hidden"
           src="/assets/FOR_MOBILE_ST_COLLECTION.mp4"
+          poster="/banners/st-mobile-banner.jpg"
+          rootMargin="0px"
+          deferMs={2000}
         />
-        <div className="absolute inset-x-0 bottom-0 h-40 md:h-56 bg-gradient-to-t from-[var(--page-bg)] to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[var(--page-bg)] via-[var(--page-bg)]/50 to-transparent pointer-events-none" />
+        <div className="absolute inset-x-0 bottom-0 z-[1] px-4 md:px-6 pb-10 md:pb-14 w-full max-w-[min(95vw,2400px)] mx-auto">
+          <span className="listing__eyebrow block mb-3">Collection / SS26</span>
+          <h1 className="listing__title text-white drop-shadow-sm">{titleForChip}</h1>
+          <p className="collections-hero__sub">
+            {required === 'ALL'
+              ? 'Full archive — every active piece.'
+              : required[0] === COLLECTION_SLUG.LATEST
+                ? 'Curated from the current drop only.'
+                : 'Members of this collection only.'}
+          </p>
+        </div>
       </section>
 
-      <main className="relative z-[1] pb-20 w-full max-w-[min(98vw,2560px)] mx-auto px-4 md:px-8 lg:px-12">
-        <div className="listing">
-          <div className="listing__head">
-            <div>
-              <span className="listing__eyebrow">Collection / SS26</span>
-              <h1 className="listing__title">The Archive</h1>
-            </div>
-            <button
-              className="listing__adv"
-              onClick={() => cart.showToast('Advanced filters coming soon')}
-            >
-              Advanced Filters
-            </button>
-          </div>
-
-          <div className="chips">
+      <main className="relative z-[1] pb-24 w-full max-w-[min(95vw,2400px)] mx-auto px-4 md:px-6">
+        <div className="listing listing--collections">
+          <div className="chips" role="tablist" aria-label="Collection filters">
             {chips.map((c) => {
-              const isDisabled = isMobile && DISABLED_MOBILE.includes(c as MobileChip);
+              const isDisabled = isMobile && DISABLED_MOBILE.includes(c);
+              const isActive = activeChip === c;
               return (
                 <button
                   key={c}
-                  className={`chip ${activeChip === c ? 'active' : ''} ${isDisabled ? 'disabled' : ''}`}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  className={`chip ${isActive ? 'active' : ''} ${isDisabled ? 'disabled' : ''}`}
                   onClick={() => handleChipClick(c)}
                   disabled={isDisabled}
                 >
@@ -248,11 +185,12 @@ function CollectionsInner() {
             })}
           </div>
 
-          <div className="chips chips--sort">
-            <span className="chips__label">Sort:</span>
-            {sortOptions.map((s) => (
+          <div className="chips chips--sort" role="group" aria-label="Sort products">
+            <span className="chips__label">Sort</span>
+            {SORT_OPTIONS.map((s) => (
               <button
                 key={s}
+                type="button"
                 className={`chip ${sortBy === s ? 'active' : ''}`}
                 onClick={() => setSortBy(s)}
               >
@@ -262,19 +200,49 @@ function CollectionsInner() {
           </div>
 
           {loading ? (
-            <div className="py-24 text-center">
-              <div className="inline-block w-8 h-8 border-2 border-white/20 border-t-white/80 rounded-full animate-spin" />
+            <ProductSkeletonGrid />
+          ) : error ? (
+            <div className="collections-state">
+              <p className="listing__empty">{error}</p>
+              <button type="button" className="contact-cta__btn" onClick={() => loadProducts()}>
+                Retry
+              </button>
             </div>
           ) : sortedProducts.length === 0 ? (
-            <div className="py-24 text-center">
-              <p style={{ color: '#757575', fontSize: 13 }}>No products in this filter yet.</p>
+            <div className="collections-state">
+              <p className="listing__empty">No products in this collection yet.</p>
+              <Link href="/collections?category=all" className="contact-cta__btn">
+                View all products
+              </Link>
             </div>
           ) : (
-            <div className="pgrid">
-              {sortedProducts.map((product) => (
-                <ProductCard key={product.id} product={product} gallery={true} />
-              ))}
-            </div>
+            <>
+              <p className="collections-count">
+                {sortedProducts.length} {sortedProducts.length === 1 ? 'piece' : 'pieces'}
+              </p>
+              <div className="pgrid">
+                {sortedProducts.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={{
+                      id: product.id,
+                      name: product.name,
+                      price: product.price,
+                      slug: product.slug,
+                      image: product.image,
+                      image2: product.image2,
+                      metadata: product.metadata as any,
+                    }}
+                    gallery={true}
+                  />
+                ))}
+              </div>
+              <div className="collections-discover">
+                <Link href="/lookbook" className="contact-cta__btn">
+                  Discover more
+                </Link>
+              </div>
+            </>
           )}
         </div>
       </main>
@@ -286,11 +254,15 @@ function CollectionsInner() {
 
 export default function CollectionsPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-transparent flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-white/20 border-t-white/80 rounded-full animate-spin" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-transparent">
+          <div className="w-full max-w-[min(95vw,2400px)] mx-auto px-4 pt-32">
+            <ProductSkeletonGrid />
+          </div>
+        </div>
+      }
+    >
       <CollectionsInner />
     </Suspense>
   );

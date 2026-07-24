@@ -146,6 +146,14 @@ export class UnicommerceSyncService {
 
           if (!dbProduct) {
             // Create parent product. Note that products table does not have a "price" column, only variants do.
+            const { normalizeCollectionSlug, localMembershipFor } = await import(
+              '@/lib/products/collections'
+            );
+            const collectionSlug =
+              normalizeCollectionSlug(normProd.category) ||
+              localMembershipFor(parentSlug, parentSlug)[0] ||
+              null;
+
             const { data: newProd, error: createError } = await admin
               .from('products')
               .insert({
@@ -156,6 +164,7 @@ export class UnicommerceSyncService {
                 description: normProd.description || 'Synced from Unicommerce',
                 featured_image_url: normProd.imageUrl || null,
                 status: normProd.enabled ? 'active' : 'draft',
+                metadata: collectionSlug ? { category: collectionSlug } : {},
               })
               .select('id')
               .single();
@@ -164,6 +173,21 @@ export class UnicommerceSyncService {
               throw new Error(`Failed to create parent product ${parentSlug}: ${createError?.message}`);
             }
             dbProduct = newProd;
+
+            // Link into collection_products when we know the collection slug
+            if (collectionSlug) {
+              const { data: col } = await admin
+                .from('collections')
+                .select('id')
+                .eq('slug', collectionSlug)
+                .maybeSingle();
+              if (col?.id) {
+                await admin.from('collection_products').upsert(
+                  { collection_id: col.id, product_id: newProd.id, sort_order: 0 },
+                  { onConflict: 'collection_id,product_id' }
+                );
+              }
+            }
           }
 
           // 2. Upsert Variant manually to handle missing UNIQUE constraint on SKU column

@@ -17,10 +17,12 @@ const Icon = {
       <path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5" />
     </svg>
   ),
-  pin: (
+  grid: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
-      <path d="M12 21s-7-5.5-7-11a7 7 0 1 1 14 0c0 5.5-7 11-7 11Z" />
-      <circle cx="12" cy="10" r="2.6" />
+      <rect x="3" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="3" width="7" height="7" rx="1" />
+      <rect x="3" y="14" width="7" height="7" rx="1" />
+      <rect x="14" y="14" width="7" height="7" rx="1" />
     </svg>
   ),
   search: (
@@ -54,7 +56,7 @@ export default function MobileNav({ onSearch, onAccount }: MobileNavProps) {
         aria-label="Home"
         onClick={(e) => {
           e.preventDefault();
-          router.push("/home");
+          router.push('/home');
         }}
       >
         {Icon.compass}
@@ -62,8 +64,8 @@ export default function MobileNav({ onSearch, onAccount }: MobileNavProps) {
       <button className="mobilenav__item" aria-label="Account" onClick={onAccount}>
         {Icon.user}
       </button>
-      <Link href="/collections" className="mobilenav__item" aria-label="Stores">
-        {Icon.pin}
+      <Link href="/collections" className="mobilenav__item" aria-label="Collections">
+        {Icon.grid}
       </Link>
       <button className="mobilenav__item" aria-label="Search" onClick={onSearch}>
         {Icon.search}

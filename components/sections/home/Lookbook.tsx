@@ -479,7 +479,7 @@ export default function Lookbook({
                         muted
                         loop
                         playsInline
-                        preload="metadata"
+                        preload="none"
                       />
                     )}
                     {item.type === "youtube" && (

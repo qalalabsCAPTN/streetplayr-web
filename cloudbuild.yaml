@@ -45,8 +45,8 @@ steps:
             --revision-suffix=rev-$SHORT_SHA \
             --cpu=2 --memory=1024Mi --concurrency=80 --min-instances=1 --max-instances=30 --no-cpu-throttling \
             --cpu-boost \
-            --startup-probe=httpGet.path=/api/health,initialDelaySeconds=10,periodSeconds=5,failureThreshold=3 \
-            --liveness-probe=httpGet.path=/api/health,periodSeconds=20,failureThreshold=3 \
+            --startup-probe=httpGet.path=/api/health,initialDelaySeconds=45,periodSeconds=10,failureThreshold=6,timeoutSeconds=5 \
+            --liveness-probe=httpGet.path=/api/health,periodSeconds=20,failureThreshold=3,timeoutSeconds=5 \
             --set-env-vars=NODE_ENV=production,NEXT_PUBLIC_SITE_URL=$_SITE_URL,NEXT_PUBLIC_BRAND_ID=$_BRAND_ID,NEXT_PUBLIC_PHONE_PREFIX=$_PHONE_PREFIX,DEMO_INVENTORY_MODE=$_DEMO_INVENTORY_MODE,NEXT_PUBLIC_AI_TRYON_ENABLED=$_AI_TRYON_ENABLED,AI_TRYON_PROVIDER=$_AI_TRYON_PROVIDER,AI_TRYON_DAILY_LIMIT=$_AI_TRYON_DAILY_LIMIT,AI_TRYON_USER_DAILY_LIMIT=$_AI_TRYON_USER_DAILY_LIMIT,AI_TRYON_MODEL=$_AI_TRYON_MODEL,NEXT_PUBLIC_SUPABASE_URL=$_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY=$_SUPABASE_ANON_KEY \
             --update-secrets=SUPABASE_SERVICE_ROLE_KEY=SUPABASE_SERVICE_ROLE_KEY:latest,STRIPE_SECRET_KEY=STRIPE_SECRET_KEY:latest,STRIPE_WEBHOOK_SECRET=STRIPE_WEBHOOK_SECRET:latest,GOOGLE_AI_API_KEY=GOOGLE_AI_API_KEY:latest,CRON_SECRET=CRON_SECRET:latest,PLATFORM_TOKEN_STREETPLAYR=PLATFORM_TOKEN_STREETPLAYR:latest \
             --allow-unauthenticated
@@ -58,13 +58,13 @@ steps:
             exit 1
           fi
           
-          for i in {1..6}; do
+          for i in {1..12}; do
             status_code=$(curl -s -o /dev/null -w "%{http_code}" "$service_url/api/health")
             if [ "$status_code" -eq 200 ]; then
               echo "SUCCESS: First-time deploy verified successfully on URL: $service_url"
               exit 0
             fi
-            echo "Verification probe returned $status_code, retrying in 10s ($i/6)..."
+            echo "Verification probe returned $status_code, retrying in 10s ($i/12)..."
             sleep 10
           done
           echo "FAILED: First-time deploy health checks failed."
@@ -84,8 +84,8 @@ steps:
             --revision-suffix=rev-$SHORT_SHA \
             --cpu=2 --memory=1024Mi --concurrency=80 --min-instances=1 --max-instances=30 --no-cpu-throttling \
             --cpu-boost \
-            --startup-probe=httpGet.path=/api/health,initialDelaySeconds=10,periodSeconds=5,failureThreshold=3 \
-            --liveness-probe=httpGet.path=/api/health,periodSeconds=20,failureThreshold=3 \
+            --startup-probe=httpGet.path=/api/health,initialDelaySeconds=45,periodSeconds=10,failureThreshold=6,timeoutSeconds=5 \
+            --liveness-probe=httpGet.path=/api/health,periodSeconds=20,failureThreshold=3,timeoutSeconds=5 \
             --set-env-vars=NODE_ENV=production,NEXT_PUBLIC_SITE_URL=$_SITE_URL,NEXT_PUBLIC_BRAND_ID=$_BRAND_ID,NEXT_PUBLIC_PHONE_PREFIX=$_PHONE_PREFIX,DEMO_INVENTORY_MODE=$_DEMO_INVENTORY_MODE,NEXT_PUBLIC_AI_TRYON_ENABLED=$_AI_TRYON_ENABLED,AI_TRYON_PROVIDER=$_AI_TRYON_PROVIDER,AI_TRYON_DAILY_LIMIT=$_AI_TRYON_DAILY_LIMIT,AI_TRYON_USER_DAILY_LIMIT=$_AI_TRYON_USER_DAILY_LIMIT,AI_TRYON_MODEL=$_AI_TRYON_MODEL,NEXT_PUBLIC_SUPABASE_URL=$_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY=$_SUPABASE_ANON_KEY \
             --update-secrets=SUPABASE_SERVICE_ROLE_KEY=SUPABASE_SERVICE_ROLE_KEY:latest,STRIPE_SECRET_KEY=STRIPE_SECRET_KEY:latest,STRIPE_WEBHOOK_SECRET=STRIPE_WEBHOOK_SECRET:latest,GOOGLE_AI_API_KEY=GOOGLE_AI_API_KEY:latest,CRON_SECRET=CRON_SECRET:latest,PLATFORM_TOKEN_STREETPLAYR=PLATFORM_TOKEN_STREETPLAYR:latest \
             --no-traffic \
@@ -94,7 +94,7 @@ steps:
           echo "Retrieving candidate revision private URL..."
           candidate_url=$(gcloud run services describe $_SERVICE_NAME \
             --region=$_REGION \
-            --format="value(status.traffic)" | grep candidate | awk '{print $2}')
+            --format="value(status.traffic)" | grep -o -E "https://candidate---[^']+" | head -n1)
             
           if [ -z "$candidate_url" ]; then
             echo "FAILED: Candidate URL resolution failed."
@@ -104,7 +104,7 @@ steps:
           echo "Candidate URL is: $candidate_url"
           echo "Starting health probe validation..."
           
-          for i in {1..6}; do
+          for i in {1..12}; do
             status_code=$(curl -s -o /dev/null -w "%{http_code}" "$candidate_url/api/health")
             if [ "$status_code" -eq 200 ]; then
               echo "SUCCESS: Candidate verified. Promoting revision to receive 100% traffic..."
@@ -113,7 +113,7 @@ steps:
                 --to-revisions=$_SERVICE_NAME-rev-$SHORT_SHA=100
               exit 0
             fi
-            echo "Candidate probe returned $status_code, retrying in 10s ($i/6)..."
+            echo "Candidate probe returned $status_code, retrying in 10s ($i/12)..."
             sleep 10
           done
           echo "FAILED: Smoke testing failed. Aborting promotion."
@@ -132,7 +132,8 @@ substitutions:
   _SITE_URL: 'https://streetplayr.com'
   _BRAND_ID: 'streetplayr'
   _PHONE_PREFIX: '+91'
-  _DEMO_INVENTORY_MODE: 'true'
+  # Production must use real inventory — demo mode fakes stock=100 and risks oversell
+  _DEMO_INVENTORY_MODE: 'false'
   _AI_TRYON_ENABLED: 'true'
   _AI_TRYON_PROVIDER: 'gemini'
   _AI_TRYON_DAILY_LIMIT: '500'

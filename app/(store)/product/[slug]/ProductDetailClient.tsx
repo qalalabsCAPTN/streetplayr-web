@@ -7,6 +7,7 @@ import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '@/components/CartContext';
+import { useWishlistStore } from '@/store/wishlistStore';
 import { RealtimeSubscriptions } from '@/lib/realtime/subscriptions';
 import RecommendedProducts from '@/components/product/RecommendedProducts';
 import RecentlyVisited, { pushRecentlyVisited } from '@/components/ui/RecentlyVisited';
@@ -201,7 +202,9 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
     router.push('/checkout');
   };
 
-  const [saved, setSaved] = useState(false);
+  const isWishlisted = useWishlistStore((s) => s.isSaved(props.productId));
+  const requestToggle = useWishlistStore((s) => s.requestToggle);
+  const saved = isWishlisted;
 
   return (
     <div className="pdp-page pt-20" style={{ background: pageTint(props.title) }}>
@@ -301,8 +304,19 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
                   type="button"
                   className={`pdp__wish ${saved ? 'is-saved' : ''}`}
                   onClick={() => {
-                    setSaved((v) => !v);
-                    cart.showToast(saved ? 'Removed from wishlist' : 'Saved to wishlist');
+                    const result = requestToggle({
+                      id: props.productId,
+                      slug: props.slug,
+                      name: props.title,
+                      price: Number(String(props.price).replace(/[^\d.]/g, '')) || 0,
+                      image: props.image,
+                      addedAt: Date.now(),
+                    });
+                    if (result === 'login_required') {
+                      cart.showToast('Sign in to save items');
+                      return;
+                    }
+                    cart.showToast(result === 'added' ? 'Saved to wishlist' : 'Removed from wishlist');
                   }}
                   aria-label="Save to wishlist"
                   aria-pressed={saved}

@@ -20,7 +20,7 @@ export default function ForgotPasswordPage() {
     if (!email.trim()) { setError("Email required."); return; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError("Enter valid email."); return; }
     setPending(true);
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+    const siteUrl = window.location.origin;
     const result = await forgotPasswordAction(email.trim(), `${siteUrl}/reset-password`);
     setPending(false);
     if (!result.success) {

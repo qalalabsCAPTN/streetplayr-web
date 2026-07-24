@@ -18,24 +18,45 @@ function isValidRedirect(path: string): boolean {
   return false;
 }
 
-const debug = process.env.NODE_ENV === 'development'
-  ? (msg: string, ...args: unknown[]) => console.log(`[Auth] ${msg}`, ...args)
-  : () => {};
+// Always log in production so Cloud Run logs capture auth failures
+const debug = (msg: string, ...args: unknown[]) =>
+  console.log(`[Auth] ${msg}`, ...args);
+
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const code = searchParams.get('code');
-  const nextParam = searchParams.get('next');
-  const refParam = searchParams.get('ref'); // Referral code passed via OAuth redirect URL
+  const requestUrl = new URL(request.url);
+  const code = requestUrl.searchParams.get('code');
+  const nextParam = requestUrl.searchParams.get('next');
+  const refParam = requestUrl.searchParams.get('ref'); // Referral code passed via OAuth redirect URL
   const next = nextParam && isValidRedirect(nextParam) ? nextParam : '/profile';
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-  const baseUrl = siteUrl || new URL(request.url).origin;
 
-  debug('callback received', { hasCode: !!code, next, siteUrl, baseUrl, hasRef: !!refParam });
+  // Dynamic host resolution for local/staging/production proxies
+  const forwardedHost = request.headers.get('x-forwarded-host');
+  const forwardedProto = request.headers.get('x-forwarded-proto') || 'https';
+  const baseUrl = forwardedHost ? `${forwardedProto}://${forwardedHost}` : requestUrl.origin;
+
+  debug('Start', {
+    requestUrl: request.url,
+    code: code ? '***' : null,
+    next,
+    forwardedHost,
+    forwardedProto,
+    baseUrl
+  });
 
   if (code) {
     try {
       const cookieStore = await cookies();
+      
+      // Log verifier cookie presence for debugging PKCE mismatch
+      const allReqCookies = cookieStore.getAll();
+      const verifierCookie = allReqCookies.find(c => c.name.includes('code-verifier'));
+      debug('Verifier cookie check:', {
+        found: !!verifierCookie,
+        cookieName: verifierCookie?.name,
+        totalCookies: allReqCookies.length
+      });
+
       const pendingCookies: Array<{
         name: string; value: string; options: Record<string, unknown>;
       }> = [];
@@ -56,42 +77,47 @@ export async function GET(request: Request) {
         }
       );
 
-      debug('exchanging code...');
+      debug('Exchanging code for session...');
       const { data: sessionData, error } = await supabase.auth.exchangeCodeForSession(code);
 
       if (error) {
-        console.error('[Auth] exchangeCodeForSession error:', error.message);
-      } else {
-        debug('session exchange successful', pendingCookies.length);
-
-        // Post-OAuth hooks (non-blocking — errors don't fail the redirect)
-        const userId = sessionData?.user?.id;
-        if (userId) {
-          // Grant welcome bonus (idempotent — safe to call on every login, guards via welcome_bonus_granted flag)
-          grantWelcomeBonus(userId).catch(err =>
-            console.error('[Auth/OAuth] grantWelcomeBonus failed:', err)
-          );
-
-          // Wire referral attribution if ref param present (Google/Facebook/email signup via referral link)
-          if (refParam) {
-            attributeSignup(refParam, userId).catch(err =>
-              console.error('[Auth/OAuth] attributeSignup failed:', err)
-            );
-          }
-        }
-
-        const response = NextResponse.redirect(`${baseUrl}${next}`);
-        for (const { name, value, options } of pendingCookies) {
-          response.cookies.set(name, value, options);
-        }
-        return response;
+        console.error('[Auth Callback] exchangeCodeForSession error:', error.message, error);
+        return NextResponse.redirect(`${baseUrl}/auth/auth-code-error?error=${encodeURIComponent(error.message)}`);
       }
-    } catch (e) {
-      console.error('[Auth] callback exception:', e);
+
+      debug('Session exchange successful!', {
+        userId: sessionData?.user?.id,
+        pendingCookiesCount: pendingCookies.length
+      });
+
+      // Post-OAuth hooks (non-blocking)
+      const userId = sessionData?.user?.id;
+      if (userId) {
+        grantWelcomeBonus(userId).catch(err =>
+          console.error('[Auth Callback] grantWelcomeBonus failed:', err)
+        );
+
+        if (refParam) {
+          attributeSignup(refParam, userId).catch(err =>
+            console.error('[Auth Callback] attributeSignup failed:', err)
+          );
+        }
+      }
+
+      const redirectDestination = `${baseUrl}${next}`;
+      debug('Redirecting to:', redirectDestination);
+      const response = NextResponse.redirect(redirectDestination);
+      for (const { name, value, options } of pendingCookies) {
+        response.cookies.set(name, value, options);
+      }
+      return response;
+    } catch (e: any) {
+      console.error('[Auth Callback] Exception during exchange:', e);
+      return NextResponse.redirect(`${baseUrl}/auth/auth-code-error?error=${encodeURIComponent(e.message || 'unknown_exception')}`);
     }
   } else {
-    debug('no code in URL params');
+    console.warn('[Auth Callback] No code parameter found in callback URL.');
   }
 
-  return NextResponse.redirect(`${baseUrl}/auth/auth-code-error`);
+  return NextResponse.redirect(`${baseUrl}/auth/auth-code-error?error=missing_code`);
 }
