@@ -129,7 +129,18 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   return (
     <div className="flex flex-col w-full">
       <Hero />
-      {productSections}
+      {activeProducts.length === 0 ? (
+        <section className="panel panel--flat" aria-live="polite">
+          <div className="panel__head">
+            <h2 className="panel__title">Catalog temporarily unavailable</h2>
+          </div>
+          <p className="px-4 md:px-6 pb-8 text-sm opacity-70 max-w-xl">
+            Products are not available right now. Please try again shortly.
+          </p>
+        </section>
+      ) : (
+        productSections
+      )}
     </div>
   );
 }

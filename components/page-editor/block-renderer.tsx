@@ -341,50 +341,27 @@ function ProductCarouselBlock({ heading, tag }: { heading: string; tag: string }
   const { data: products, isLoading } = useQuery({
     queryKey: ['carousel-products', tag],
     queryFn: async () => {
-      const db = getSupabaseClient();
-      
-      let query = db
-        .from('products')
-        .select(`
-          id,
-          title,
-          slug,
-          featured_image_url,
-          metadata,
-          status,
-          product_variants(id, price)
-        `)
-        .eq('status', 'active')
-        .limit(10);
-
-      // Optionally filter by tag if present in product metadata
-      const { data, error } = await query;
-      if (error || !data) return [];
-
-      const mapped = data.map((p: any) => {
-        const prices = (p.product_variants ?? []).map((v: any) => v.price).filter(Boolean);
-        const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
-        return {
-          id: p.id,
-          name: p.title,
-          price: minPrice,
-          image: p.featured_image_url,
-          image2: p.metadata?.gallery_images?.[1] || p.featured_image_url,
-          slug: p.slug,
-          category: undefined as string | undefined,
-        };
-      });
-
+      const { loadClientCatalog } = await import('@/lib/products/client-catalog');
+      const catalog = await loadClientCatalog();
+      let pool = catalog;
       if (tag) {
-        const { normalizeCollectionSlug, localMembershipFor } = await import('@/lib/products/collections');
-        const wanted = normalizeCollectionSlug(tag) || tag.toLowerCase();
-        return mapped.filter((p: any) => {
-          const membership = localMembershipFor(p.id, p.slug);
-          return membership.some((s) => s === wanted) || p.slug?.toLowerCase().includes(tag.toLowerCase());
-        });
+        const { normalizeCollectionSlug } = await import('@/lib/products/collections');
+        const wanted = (normalizeCollectionSlug(tag) || tag).toLowerCase();
+        const filtered = catalog.filter((p) =>
+          p.collections.some((c) => c.toLowerCase() === wanted)
+        );
+        pool = filtered.length > 0 ? filtered : catalog;
       }
-      return mapped;
-    }
+      return pool.slice(0, 10).map((p) => ({
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        image: p.image,
+        image2: p.image2 || p.image,
+        slug: p.slug,
+        category: p.collections[0],
+      }));
+    },
   });
 
   if (isLoading) {

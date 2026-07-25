@@ -132,42 +132,18 @@ export default function Navbar() {
   useEffect(() => {
     async function loadProducts() {
       try {
-        const { getLocalActiveProducts } = await import('@/lib/products/data');
-        const { allowLocalCatalog } = await import('@/lib/products/env');
-        const local = allowLocalCatalog() ? getLocalActiveProducts() : [];
-
-        const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        if (!url || url.includes('mockproject')) {
-          setProducts(local);
-          return;
-        }
-
-        const { createClient } = await import('@/lib/supabase/client');
-        const supabase = createClient();
-        const { data, error } = await supabase
-          .from('products')
-          .select('id, title, description, slug, featured_image_url, metadata, status, product_variants(id, price)')
-          .eq('status', 'active')
-          .order('created_at', { ascending: false });
-
-        if (error || !data || data.length === 0) {
-          setProducts(local);
-          return;
-        }
-
-        const mapped = data.map((p) => {
-          const prices = (p.product_variants ?? []).map((v: any) => v.price).filter(Boolean);
-          const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
-          return {
+        const { loadClientCatalog } = await import('@/lib/products/client-catalog');
+        const catalog = await loadClientCatalog();
+        setProducts(
+          catalog.map((p) => ({
             id: p.id,
-            name: p.title,
-            description: p.description ?? '',
-            price: minPrice,
+            name: p.name,
+            description: '',
+            price: p.price,
             slug: p.slug,
-            image: p.featured_image_url,
-          };
-        });
-        setProducts(mapped);
+            image: p.image,
+          }))
+        );
       } catch (err) {
         console.error('Failed to load products for search:', err);
       }

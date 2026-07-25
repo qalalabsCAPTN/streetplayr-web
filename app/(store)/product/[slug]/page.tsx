@@ -2,13 +2,11 @@ import ProductDetailClient from "./ProductDetailClient";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProductQueries } from "@/lib/products/queries";
-import { getLocalProductBySlug } from "@/lib/products/data";
 import { formatPrice, formatProductTitle } from "@/lib/utils/format";
 
 export const revalidate = 300;
 
 async function resolveProduct(slug: string) {
-  // Prefer live DB when Supabase is configured — local is fallback only
   try {
     const product = await ProductQueries.getProductBySlug(slug);
     if (product) return product;
@@ -16,15 +14,8 @@ async function resolveProduct(slug: string) {
     const productLower = await ProductQueries.getProductBySlug(slug.toLowerCase());
     if (productLower) return productLower;
   } catch {
-    // fall through to local
+    // ProductQueries already applies LKG / gated local
   }
-
-  const { allowLocalCatalog } = await import('@/lib/products/env');
-  if (allowLocalCatalog()) {
-    const local = getLocalProductBySlug(slug);
-    if (local) return local;
-  }
-
   return null;
 }
 

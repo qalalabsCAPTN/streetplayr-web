@@ -2,6 +2,15 @@
 -- Restore public (anon) catalog reads + ensure collection membership seed.
 -- Prevents storefront blank shelves when hardening migrations drop SELECT policies.
 -- Safe to re-run (IF NOT EXISTS / ON CONFLICT).
+--
+-- Ops (production catalog authoritative):
+-- 1. Apply THIS migration (100003) — primary storefront unblocker.
+-- 2. Confirm active rows exist in public.products (seed/sync separately).
+-- 3. Deploy with USE_LOCAL_CATALOG=0 (Cloud Build) and DEMO_INVENTORY_MODE=false.
+-- 4. Smoke: anon SELECT on products returns status=active rows.
+-- Prerequisite schema: products, product_variants, collections, collection_products
+-- (from earlier migrations 00001 / 00016 / 00018). If those tables missing, apply
+-- prior migrations first — 100003 alone cannot create the product catalog.
 -- ============================================================================
 
 -- Products: public SELECT (storefront + anon key)

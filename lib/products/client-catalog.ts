@@ -1,7 +1,7 @@
 /**
  * Client-safe catalog loader for /collections.
- * Uses browser Supabase client (not createStaticClient).
- * Collection membership = collection_products, else local map by slug (never metadata guess).
+ * Same policy as ProductQueries: live → LKG → local (flag only) → empty.
+ * Never auto-demo in production.
  */
 
 import {
@@ -10,13 +10,15 @@ import {
 } from '@/lib/products/collections';
 import type { CatalogProduct } from '@/lib/products/queries';
 import { getLocalActiveProducts, LOCAL_PRODUCTS } from '@/lib/products/data';
-import { allowLocalCatalog, isSupabaseLive } from '@/lib/products/env';
+import { allowLocalCatalog, allowLocalMembershipFallback, isSupabaseLive } from '@/lib/products/env';
+import {
+  logCatalogDegraded,
+  readCatalogLkg,
+  saveCatalogLkg,
+} from '@/lib/products/catalog-cache';
 
-function mapLocal(opts?: { rescueEmpty?: boolean }): CatalogProduct[] {
-  if (!allowLocalCatalog(opts)) return [];
-  if (opts?.rescueEmpty) {
-    console.warn('[catalog:client] Live catalog empty/unusable — rescuing with local merch');
-  }
+function mapLocal(): CatalogProduct[] {
+  if (!allowLocalCatalog()) return [];
   return getLocalActiveProducts().map((p, i) => {
     const full = LOCAL_PRODUCTS.find((lp) => lp.id === p.id || lp.slug === p.slug);
     return {
@@ -38,6 +40,26 @@ function mapLocal(opts?: { rescueEmpty?: boolean }): CatalogProduct[] {
   });
 }
 
+function resolveFallback(reason: string): CatalogProduct[] {
+  const lkg = readCatalogLkg();
+  if (lkg) {
+    logCatalogDegraded('lkg', `${reason}; ageMs=${lkg.ageMs}`);
+    return lkg.products;
+  }
+  if (allowLocalCatalog()) {
+    logCatalogDegraded('local', reason);
+    return mapLocal();
+  }
+  logCatalogDegraded('empty', reason);
+  return [];
+}
+
+function resolveMembership(productId: string, slug: string, fromDb: CollectionSlug[]): CollectionSlug[] {
+  if (fromDb.length > 0) return fromDb;
+  if (!allowLocalMembershipFallback()) return [];
+  return localMembershipFor(productId, slug);
+}
+
 export async function loadClientCatalog(): Promise<CatalogProduct[]> {
   if (!isSupabaseLive()) return mapLocal();
 
@@ -54,9 +76,8 @@ export async function loadClientCatalog(): Promise<CatalogProduct[]> {
       .order('created_at', { ascending: false });
 
     if (error || !data || data.length === 0) {
-      if (error) console.warn('[catalog:client] products failed:', error.message);
-      else console.warn('[catalog:client] products returned 0 rows');
-      return mapLocal({ rescueEmpty: true });
+      const reason = error ? `products failed: ${error.message}` : 'products returned 0 rows';
+      return resolveFallback(reason);
     }
 
     const membership = new Map<string, CollectionSlug[]>();
@@ -85,14 +106,11 @@ export async function loadClientCatalog(): Promise<CatalogProduct[]> {
       }));
       const prices = variants.map((v) => v.price).filter(Boolean) as number[];
       const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
-      let collections = membership.get(p.id) || [];
+      const collections = resolveMembership(p.id, p.slug, membership.get(p.id) || []);
       if (collections.length === 0) {
-        collections = localMembershipFor(p.id, p.slug);
-        if (collections.length === 0) {
-          console.warn(
-            `[catalog:client] "${p.slug}" has no collection membership — excluded from filters`
-          );
-        }
+        console.warn(
+          `[catalog:client] "${p.slug}" has no collection membership — excluded from filters`
+        );
       }
       return {
         id: p.id,
@@ -108,16 +126,16 @@ export async function loadClientCatalog(): Promise<CatalogProduct[]> {
       };
     });
 
-    // Keep live DB rows; do not replace with demo merch when membership empty
     if (!mapped.some((p) => p.collections.length > 0)) {
       console.warn(
         '[catalog:client] No collection membership resolved — returning unfiltered DB products'
       );
     }
 
+    saveCatalogLkg(mapped);
     return mapped;
   } catch (err) {
     console.error('[catalog:client] exception:', err);
-    return mapLocal({ rescueEmpty: true });
+    return resolveFallback(`exception: ${err instanceof Error ? err.message : String(err)}`);
   }
 }

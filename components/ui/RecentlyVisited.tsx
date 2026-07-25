@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import ProductCard from "./ProductCard";
-import { getLocalProductBySlug, type LocalProduct } from "@/lib/products/data";
 
 const STORAGE_KEY = "streetplayr-recently-visited";
 
@@ -14,34 +13,56 @@ export function pushRecentlyVisited(slug: string) {
   } catch {}
 }
 
-function toCardProduct(p: LocalProduct) {
-  return {
-    id: p.id,
-    slug: p.slug,
-    name: p.name,
-    price: p.price,
-    image: p.image_url,
-    image2: p.metadata?.gallery_images?.[1],
-    category: p.category?.name,
-    variants: p.variants.map((v) => ({ id: v.id, size: v.size })),
-  };
-}
+type CardProduct = {
+  id: string;
+  slug: string;
+  name: string;
+  price: number;
+  image: string;
+  image2?: string;
+  category?: string;
+  variants?: { id: string; size: string }[];
+};
 
 export default function RecentlyVisited({ excludeSlug }: { excludeSlug?: string }) {
-  const [items, setItems] = useState<ReturnType<typeof toCardProduct>[]>([]);
+  const [items, setItems] = useState<CardProduct[]>([]);
 
   useEffect(() => {
-    try {
-      const list: string[] = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-      setItems(
-        list
-          .filter((s) => s !== excludeSlug)
-          .map(getLocalProductBySlug)
-          .filter((p): p is LocalProduct => Boolean(p))
-          .map(toCardProduct)
-          .slice(0, 4)
-      );
-    } catch {}
+    let cancelled = false;
+    (async () => {
+      try {
+        const list: string[] = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        const slugs = list.filter((s) => s !== excludeSlug).slice(0, 8);
+        if (slugs.length === 0) return;
+
+        const { loadClientCatalog } = await import("@/lib/products/client-catalog");
+        const catalog = await loadClientCatalog();
+        if (cancelled) return;
+
+        const bySlug = new Map(catalog.map((p) => [p.slug.toLowerCase(), p]));
+        setItems(
+          slugs
+            .map((s) => bySlug.get(s.toLowerCase()))
+            .filter(Boolean)
+            .slice(0, 4)
+            .map((p) => ({
+              id: p!.id,
+              slug: p!.slug,
+              name: p!.name,
+              price: p!.price,
+              image: p!.image,
+              image2: p!.image2,
+              category: p!.collections[0],
+              variants: (p!.variants ?? []).map((v) => ({ id: v.id, size: v.size })),
+            }))
+        );
+      } catch {
+        // ignore
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [excludeSlug]);
 
   if (items.length === 0) return null;

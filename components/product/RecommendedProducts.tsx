@@ -1,21 +1,51 @@
 'use client';
 
-import { LOCAL_PRODUCTS } from '@/lib/products/data';
+import { useEffect, useState } from 'react';
 import ProductCard from '@/components/ui/ProductCard';
+import type { CatalogProduct } from '@/lib/products/queries';
 
 export default function RecommendedProducts({ currentSlug }: { currentSlug: string }) {
-  const related = LOCAL_PRODUCTS.filter((p) => p.slug !== currentSlug)
-    .slice(0, 4) // Show up to 4 recommended products
-    .map((p) => ({
-      id: p.id,
-      name: p.name,
-      price: p.price,
-      slug: p.slug,
-      image: p.image_url,
-      category: p.category.name,
-      metadata: p.metadata,
-      variants: p.variants.map((v) => ({ id: v.id, size: v.size })),
-    }));
+  const [related, setRelated] = useState<
+    Array<{
+      id: string;
+      name: string;
+      price: number;
+      slug: string;
+      image: string;
+      category?: string;
+      variants?: { id: string; size: string }[];
+    }>
+  >([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { loadClientCatalog } = await import('@/lib/products/client-catalog');
+        const catalog = await loadClientCatalog();
+        if (cancelled) return;
+        setRelated(
+          catalog
+            .filter((p: CatalogProduct) => p.slug !== currentSlug)
+            .slice(0, 4)
+            .map((p) => ({
+              id: p.id,
+              name: p.name,
+              price: p.price,
+              slug: p.slug,
+              image: p.image,
+              category: p.collections[0],
+              variants: (p.variants ?? []).map((v) => ({ id: v.id, size: v.size })),
+            }))
+        );
+      } catch (err) {
+        console.warn('[RecommendedProducts] catalog load failed:', err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [currentSlug]);
 
   if (related.length === 0) return null;
 

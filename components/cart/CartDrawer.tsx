@@ -1,20 +1,40 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/components/CartContext';
-import { LOCAL_PRODUCTS } from '@/lib/products/data';
 import { formatPrice } from '@/lib/utils/format';
+
+type Suggest = { handle: string; title: string; price: number; images: string[] };
 
 export default function CartDrawer() {
   const cart = useCart();
-  
-  const suggestions = LOCAL_PRODUCTS.slice(0, 6).map((p) => ({
-    handle: p.slug,
-    title: p.name,
-    price: p.price,
-    images: [p.image_url],
-  }));
+  const [suggestions, setSuggestions] = useState<Suggest[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { loadClientCatalog } = await import('@/lib/products/client-catalog');
+        const catalog = await loadClientCatalog();
+        if (cancelled) return;
+        setSuggestions(
+          catalog.slice(0, 6).map((p) => ({
+            handle: p.slug,
+            title: p.name,
+            price: p.price,
+            images: [p.image].filter(Boolean),
+          }))
+        );
+      } catch (err) {
+        console.warn('[CartDrawer] catalog load failed:', err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <>
@@ -44,16 +64,20 @@ export default function CartDrawer() {
               <Link href="/collections" className="storefront-cta" onClick={() => cart.setOpen(false)}>
                 Shop now
               </Link>
-              <div className="drawer__suggest">
-                <h4>Products you may like</h4>
-                <div className="drawer__suggest-track">
-                  {suggestions.map((p) => (
-                    <Link key={p.handle} href={`/product/${p.handle}`} onClick={() => cart.setOpen(false)}>
-                      <Image src={p.images[0]} alt={p.title} width={80} height={100} className="object-cover rounded" />
-                    </Link>
-                  ))}
+              {suggestions.length > 0 && (
+                <div className="drawer__suggest">
+                  <h4>Products you may like</h4>
+                  <div className="drawer__suggest-track">
+                    {suggestions.map((p) => (
+                      <Link key={p.handle} href={`/product/${p.handle}`} onClick={() => cart.setOpen(false)}>
+                        {p.images[0] ? (
+                          <Image src={p.images[0]} alt={p.title} width={80} height={100} className="object-cover rounded" />
+                        ) : null}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           ) : (
             cart.items.map((line: any) => (

@@ -14,7 +14,16 @@ import {
   localMembershipFor,
   type CollectionSlug,
 } from '@/lib/products/collections';
-import { allowLocalCatalog, isSupabaseLive } from '@/lib/products/env';
+import {
+  allowLocalCatalog,
+  allowLocalMembershipFallback,
+  isSupabaseLive,
+} from '@/lib/products/env';
+import {
+  logCatalogDegraded,
+  readCatalogLkg,
+  saveCatalogLkg,
+} from '@/lib/products/catalog-cache';
 
 export interface FeedItemData {
   id: string;
@@ -104,11 +113,8 @@ function formatSupabaseError(error: unknown) {
   return String(error);
 }
 
-function mapLocalCatalog(opts?: { rescueEmpty?: boolean }): CatalogProduct[] {
-  if (!allowLocalCatalog(opts)) return [];
-  if (opts?.rescueEmpty) {
-    console.warn('[catalog] Live catalog empty/unusable — rescuing with local merch (set USE_LOCAL_CATALOG=0 to disable)');
-  }
+function mapLocalCatalog(): CatalogProduct[] {
+  if (!allowLocalCatalog()) return [];
   return getLocalActiveProducts().map((p, i) => {
     const full = LOCAL_PRODUCTS.find((lp) => lp.id === p.id || lp.slug === p.slug);
     const collections = localMembershipFor(p.id, p.slug);
@@ -132,6 +138,32 @@ function mapLocalCatalog(opts?: { rescueEmpty?: boolean }): CatalogProduct[] {
       metadata: full?.metadata as Record<string, unknown> | undefined,
     };
   });
+}
+
+/** Live miss/outage: LKG → optional local (flag/dev) → empty. Never auto-demo in prod. */
+function resolveCatalogFallback(reason: string): CatalogProduct[] {
+  const lkg = readCatalogLkg();
+  if (lkg) {
+    logCatalogDegraded('lkg', `${reason}; ageMs=${lkg.ageMs}`);
+    return lkg.products;
+  }
+  if (allowLocalCatalog()) {
+    logCatalogDegraded('local', reason);
+    return mapLocalCatalog();
+  }
+  logCatalogDegraded('empty', reason);
+  return [];
+}
+
+function resolveMembership(
+  productId: string,
+  slug: string,
+  fromDb: CollectionSlug[]
+): CollectionSlug[] {
+  if (fromDb.length > 0) return fromDb;
+  // Production: never invent collections from demo map
+  if (!allowLocalMembershipFallback()) return [];
+  return localMembershipFor(productId, slug);
 }
 
 /**
@@ -167,7 +199,12 @@ function getDefaultClassName(idx: number) {
 
 export const ProductQueries = {
   async getCatalogProducts(): Promise<CatalogProduct[]> {
-    if (!isSupabaseLive()) return mapLocalCatalog();
+    if (!isSupabaseLive()) {
+      const local = mapLocalCatalog();
+      if (local.length) logCatalogDegraded('local', 'supabase not live');
+      else logCatalogDegraded('empty', 'supabase not live');
+      return local;
+    }
 
     try {
       const supabase = createStaticClient();
@@ -180,9 +217,10 @@ export const ProductQueries = {
         .order('created_at', { ascending: false });
 
       if (error || !data || data.length === 0) {
-        if (error) console.warn('[catalog] products query failed, rescuing local:', formatSupabaseError(error));
-        else console.warn('[catalog] products query returned 0 rows — rescuing local');
-        return mapLocalCatalog({ rescueEmpty: true });
+        const reason = error
+          ? `products query failed: ${JSON.stringify(formatSupabaseError(error))}`
+          : 'products query returned 0 rows';
+        return resolveCatalogFallback(reason);
       }
 
       const membership = await fetchMembershipMap(supabase);
@@ -191,16 +229,12 @@ export const ProductQueries = {
         const variants = mapCatalogVariants(p.product_variants as any);
         const prices = variants.map((v) => v.price).filter((n): n is number => typeof n === 'number');
         const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
-        let collections = membership.get(p.id) || [];
+        const collections = resolveMembership(p.id, p.slug, membership.get(p.id) || []);
 
-        // If DB has no links yet, use local map keyed by slug (never invent TEES)
         if (collections.length === 0) {
-          collections = localMembershipFor(p.id, p.slug);
-          if (collections.length === 0) {
-            console.warn(
-              `[catalog] Product "${p.slug}" (${p.id}) has no collection_products row — excluded from filtered collections`
-            );
-          }
+          console.warn(
+            `[catalog] Product "${p.slug}" (${p.id}) has no collection_products row — excluded from filtered collections`
+          );
         }
 
         return {
@@ -217,18 +251,17 @@ export const ProductQueries = {
         };
       });
 
-      // Keep live DB rows even with zero membership — home/collections show
-      // unfiltered shelves. Never swap real merch for demo SKUs.
       if (!mapped.some((p) => p.collections.length > 0)) {
         console.warn(
           '[catalog] No collection membership resolved — returning unfiltered DB products'
         );
       }
 
+      saveCatalogLkg(mapped);
       return mapped;
     } catch (err) {
       console.error('[catalog] getCatalogProducts exception:', formatSupabaseError(err));
-      return mapLocalCatalog({ rescueEmpty: true });
+      return resolveCatalogFallback(`exception: ${JSON.stringify(formatSupabaseError(err))}`);
     }
   },
 
@@ -288,8 +321,37 @@ export const ProductQueries = {
   },
 
   async getProductBySlug(slug: string) {
-    const localOrNull = () =>
-      allowLocalCatalog({ rescueEmpty: true }) ? getLocalProductBySlug(slug) || null : null;
+    const fromLkgOrLocal = () => {
+      const lkg = readCatalogLkg();
+      const hit = lkg?.products.find((p) => p.slug === slug || p.slug.toLowerCase() === slug.toLowerCase());
+      if (hit) {
+        logCatalogDegraded('lkg', `getProductBySlug(${slug})`);
+        return {
+          id: hit.id,
+          name: hit.name,
+          slug: hit.slug,
+          price: hit.price,
+          description: '',
+          image_url: hit.image,
+          category: hit.collections[0] || '',
+          collections: hit.collections,
+          variants: (hit.variants ?? []).map((v) => ({
+            id: v.id,
+            size: v.size,
+            color: 'Default',
+            stock_quantity: 0,
+            price_override: v.price,
+          })),
+          metadata: hit.metadata ?? {},
+          is_active: true,
+        };
+      }
+      if (allowLocalCatalog()) {
+        logCatalogDegraded('local', `getProductBySlug(${slug})`);
+        return getLocalProductBySlug(slug) || null;
+      }
+      return null;
+    };
 
     if (!isSupabaseLive()) {
       return allowLocalCatalog() ? getLocalProductBySlug(slug) || null : null;
@@ -306,18 +368,18 @@ export const ProductQueries = {
           featured_image_url,
           metadata,
           status,
-          product_variants(id, sku, title, price, attributes)
+          product_variants(id, sku, title, price, attributes, stock_quantity)
         `)
         .eq('slug', slug)
         .eq('status', 'active')
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching product by slug:', formatSupabaseError(error));
-        return localOrNull();
+        return fromLkgOrLocal();
       }
 
-      if (!data) return localOrNull();
+      if (!data) return fromLkgOrLocal();
 
       const variants = (data.product_variants ?? []).map((v: any) => ({
         id: v.id,
@@ -331,7 +393,7 @@ export const ProductQueries = {
         variants.length > 0 ? Math.min(...variants.map((v: any) => v.price_override)) : 0;
 
       const membership = await fetchMembershipMap(supabase);
-      const collections = membership.get(data.id) || localMembershipFor(data.id, data.slug);
+      const collections = resolveMembership(data.id, data.slug, membership.get(data.id) || []);
 
       return {
         id: data.id,
@@ -348,7 +410,7 @@ export const ProductQueries = {
       };
     } catch (err) {
       console.error('Exception in getProductBySlug:', formatSupabaseError(err));
-      return localOrNull();
+      return fromLkgOrLocal();
     }
   },
 };
