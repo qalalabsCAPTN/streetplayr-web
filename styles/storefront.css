@@ -723,7 +723,7 @@ body.theme-light .carousel3d__dot.active {
   position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
   opacity: 0; transition: opacity 0.45s ease;
 }
-.card__media img.active { opacity: 1; }
+.storefront-root .card__media img.active { opacity: 1; }
 .storefront-root .card__wish {
   position: absolute; top: 10px; right: 10px; z-index: 3;
   width: 36px; height: 36px; border-radius: 50%;

@@ -9,7 +9,8 @@
 import type { CatalogProduct } from '@/lib/products/queries';
 
 const TTL_MS = 60 * 60 * 1000; // serve stale up to 1h after last success
-const CLIENT_KEY = 'sp.catalog.lkg.v1';
+/** Bump when catalog shape / media mapping changes so stale session LKG can't blank cards. */
+const CLIENT_KEY = 'sp.catalog.lkg.v2';
 
 type LkgEntry = {
   products: CatalogProduct[];

@@ -42,7 +42,15 @@ export default function ProductCard({ product, gallery = true }: ProductCardProp
   const isSaved = useWishlistStore((s) => s.isSaved(product.id));
   const requestToggle = useWishlistStore((s) => s.requestToggle);
 
-  const imgs = product.images || product.metadata?.gallery_images || [product.image, product.image2].filter(Boolean);
+  const galleryMeta = Array.isArray(product.images)
+    ? product.images
+    : Array.isArray(product.metadata?.gallery_images)
+      ? product.metadata.gallery_images
+      : null;
+  const imgs = (galleryMeta && galleryMeta.length > 0
+    ? galleryMeta
+    : [product.image, product.image2]
+  ).filter((src): src is string => typeof src === 'string' && src.length > 0);
   const onSale = product.compareAt && product.compareAt > product.price;
 
   const step = (e: React.MouseEvent, dir: number) => {

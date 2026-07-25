@@ -16,6 +16,7 @@ import type {
   UniwareOrderItem,
   UniwareOrderCreateRequest,
 } from './types';
+import { resolveProductImages } from '@/lib/products/image-map';
 
 export class UnicommerceMapper {
   /**
@@ -112,11 +113,13 @@ export class UnicommerceMapper {
     categoryCode?: string;
     enabled: boolean;
   }): NormalizedProduct {
+    // Uniware item types lack media; map known streetwear SKUs → local asset packs
+    const pack = resolveProductImages(raw.skuCode);
     return {
       sku: raw.skuCode,
       name: raw.name,
       description: raw.description,
-      imageUrl: undefined, // itemTypeDTO does not natively supply a media image field
+      imageUrl: pack?.featured,
       price: raw.basePrice ?? 0,
       category: raw.categoryCode,
       enabled: raw.enabled,

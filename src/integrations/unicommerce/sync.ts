@@ -188,6 +188,30 @@ export class UnicommerceSyncService {
                 );
               }
             }
+          } else if (normProd.imageUrl) {
+            // Backfill missing media on existing UniCommerce parents
+            const { data: existingParent } = await admin
+              .from('products')
+              .select('featured_image_url, metadata')
+              .eq('id', dbProduct.id)
+              .maybeSingle();
+            if (!existingParent?.featured_image_url) {
+              const { resolveProductImages } = await import('@/lib/products/image-map');
+              const pack = resolveProductImages(parentSlug) || resolveProductImages(normProd.sku);
+              const prevMeta =
+                existingParent?.metadata && typeof existingParent.metadata === 'object'
+                  ? (existingParent.metadata as Record<string, unknown>)
+                  : {};
+              await admin
+                .from('products')
+                .update({
+                  featured_image_url: normProd.imageUrl,
+                  ...(pack
+                    ? { metadata: { ...prevMeta, gallery_images: pack.gallery } }
+                    : {}),
+                })
+                .eq('id', dbProduct.id);
+            }
           }
 
           // 2. Upsert Variant manually to handle missing UNIQUE constraint on SKU column

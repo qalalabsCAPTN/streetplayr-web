@@ -16,6 +16,7 @@ import {
   readCatalogLkg,
   saveCatalogLkg,
 } from '@/lib/products/catalog-cache';
+import { resolveProductImages } from '@/lib/products/image-map';
 
 function mapLocal(): CatalogProduct[] {
   if (!allowLocalCatalog()) return [];
@@ -113,21 +114,34 @@ export async function loadClientCatalog(): Promise<CatalogProduct[]> {
           `[catalog:client] "${p.slug}" has no collection membership — excluded from filters`
         );
       }
+      const meta = (p.metadata || {}) as Record<string, unknown>;
+      const galleryMeta = Array.isArray(meta.gallery_images)
+        ? (meta.gallery_images as string[])
+        : null;
+      const images = resolveProductImages(p.slug, {
+        featured: p.featured_image_url,
+        gallery: galleryMeta,
+      });
+      const featured = images?.featured || p.featured_image_url || '';
+      const image2 = images?.gallery?.[1] || galleryMeta?.[1] || featured;
       return {
         id: p.id,
         name: p.title,
         price: minPrice,
         slug: p.slug,
-        image: p.featured_image_url,
-        image2: p.metadata?.gallery_images?.[1] || p.featured_image_url,
+        image: featured,
+        image2,
         description:
           (typeof p.description === 'string' && p.description) ||
-          (typeof p.metadata?.description === 'string' ? p.metadata.description : '') ||
+          (typeof meta.description === 'string' ? meta.description : '') ||
           '',
         collections,
         createdAt: p.created_at ? Date.parse(p.created_at) : 0,
         variants,
-        metadata: p.metadata || {},
+        metadata: {
+          ...meta,
+          ...(images ? { gallery_images: images.gallery } : {}),
+        },
       };
     });
 
