@@ -6,7 +6,8 @@ const DEMO_MODE = process.env.DEMO_INVENTORY_MODE === 'true';
  * Get available inventory for a variant.
  *
  * In DEMO_INVENTORY_MODE, returns 100 for any active variant.
- * In production, calculates stock_quantity minus active reservations.
+ * In production, uses inventory.quantity minus active reservations
+ * (not product_variants.stock_quantity — that column is absent on live CRM schema).
  *
  * Future: When Unicommerce is integrated, this function will pull from
  * the synced inventory table or Unicommerce inventory API.
@@ -20,8 +21,7 @@ export async function getAvailableInventory(variantId: string): Promise<number> 
 }
 
 /**
- * Get available stock from the database — Supabase product_variants
- * minus active reservations.
+ * Get available stock from the inventory table minus active reservations.
  *
  * Replace this function's internals when connecting to Unicommerce
  * or any external inventory source.

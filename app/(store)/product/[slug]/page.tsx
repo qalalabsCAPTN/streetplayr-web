@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProductQueries } from "@/lib/products/queries";
 import { formatPrice, formatProductTitle } from "@/lib/utils/format";
+import { getAvailableInventory } from "@/lib/inventory";
 
 export const revalidate = 300;
 
@@ -50,6 +51,15 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
   };
   const meta = (product as { metadata?: ProductMeta }).metadata;
 
+  const variantsWithStock = await Promise.all(
+    variants.map(async (v) => ({
+      id: v.id,
+      size: v.size,
+      color: v.color,
+      stockQuantity: await getAvailableInventory(v.id),
+    }))
+  );
+
   const displayData = {
     title: formatProductTitle(product.name),
     price: formatPrice(product.price),
@@ -59,12 +69,7 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
     images: meta?.gallery_images || (product.image_url ? [product.image_url] : []),
     colors: meta?.colors ?? [],
     sizes: [...new Set(variants.map((v) => v.size))],
-    variants: variants.map((v) => ({
-      id: v.id,
-      size: v.size,
-      color: v.color,
-      stockQuantity: v.stock_quantity ?? 0,
-    })),
+    variants: variantsWithStock,
     model3d: meta?.model3d,
   };
 

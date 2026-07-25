@@ -368,7 +368,7 @@ export const ProductQueries = {
           featured_image_url,
           metadata,
           status,
-          product_variants(id, sku, title, price, attributes, stock_quantity)
+          product_variants(id, sku, title, price, attributes)
         `)
         .eq('slug', slug)
         .eq('status', 'active')
@@ -385,7 +385,9 @@ export const ProductQueries = {
         id: v.id,
         size: v.title,
         color: v.attributes?.color ?? 'Default',
-        stock_quantity: typeof v.stock_quantity === 'number' ? v.stock_quantity : 0,
+        // Do not read product_variants.stock_quantity — missing on live CRM schema.
+        // Availability comes from inventory adapter (see PDP page / getVariantStockAction).
+        stock_quantity: 0,
         price_override: v.price,
       }));
 

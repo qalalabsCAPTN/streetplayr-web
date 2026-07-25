@@ -36,7 +36,7 @@ export const RealtimeSubscriptions = {
 
   /**
    * Subscribes to stock updates for a specific product variant.
-   * Returns a cleanup function.
+   * Listens on inventory.quantity (live CRM schema has no product_variants.stock_quantity).
    */
   subscribeToStock(variantId: string, onUpdate: (stock: number) => void) {
     const supabase = createClient();
@@ -48,13 +48,13 @@ export const RealtimeSubscriptions = {
         {
           event: '*',
           schema: 'public',
-          table: 'product_variants',
-          filter: `id=eq.${variantId}`,
+          table: 'inventory',
+          filter: `variant_id=eq.${variantId}`,
         },
         (payload) => {
           const data = payload.new as Record<string, unknown> | null;
-          if (data && typeof data.stock_quantity === 'number') {
-            onUpdate(data.stock_quantity);
+          if (data && typeof data.quantity === 'number') {
+            onUpdate(data.quantity);
           }
         }
       )
