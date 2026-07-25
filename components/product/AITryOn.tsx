@@ -2,15 +2,25 @@
 
 import { useRef, useState, useCallback } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { useAuthStore } from "@/store/authStore";
+import { useTryOnSaveStore } from "@/store/tryonSaveStore";
+import {
+  imageUrlToDataUrl,
+} from "@/lib/tryon-saves/adapter";
+import type { TryOnSave } from "@/lib/tryon-saves/types";
 
 /* ─────────────────────────────────────────
    Types
 ───────────────────────────────────────── */
 type Phase = "idle" | "uploading" | "generating" | "result" | "error";
+type SavePhase = "idle" | "saving" | "saved" | "error";
 
 interface AITryOnProps {
   productImageUrl: string;
   productTitle: string;
+  productSlug?: string;
+  productId?: string;
   onAddToCart?: () => void;
 }
 
@@ -140,9 +150,13 @@ function CompareSlider({
 export default function AITryOn({
   productImageUrl,
   productTitle,
+  productSlug,
+  productId,
   onAddToCart,
 }: AITryOnProps) {
   const isEnabled = process.env.NEXT_PUBLIC_AI_TRYON_ENABLED !== "false";
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const addLocal = useTryOnSaveStore((s) => s.addLocal);
 
   const [phase, setPhase] = useState<Phase>("idle");
   const [errorMsg, setErrorMsg] = useState("");
@@ -151,6 +165,8 @@ export default function AITryOn({
 
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [elapsed, setElapsed] = useState(0);
+  const [savePhase, setSavePhase] = useState<SavePhase>("idle");
+  const [saveError, setSaveError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -289,6 +305,8 @@ export default function AITryOn({
       }
 
       setResultUrl(tryonData.output);
+      setSavePhase("idle");
+      setSaveError("");
       setPhase("result");
     } catch (err: unknown) {
       stopTimer();
@@ -299,6 +317,88 @@ export default function AITryOn({
     }
   }, [userPhotoFile, productImageUrl, productTitle, startTimer, stopTimer]);
 
+  /* ── Save to profile gallery ── */
+  const handleSaveToProfile = useCallback(async () => {
+    if (!resultUrl || savePhase === "saving" || savePhase === "saved") return;
+
+    if (!isAuthenticated) {
+      setSaveError("Sign in to save this look to your profile.");
+      setSavePhase("error");
+      return;
+    }
+
+    setSavePhase("saving");
+    setSaveError("");
+
+    try {
+      const res = await fetch("/api/ai-tryon/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          resultUrl,
+          productTitle,
+          productSlug,
+          productId,
+          productImageUrl,
+        }),
+      });
+      const data = await res.json();
+
+      if (res.ok && data.item) {
+        addLocal(data.item as TryOnSave);
+        setSavePhase("saved");
+        return;
+      }
+
+      // Offline / stub fallback — keep look on this device
+      const localUrl = /^https?:\/\//i.test(resultUrl)
+        ? resultUrl
+        : await imageUrlToDataUrl(resultUrl);
+      const localItem: TryOnSave = {
+        id: crypto.randomUUID(),
+        imageUrl: localUrl,
+        productTitle,
+        productSlug: productSlug ?? null,
+        productId: productId ?? null,
+        productImageUrl: productImageUrl ?? null,
+        createdAt: new Date().toISOString(),
+      };
+      addLocal(localItem);
+      setSavePhase("saved");
+      if (data?.error) {
+        setSaveError(""); // still saved locally
+      }
+    } catch {
+      try {
+        const localUrl = /^https?:\/\//i.test(resultUrl)
+          ? resultUrl
+          : await imageUrlToDataUrl(resultUrl);
+        addLocal({
+          id: crypto.randomUUID(),
+          imageUrl: localUrl,
+          productTitle,
+          productSlug: productSlug ?? null,
+          productId: productId ?? null,
+          productImageUrl: productImageUrl ?? null,
+          createdAt: new Date().toISOString(),
+        });
+        setSavePhase("saved");
+      } catch {
+        setSaveError("Could not save. Try again.");
+        setSavePhase("error");
+      }
+    }
+  }, [
+    resultUrl,
+    savePhase,
+    isAuthenticated,
+    productTitle,
+    productSlug,
+    productId,
+    productImageUrl,
+    addLocal,
+  ]);
+
   /* ── Reset ── */
   const handleReset = useCallback(() => {
     setPhase("idle");
@@ -308,6 +408,8 @@ export default function AITryOn({
     setResultUrl(null);
     setErrorMsg("");
     setElapsed(0);
+    setSavePhase("idle");
+    setSaveError("");
     if (fileInputRef.current) fileInputRef.current.value = "";
   }, []);
 
@@ -524,6 +626,30 @@ export default function AITryOn({
                 </button>
               )}
             </div>
+
+            <button
+              type="button"
+              onClick={handleSaveToProfile}
+              disabled={savePhase === "saving" || savePhase === "saved"}
+              className="w-full py-3.5 rounded-lg font-mono text-[9px] uppercase tracking-[0.22em] font-semibold border border-[#ddb7ff]/30 text-[#ddb7ff] bg-[#ddb7ff]/[0.08] hover:bg-[#ddb7ff]/[0.16] disabled:opacity-60 disabled:cursor-default transition-all flex items-center justify-center gap-2"
+              aria-live="polite"
+            >
+              {savePhase === "saving" && "Saving…"}
+              {savePhase === "saved" && "Saved to profile"}
+              {(savePhase === "idle" || savePhase === "error") && "Save to your profile"}
+            </button>
+
+            {savePhase === "saved" && (
+              <p className="font-mono text-[8px] text-center text-[var(--fg-40)]">
+                View in{" "}
+                <Link href="/profile/try-ons" className="text-[#ddb7ff]/80 underline-offset-2 hover:underline">
+                  Profile → AI Try-Ons
+                </Link>
+              </p>
+            )}
+            {savePhase === "error" && saveError && (
+              <p className="font-mono text-[8px] text-center text-red-400/80">{saveError}</p>
+            )}
 
             <p className="font-mono text-[7px] text-[var(--fg-20)] text-center leading-relaxed">
               AI Style Preview — actual garment fits and print scales may vary.

@@ -38,16 +38,16 @@ interface LookbookProps {
 }
 
 const defaultLookbookItems: LookbookItem[] = [
-  { id: "lb-1", type: "image" as const, src: "/assets/lookbook/artboard-1.jpg", label: "SS25 / STICK NO BILLS", href: "/product/stick-no-bills" },
-  { id: "lb-2", type: "image" as const, src: "/assets/lookbook/artboard-2.jpg", label: "SS25 / INSPIRED TEE", href: "/product/inspired" },
-  { id: "lb-3", type: "image" as const, src: "/assets/lookbook/artboard-3.jpg", label: "SS25 / CTT WAFFLE HOODIE", href: "/product/ctt-waffle" },
-  { id: "lb-4", type: "image" as const, src: "/assets/lookbook/artboard-4.jpg", label: "SS25 / BROWN WARRIOR", href: "/product/brown-warrior" },
-  { id: "lb-5", type: "image" as const, src: "/assets/lookbook/artboard-5.jpg", label: "SS25 / BLACK WARRIOR", href: "/product/black-warrior" },
-  { id: "lb-6", type: "image" as const, src: "/assets/lookbook/artboard-6.jpg", label: "SS25 / STICK NO BILLS", href: "/product/stick-no-bills" },
-  { id: "lb-7", type: "image" as const, src: "/assets/lookbook/artboard-7.jpg", label: "SS25 / INSPIRED TEE", href: "/product/inspired" },
-  { id: "lb-8", type: "image" as const, src: "/assets/lookbook/artboard-8.jpg", label: "SS25 / CTT WAFFLE HOODIE", href: "/product/ctt-waffle" },
-  { id: "lb-9", type: "image" as const, src: "/assets/lookbook/artboard-9.jpg", label: "SS25 / BROWN WARRIOR", href: "/product/brown-warrior" },
-  { id: "lb-10", type: "image" as const, src: "/assets/lookbook/artboard-10.jpg", label: "SS25 / BLACK WARRIOR", href: "/product/black-warrior" }
+  { id: "lb-1", type: "image" as const, src: "/lookbook/artboard-1.webp", label: "SS25 / STICK NO BILLS", href: "/product/stick-no-bills" },
+  { id: "lb-2", type: "image" as const, src: "/lookbook/artboard-2.webp", label: "SS25 / INSPIRED TEE", href: "/product/inspired" },
+  { id: "lb-3", type: "image" as const, src: "/lookbook/artboard-3.webp", label: "SS25 / CTT WAFFLE HOODIE", href: "/product/ctt-waffle" },
+  { id: "lb-4", type: "image" as const, src: "/lookbook/artboard-4.webp", label: "SS25 / BROWN WARRIOR", href: "/product/brown-warrior" },
+  { id: "lb-5", type: "image" as const, src: "/lookbook/artboard-5.webp", label: "SS25 / BLACK WARRIOR", href: "/product/black-warrior" },
+  { id: "lb-6", type: "image" as const, src: "/lookbook/artboard-6.webp", label: "SS25 / STICK NO BILLS", href: "/product/stick-no-bills" },
+  { id: "lb-7", type: "image" as const, src: "/lookbook/artboard-7.webp", label: "SS25 / INSPIRED TEE", href: "/product/inspired" },
+  { id: "lb-8", type: "image" as const, src: "/lookbook/artboard-8.webp", label: "SS25 / CTT WAFFLE HOODIE", href: "/product/ctt-waffle" },
+  { id: "lb-9", type: "image" as const, src: "/lookbook/artboard-9.webp", label: "SS25 / BROWN WARRIOR", href: "/product/brown-warrior" },
+  { id: "lb-10", type: "image" as const, src: "/lookbook/artboard-10.webp", label: "SS25 / BLACK WARRIOR", href: "/product/black-warrior" }
 ];
 
 export default function Lookbook({

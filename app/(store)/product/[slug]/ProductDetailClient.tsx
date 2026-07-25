@@ -89,6 +89,28 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
 
   const carouselRef = useRef<HTMLDivElement>(null);
   const galleryRightRef = useRef<HTMLDivElement>(null);
+  const tryOnRef = useRef<HTMLDivElement>(null);
+  const [tryOnReady, setTryOnReady] = useState(false);
+
+  useEffect(() => {
+    const el = tryOnRef.current;
+    if (!el || tryOnReady) return;
+    if (typeof IntersectionObserver === 'undefined') {
+      setTryOnReady(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setTryOnReady(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: '200px 0px' }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [tryOnReady]);
 
   useEffect(() => {
     const unsubs: (() => void)[] = [];
@@ -401,28 +423,77 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
               </button>
             )}
 
-            <div className="pdp__tryon">
-              <AITryOn
-                productImageUrl={heroImage}
-                productTitle={props.title}
-              />
+            <div className="pdp__tryon" ref={tryOnRef}>
+              {tryOnReady && (
+                <AITryOn
+                  productImageUrl={heroImage}
+                  productTitle={props.title}
+                  productSlug={props.slug}
+                  productId={props.productId}
+                />
+              )}
             </div>
           </div>
 
           <div className="pdp__panel pdp__panel--tabs">
-            <div className="tabs" role="tablist">
-              <button type="button" role="tab" aria-selected={tab === 'details'} className={`tab ${tab === 'details' ? 'active' : ''}`} onClick={() => setTab('details')}>
-                Details &amp; Description
+            <div className="tabs" role="tablist" aria-label="Product information">
+              <button
+                type="button"
+                role="tab"
+                id="pdp-tab-details"
+                aria-controls="pdp-panel-details"
+                aria-selected={tab === 'details'}
+                aria-label="Details and Description"
+                tabIndex={tab === 'details' ? 0 : -1}
+                className={`tab ${tab === 'details' ? 'active' : ''}`}
+                onClick={() => setTab('details')}
+              >
+                Details
               </button>
-              <button type="button" role="tab" aria-selected={tab === 'care'} className={`tab ${tab === 'care' ? 'active' : ''}`} onClick={() => setTab('care')}>
+              <button
+                type="button"
+                role="tab"
+                id="pdp-tab-care"
+                aria-controls="pdp-panel-care"
+                aria-selected={tab === 'care'}
+                tabIndex={tab === 'care' ? 0 : -1}
+                className={`tab ${tab === 'care' ? 'active' : ''}`}
+                onClick={() => setTab('care')}
+              >
                 Washcare
               </button>
-              <button type="button" role="tab" aria-selected={tab === 'shipping'} className={`tab ${tab === 'shipping' ? 'active' : ''}`} onClick={() => setTab('shipping')}>
+              <button
+                type="button"
+                role="tab"
+                id="pdp-tab-shipping"
+                aria-controls="pdp-panel-shipping"
+                aria-selected={tab === 'shipping'}
+                tabIndex={tab === 'shipping' ? 0 : -1}
+                className={`tab ${tab === 'shipping' ? 'active' : ''}`}
+                onClick={() => setTab('shipping')}
+              >
                 Shipping
               </button>
             </div>
 
-            <div className="tabbody" role="tabpanel">
+            <div
+              className="tabbody"
+              role="tabpanel"
+              id={
+                tab === 'details'
+                  ? 'pdp-panel-details'
+                  : tab === 'care'
+                    ? 'pdp-panel-care'
+                    : 'pdp-panel-shipping'
+              }
+              aria-labelledby={
+                tab === 'details'
+                  ? 'pdp-tab-details'
+                  : tab === 'care'
+                    ? 'pdp-tab-care'
+                    : 'pdp-tab-shipping'
+              }
+            >
               {tab === 'details' && (
                 <>
                   <h6>Details</h6>

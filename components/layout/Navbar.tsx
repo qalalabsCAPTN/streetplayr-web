@@ -9,9 +9,11 @@ import { useAuthStore } from '@/store/authStore';
 import { useWishlistStore } from '@/store/wishlistStore';
 import WishlistLoginBridge from '@/components/auth/WishlistLoginBridge';
 import { stories } from '@/lib/bluorng-data';
-import StoryViewer from './StoryViewer';
 import MobileNav from './MobileNav';
-import LoginModal from '@/components/auth/LoginModal';
+import dynamic from 'next/dynamic';
+
+const StoryViewer = dynamic(() => import('./StoryViewer'), { ssr: false });
+const LoginModal = dynamic(() => import('@/components/auth/LoginModal'), { ssr: false });
 
 const Icon = {
   search: (
@@ -133,10 +135,13 @@ export default function Navbar() {
   }, [theme]);
 
   useEffect(() => {
+    if (!searchOpen || products.length > 0) return;
+    let cancelled = false;
     async function loadProducts() {
       try {
         const { loadClientCatalog } = await import('@/lib/products/client-catalog');
         const catalog = await loadClientCatalog();
+        if (cancelled) return;
         setProducts(
           catalog.map((p) => ({
             id: p.id,
@@ -151,8 +156,11 @@ export default function Navbar() {
         console.error('Failed to load products for search:', err);
       }
     }
-    loadProducts();
-  }, []);
+    void loadProducts();
+    return () => {
+      cancelled = true;
+    };
+  }, [searchOpen, products.length]);
 
   const toggleTheme = () => {
     const next = theme === 'default' ? 'dark' : 'default';
@@ -363,15 +371,15 @@ export default function Navbar() {
                 <div className="header__search-title">Collections</div>
                 <div className="header__search-list">
                   <Link href="/collections?category=tees" className="header__search-item" onClick={() => setSearchOpen(false)}>
-                    <img src="/products al/WARRIOR Tee Black/bob warrior 1.jpg" alt="" />
+                    <img src="/assets/products/warrior-bob/image-1.webp" alt="" />
                     <span>Short Sleeve T-Shirts</span>
                   </Link>
                   <Link href="/collections?category=pants" className="header__search-item" onClick={() => setSearchOpen(false)}>
-                    <img src="/products al/Carpenter Pants Grey/track pant 1.jpg" alt="" />
+                    <img src="/assets/products/carpenter-grey/image-1.jpg" alt="" />
                     <span>Sweatpants</span>
                   </Link>
                   <Link href="/collections" className="header__search-item" onClick={() => setSearchOpen(false)}>
-                    <img src="/products al/playR Create Waffle Tee/CTT 1.jpg" alt="" />
+                    <img src="/assets/products/ctt-waffle/image-1.webp" alt="" />
                     <span>Latest Drop</span>
                   </Link>
                 </div>

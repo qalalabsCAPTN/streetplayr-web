@@ -24,13 +24,27 @@ export interface LocalProduct {
   }[];
 }
 
-const GALLERY_IMAGES = (slug: string) => [
-  `/assets/products/${slug}/image-1.jpg`,
-  `/assets/products/${slug}/image-2.jpg`,
-  `/assets/products/${slug}/image-3.jpg`,
-  `/assets/products/${slug}/image-4.jpg`,
-  `/assets/products/${slug}/image-5.jpg`,
-];
+/** Prefer WebP when a high-quality encode exists (see scripts/convert-to-webp.cjs). */
+const WEBP_PRODUCT_FRAMES = new Set([
+  "black-warrior/1",
+  "black-warrior/3",
+  "black-warrior/5",
+  "brown-warrior/1",
+  "brown-warrior/3",
+  "brown-warrior/5",
+  "ctt-waffle/1",
+  "ctt-waffle/5",
+  "inspired/1",
+  "inspired/3",
+  "inspired/5",
+  "warrior-bob/1",
+]);
+
+const GALLERY_IMAGES = (slug: string) =>
+  [1, 2, 3, 4, 5].map((n) => {
+    const ext = WEBP_PRODUCT_FRAMES.has(`${slug}/${n}`) ? "webp" : "jpg";
+    return `/assets/products/${slug}/image-${n}.${ext}`;
+  });
 
 const ALL_SIZES = ["XS", "S", "M", "L", "XL", "2XL"];
 
@@ -51,7 +65,7 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
     price: 1999,
     description:
       "Crafted from textured waffle-knit fabric with a relaxed fit and full-length sleeves",
-    image_url: `/assets/products/ctt-waffle/image-1.jpg`,
+    image_url: `/assets/products/ctt-waffle/image-1.webp`,
     slug: "ctt-waffle",
     category: { name: "TEES" },
     metadata: {
@@ -72,7 +86,7 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
     price: 1999,
     description:
       "Made from heavyweight premium cotton terry, this oversized T-shirt is designed for all-day comfort and a structured drape. Signature aligned puff print detailing around the neckline and back adds a distinctive, elevated finish",
-    image_url: `/assets/products/black-warrior/image-1.jpg`,
+    image_url: `/assets/products/black-warrior/image-1.webp`,
     slug: "black-warrior",
     category: { name: "TEES" },
     metadata: {
@@ -93,7 +107,7 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
     price: 2499,
     description:
       "Made from premium single jersey cotton for a soft, lightweight feel, this oversized T-shirt combines a unique purple acid-washed finish with a striking white screen print for elevated everyday wear.",
-    image_url: `/assets/products/inspired/image-1.jpg`,
+    image_url: `/assets/products/inspired/image-1.webp`,
     slug: "inspired",
     category: { name: "TEES" },
     metadata: {
@@ -176,7 +190,7 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
     price: 1999,
     description:
       "The boldest cut in the Warrior family. Heavyweight cotton terry with an oversized silhouette and signature puff print detailing — raw, structured, unapologetic.",
-    image_url: `/assets/products/warrior-bob/image-1.jpg`,
+    image_url: `/assets/products/warrior-bob/image-1.webp`,
     slug: "warrior-bob",
     category: { name: "TEES" },
     metadata: {

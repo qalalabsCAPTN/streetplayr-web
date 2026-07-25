@@ -1,7 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { useAuthStore, deriveTier, TIER_THRESHOLDS, selectTierProgress } from '@/store/authStore';
+import { useTryOnSaveStore } from '@/store/tryonSaveStore';
+import TryOnGallery from '@/components/profile/TryOnGallery';
 
 function formatBalance(n: number) {
   return n.toLocaleString('en-IN');
@@ -9,6 +12,34 @@ function formatBalance(n: number) {
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-IN', { year: 'numeric', month: 'short' });
+}
+
+function RecentTryOnsSection() {
+  const items = useTryOnSaveStore((s) => s.items);
+  const hydrated = useTryOnSaveStore((s) => s.hydrated);
+  const hydrate = useTryOnSaveStore((s) => s.hydrate);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    void hydrate();
+  }, [hydrate]);
+
+  if (!mounted || !hydrated || items.length === 0) return null;
+
+  return (
+    <>
+      <div className="acct-section-head">
+        <div className="acct-section-head__row">
+          <h2>Recent try-ons</h2>
+          <Link href="/profile/try-ons" className="acct-section-head__link">
+            All →
+          </Link>
+        </div>
+      </div>
+      <TryOnGallery compact limit={4} />
+    </>
+  );
 }
 
 export default function ProfilePage() {
@@ -97,7 +128,15 @@ export default function ProfilePage() {
           <p>Refer friends and earn 500 points each</p>
           <span>View campaigns →</span>
         </Link>
+
+        <Link href="/profile/try-ons" className="acct-card acct-card--link">
+          <h3>AI Try-Ons</h3>
+          <p>Saved looks across every garment you tried</p>
+          <span>Open gallery →</span>
+        </Link>
       </div>
+
+      <RecentTryOnsSection />
 
       <div className="acct-section-head">
         <h2>Your Streets</h2>

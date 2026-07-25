@@ -1,0 +1,237 @@
+{
+  "quality": 88,
+  "results": [
+    {
+      "src": "public/lookbook/Artboard 22.png",
+      "dest": "public/lookbook/artboard-22.webp"
+    },
+    {
+      "src": "public/lookbook/Artboard 23.png",
+      "dest": "public/lookbook/artboard-23.webp"
+    },
+    {
+      "src": "public/lookbook/Artboard 24.png",
+      "dest": "public/lookbook/artboard-24.webp"
+    },
+    {
+      "src": "public/lookbook/Artboard 25.png",
+      "dest": "public/lookbook/artboard-25.webp"
+    },
+    {
+      "src": "public/lookbook/Artboard 26.png",
+      "dest": "public/lookbook/artboard-26.webp"
+    },
+    {
+      "src": "public/lookbook/Artboard 27.png",
+      "dest": "public/lookbook/artboard-27.webp"
+    },
+    {
+      "src": "public/lookbook/Artboard 28.png",
+      "dest": "public/lookbook/artboard-28.webp"
+    },
+    {
+      "src": "public/lookbook/Artboard 29.png",
+      "dest": "public/lookbook/artboard-29.webp"
+    },
+    {
+      "src": "public/lookbook/Artboard 30.png",
+      "dest": "public/lookbook/artboard-30.webp"
+    },
+    {
+      "src": "public/lookbook/Artboard 31.png",
+      "dest": "public/lookbook/artboard-31.webp"
+    },
+    {
+      "src": "public/lookbook/Artboard 32.png",
+      "dest": "public/lookbook/artboard-32.webp"
+    },
+    {
+      "src": "public/lookbook/Artboard 36.png",
+      "dest": "public/lookbook/artboard-36.webp"
+    },
+    {
+      "src": "public/lookbook/artboard-1.jpg",
+      "dest": "public/lookbook/artboard-1.webp"
+    },
+    {
+      "src": "public/lookbook/artboard-10.jpg",
+      "dest": "public/lookbook/artboard-10.webp"
+    },
+    {
+      "src": "public/lookbook/artboard-11.jpg",
+      "dest": "public/lookbook/artboard-11.webp"
+    },
+    {
+      "src": "public/lookbook/artboard-12.jpg",
+      "dest": "public/lookbook/artboard-12.webp"
+    },
+    {
+      "src": "public/lookbook/artboard-13.jpg",
+      "dest": "public/lookbook/artboard-13.webp"
+    },
+    {
+      "src": "public/lookbook/artboard-14.jpg",
+      "dest": "public/lookbook/artboard-14.webp"
+    },
+    {
+      "src": "public/lookbook/artboard-15.jpg",
+      "dest": "public/lookbook/artboard-15.webp"
+    },
+    {
+      "src": "public/lookbook/artboard-16.jpg",
+      "dest": "public/lookbook/artboard-16.webp"
+    },
+    {
+      "src": "public/lookbook/artboard-17.jpg",
+      "dest": "public/lookbook/artboard-17.webp"
+    },
+    {
+      "src": "public/lookbook/artboard-18.jpg",
+      "dest": "public/lookbook/artboard-18.webp"
+    },
+    {
+      "src": "public/lookbook/artboard-19.jpg",
+      "dest": "public/lookbook/artboard-19.webp"
+    },
+    {
+      "src": "public/lookbook/artboard-2.jpg",
+      "dest": "public/lookbook/artboard-2.webp"
+    },
+    {
+      "src": "public/lookbook/artboard-20.jpg",
+      "dest": "public/lookbook/artboard-20.webp"
+    },
+    {
+      "src": "public/lookbook/artboard-21.jpg",
+      "dest": "public/lookbook/artboard-21.webp"
+    },
+    {
+      "src": "public/lookbook/artboard-3.jpg",
+      "dest": "public/lookbook/artboard-3.webp"
+    },
+    {
+      "src": "public/lookbook/artboard-4.jpg",
+      "dest": "public/lookbook/artboard-4.webp"
+    },
+    {
+      "src": "public/lookbook/artboard-5.jpg",
+      "dest": "public/lookbook/artboard-5.webp"
+    },
+    {
+      "src": "public/lookbook/artboard-6.jpg",
+      "dest": "public/lookbook/artboard-6.webp"
+    },
+    {
+      "src": "public/lookbook/artboard-7.jpg",
+      "dest": "public/lookbook/artboard-7.webp"
+    },
+    {
+      "src": "public/lookbook/artboard-8.jpg",
+      "dest": "public/lookbook/artboard-8.webp"
+    },
+    {
+      "src": "public/lookbook/artboard-9.jpg",
+      "dest": "public/lookbook/artboard-9.webp"
+    },
+    {
+      "src": "public/assets/lookbook/artboard-10.jpg",
+      "dest": "public/assets/lookbook/artboard-10.webp"
+    },
+    {
+      "src": "public/assets/lookbook/artboard-11.jpg",
+      "dest": "public/assets/lookbook/artboard-11.webp"
+    },
+    {
+      "src": "public/assets/lookbook/artboard-13.jpg",
+      "dest": "public/assets/lookbook/artboard-13.webp"
+    },
+    {
+      "src": "public/assets/lookbook/artboard-14.jpg",
+      "dest": "public/assets/lookbook/artboard-14.webp"
+    },
+    {
+      "src": "public/assets/lookbook/artboard-17.jpg",
+      "dest": "public/assets/lookbook/artboard-17.webp"
+    },
+    {
+      "src": "public/assets/lookbook/artboard-18.jpg",
+      "dest": "public/assets/lookbook/artboard-18.webp"
+    },
+    {
+      "src": "public/assets/lookbook/artboard-20.jpg",
+      "dest": "public/assets/lookbook/artboard-20.webp"
+    },
+    {
+      "src": "public/assets/lookbook/artboard-8.jpg",
+      "dest": "public/assets/lookbook/artboard-8.webp"
+    },
+    {
+      "src": "public/assets/lookbook/artboard-9.jpg",
+      "dest": "public/assets/lookbook/artboard-9.webp"
+    },
+    {
+      "src": "public/banners/empty centre.jpg",
+      "dest": "public/banners/empty-centre.webp"
+    },
+    {
+      "src": "public/banners/mobile-banner.jpg",
+      "dest": "public/banners/mobile-banner.webp"
+    },
+    {
+      "src": "public/banners/st-mobile-banner.jpg",
+      "dest": "public/banners/st-mobile-banner.webp"
+    },
+    {
+      "src": "public/banners/st-mobile-banner.png",
+      "dest": "public/banners/st-mobile-banner.webp"
+    },
+    {
+      "src": "public/assets/products/black-warrior/image-1.jpg",
+      "dest": "public/assets/products/black-warrior/image-1.webp"
+    },
+    {
+      "src": "public/assets/products/black-warrior/image-3.jpg",
+      "dest": "public/assets/products/black-warrior/image-3.webp"
+    },
+    {
+      "src": "public/assets/products/black-warrior/image-5.jpg",
+      "dest": "public/assets/products/black-warrior/image-5.webp"
+    },
+    {
+      "src": "public/assets/products/brown-warrior/image-1.jpg",
+      "dest": "public/assets/products/brown-warrior/image-1.webp"
+    },
+    {
+      "src": "public/assets/products/brown-warrior/image-3.jpg",
+      "dest": "public/assets/products/brown-warrior/image-3.webp"
+    },
+    {
+      "src": "public/assets/products/brown-warrior/image-5.jpg",
+      "dest": "public/assets/products/brown-warrior/image-5.webp"
+    },
+    {
+      "src": "public/assets/products/ctt-waffle/image-1.jpg",
+      "dest": "public/assets/products/ctt-waffle/image-1.webp"
+    },
+    {
+      "src": "public/assets/products/ctt-waffle/image-5.jpg",
+      "dest": "public/assets/products/ctt-waffle/image-5.webp"
+    },
+    {
+      "src": "public/assets/products/inspired/image-1.jpg",
+      "dest": "public/assets/products/inspired/image-1.webp"
+    },
+    {
+      "src": "public/assets/products/inspired/image-3.jpg",
+      "dest": "public/assets/products/inspired/image-3.webp"
+    },
+    {
+      "src": "public/assets/products/inspired/image-5.jpg",
+      "dest": "public/assets/products/inspired/image-5.webp"
+    },
+    {
+      "src": "public/assets/products/warrior-bob/image-1.jpg",
+      "dest": "public/assets/products/warrior-bob/image-1.webp"
+    }
+  ]
+}

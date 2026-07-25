@@ -62,7 +62,7 @@ export default function FeaturedCollections() {
           >
             <div data-cursor="drag" className="relative w-full aspect-[4/5] md:aspect-[16/10] overflow-hidden bg-[#111] rotate-[1deg] shadow-2xl border border-white/5 p-1 pb-4 bg-zinc-900/50 rounded-xl">
               <Image
-                src="/assets/products/inspired/image-1.jpg"
+                src="/assets/products/inspired/image-1.webp"
                 alt="Inspired tee editorial"
                 fill
                 className="object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-105 opacity-80 group-hover:opacity-100"

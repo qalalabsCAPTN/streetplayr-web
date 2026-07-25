@@ -1,4 +1,4 @@
-/* Archivo loaded via next/font (--font-archivo) in app/layout.tsx — no Google Fonts CSS */
+/* Brand fonts: Anton / Inter / Space Mono via next/font in app/layout.tsx */
 
 .storefront-root {
   /* Warm editorial light — lilac-tinted paper, not dead grey */
@@ -1337,17 +1337,56 @@ body.theme-light .carousel3d__dot.active {
 .pdp__3d:hover { border-color: rgba(221,183,255,0.45); color: #ddb7ff; }
 .pdp__tryon { margin-top: 12px; }
 
-/* PDP tabs */
-.tabs { display: flex; gap: 0; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+/* PDP info switcher — one rail, three equal cells */
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 3px;
+  padding: 3px;
+  margin: 0 0 4px;
+  border-radius: 12px;
+  border: 1px solid rgba(22, 17, 27, 0.1);
+  background: rgba(22, 17, 27, 0.05);
+  overflow: hidden;
+}
 .tabs::-webkit-scrollbar { display: none; }
 .tab {
-  flex: 1 0 auto; text-align: center; font-size: 11px; font-weight: 500;
-  padding: 11px 8px; color: var(--muted); min-height: 40px;
-  border-bottom: 2px solid var(--line); transition: color 0.2s, border-color 0.2s;
-  white-space: nowrap; cursor: pointer; background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  padding: 10px 6px;
+  text-align: center;
+  font-family: var(--font-sp-mono, ui-monospace, monospace);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--muted);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 9px;
+  box-shadow: none;
+  transition: color 0.2s, background 0.2s, box-shadow 0.2s;
 }
-.tab.active { color: var(--fg); border-color: var(--fg); font-weight: 700; }
-.tabbody { padding: 14px 2px 4px; }
+.tab:hover {
+  color: var(--fg);
+  background: rgba(255, 255, 255, 0.35);
+}
+.tab.active {
+  color: #16111b;
+  font-weight: 700;
+  background: #ffffff;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 4px 14px rgba(0, 0, 0, 0.08);
+}
+.tabbody { padding: 16px 2px 4px; }
 .tabbody h6 {
   font-size: 11px; font-weight: 700; margin: 0 0 8px;
   letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg);
@@ -2160,9 +2199,26 @@ body.theme-light .carousel3d__dot.active {
   border-color: transparent;
 }
 
+.storefront-root.theme-dark .tabs {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.45);
+}
+.storefront-root.theme-dark .tab {
+  color: rgba(255, 255, 255, 0.42);
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+.storefront-root.theme-dark .tab:hover {
+  color: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.06);
+}
 .storefront-root.theme-dark .tab.active {
-  border-color: var(--fg);
-  color: var(--fg);
+  color: #16111b;
+  background: #eadfed;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.35) inset,
+    0 6px 16px rgba(0, 0, 0, 0.28);
 }
 
 .storefront-root.theme-dark .tabbody li,
@@ -3706,6 +3762,236 @@ body.theme-light .carousel3d__dot.active {
   font-weight: 600;
   letter-spacing: -0.02em;
   margin: 0;
+}
+
+.storefront-root .acct-section-head__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.storefront-root .acct-section-head__link {
+  font-family: var(--font-sp-mono, ui-monospace, monospace);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--sp-accent, #ddb7ff);
+  text-decoration: none;
+  opacity: 0.85;
+  transition: opacity 0.2s;
+}
+.storefront-root .acct-section-head__link:hover { opacity: 1; }
+
+/* ── AI Try-On profile gallery ── */
+.storefront-root .tryon-gallery__intro {
+  font-family: var(--font-sp-body, Inter, system-ui, sans-serif);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--fg-50, #5c5663);
+  margin: 0 0 18px;
+  max-width: 42ch;
+}
+
+.storefront-root .tryon-gallery__empty,
+.storefront-root .tryon-gallery--loading {
+  padding: 28px 20px;
+  border-radius: 18px;
+  border: 1px solid rgba(221, 183, 255, 0.14);
+  background: rgba(221, 183, 255, 0.03);
+  text-align: center;
+}
+
+.storefront-root .tryon-gallery__empty-copy {
+  font-family: var(--font-sp-mono, ui-monospace, monospace);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  line-height: 1.6;
+  color: var(--fg-45, #5c5663);
+  margin: 0 0 14px;
+}
+
+.storefront-root .tryon-gallery__empty-copy strong {
+  color: var(--sp-accent, #ddb7ff);
+  font-weight: 600;
+}
+
+.storefront-root .tryon-gallery__grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .storefront-root .tryon-gallery__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .storefront-root .tryon-gallery:not(.tryon-gallery--compact) .tryon-gallery__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.storefront-root .tryon-gallery--compact .tryon-gallery__grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 768px) {
+  .storefront-root .tryon-gallery--compact .tryon-gallery__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.storefront-root .tryon-gallery__card {
+  margin: 0;
+  min-width: 0;
+}
+
+.storefront-root .tryon-gallery__frame {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(221, 183, 255, 0.12);
+  background: rgba(22, 17, 27, 0.35);
+}
+
+.storefront-root:not(.theme-dark) .tryon-gallery__frame {
+  background: rgba(255, 255, 255, 0.55);
+  border-color: rgba(22, 17, 27, 0.08);
+}
+
+.storefront-root .tryon-gallery__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.storefront-root .tryon-gallery__badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  font-family: var(--font-sp-mono, ui-monospace, monospace);
+  font-size: 7px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(221, 183, 255, 0.9);
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(8px);
+  padding: 4px 7px;
+  border: 1px solid rgba(221, 183, 255, 0.2);
+}
+
+.storefront-root .tryon-gallery__actions {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.storefront-root .tryon-gallery__dl,
+.storefront-root .tryon-gallery__rm {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-family: var(--font-sp-mono, ui-monospace, monospace);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.storefront-root .tryon-gallery__dl {
+  color: #16111b;
+  background: var(--sp-cta-bg, #eadfed);
+  border: 1px solid transparent;
+}
+
+.storefront-root .tryon-gallery__dl:hover {
+  background: var(--sp-cta-hover-bg, #ddb7ff);
+}
+
+.storefront-root .tryon-gallery__dl:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+
+.storefront-root .tryon-gallery__rm {
+  color: rgba(255, 255, 255, 0.75);
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+}
+
+.storefront-root .tryon-gallery__rm:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.storefront-root .tryon-gallery__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+  padding: 0 2px;
+}
+
+.storefront-root .tryon-gallery__title {
+  font-family: var(--font-sp-body, Inter, system-ui, sans-serif);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: inherit;
+  text-decoration: none;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.storefront-root a.tryon-gallery__title:hover {
+  color: var(--sp-accent, #ddb7ff);
+}
+
+.storefront-root .tryon-gallery__date {
+  font-family: var(--font-sp-mono, ui-monospace, monospace);
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-35, #5c5663);
+}
+
+.storefront-root .tryon-gallery__more {
+  display: inline-block;
+  margin-top: 14px;
+  font-family: var(--font-sp-mono, ui-monospace, monospace);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--sp-accent, #ddb7ff);
+  text-decoration: none;
+}
+
+.storefront-root .tryon-gallery__more:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .storefront-root .acct-btn-outline {

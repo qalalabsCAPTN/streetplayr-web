@@ -13,6 +13,7 @@ export default function CartDrawer() {
   const [suggestions, setSuggestions] = useState<Suggest[]>([]);
 
   useEffect(() => {
+    if (!cart.open || suggestions.length > 0) return;
     let cancelled = false;
     (async () => {
       try {
@@ -34,7 +35,7 @@ export default function CartDrawer() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [cart.open, suggestions.length]);
 
   return (
     <>

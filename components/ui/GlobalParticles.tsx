@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
 
 interface Particle {
   left: number;
@@ -10,34 +9,24 @@ interface Particle {
   size: number;
 }
 
-const EXCLUDED_PATHS: string[] = [];
-
 export default function GlobalParticles() {
-  const pathname = usePathname();
   const [particles, setParticles] = useState<Particle[]>([]);
 
   useEffect(() => {
-    // Detect screen width to adjust particle count and size dynamically
     const isDesktop = window.innerWidth >= 1024;
     const count = isDesktop ? 45 : 18;
-    
+
     const generated = Array.from({ length: count }, () => {
-      const dur = isDesktop ? (7 + Math.random() * 8) : (5 + Math.random() * 7);
+      const dur = isDesktop ? 7 + Math.random() * 8 : 5 + Math.random() * 7;
       return {
         left: Math.random() * 100,
-        // Negative delay pre-warms the animation so they are distributed across the screen height on load
         delay: -Math.random() * dur,
         dur,
-        size: isDesktop ? (2 + Math.random() * 3.5) : (1 + Math.random() * 2),
+        size: isDesktop ? 2 + Math.random() * 3.5 : 1 + Math.random() * 2,
       };
     });
     setParticles(generated);
   }, []);
-
-  // Do not render particles on excluded pages
-  if (EXCLUDED_PATHS.includes(pathname)) {
-    return null;
-  }
 
   return (
     <div className="pointer-events-none fixed inset-0 z-[-1] overflow-hidden">
@@ -54,7 +43,6 @@ export default function GlobalParticles() {
             boxShadow: `0 0 ${p.size * 3}px var(--sp-accent, rgba(221, 183, 255, 0.45))`,
             animation: `pPart ${p.dur}s linear infinite`,
             animationDelay: `${p.delay}s`,
-            willChange: "transform",
           }}
         />
       ))}

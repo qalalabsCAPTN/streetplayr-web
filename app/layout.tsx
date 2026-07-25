@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Anton, Archivo, Inter, Space_Mono } from "next/font/google";
+import { Anton, Inter, Space_Mono } from "next/font/google";
 import AuthProvider from "@/components/auth/AuthProvider";
 import RealtimeProvider from "@/components/auth/RealtimeProvider";
 import { QueryProvider } from "@/providers/query-provider";
@@ -27,15 +27,6 @@ const mono = Space_Mono({
   subsets: ["latin"],
   weight: ["400", "700"],
   variable: "--font-sp-mono",
-  display: "swap",
-  preload: false,
-});
-
-/** Replaces render-blocking fonts.googleapis.com Archivo CSS in storefront.css */
-const archivo = Archivo({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  variable: "--font-archivo",
   display: "swap",
   preload: false,
 });
@@ -98,7 +89,7 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`${display.variable} ${body.variable} ${mono.variable} ${archivo.variable} h-full antialiased`}
+      className={`${display.variable} ${body.variable} ${mono.variable} h-full antialiased`}
     >
       <head>
         <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />

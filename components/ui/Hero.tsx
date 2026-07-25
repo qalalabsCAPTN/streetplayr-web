@@ -14,7 +14,7 @@ const SLIDES = [
   {
     // Prefer compressed asset (~0.28MB) over banners/empty centre.jpg (~2.28MB)
     src: '/assets/empty_centre.jpg',
-    mobileSrc: '/banners/st-mobile-banner.jpg',
+    mobileSrc: '/banners/st-mobile-banner.webp',
     alt: 'Streetplayr Drop 001',
     href: '/collections',
   },

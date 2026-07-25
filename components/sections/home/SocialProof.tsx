@@ -5,7 +5,7 @@ import { motion, useInView, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
 
 const instagramPosts = [
-  { id: 1, image: "/assets/products/inspired/image-1.jpg", className: "mt-12 md:mt-24" },
+  { id: 1, image: "/assets/products/inspired/image-1.webp", className: "mt-12 md:mt-24" },
   { id: 2, image: "/assets/products/carpenter-grey/image-1.jpg", className: "" },
   { id: 3, image: "/assets/products/star-tank-dark/image-1.jpg", className: "mt-8 md:mt-16" },
   { id: 4, image: "/assets/products/warrior-bob/image-1.jpg", className: "-mt-4 md:-mt-8" },

@@ -9,7 +9,7 @@ const latestDrop: Product[] = [
     category: "T-Shirt",
     price: "Rs. 1,499",
     spPrice: "SP Rs. 1,249",
-    image: "/assets/products/inspired/image-1.jpg",
+    image: "/assets/products/inspired/image-1.webp",
     imageAlt: "Street PlayR Inspired tee",
     badge: "New",
     href: "/product/triple-tee-set",

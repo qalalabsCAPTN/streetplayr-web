@@ -264,7 +264,7 @@ export default function HomeHero({
       <div className="absolute inset-0 w-full h-full z-[-2]">
         <HeroArtImage
           desktopSrc={bgImageUrl || "/assets/empty_centre.jpg"}
-          mobileSrc={bgImageUrl || "/banners/st-mobile-banner.jpg"}
+          mobileSrc={bgImageUrl || "/banners/st-mobile-banner.webp"}
           alt={title}
         />
       </div>

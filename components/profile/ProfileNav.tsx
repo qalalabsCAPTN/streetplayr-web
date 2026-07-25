@@ -60,9 +60,23 @@ function IconSettings({ active }: { active?: boolean }) {
   );
 }
 
+function IconTryOn({ active }: { active?: boolean }) {
+  return (
+    <svg className="acct-nav__icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"
+        stroke="currentColor"
+        strokeWidth={active ? '1.7' : '1.3'}
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 // ─── Nav Items ──────────────────────────────────────────────────────────
 const NAV_ITEMS = [
   { label: 'Overview',        href: '/profile',           icon: IconUser },
+  { label: 'Try-Ons',         href: '/profile/try-ons',   icon: IconTryOn },
   { label: 'Wallet',          href: '/profile/wallet',    icon: IconWallet },
   { label: 'Rewards',         href: '/profile/rewards',   icon: IconGift },
   { label: 'Orders',          href: '/profile/orders',    icon: IconPackage },

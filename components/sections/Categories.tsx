@@ -9,7 +9,7 @@ const categories = [
   {
     name: "T-Shirt",
     href: "/collections?category=t-shirt",
-    image: "/assets/products/inspired/image-1.jpg",
+    image: "/assets/products/inspired/image-1.webp",
   },
   {
     name: "Waffle",
