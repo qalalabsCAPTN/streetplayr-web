@@ -37,12 +37,13 @@ export class UnicommerceService {
 
       if (config.transportMode === 'SOAP') {
         const { soapRequest } = await import('./soapClient');
-        // A simple query to GetItemTypeRequest for a verified product
+        // Probe a real StreetPlayR catalog SKU (legacy Adidas sample SKU was deleted)
+        const probeSku = process.env.UNICOMMERCE_PROBE_SKU || 'PS-TEE-CRT-WHT';
         await soapRequest(
           'GetItemTypeRequest',
-          '<ser:GetItemTypeRequest><ser:SkuCode>IK5737-M</ser:SkuCode></ser:GetItemTypeRequest>'
+          `<ser:GetItemTypeRequest><ser:SkuCode>${probeSku}</ser:SkuCode></ser:GetItemTypeRequest>`
         );
-        return { success: true, message: 'SOAP Connection successful' };
+        return { success: true, message: `SOAP Connection successful (${probeSku})` };
       }
 
       // Check auth by trying to retrieve token
