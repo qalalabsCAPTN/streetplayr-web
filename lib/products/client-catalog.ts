@@ -12,8 +12,11 @@ import type { CatalogProduct } from '@/lib/products/queries';
 import { getLocalActiveProducts, LOCAL_PRODUCTS } from '@/lib/products/data';
 import { allowLocalCatalog, isSupabaseLive } from '@/lib/products/env';
 
-function mapLocal(): CatalogProduct[] {
-  if (!allowLocalCatalog()) return [];
+function mapLocal(opts?: { rescueEmpty?: boolean }): CatalogProduct[] {
+  if (!allowLocalCatalog(opts)) return [];
+  if (opts?.rescueEmpty) {
+    console.warn('[catalog:client] Live catalog empty/unusable — rescuing with local merch');
+  }
   return getLocalActiveProducts().map((p, i) => {
     const full = LOCAL_PRODUCTS.find((lp) => lp.id === p.id || lp.slug === p.slug);
     return {
@@ -52,7 +55,8 @@ export async function loadClientCatalog(): Promise<CatalogProduct[]> {
 
     if (error || !data || data.length === 0) {
       if (error) console.warn('[catalog:client] products failed:', error.message);
-      return mapLocal();
+      else console.warn('[catalog:client] products returned 0 rows');
+      return mapLocal({ rescueEmpty: true });
     }
 
     const membership = new Map<string, CollectionSlug[]>();
@@ -104,16 +108,16 @@ export async function loadClientCatalog(): Promise<CatalogProduct[]> {
       };
     });
 
-    // If DB returned products but ZERO collection links resolved, prefer local demo membership catalog
-    const anyMembership = mapped.some((p) => p.collections.length > 0);
-    if (!anyMembership) {
-      console.warn('[catalog:client] No collection membership in DB — using local catalog SoT');
-      return mapLocal();
+    // Keep live DB rows; do not replace with demo merch when membership empty
+    if (!mapped.some((p) => p.collections.length > 0)) {
+      console.warn(
+        '[catalog:client] No collection membership resolved — returning unfiltered DB products'
+      );
     }
 
     return mapped;
   } catch (err) {
     console.error('[catalog:client] exception:', err);
-    return mapLocal();
+    return mapLocal({ rescueEmpty: true });
   }
 }

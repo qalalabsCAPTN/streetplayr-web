@@ -69,7 +69,13 @@ export const metadata: Metadata = {
  * Auth still SSR'd for zero-flicker session (cookies() → dynamic).
  * Public data fetches elsewhere use createStaticClient + revalidate for cache hits.
  * GTM uses afterInteractive (non-blocking render, conversion-safe).
+ *
+ * force-dynamic: root layout reads cookies via AuthService.getCurrentProfile().
+ * Without this, Next tries to statically prerender routes like /auth/auth-code-error
+ * and throws DYNAMIC_SERVER_USAGE (logged as "Failed to load initial user…").
  */
+export const dynamic = "force-dynamic";
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -79,7 +85,14 @@ export default async function RootLayout({
   try {
     user = await AuthService.getCurrentProfile();
   } catch (err) {
-    console.error("Failed to load initial user on server layout:", err);
+    // Ignore expected dynamic-bail during tooling; log real failures only.
+    const digest =
+      err && typeof err === "object" && "digest" in err
+        ? String((err as { digest?: string }).digest)
+        : "";
+    if (digest !== "DYNAMIC_SERVER_USAGE") {
+      console.error("Failed to load initial user on server layout:", err);
+    }
   }
 
   return (

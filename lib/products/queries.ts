@@ -104,8 +104,11 @@ function formatSupabaseError(error: unknown) {
   return String(error);
 }
 
-function mapLocalCatalog(): CatalogProduct[] {
-  if (!allowLocalCatalog()) return [];
+function mapLocalCatalog(opts?: { rescueEmpty?: boolean }): CatalogProduct[] {
+  if (!allowLocalCatalog(opts)) return [];
+  if (opts?.rescueEmpty) {
+    console.warn('[catalog] Live catalog empty/unusable — rescuing with local merch (set USE_LOCAL_CATALOG=0 to disable)');
+  }
   return getLocalActiveProducts().map((p, i) => {
     const full = LOCAL_PRODUCTS.find((lp) => lp.id === p.id || lp.slug === p.slug);
     const collections = localMembershipFor(p.id, p.slug);
@@ -177,19 +180,20 @@ export const ProductQueries = {
         .order('created_at', { ascending: false });
 
       if (error || !data || data.length === 0) {
-        if (error) console.warn('[catalog] products query failed, using local:', formatSupabaseError(error));
-        return mapLocalCatalog();
+        if (error) console.warn('[catalog] products query failed, rescuing local:', formatSupabaseError(error));
+        else console.warn('[catalog] products query returned 0 rows — rescuing local');
+        return mapLocalCatalog({ rescueEmpty: true });
       }
 
       const membership = await fetchMembershipMap(supabase);
 
-      return data.map((p) => {
+      const mapped = data.map((p) => {
         const variants = mapCatalogVariants(p.product_variants as any);
         const prices = variants.map((v) => v.price).filter((n): n is number => typeof n === 'number');
         const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
         let collections = membership.get(p.id) || [];
 
-        // Dev-only: if DB has no links yet, use local map keyed by slug (never invent TEES)
+        // If DB has no links yet, use local map keyed by slug (never invent TEES)
         if (collections.length === 0) {
           collections = localMembershipFor(p.id, p.slug);
           if (collections.length === 0) {
@@ -212,9 +216,19 @@ export const ProductQueries = {
           metadata: p.metadata || {},
         };
       });
+
+      // Keep live DB rows even with zero membership — home/collections show
+      // unfiltered shelves. Never swap real merch for demo SKUs.
+      if (!mapped.some((p) => p.collections.length > 0)) {
+        console.warn(
+          '[catalog] No collection membership resolved — returning unfiltered DB products'
+        );
+      }
+
+      return mapped;
     } catch (err) {
       console.error('[catalog] getCatalogProducts exception:', formatSupabaseError(err));
-      return mapLocalCatalog();
+      return mapLocalCatalog({ rescueEmpty: true });
     }
   },
 
@@ -274,6 +288,9 @@ export const ProductQueries = {
   },
 
   async getProductBySlug(slug: string) {
+    const localOrNull = () =>
+      allowLocalCatalog({ rescueEmpty: true }) ? getLocalProductBySlug(slug) || null : null;
+
     if (!isSupabaseLive()) {
       return allowLocalCatalog() ? getLocalProductBySlug(slug) || null : null;
     }
@@ -297,10 +314,10 @@ export const ProductQueries = {
 
       if (error) {
         console.error('Error fetching product by slug:', formatSupabaseError(error));
-        return allowLocalCatalog() ? getLocalProductBySlug(slug) || null : null;
+        return localOrNull();
       }
 
-      if (!data) return allowLocalCatalog() ? getLocalProductBySlug(slug) || null : null;
+      if (!data) return localOrNull();
 
       const variants = (data.product_variants ?? []).map((v: any) => ({
         id: v.id,
@@ -331,7 +348,7 @@ export const ProductQueries = {
       };
     } catch (err) {
       console.error('Exception in getProductBySlug:', formatSupabaseError(err));
-      return allowLocalCatalog() ? getLocalProductBySlug(slug) || null : null;
+      return localOrNull();
     }
   },
 };

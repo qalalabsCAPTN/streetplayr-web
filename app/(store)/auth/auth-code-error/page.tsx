@@ -1,5 +1,8 @@
 import Link from 'next/link';
 
+/** Parent root layout reads cookies for auth — keep this route dynamic too. */
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Authentication Error | Street PlayR',
 };

@@ -3,7 +3,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { getSupabaseClient } from '@/lib/ops2/supabase';
 import { getLocalLatestDrops } from '@/lib/products/data';
+import { allowLocalCatalog } from '@/lib/products/env';
 import BestSellersGate from "@/components/sections/home/BestSellersGate";
+
+function localDropsRescue() {
+  return allowLocalCatalog({ rescueEmpty: true }) ? getLocalLatestDrops() : [];
+}
 
 interface CMSBestSellerContent {
   schema_version?: string;
@@ -50,7 +55,7 @@ async function getClientLatestDrops() {
       .limit(10);
 
     if (error || !data || data.length === 0) {
-      return getLocalLatestDrops();
+      return localDropsRescue();
     }
 
     const typedData = data as unknown as DBProduct[];
@@ -69,7 +74,7 @@ async function getClientLatestDrops() {
     });
   } catch (err) {
     console.warn('[CMSBestSellerWrapper] Fallback fetch failed, loading static data:', err);
-    return getLocalLatestDrops();
+    return localDropsRescue();
   }
 }
 

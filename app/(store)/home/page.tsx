@@ -41,7 +41,13 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
   const blocks = await getPageBlocks("home", "streetplayr", isPreview);
 
-  if (blocks && blocks.length > 0) {
+  const CATALOG_BLOCK_TYPES = new Set(["product_carousel", "collection_grid"]);
+  const hasCmsBlocks = Array.isArray(blocks) && blocks.length > 0;
+  const cmsHasCatalog =
+    hasCmsBlocks && blocks.some((b) => CATALOG_BLOCK_TYPES.has(b.block_type));
+
+  // CMS with its own product blocks → full CMS page
+  if (cmsHasCatalog) {
     return (
       <div className="flex flex-col w-full overflow-x-clip bg-transparent text-[#eadfed]">
         <BlockRenderer blocks={blocks} />
@@ -62,14 +68,24 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       )
       .slice(0, 8);
 
-  const tees = byCollection(COLLECTION_SLUG.TEES);
-  const longSleeve = byCollection(COLLECTION_SLUG.LONG_SLEEVE);
-  const pants = byCollection(COLLECTION_SLUG.PANTS);
-  const tanks = byCollection(COLLECTION_SLUG.TANKS);
+  let tees = byCollection(COLLECTION_SLUG.TEES);
+  let longSleeve = byCollection(COLLECTION_SLUG.LONG_SLEEVE);
+  let pants = byCollection(COLLECTION_SLUG.PANTS);
+  let tanks = byCollection(COLLECTION_SLUG.TANKS);
 
-  return (
-    <div className="flex flex-col w-full">
-      <Hero />
+  // Last-resort shelf: if every section is empty but we have products, show them
+  // under Short Sleeve so home never looks like an empty store.
+  const anySection =
+    tees.length + longSleeve.length + pants.length + tanks.length > 0;
+  if (!anySection && activeProducts.length > 0) {
+    console.warn(
+      "[home] Collection filters empty — showing unfiltered active products in first section"
+    );
+    tees = activeProducts.slice(0, 8) as typeof tees;
+  }
+
+  const productSections = (
+    <>
       <ProductSection
         title="Short Sleeve T-Shirts"
         products={tees}
@@ -97,6 +113,23 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         gallery
       />
       <RecentlyVisited />
+    </>
+  );
+
+  // Editorial CMS (hero/story/lookbook) without catalog blocks — keep CMS, append shelves
+  if (hasCmsBlocks) {
+    return (
+      <div className="flex flex-col w-full overflow-x-clip bg-transparent text-[#eadfed]">
+        <BlockRenderer blocks={blocks} />
+        {productSections}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col w-full">
+      <Hero />
+      {productSections}
     </div>
   );
 }
