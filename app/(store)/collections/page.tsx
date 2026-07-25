@@ -149,7 +149,8 @@ function CollectionsInner() {
           rootMargin="0px"
           deferMs={2000}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[var(--page-bg)] via-[var(--page-bg)]/50 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/55 via-black/40 to-black/20" />
+        <div className="absolute inset-x-0 bottom-0 h-[42%] pointer-events-none bg-gradient-to-t from-[var(--page-bg)] to-transparent" />
         <div className="absolute inset-x-0 bottom-0 z-[1] px-4 md:px-6 pb-10 md:pb-14 w-full max-w-[min(95vw,2400px)] mx-auto">
           <span className="listing__eyebrow block mb-3">Collection / SS26</span>
           <h1 className="listing__title text-white drop-shadow-sm">{titleForChip}</h1>
@@ -163,7 +164,7 @@ function CollectionsInner() {
         </div>
       </section>
 
-      <main className="relative z-[1] pb-24 w-full max-w-[min(95vw,2400px)] mx-auto px-4 md:px-6">
+      <main className="relative z-[1] pb-10 md:pb-14 w-full max-w-[min(95vw,2400px)] mx-auto px-4 md:px-6">
         <div className="listing listing--collections">
           <div className="chips" role="tablist" aria-label="Collection filters">
             {chips.map((c) => {

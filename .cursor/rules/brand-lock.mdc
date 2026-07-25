@@ -1,0 +1,16 @@
+---
+description: Lock StreetPlayR brand theme colors and fonts — do not alter
+alwaysApply: true
+---
+
+# Brand Lock — Theme, Color, Fonts
+
+When polishing storefront UI (glass, layout, contrast, spacing):
+
+- **Do NOT** change brand theme colors, CTA tokens, or font families.
+- **Keep:** Anton / Inter / Space Mono via `--font-sp-display`, `--font-sp-body`, `--font-sp-mono`.
+- **Keep:** CTA lilac `--sp-cta-bg` (`#eadfed`), hover `--sp-cta-hover-bg` (`#ddb7ff`), text `--sp-cta-text` (`#16111b`).
+- **Keep:** ink `#16111b` / muted `#5c5663` for light-mode text hierarchy.
+- Glassmorphism = opacity + blur + border/shadow only — not new accent hues.
+- Prefer fixing contrast with frosted plates / overlays, not recoloring product imagery or brand marks.
+---

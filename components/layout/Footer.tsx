@@ -78,10 +78,10 @@ export default function Footer() {
             <Link href="/stores">Coming soon</Link>
             <Link href="/collaborations">Collaborations</Link>
           </div>
-          <div className="footer__bag flex flex-col items-center justify-center" style={{ minHeight: '200px' }}>
+          <div className="footer__bag flex flex-col items-center justify-center">
             <div
               ref={starContainerRef}
-              className="w-full max-w-[300px] sm:max-w-[260px] md:max-w-[280px] aspect-square select-none pointer-events-auto flex items-center justify-center"
+              className="w-full max-w-[240px] sm:max-w-[220px] md:max-w-[240px] aspect-square select-none pointer-events-auto flex items-center justify-center"
             >
               {showStar && <NinjaStar scale={starScale} scrollReactive={false} />}
             </div>
