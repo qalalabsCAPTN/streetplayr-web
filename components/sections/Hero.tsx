@@ -41,7 +41,7 @@ export default function Hero() {
         fill
         priority
         sizes="100vw"
-        src="/assets/hero-tees.png"
+        src="/assets/empty_centre.jpg"
       />
       <div className="absolute inset-0 -z-10 bg-[linear-gradient(120deg,rgba(0,0,0,0.92)_0%,rgba(0,0,0,0.68)_38%,rgba(0,0,0,0.20)_72%,rgba(0,0,0,0.74)_100%)]" />
       <div className="absolute inset-x-0 top-0 -z-10 h-1/3 bg-gradient-to-b from-black via-black/80 to-transparent" />

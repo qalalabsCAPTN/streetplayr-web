@@ -6,7 +6,6 @@ import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import ProductCard from '@/components/ui/ProductCard';
-import LazyVideo from '@/components/ui/LazyVideo';
 import {
   DESKTOP_CHIPS,
   MOBILE_CHIPS,
@@ -118,36 +117,36 @@ function CollectionsInner() {
     } else if (sortBy === 'Price: High to Low') {
       list.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
     } else {
-      list.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
+      // Popular: latest_drop / featured first, then recency
+      const score = (p: CatalogProduct) => {
+        const m = p.metadata || {};
+        let s = p.createdAt ?? 0;
+        if (m.latest_drop === true) s += 1e15;
+        if (m.featured === true) s += 5e14;
+        const pts = Number(m.points);
+        if (Number.isFinite(pts)) s += pts * 1e6;
+        return s;
+      };
+      list.sort((a, b) => score(b) - score(a));
     }
     return list;
   }, [filteredProducts, sortBy]);
 
   const titleForChip =
-    activeChip === 'Latest Drop'
-      ? 'Latest Drop'
-      : activeChip === 'View all' || activeChip === 'All Products'
-        ? 'All Products'
-        : activeChip;
+    activeChip === 'View all' || activeChip === 'All Products'
+      ? 'All Products'
+      : activeChip;
 
   return (
     <div className="min-h-screen bg-transparent relative overflow-x-clip">
       <Navbar />
 
       <section className="collections-hero relative z-[1] w-full overflow-hidden">
-        <LazyVideo
-          className="absolute inset-0 w-full h-full object-cover object-center opacity-100 hidden md:block"
-          src="/assets/COLLECTION_MOTION_BANNER.mp4"
-          poster="/assets/empty_centre.jpg"
-          rootMargin="0px"
-          deferMs={2000}
-        />
-        <LazyVideo
-          className="absolute inset-0 w-full h-full object-cover object-[center_35%] opacity-100 md:hidden"
-          src="/assets/FOR_MOBILE_ST_COLLECTION.mp4"
-          poster="/banners/st-mobile-banner.jpg"
-          rootMargin="0px"
-          deferMs={2000}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          className="absolute inset-0 w-full h-full object-cover object-center opacity-100"
+          src="/assets/empty_centre.jpg"
+          alt=""
         />
         <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/55 via-black/40 to-black/20" />
         <div className="absolute inset-x-0 bottom-0 h-[42%] pointer-events-none bg-gradient-to-t from-[var(--page-bg)] to-transparent" />

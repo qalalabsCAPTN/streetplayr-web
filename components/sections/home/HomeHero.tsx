@@ -118,7 +118,7 @@ export default function HomeHero({
   ctaLabel = "Shop Now",
   ctaHref = "/collections",
   bgImageUrl,
-  // bgVideoUrl = "/assets/home-page-banner.mp4",
+  // bgVideoUrl unused — star intro lives at /assets/videos/WebAnimation_V1.mp4
   overlayOpacity = 0.4,
 }: HomeHeroProps = {}) {
   const router = useRouter();

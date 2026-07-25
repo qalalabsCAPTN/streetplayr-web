@@ -2,14 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
 import ProductCard from './ProductCard';
 import Reveal from './BluorngReveal';
-
-const Product3DCarousel = dynamic(() => import('./Product3DCarousel'), {
-  ssr: false,
-  loading: () => <div className="prow" aria-hidden />,
-});
 
 interface SectionProduct {
   id: string;
@@ -36,8 +30,8 @@ interface ProductSectionProps {
 }
 
 /**
- * Product row section. `flat` renders directly on the grey page (like "Latest drop"
- * in the reference); otherwise it's a white rounded panel.
+ * Product row section. `flat` renders directly on the grey page;
+ * otherwise it's a white rounded panel.
  *
  * Discover more:
  * - Desktop: pill in the section head (space to spare).
@@ -45,12 +39,18 @@ interface ProductSectionProps {
  *   section is a partial sample (≤3 items). Full rows already show enough;
  *   another fat CTA next to every title is noise.
  */
-export default function ProductSection({ title, mobileTitle, products, moreHref, gallery = true, grid = false, flat = false }: ProductSectionProps) {
+export default function ProductSection({
+  title,
+  mobileTitle,
+  products,
+  moreHref,
+  gallery = true,
+  grid = false,
+  flat = false,
+}: ProductSectionProps) {
   const [isMobile, setIsMobile] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
     const checkMobile = () => setIsMobile(window.innerWidth <= 900);
     checkMobile();
     window.addEventListener('resize', checkMobile);
@@ -72,15 +72,11 @@ export default function ProductSection({ title, mobileTitle, products, moreHref,
           </Link>
         )}
       </div>
-      {mounted && isMobile && title === 'Latest drop' ? (
-        <Product3DCarousel products={products} />
-      ) : (
-        <Reveal stagger className={grid ? 'pgrid' : 'prow'} as="div">
-          {products.map((p) => (
-            <ProductCard key={p.slug} product={p} gallery={gallery} />
-          ))}
-        </Reveal>
-      )}
+      <Reveal stagger className={grid ? 'pgrid' : 'prow'} as="div">
+        {products.map((p) => (
+          <ProductCard key={p.slug} product={p} gallery={gallery} />
+        ))}
+      </Reveal>
       {showMobileViewAll && (
         <Link href={moreHref!} className="panel__view-all">
           View all

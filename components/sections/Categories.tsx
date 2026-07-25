@@ -9,27 +9,27 @@ const categories = [
   {
     name: "T-Shirt",
     href: "/collections?category=t-shirt",
-    image: "/assets/hero-tees.png",
+    image: "/assets/products/inspired/image-1.jpg",
   },
   {
     name: "Waffle",
     href: "/collections?category=waffle",
-    image: "/assets/hero-tees.png",
+    image: "/assets/products/ctt-waffle/image-1.jpg",
   },
   {
     name: "Tank",
     href: "/collections?category=tank",
-    image: "/assets/polo-editorial.png",
+    image: "/assets/products/star-tank-dark/image-1.jpg",
   },
   {
     name: "Track",
     href: "/collections?category=track",
-    image: "/assets/run-shorts.jpeg",
+    image: "/assets/products/stick-no-bills/image-1.jpg",
   },
   {
     name: "Pants",
     href: "/collections?category=pants",
-    image: "/assets/srh-jersey.jpg",
+    image: "/assets/products/carpenter-grey/image-1.jpg",
   },
 ];
 

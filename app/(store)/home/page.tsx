@@ -2,6 +2,7 @@ import Hero from "@/components/ui/Hero";
 import ProductSection from "@/components/ui/ProductSection";
 import BannerSlider from "@/components/ui/BannerSlider";
 import RecentlyVisited from "@/components/ui/RecentlyVisited";
+import HomeMobileLatestCarousel from "@/components/ui/HomeMobileLatestCarousel";
 import { BlockRenderer } from "@/components/page-editor/block-renderer";
 import { getPageBlocks } from "@/lib/page-editor/get-page-blocks";
 import { ProductQueries } from "@/lib/products/queries";
@@ -68,48 +69,53 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       )
       .slice(0, 8);
 
-  let tees = byCollection(COLLECTION_SLUG.TEES);
-  let longSleeve = byCollection(COLLECTION_SLUG.LONG_SLEEVE);
-  let pants = byCollection(COLLECTION_SLUG.PANTS);
-  let tanks = byCollection(COLLECTION_SLUG.TANKS);
+  let latest = byCollection(COLLECTION_SLUG.LATEST);
+  const tees = byCollection(COLLECTION_SLUG.TEES);
+  const pants = byCollection(COLLECTION_SLUG.PANTS);
+  const tanks = byCollection(COLLECTION_SLUG.TANKS);
 
   // Last-resort shelf: if every section is empty but we have products, show them
-  // under Short Sleeve so home never looks like an empty store.
-  const anySection =
-    tees.length + longSleeve.length + pants.length + tanks.length > 0;
+  // under Latest Drop so home never looks like an empty store.
+  const anySection = latest.length + tees.length + pants.length + tanks.length > 0;
   if (!anySection && activeProducts.length > 0) {
     console.warn(
-      "[home] Collection filters empty — showing unfiltered active products in first section"
+      "[home] Collection filters empty — showing unfiltered active products in Latest Drop"
     );
-    tees = activeProducts.slice(0, 8) as typeof tees;
+    latest = activeProducts.slice(0, 8) as typeof latest;
   }
+
+  // Same catalog slice for mobile carousel + Latest Drop grid (no extra fetch).
+  const latestProducts = latest;
 
   const productSections = (
     <>
+      {/* Mobile only — CSS-hidden on desktop; reuses latestProducts */}
+      <HomeMobileLatestCarousel products={latestProducts} />
+
       <ProductSection
-        title="Short Sleeve T-Shirts"
-        products={tees}
-        moreHref="/collections?category=tees"
+        title="Latest Drop"
+        products={latestProducts}
+        moreHref="/collections"
         gallery
         flat
       />
       <ProductSection
-        title="Long Sleeve T-Shirts"
-        products={longSleeve}
-        moreHref="/collections?category=long-sleeve"
+        title="playR Tees Collection"
+        products={tees}
+        moreHref="/collections?category=tees"
         gallery
       />
       <BannerSlider />
       <ProductSection
-        title="Tanks"
-        products={tanks}
-        moreHref="/collections?category=tanks"
+        title="Pants"
+        products={pants}
+        moreHref="/collections?category=pants"
         gallery
       />
       <ProductSection
-        title="Sweatpants"
-        products={pants}
-        moreHref="/collections?category=pants"
+        title="Tank Tops"
+        products={tanks}
+        moreHref="/collections?category=tanks"
         gallery
       />
       <RecentlyVisited />

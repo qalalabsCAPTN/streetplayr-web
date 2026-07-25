@@ -62,8 +62,8 @@ export default function FeaturedCollections() {
           >
             <div data-cursor="drag" className="relative w-full aspect-[4/5] md:aspect-[16/10] overflow-hidden bg-[#111] rotate-[1deg] shadow-2xl border border-white/5 p-1 pb-4 bg-zinc-900/50 rounded-xl">
               <Image
-                src="/assets/polo-editorial.png"
-                alt="Polo Editorial"
+                src="/assets/products/inspired/image-1.jpg"
+                alt="Inspired tee editorial"
                 fill
                 className="object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-105 opacity-80 group-hover:opacity-100"
               />
@@ -81,8 +81,8 @@ export default function FeaturedCollections() {
           >
             <div data-cursor="product" className="relative w-full aspect-[3/4] md:aspect-[3/4] overflow-hidden bg-[#111] shadow-2xl shadow-black/80 rotate-[-1.5deg] border border-white/5 p-1 pb-8 bg-zinc-900/50 rounded-xl">
               <Image
-                src="/assets/srh-jersey.jpg"
-                alt="SRH Jersey"
+                src="/assets/products/star-tank-dark/image-1.jpg"
+                alt="Star tank"
                 fill
                 className="object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-105 opacity-90 group-hover:opacity-100"
               />

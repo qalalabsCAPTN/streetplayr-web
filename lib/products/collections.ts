@@ -60,7 +60,6 @@ export type FilterChip =
   | 'Hoodies';
 
 export const DESKTOP_CHIPS: FilterChip[] = [
-  'Latest Drop',
   'Short Sleeve T-Shirts',
   'Long Sleeve T-Shirts',
   'Tanks',
@@ -117,10 +116,9 @@ export function chipToParam(chip: FilterChip): string | null {
 
 export function paramToChip(category: string, mobile: boolean): FilterChip {
   const raw = (category || '').trim().toLowerCase();
-  if (!raw || raw === 'latest' || raw === 'latest-drop') {
-    return mobile ? 'View all' : 'Latest Drop';
+  if (!raw || raw === 'latest' || raw === 'latest-drop' || raw === 'all') {
+    return mobile ? 'View all' : 'Short Sleeve T-Shirts';
   }
-  if (raw === 'all') return mobile ? 'View all' : 'All Products';
   if (raw === 'topwear') return mobile ? 'Topwear' : 'Short Sleeve T-Shirts';
   if (raw === 'bottomwear') return mobile ? 'Bottomwear' : 'Sweatpants';
 
@@ -136,8 +134,7 @@ export function paramToChip(category: string, mobile: boolean): FilterChip {
   if (slug === COLLECTION_SLUG.TANKS) return 'Tanks';
   if (slug === COLLECTION_SLUG.PANTS) return 'Sweatpants';
   if (slug === COLLECTION_SLUG.HOODIES) return 'Hoodies';
-  if (slug === COLLECTION_SLUG.LATEST) return 'Latest Drop';
-  return 'Latest Drop';
+  return 'Short Sleeve T-Shirts';
 }
 
 /** Slugs a chip requires membership in (OR). Empty = show all products. */

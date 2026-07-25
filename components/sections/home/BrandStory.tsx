@@ -49,24 +49,24 @@ export default function BrandStory({
   const hasBlocks = blocks && blocks.length > 0;
 
   return (
-    <section className="relative py-20 sm:py-24 px-4 md:px-6 w-full max-w-[min(95vw,2400px)] mx-auto border-t border-white/[0.04]">
+    <section className="relative py-14 sm:py-20 px-4 md:px-6 w-full max-w-[min(95vw,2400px)] mx-auto border-t border-white/[0.04]">
       <FadeIn>
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex items-center gap-3 mb-5">
           <span className="h-px w-6 bg-white/20 block" />
           <span className="font-mono text-[10px] uppercase tracking-[0.3em] opacity-40">{subheading}</span>
         </div>
       </FadeIn>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-10">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
         {/* Text — left on desktop, above on mobile */}
-        <div className="lg:col-span-5 flex flex-col justify-center text-center lg:text-left">
+        <div className="lg:col-span-5 flex flex-col justify-center text-center lg:text-left max-w-lg mx-auto lg:mx-0 w-full">
           <FadeIn delay={0.15}>
             {heading ? (
-              <h2 className="font-display text-[clamp(26px,7vw,56px)] uppercase leading-[1.05] whitespace-pre-line"
+              <h2 className="font-display text-[clamp(22px,5.5vw,44px)] uppercase leading-[1.08] whitespace-pre-line"
                   dangerouslySetInnerHTML={{ __html: heading }}
               />
             ) : (
-              <h2 className="font-display text-[clamp(26px,7vw,56px)] uppercase leading-[1.05]">
+              <h2 className="font-display text-[clamp(22px,5.5vw,44px)] uppercase leading-[1.08]">
                 Create The Things
                 <br />
                 <span className="text-[#ddb7ff]">You Wish Existed</span>
@@ -74,12 +74,12 @@ export default function BrandStory({
             )}
           </FadeIn>
           <FadeIn delay={0.2}>
-            <div className="space-y-5 font-body text-[14px] sm:text-sm leading-[1.75] opacity-55 max-w-md mx-auto lg:mx-0 mt-6 px-1 sm:px-0">
+            <div className="space-y-4 font-body text-[13px] sm:text-[14px] leading-[1.7] opacity-55 mt-5 px-0">
               {hasBlocks ? (
                 blocks.map((b, i) => (
-                  <div key={i} className="mb-4 text-left">
-                    <h4 className="text-sm font-bold uppercase tracking-wider mb-2 opacity-100 leading-snug">{b.title}</h4>
-                    <p className="leading-[1.75]">{b.description}</p>
+                  <div key={i} className="mb-3 text-left">
+                    <h4 className="text-[12px] font-bold uppercase tracking-wider mb-1.5 opacity-100 leading-snug">{b.title}</h4>
+                    <p className="leading-[1.7]">{b.description}</p>
                   </div>
                 ))
               ) : (
@@ -99,7 +99,7 @@ export default function BrandStory({
           <FadeIn delay={0.3}>
             <Link
               href={ctaHref}
-              className="inline-flex items-center gap-2 mt-8 font-mono text-[10px] uppercase tracking-[0.22em] opacity-50 hover:opacity-100 transition-opacity duration-300 mx-auto lg:mx-0"
+              className="inline-flex items-center gap-2 mt-6 font-mono text-[10px] uppercase tracking-[0.22em] opacity-50 hover:opacity-100 transition-opacity duration-300 mx-auto lg:mx-0"
             >
               <span>{ctaLabel}</span>
               <span className="text-[11px]">→</span>
@@ -108,8 +108,8 @@ export default function BrandStory({
         </div>
 
         {/* Editorial media panel — right on desktop */}
-        <FadeIn delay={0.1} className="lg:col-span-7 relative overflow-hidden border border-white/[0.06] bg-[#0a0a0a] rounded-xl">
-          <div className="aspect-[4/3] relative">
+        <FadeIn delay={0.1} className="lg:col-span-7 relative overflow-hidden border border-white/[0.06] bg-[#0a0a0a] rounded-xl max-w-3xl w-full mx-auto lg:mx-0">
+          <div className="aspect-[16/10] relative">
             {hasBlocks && blocks[0]?.image_url ? (
               <Image
                 src={blocks[0].image_url}

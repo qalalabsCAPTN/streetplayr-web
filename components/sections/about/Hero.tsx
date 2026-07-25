@@ -11,7 +11,7 @@ export default function AboutHero() {
     <section ref={ref} className="relative min-h-screen w-full flex items-end overflow-hidden bg-transparent">
       <LazyVideo
         className="absolute inset-0 w-full h-full object-cover"
-        src="/assets/home-page-banner.mp4"
+        src="/assets/videos/WebAnimation_V1.mp4"
         poster="/assets/empty_centre.jpg"
         rootMargin="100px 0px"
       />

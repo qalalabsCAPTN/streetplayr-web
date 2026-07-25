@@ -33,11 +33,11 @@ export default function Footer() {
   }, []);
 
   const getStarScale = () => {
-    if (windowWidth === null) return 0.95;
-    // Mobile: visible but not oversized (was 1.2); tablet/desktop unified with hero.
-    if (windowWidth < 768) return 1.05;
-    if (windowWidth < 1024) return 0.85;
-    return 0.95;
+    if (windowWidth === null) return 1.05;
+    // Mobile feedback: larger footer star for visibility
+    if (windowWidth < 768) return 1.2;
+    if (windowWidth < 1024) return 1.0;
+    return 1.05;
   };
   const starScale = getStarScale();
 
@@ -81,7 +81,7 @@ export default function Footer() {
           <div className="footer__bag flex flex-col items-center justify-center">
             <div
               ref={starContainerRef}
-              className="w-full max-w-[240px] sm:max-w-[220px] md:max-w-[240px] aspect-square select-none pointer-events-auto flex items-center justify-center"
+              className="w-full max-w-[280px] sm:max-w-[260px] md:max-w-[280px] aspect-square select-none pointer-events-auto flex items-center justify-center"
             >
               {showStar && <NinjaStar scale={starScale} scrollReactive={false} />}
             </div>

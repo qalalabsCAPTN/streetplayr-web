@@ -53,6 +53,8 @@ export type CatalogProduct = {
   slug: string;
   image: string;
   image2?: string;
+  /** Searchable product copy (name + description) */
+  description?: string;
   /** Collection slugs this product belongs to. Empty = uncategorized (exclude from filters). */
   collections: CollectionSlug[];
   createdAt: number;
@@ -128,6 +130,7 @@ function mapLocalCatalog(): CatalogProduct[] {
       slug: p.slug,
       image: p.image,
       image2: full?.metadata.gallery_images?.[1],
+      description: full?.description ?? p.description ?? '',
       collections,
       createdAt: Date.now() - i * 1000,
       variants: (full?.variants ?? []).map((v) => ({
@@ -211,7 +214,7 @@ export const ProductQueries = {
       const { data, error } = await supabase
         .from('products')
         .select(
-          `id, title, slug, featured_image_url, metadata, status, created_at, product_variants(id, price, title, attributes)`
+          `id, title, slug, description, featured_image_url, metadata, status, created_at, product_variants(id, price, title, attributes)`
         )
         .eq('status', 'active')
         .order('created_at', { ascending: false });
@@ -244,6 +247,10 @@ export const ProductQueries = {
           slug: p.slug,
           image: p.featured_image_url,
           image2: p.metadata?.gallery_images?.[1] || p.featured_image_url,
+          description:
+            (typeof p.description === 'string' && p.description) ||
+            (typeof p.metadata?.description === 'string' ? p.metadata.description : '') ||
+            '',
           collections,
           createdAt: p.created_at ? Date.parse(p.created_at) : 0,
           variants,

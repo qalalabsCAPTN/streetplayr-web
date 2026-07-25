@@ -68,7 +68,6 @@ function ArchivePanel({ className = "", label }: { className?: string; label?: s
 
 const collections = [
   { id: "core", title: "Core", subtitle: "Foundation pieces", slug: "/collections?category=CORE", hideOnMobile: false },
-  { id: "outerwear", title: "Outerwear", subtitle: "Shell & insulation", slug: "/collections?category=OUTERWEAR", hideOnMobile: true },
   { id: "sport", title: "Sport", subtitle: "Performance wear", slug: "/collections?category=SPORT", hideOnMobile: false },
   { id: "archive", title: "Archive", subtitle: "Past drops archive", slug: "/collections?category=ARCHIVE", hideOnMobile: false },
 ];

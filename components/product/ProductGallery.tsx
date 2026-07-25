@@ -28,7 +28,7 @@ export default function ProductGallery({ images, title, heroImage }: ProductGall
           <div className="mb-4 flex justify-between items-end">
             <div>
               <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/45 flex items-center gap-2">
-                Outerwear / Limited Release
+                Limited Release
               </span>
               <h1 className="font-display text-4xl lg:text-5xl uppercase text-white leading-none">
                 {title}

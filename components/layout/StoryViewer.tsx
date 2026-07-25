@@ -54,7 +54,6 @@ export default function StoryViewer({ onClose }: StoryViewerProps) {
           step(-1);
         }}
         aria-label="Previous story"
-        style={{ visibility: idx === 0 ? 'hidden' : 'visible' }}
       >
         ←
       </button>
@@ -81,7 +80,6 @@ export default function StoryViewer({ onClose }: StoryViewerProps) {
           step(1);
         }}
         aria-label="Next story"
-        style={{ visibility: idx === stories.length - 1 ? 'hidden' : 'visible' }}
       >
         →
       </button>

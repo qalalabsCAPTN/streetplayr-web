@@ -52,13 +52,16 @@ const Icon = {
 
 const menu = {
   topwear: [
-    { label: 'Latest Drop', href: '/collections' },
     { label: 'Short Sleeve T-Shirts', href: '/collections?category=tees' },
     { label: 'Long Sleeve T-Shirts', href: '/collections?category=long-sleeve' },
     { label: 'Tanks', href: '/collections?category=tanks' },
   ],
   bottomwear: [
     { label: 'Sweatpants', href: '/collections?category=pants' },
+  ],
+  footwear: [
+    { label: 'Coming Soon', href: '/stores' },
+    { label: 'Support', href: '/contact' },
   ],
   shopAndSupport: [
     { label: 'All Products', href: '/collections?category=all' },
@@ -138,7 +141,7 @@ export default function Navbar() {
           catalog.map((p) => ({
             id: p.id,
             name: p.name,
-            description: '',
+            description: String(p.description ?? p.metadata?.description ?? ''),
             price: p.price,
             slug: p.slug,
             image: p.image,
@@ -162,7 +165,22 @@ export default function Navbar() {
     if (!q) return true;
     const name = String(p.name ?? '').toLowerCase();
     const description = String(p.description ?? '').toLowerCase();
-    return name.includes(q) || description.includes(q);
+    const slug = String(p.slug ?? '').toLowerCase();
+    const text = `${name} ${description} ${slug}`;
+    if (text.includes(q)) return true;
+    const tokens = q.split(/\s+/).filter(Boolean);
+    if (tokens.length > 1 && tokens.every((t) => text.includes(t))) return true;
+
+    // Category / style aliases (e.g. "Bottoms", "Oversized Tee")
+    const aliasHits: [RegExp, string[]][] = [
+      [/\bbottoms?\b|\bpants?\b|\bcargo\b|\bbottomwear\b/, ['pant', 'sweat', 'bottom', 'cargo']],
+      [/\btees?\b|\bt-?shirts?\b|\btopwear\b|\boversized\b/, ['tee', 't-shirt', 'shirt', 'top', 'oversized']],
+      [/\btanks?\b/, ['tank']],
+    ];
+    for (const [re, keys] of aliasHits) {
+      if (re.test(q) && keys.some((k) => text.includes(k))) return true;
+    }
+    return false;
   });
 
   const [isMobile, setIsMobile] = useState(false);
@@ -257,7 +275,7 @@ export default function Navbar() {
             </div>
 
             <button
-              className="iconbtn iconbtn--story hide-mobile"
+              className="iconbtn iconbtn--story"
               onClick={() => setStoryOpen(true)}
               aria-label="Stories"
             >
@@ -401,6 +419,14 @@ export default function Navbar() {
           <div>
             <h4>Bottomwear</h4>
             {menu.bottomwear.map((l) => (
+              <Link key={l.label} href={l.href} onClick={() => setMegaOpen(false)}>
+                {l.label}
+              </Link>
+            ))}
+          </div>
+          <div>
+            <h4>Footwear</h4>
+            {menu.footwear.map((l) => (
               <Link key={l.label} href={l.href} onClick={() => setMegaOpen(false)}>
                 {l.label}
               </Link>

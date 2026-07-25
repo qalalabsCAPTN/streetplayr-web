@@ -68,12 +68,12 @@ export default function Hero() {
     };
   }, []);
 
-  // Homepage banner star — kept smaller than footer decorative star on mobile.
+  // Homepage banner star — reduced so tips stay inside frame
   const getStarScale = () => {
-    if (windowWidth === null) return 0.95;
-    if (windowWidth < 768) return 0.65;
-    if (windowWidth < 1024) return 0.85;
-    return 0.95;
+    if (windowWidth === null) return 0.7;
+    if (windowWidth < 768) return 0.45;
+    if (windowWidth < 1024) return 0.6;
+    return 0.7;
   };
   const starScale = getStarScale();
 
@@ -145,7 +145,7 @@ export default function Hero() {
       {/* Interactive 3D Star — deferred past LCP */}
       {loadStar && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[5]">
-          <div className="pointer-events-auto flex items-center justify-center w-[min(72vw,280px)] h-[min(72vw,280px)] md:w-[320px] md:h-[320px] lg:w-[420px] lg:h-[420px]">
+          <div className="pointer-events-auto flex items-center justify-center w-[min(58vw,220px)] h-[min(58vw,220px)] md:w-[260px] md:h-[260px] lg:w-[320px] lg:h-[320px]">
             <NinjaStar scale={starScale} heroRef={sectionRef} />
           </div>
         </div>

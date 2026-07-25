@@ -28,6 +28,7 @@ function mapLocal(): CatalogProduct[] {
       slug: p.slug,
       image: p.image,
       image2: full?.metadata.gallery_images?.[1],
+      description: full?.description ?? '',
       collections: localMembershipFor(p.id, p.slug),
       createdAt: Date.now() - i * 1000,
       variants: (full?.variants ?? []).map((v) => ({
@@ -70,7 +71,7 @@ export async function loadClientCatalog(): Promise<CatalogProduct[]> {
     const { data, error } = await supabase
       .from('products')
       .select(
-        'id, title, slug, featured_image_url, metadata, status, created_at, product_variants(id, price, title, attributes)'
+        'id, title, slug, description, featured_image_url, metadata, status, created_at, product_variants(id, price, title, attributes)'
       )
       .eq('status', 'active')
       .order('created_at', { ascending: false });
@@ -119,6 +120,10 @@ export async function loadClientCatalog(): Promise<CatalogProduct[]> {
         slug: p.slug,
         image: p.featured_image_url,
         image2: p.metadata?.gallery_images?.[1] || p.featured_image_url,
+        description:
+          (typeof p.description === 'string' && p.description) ||
+          (typeof p.metadata?.description === 'string' ? p.metadata.description : '') ||
+          '',
         collections,
         createdAt: p.created_at ? Date.parse(p.created_at) : 0,
         variants,

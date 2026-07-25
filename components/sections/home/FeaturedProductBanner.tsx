@@ -18,7 +18,7 @@ export default function FeaturedProductBanner() {
     <section ref={containerRef} className="relative w-full h-[100vh] min-h-[700px] overflow-hidden bg-transparent">
       <motion.div style={{ scale, y }} className="absolute inset-0 h-full w-full">
         <Image
-          src="/assets/hero-tees.png"
+          src="/assets/empty_centre.jpg"
           alt="Featured Drop"
           fill
           className="object-cover opacity-50 mix-blend-luminosity"

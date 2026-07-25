@@ -4,9 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 
 const feedItems = [
-  { id: 1, image: "/assets/polo-editorial.png", label: "Editorial 01" },
-  { id: 2, image: "/assets/run-shorts.jpeg", label: "Texture Study" },
-  { id: 3, image: "/assets/srh-jersey.jpg", label: "Street Uniform" },
+  { id: 1, image: "/assets/products/inspired/image-1.jpg", label: "Editorial 01" },
+  { id: 2, image: "/assets/products/carpenter-grey/image-1.jpg", label: "Texture Study" },
+  { id: 3, image: "/assets/products/star-tank-dark/image-1.jpg", label: "Street Uniform" },
 ];
 
 export default function DiscoveryFeed() {
