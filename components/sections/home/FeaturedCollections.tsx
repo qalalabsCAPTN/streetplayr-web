@@ -1,19 +1,21 @@
 "use client";
 
 import { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
 
 export default function FeaturedCollections() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const reduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start end", "end start"],
   });
 
-  const y1 = useTransform(scrollYProgress, [0, 1], ["0%", "15%"]);
-  const y2 = useTransform(scrollYProgress, [0, 1], ["20%", "-20%"]);
-  const textY = useTransform(scrollYProgress, [0, 1], ["10%", "-10%"]);
+  // Extremely subtle parallax (was 15/20/10 — too floaty)
+  const y1 = useTransform(scrollYProgress, [0, 1], reduceMotion ? ["0%", "0%"] : ["0%", "5%"]);
+  const y2 = useTransform(scrollYProgress, [0, 1], reduceMotion ? ["0%", "0%"] : ["6%", "-6%"]);
+  const textY = useTransform(scrollYProgress, [0, 1], reduceMotion ? ["0%", "0%"] : ["3%", "-3%"]);
 
   return (
     <section ref={containerRef} className="relative w-full bg-transparent py-32 px-4 md:px-8 lg:px-12 overflow-hidden">

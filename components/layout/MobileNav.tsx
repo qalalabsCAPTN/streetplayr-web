@@ -1,16 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useCart } from '@/components/CartContext';
+import { stories } from '@/lib/bluorng-data';
 
 const Icon = {
-  compass: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
-      <circle cx="12" cy="12" r="9" />
-      <path d="M15.2 8.8 12.9 12.9 8.8 15.2l2.3-4.1 4.1-2.3Z" />
-    </svg>
-  ),
   user: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
       <circle cx="12" cy="8" r="4" />
@@ -42,38 +36,47 @@ const Icon = {
 interface MobileNavProps {
   onSearch: () => void;
   onAccount: () => void;
+  onStories: () => void;
 }
 
-export default function MobileNav({ onSearch, onAccount }: MobileNavProps) {
+/**
+ * Mobile dock: [ nav pill ] + separate Stories circle
+ * (same avatar as Desktop Header `.iconbtn--story`).
+ */
+export default function MobileNav({ onSearch, onAccount, onStories }: MobileNavProps) {
   const cart = useCart();
-  const router = useRouter();
 
   return (
-    <nav className="mobilenav" aria-label="Primary">
-      <Link
-        href="/home"
-        className="mobilenav__item"
-        aria-label="Home"
-        onClick={(e) => {
-          e.preventDefault();
-          router.push('/home');
-        }}
+    <div className="mobilenav-dock">
+      <nav className="mobilenav" aria-label="Primary">
+        <Link href="/collections" className="mobilenav__item" aria-label="Collections">
+          {Icon.grid}
+        </Link>
+        <button type="button" className="mobilenav__item" aria-label="Search" onClick={onSearch}>
+          {Icon.search}
+        </button>
+        <button type="button" className="mobilenav__item" aria-label="Account" onClick={onAccount}>
+          {Icon.user}
+        </button>
+        <button
+          type="button"
+          className="mobilenav__item mobilenav__item--bag"
+          aria-label="Bag"
+          onClick={() => cart.setOpen(true)}
+        >
+          <span className="mobilenav__ring">{Icon.bag}</span>
+          {cart.count > 0 && <span className="mobilenav__count">{cart.count}</span>}
+        </button>
+      </nav>
+
+      <button
+        type="button"
+        className="iconbtn iconbtn--story mobilenav__lookbook"
+        aria-label="Stories"
+        onClick={onStories}
       >
-        {Icon.compass}
-      </Link>
-      <button className="mobilenav__item" aria-label="Account" onClick={onAccount}>
-        {Icon.user}
+        <img src={stories[0].image} alt="" />
       </button>
-      <Link href="/collections" className="mobilenav__item" aria-label="Collections">
-        {Icon.grid}
-      </Link>
-      <button className="mobilenav__item" aria-label="Search" onClick={onSearch}>
-        {Icon.search}
-      </button>
-      <button className="mobilenav__item mobilenav__item--bag" aria-label="Bag" onClick={() => cart.setOpen(true)}>
-        <span className="mobilenav__ring">{Icon.bag}</span>
-        {cart.count > 0 && <span className="mobilenav__count">{cart.count}</span>}
-      </button>
-    </nav>
+    </div>
   );
 }

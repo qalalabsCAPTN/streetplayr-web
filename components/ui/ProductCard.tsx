@@ -47,10 +47,15 @@ export default function ProductCard({ product, gallery = true }: ProductCardProp
     : Array.isArray(product.metadata?.gallery_images)
       ? product.metadata.gallery_images
       : null;
-  const imgs = (galleryMeta && galleryMeta.length > 0
-    ? galleryMeta
-    : [product.image, product.image2]
-  ).filter((src): src is string => typeof src === 'string' && src.length > 0);
+  // Dedupe — catalog often repeats primary URL as image2 / gallery[0]
+  const imgs = Array.from(
+    new Set(
+      (galleryMeta && galleryMeta.length > 0
+        ? galleryMeta
+        : [product.image, product.image2]
+      ).filter((src): src is string => typeof src === 'string' && src.length > 0)
+    )
+  );
   const onSale = product.compareAt && product.compareAt > product.price;
 
   const step = (e: React.MouseEvent, dir: number) => {
@@ -110,7 +115,7 @@ export default function ProductCard({ product, gallery = true }: ProductCardProp
       <div className="card__media">
         {imgs.map((src, i) => (
           <Image
-            key={src}
+            key={`${product.id}-${i}`}
             src={src ?? ''}
             alt={product.name}
             fill

@@ -1,22 +1,23 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { refreshSession } from '@/lib/supabase/middleware';
 import { AuthGateway } from '@/lib/auth/gateway';
+import { ENTRY_COOKIE } from '@/lib/social';
 
 const REDIRECT_MAP: Record<string, string> = {
   '/collection': '/collections',
   '/shop': '/collections',
-  // Retired standalone preloader — always Home (intro overlays /home).
-  '/entering-street-playR': '/home',
 };
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // `/` always serves Home. First-visit video is an overlay on `/home`, not a route.
+  // Root: first visit → standalone intro; returning visit → home.
+  // Manual /entering-street-playR is never redirected — always plays intro.
   if (pathname === '/' || pathname === '') {
+    const seen = request.cookies.get(ENTRY_COOKIE)?.value === '1';
     const url = request.nextUrl.clone();
-    url.pathname = '/home';
-    return NextResponse.rewrite(url);
+    url.pathname = seen ? '/home' : '/entering-street-playR';
+    return NextResponse.redirect(url);
   }
 
   // Legacy route redirects

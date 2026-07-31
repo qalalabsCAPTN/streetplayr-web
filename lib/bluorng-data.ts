@@ -39,21 +39,26 @@ export const banners = [
     title: 'WARRIOR STREET DROP',
     cta: 'Shop now',
     href: '/collections?category=tees',
-    image: '/assets/products/brown-warrior/image-1.webp',
+    // SS25 lookbook — editorial frame (not PDP crop)
+    image: '/lookbook/artboard-8.webp',
+    objectPosition: 'center 22%',
     bg: 'linear-gradient(120deg, #3d2a1c, #1f140e)',
   },
   {
     title: 'CARPENTER CLASSICS',
     cta: 'Shop now',
     href: '/collections?category=pants',
-    image: '/assets/products/carpenter-olive/image-1.jpg',
+    // Full lifestyle frame — avoids waist-only crop in wide banner
+    image: '/assets/products/carpenter-olive/image-3.jpg',
+    objectPosition: 'center 30%',
     bg: 'linear-gradient(120deg, #2b3a1a, #111a0b)',
   },
   {
     title: 'WAFFLE TEXTURED TEES',
     cta: 'Shop now',
     href: '/collections?category=tees',
-    image: '/assets/products/ctt-waffle/image-1.webp',
+    image: '/lookbook/artboard-18.webp',
+    objectPosition: 'center 20%',
     bg: 'linear-gradient(120deg, #1b1b1f, #2e2e33)',
   },
 ];

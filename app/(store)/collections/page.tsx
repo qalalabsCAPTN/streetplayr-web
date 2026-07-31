@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense, useMemo, useRef } from 'react';
+import { useState, useEffect, Suspense, useMemo, useRef, useSyncExternalStore } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
@@ -20,6 +20,32 @@ import {
   COLLECTION_SLUG,
 } from '@/lib/products/collections';
 import type { CatalogProduct } from '@/lib/products/queries';
+
+const MOBILE_MQ = '(max-width: 900px)';
+
+function subscribeMobile(cb: () => void) {
+  const mql = window.matchMedia(MOBILE_MQ);
+  mql.addEventListener('change', cb);
+  return () => mql.removeEventListener('change', cb);
+}
+
+function getMobileSnapshot() {
+  return window.matchMedia(MOBILE_MQ).matches;
+}
+
+/** SSR + first client paint both false — no hydration chip-list skew. */
+function useIsMobileCollections() {
+  return useSyncExternalStore(subscribeMobile, getMobileSnapshot, () => false);
+}
+
+/** False on SSR + hydrate pass; true after client commit — no mismatch. */
+function useHydrated() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+}
 
 function ProductSkeletonGrid() {
   return (
@@ -42,20 +68,20 @@ function CollectionsInner() {
   const [products, setProducts] = useState<CatalogProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useIsMobileCollections();
+  const hydrated = useHydrated();
   const [sortBy, setSortBy] = useState<SortOption>('Popular');
+  const [sortOpen, setSortOpen] = useState(false);
+  const sortRef = useRef<HTMLDivElement>(null);
   const prevChipRef = useRef<FilterChip | null>(null);
 
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth <= 900);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
-
-  const chips: readonly FilterChip[] = isMobile ? MOBILE_CHIPS : DESKTOP_CHIPS;
   const categoryParam = searchParams.get('category') || '';
-  const activeChip = paramToChip(categoryParam || '', isMobile);
+  // Pre-hydrate: mobile chip semantics (View all / ALL) so mobile first paint
+  // never applies desktop defaults. Hydrate snapshot matches SSR.
+  const filterAsMobile = hydrated ? isMobile : true;
+  const activeChip = paramToChip(categoryParam || '', filterAsMobile);
+  const activeDesktopChip = paramToChip(categoryParam || '', false);
+  const activeMobileChip = paramToChip(categoryParam || '', true);
 
   useEffect(() => {
     if (prevChipRef.current && prevChipRef.current !== activeChip) {
@@ -83,6 +109,24 @@ function CollectionsInner() {
   useEffect(() => {
     loadProducts();
   }, []);
+
+  useEffect(() => {
+    if (!sortOpen) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (sortRef.current && !sortRef.current.contains(e.target as Node)) {
+        setSortOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSortOpen(false);
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [sortOpen]);
 
   const handleChipClick = (chip: FilterChip) => {
     if (isMobile && DISABLED_MOBILE.includes(chip)) return;
@@ -165,38 +209,137 @@ function CollectionsInner() {
 
       <main className="relative z-[1] pb-10 md:pb-14 w-full max-w-[min(95vw,2400px)] mx-auto px-4 md:px-6">
         <div className="listing listing--collections">
-          <div className="chips" role="tablist" aria-label="Collection filters">
-            {chips.map((c) => {
-              const isDisabled = isMobile && DISABLED_MOBILE.includes(c);
-              const isActive = activeChip === c;
-              return (
-                <button
-                  key={c}
-                  type="button"
-                  role="tab"
-                  aria-selected={isActive}
-                  className={`chip ${isActive ? 'active' : ''} ${isDisabled ? 'disabled' : ''}`}
-                  onClick={() => handleChipClick(c)}
-                  disabled={isDisabled}
-                >
-                  {isDisabled ? `${c} (Soon)` : c}
-                </button>
-              );
-            })}
-          </div>
+          <div className="collections-toolbar">
+            {/* Dual chip rows: CSS viewport media picks visible set (no desktop flash on mobile). */}
+            <div
+              className="chips chips--desktop-viewport"
+              role="tablist"
+              aria-label="Collection filters"
+            >
+              {DESKTOP_CHIPS.map((c) => {
+                const isActive = activeDesktopChip === c;
+                return (
+                  <button
+                    key={c}
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    className={`chip ${isActive ? 'active' : ''}`}
+                    onClick={() => handleChipClick(c)}
+                  >
+                    {c}
+                  </button>
+                );
+              })}
+            </div>
+            <div
+              className="chips chips--mobile-viewport"
+              role="tablist"
+              aria-label="Collection filters"
+            >
+              {MOBILE_CHIPS.map((c) => {
+                const isDisabled = DISABLED_MOBILE.includes(c);
+                const isActive = activeMobileChip === c;
+                return (
+                  <button
+                    key={c}
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    className={`chip ${isActive ? 'active' : ''} ${isDisabled ? 'disabled' : ''}`}
+                    onClick={() => handleChipClick(c)}
+                    disabled={isDisabled}
+                  >
+                    {isDisabled ? `${c} (Soon)` : c}
+                  </button>
+                );
+              })}
+            </div>
 
-          <div className="chips chips--sort" role="group" aria-label="Sort products">
-            <span className="chips__label">Sort</span>
-            {SORT_OPTIONS.map((s) => (
+            <div
+              ref={sortRef}
+              className={`collections-sort${sortOpen ? ' is-open' : ''}`}
+              onMouseEnter={() => {
+                if (!isMobile) setSortOpen(true);
+              }}
+              onMouseLeave={() => {
+                if (!isMobile) setSortOpen(false);
+              }}
+            >
               <button
-                key={s}
                 type="button"
-                className={`chip ${sortBy === s ? 'active' : ''}`}
-                onClick={() => setSortBy(s)}
+                className="collections-sort__trigger"
+                aria-haspopup="menu"
+                aria-expanded={sortOpen}
+                aria-controls="collections-sort-menu"
+                onClick={() => setSortOpen((o) => !o)}
+                onKeyDown={(e) => {
+                  if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setSortOpen(true);
+                    requestAnimationFrame(() => {
+                      sortRef.current
+                        ?.querySelector<HTMLButtonElement>('.collections-sort__option')
+                        ?.focus();
+                    });
+                  }
+                }}
               >
-                {s}
+                <span className="collections-sort__label">Sort</span>
+                <span className="collections-sort__value">{sortBy}</span>
+                <span className="collections-sort__chev" aria-hidden="true" />
               </button>
-            ))}
+              <ul
+                id="collections-sort-menu"
+                className="collections-sort__menu"
+                role="menu"
+                aria-label="Sort products"
+                hidden={!sortOpen}
+              >
+                {SORT_OPTIONS.map((s) => (
+                  <li key={s} role="none">
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className={`collections-sort__option${sortBy === s ? ' is-active' : ''}`}
+                      onClick={() => {
+                        setSortBy(s);
+                        setSortOpen(false);
+                      }}
+                      onKeyDown={(e) => {
+                        const items = Array.from(
+                          sortRef.current?.querySelectorAll<HTMLButtonElement>(
+                            '.collections-sort__option',
+                          ) ?? [],
+                        );
+                        const idx = items.indexOf(e.currentTarget);
+                        if (e.key === 'ArrowDown') {
+                          e.preventDefault();
+                          items[(idx + 1) % items.length]?.focus();
+                        } else if (e.key === 'ArrowUp') {
+                          e.preventDefault();
+                          items[(idx - 1 + items.length) % items.length]?.focus();
+                        } else if (e.key === 'Home') {
+                          e.preventDefault();
+                          items[0]?.focus();
+                        } else if (e.key === 'End') {
+                          e.preventDefault();
+                          items[items.length - 1]?.focus();
+                        } else if (e.key === 'Escape') {
+                          e.preventDefault();
+                          setSortOpen(false);
+                          sortRef.current
+                            ?.querySelector<HTMLButtonElement>('.collections-sort__trigger')
+                            ?.focus();
+                        }
+                      }}
+                    >
+                      {s}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
 
           {loading ? (

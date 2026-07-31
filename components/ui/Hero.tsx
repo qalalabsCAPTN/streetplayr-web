@@ -168,7 +168,7 @@ export default function Hero() {
       )}
 
       <Link href={current?.href || '/collections'} className="hero__shop hero__shop--dark">
-        Shop now
+        Shop Now
       </Link>
     </section>
   );

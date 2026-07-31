@@ -301,19 +301,28 @@ export default function HomeHero({
         )}
         <motion.div
           variants={itemVariants}
-          className="flex gap-3 mt-4 pointer-events-auto"
+          className="flex gap-3 mt-4 pointer-events-auto items-center"
         >
-          <button
-            className="inline-flex items-center gap-3 px-8 py-4 md:px-10 md:py-5 bg-[#eadfed] text-[#16111b] border border-[#eadfed] font-mono text-[11px] md:text-[12px] tracking-[0.24em] md:tracking-[0.28em] font-bold uppercase transition-colors hover:bg-[#ddb7ff] rounded-xl cursor-pointer shadow-[0_8px_24px_rgba(0,0,0,0.35)] md:shadow-[0_12px_36px_rgba(0,0,0,0.45)]"
-            style={{ color: "#16111b" }}
-            onClick={() => router.push(ctaHref || "/collections")}
+          <a
+            href={ctaHref || "/collections"}
+            className="hero__shop"
+            onClick={(e) => {
+              if (
+                e.defaultPrevented ||
+                e.button !== 0 ||
+                e.metaKey ||
+                e.ctrlKey ||
+                e.shiftKey ||
+                e.altKey
+              ) {
+                return;
+              }
+              e.preventDefault();
+              router.push(ctaHref || "/collections");
+            }}
           >
             {ctaLabel?.trim() || "Shop Now"}
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="5" y1="12" x2="19" y2="12" />
-              <polyline points="12 5 19 12 12 19" />
-            </svg>
-          </button>
+          </a>
           <button
             className="inline-flex items-center gap-3 px-7 py-4 bg-[#231e27]/40 text-[#eadfed] border border-white/[0.14] font-mono text-[11px] tracking-[0.24em] font-bold uppercase transition-colors hover:bg-white/[0.06] hover:border-white/[0.24] rounded-xl cursor-pointer"
             onClick={() => setJoinOpen(true)}
