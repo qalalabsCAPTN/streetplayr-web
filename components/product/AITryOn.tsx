@@ -47,7 +47,7 @@ function Shimmer({ className = "" }: { className?: string }) {
         className="absolute inset-0 -translate-x-full animate-[shimmer_1.6s_infinite]"
         style={{
           background:
-            "linear-gradient(90deg,transparent,rgba(221,183,255,0.07),transparent)",
+            "linear-gradient(90deg,transparent,color-mix(in srgb, var(--sp-ai-accent) 7%, transparent),transparent)",
           animationTimingFunction: "linear",
         }}
       />
@@ -119,14 +119,14 @@ function CompareSlider({
           draggable={false}
         />
         {/* "AI GENERATED" badge */}
-        <span className="absolute top-3 right-3 font-mono text-[7px] uppercase tracking-[0.25em] text-[#ddb7ff]/80 bg-black/60 backdrop-blur-sm px-2 py-1 border border-[#ddb7ff]/20">
+        <span className="absolute top-3 right-3 font-mono text-[7px] uppercase tracking-[0.25em] text-[var(--sp-ai-accent)]/80 bg-black/60 backdrop-blur-sm px-2 py-1 border border-[var(--sp-ai-accent)]/20">
           AI Generated
         </span>
       </div>
 
       {/* Divider handle */}
       <div
-        className="absolute inset-y-0 w-px bg-white/60 shadow-[0_0_8px_rgba(221,183,255,0.6)] pointer-events-none"
+        className="absolute inset-y-0 w-px bg-white/60 shadow-[0_0_8px_color-mix(in_srgb,var(--sp-ai-accent)_60%,transparent)] pointer-events-none"
         style={{ left: `${ratio * 100}%` }}
       >
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/10 backdrop-blur border border-white/30 flex items-center justify-center pointer-events-none">
@@ -139,7 +139,7 @@ function CompareSlider({
 
       {/* Labels */}
       <span className="absolute bottom-3 left-3 font-mono text-[8px] uppercase tracking-[0.2em] text-white/50 pointer-events-none">Before</span>
-      <span className="absolute bottom-3 right-3 font-mono text-[8px] uppercase tracking-[0.2em] text-[#ddb7ff]/70 pointer-events-none">After</span>
+      <span className="absolute bottom-3 right-3 font-mono text-[8px] uppercase tracking-[0.2em] text-[var(--sp-ai-accent)]/70 pointer-events-none">After</span>
     </div>
   );
 }
@@ -419,18 +419,18 @@ export default function AITryOn({
   if (!isEnabled) return null;
 
   return (
-    <div className="ai-tryon-panel rounded-2xl border border-[#ddb7ff]/15 overflow-hidden shadow-[0_18px_40px_-24px_rgba(221,183,255,0.25)]">
+    <div className="ai-tryon-panel rounded-2xl border border-[var(--sp-ai-accent)]/15 overflow-hidden shadow-[0_18px_40px_-24px_color-mix(in_srgb,var(--sp-ai-accent)_25%,transparent)]">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-[#ddb7ff]/10 bg-[#ddb7ff]/[0.03]">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--sp-ai-accent)]/10 bg-[var(--sp-ai-accent)]/[0.03]">
         <div className="flex items-center gap-2.5">
           {/* Spark icon */}
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="#ddb7ff" className="opacity-80">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="var(--sp-ai-accent)" className="opacity-80">
             <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" />
           </svg>
-          <span className="font-mono text-[9px] uppercase tracking-[0.28em] text-[#ddb7ff]/80 font-medium">
+          <span className="font-mono text-[9px] uppercase tracking-[0.28em] text-[var(--sp-ai-accent)]/80 font-medium">
             AI Try-On
           </span>
-          <span className="px-1.5 py-0.5 border border-[#ddb7ff]/20 font-mono text-[6px] uppercase tracking-[0.2em] text-[#ddb7ff]/40">
+          <span className="px-1.5 py-0.5 border border-[var(--sp-ai-accent)]/20 font-mono text-[6px] uppercase tracking-[0.2em] text-[var(--sp-ai-accent)]/40">
             Beta
           </span>
         </div>
@@ -458,11 +458,11 @@ export default function AITryOn({
             <div
               onDrop={handleDrop}
               onDragOver={(e) => e.preventDefault()}
-              className="rounded-xl border border-dashed border-[#ddb7ff]/20 hover:border-[#ddb7ff]/45 hover:bg-[#ddb7ff]/[0.03] transition-colors cursor-pointer flex flex-col items-center justify-center gap-3 py-10 group"
+              className="rounded-xl border border-dashed border-[var(--sp-ai-accent)]/20 hover:border-[var(--sp-ai-accent)]/45 hover:bg-[var(--sp-ai-accent)]/[0.03] transition-colors cursor-pointer flex flex-col items-center justify-center gap-3 py-10 group"
               onClick={() => fileInputRef.current?.click()}
             >
-              <div className="w-10 h-10 rounded-full flex items-center justify-center border border-[#ddb7ff]/15 group-hover:border-[#ddb7ff]/40 transition-colors">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--fg-45)] group-hover:text-[#ddb7ff]/60 transition-colors">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center border border-[var(--sp-ai-accent)]/15 group-hover:border-[var(--sp-ai-accent)]/40 transition-colors">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--fg-45)] group-hover:text-[var(--sp-ai-accent)]/60 transition-colors">
                   <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
                   <polyline points="17 8 12 3 7 8" />
                   <line x1="12" y1="3" x2="12" y2="15" />
@@ -519,9 +519,9 @@ export default function AITryOn({
 
             <button
               onClick={handleGenerate}
-              className="w-full py-4 rounded-lg font-mono text-[10px] uppercase tracking-[0.25em] font-semibold bg-[#ddb7ff]/10 border border-[#ddb7ff]/25 text-[#ddb7ff] hover:bg-[#ddb7ff]/20 hover:border-[#ddb7ff]/50 transition-all flex items-center justify-center gap-2"
+              className="w-full py-4 rounded-lg font-mono text-[10px] uppercase tracking-[0.25em] font-semibold bg-[var(--sp-ai-accent)]/10 border border-[var(--sp-ai-accent)]/25 text-[var(--sp-ai-accent)] hover:bg-[var(--sp-ai-accent)]/20 hover:border-[var(--sp-ai-accent)]/50 transition-all flex items-center justify-center gap-2"
             >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="#ddb7ff" className="opacity-80 flex-shrink-0">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="var(--sp-ai-accent)" className="opacity-80 flex-shrink-0">
                 <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" />
               </svg>
               Generate Try-On
@@ -555,7 +555,7 @@ export default function AITryOn({
               </div>
             </div>
             <div className="w-full h-px bg-[var(--fg-04)] overflow-hidden">
-              <div className="h-full w-1/3 bg-gradient-to-r from-transparent via-[#ddb7ff]/40 to-transparent animate-[slide_1s_linear_infinite]" />
+              <div className="h-full w-1/3 bg-gradient-to-r from-transparent via-[var(--sp-ai-accent)]/40 to-transparent animate-[slide_1s_linear_infinite]" />
             </div>
             <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-[var(--fg-35)] text-center">
               Uploading your photo…
@@ -577,7 +577,7 @@ export default function AITryOn({
                 </div>
               </div>
               <div className="space-y-1.5">
-                <p className="font-mono text-[8px] uppercase tracking-[0.2em] text-[#ddb7ff]/50">Fitting…</p>
+                <p className="font-mono text-[8px] uppercase tracking-[0.2em] text-[var(--sp-ai-accent)]/50">Fitting…</p>
                 <Shimmer className="aspect-[3/4]" />
               </div>
             </div>
@@ -585,7 +585,7 @@ export default function AITryOn({
             {/* Progress bar */}
             <div className="w-full h-[2px] bg-[var(--fg-06)] overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-[#ddb7ff]/60 to-[#ddb7ff]/20 animate-[slide_2s_ease-in-out_infinite]"
+                className="h-full bg-gradient-to-r from-[var(--sp-ai-accent)]/60 to-[var(--sp-ai-accent)]/20 animate-[slide_2s_ease-in-out_infinite]"
                 style={{ width: "40%" }}
               />
             </div>
@@ -620,7 +620,7 @@ export default function AITryOn({
               {onAddToCart && (
                 <button
                   onClick={onAddToCart}
-                  className="flex-1 py-3 font-mono text-[9px] uppercase tracking-[0.22em] font-semibold bg-white text-[#16111b] hover:bg-[#ddb7ff] transition-colors"
+                  className="flex-1 py-3 font-mono text-[9px] uppercase tracking-[0.22em] font-semibold bg-white text-[#16111b] hover:bg-[var(--sp-ai-accent)] transition-colors"
                 >
                   Add to Cart
                 </button>
@@ -631,7 +631,7 @@ export default function AITryOn({
               type="button"
               onClick={handleSaveToProfile}
               disabled={savePhase === "saving" || savePhase === "saved"}
-              className="w-full py-3.5 rounded-lg font-mono text-[9px] uppercase tracking-[0.22em] font-semibold border border-[#ddb7ff]/30 text-[#ddb7ff] bg-[#ddb7ff]/[0.08] hover:bg-[#ddb7ff]/[0.16] disabled:opacity-60 disabled:cursor-default transition-all flex items-center justify-center gap-2"
+              className="w-full py-3.5 rounded-lg font-mono text-[9px] uppercase tracking-[0.22em] font-semibold border border-[var(--sp-ai-accent)]/30 text-[var(--sp-ai-accent)] bg-[var(--sp-ai-accent)]/[0.08] hover:bg-[var(--sp-ai-accent)]/[0.16] disabled:opacity-60 disabled:cursor-default transition-all flex items-center justify-center gap-2"
               aria-live="polite"
             >
               {savePhase === "saving" && "Saving…"}
@@ -642,7 +642,7 @@ export default function AITryOn({
             {savePhase === "saved" && (
               <p className="font-mono text-[8px] text-center text-[var(--fg-40)]">
                 View in{" "}
-                <Link href="/profile/try-ons" className="text-[#ddb7ff]/80 underline-offset-2 hover:underline">
+                <Link href="/profile/try-ons" className="text-[var(--sp-ai-accent)]/80 underline-offset-2 hover:underline">
                   Profile → AI Try-Ons
                 </Link>
               </p>

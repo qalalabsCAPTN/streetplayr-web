@@ -63,7 +63,6 @@ const menu = {
   ],
   footwear: [
     { label: 'Coming Soon', href: '/stores' },
-    { label: 'Support', href: '/contact' },
   ],
   shopAndSupport: [
     { label: 'All Products', href: '/collections?category=all' },
@@ -71,7 +70,7 @@ const menu = {
     { label: 'FAQ', href: '/faq' },
     { label: 'Shipping Policy', href: '/shipping-policy' },
     { label: 'Refund Policy', href: '/refund-policy' },
-    { label: 'Contact', href: '/contact' },
+    { label: 'Support', href: '/contact' },
   ],
 };
 
@@ -88,6 +87,7 @@ export default function Navbar() {
   const cart = useCart();
   const pathname = usePathname();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const authHydrated = useAuthStore((s) => s.isHydrated);
   const [loginOpen, setLoginOpen] = useState(false);
   const [loginRedirect, setLoginRedirect] = useState(pathname || '/profile');
   const wishlistCount = useWishlistStore((s) => s.items.length);
@@ -194,20 +194,32 @@ export default function Navbar() {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth <= 900);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    const mq = window.matchMedia('(max-width: 900px)');
+    const sync = () => setIsMobile(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
   }, []);
 
-  // Frosted glass at top → denser glass on scroll / overlays.
-  const solid = scrolled || megaOpen || menuDrawerOpen || searchOpen;
+  // Home hero: fully transparent until scroll/overlays. Other routes stay glass.
+  const isHome = pathname === '/home';
+  const solid = !isHome || scrolled || megaOpen || menuDrawerOpen || searchOpen;
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
+    let raf = 0;
+    const onScroll = () => {
+      if (raf) return;
+      raf = window.requestAnimationFrame(() => {
+        raf = 0;
+        setScrolled(window.scrollY > 24);
+      });
+    };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (raf) window.cancelAnimationFrame(raf);
+    };
   }, [pathname]);
 
   useEffect(() => {
@@ -225,6 +237,8 @@ export default function Navbar() {
 
   return (
     <>
+      {/* Bluorng inverse corner notches — visible only when header is solid */}
+      <div className="page-frame" aria-hidden="true" />
       <header
         className={`header ${solid ? 'header--solid' : ''}`}
         onMouseLeave={() => {
@@ -316,12 +330,13 @@ export default function Navbar() {
             </button>
             <button className="iconbtn" aria-label="Wishlist" onClick={handleWishlist}>
               {Icon.bookmark}
-              {isAuthenticated && wishlistCount > 0 && (
+              {authHydrated && isAuthenticated && wishlistCount > 0 && (
                 <span className="iconbtn__count">{wishlistCount}</span>
               )}
             </button>
             <button className="iconbtn" onClick={() => cart.setOpen(true)} aria-label="Bag">
               {Icon.bag}
+              {/* cart.count already 0 until CartProvider mounts — avoid SSR/client badge skew */}
               {cart.count > 0 && <span className="iconbtn__count">{cart.count}</span>}
             </button>
             <button
@@ -502,6 +517,7 @@ export default function Navbar() {
           setSearchQuery('');
         }}
         onAccount={handleAccount}
+        onStories={() => setStoryOpen(true)}
       />
     </>
   );

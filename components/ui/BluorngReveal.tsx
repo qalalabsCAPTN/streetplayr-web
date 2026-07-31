@@ -20,6 +20,13 @@ export default function BluorngReveal({ children, stagger = false, className = '
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) {
+      el.classList.add('visible');
+      return;
+    }
+
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
@@ -29,7 +36,7 @@ export default function BluorngReveal({ children, stagger = false, className = '
           }
         });
       },
-      { threshold: 0.12 }
+      { threshold: 0.1, rootMargin: '0px 0px -4% 0px' }
     );
     io.observe(el);
     return () => io.disconnect();

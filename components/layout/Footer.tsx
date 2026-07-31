@@ -8,7 +8,7 @@ import { SOCIAL_LINKS } from '@/lib/social';
 
 const NinjaStar = dynamic(() => import('@/components/ui/NinjaStar'), {
   ssr: false,
-  loading: () => <div className="w-32 h-32 md:w-48 md:h-48 rounded-full border border-white/[0.08] bg-white/[0.02]" />,
+  loading: () => <div className="footer__star-wrap rounded-full border border-white/[0.08] bg-white/[0.02]" />,
 });
 
 export default function Footer() {
@@ -33,11 +33,10 @@ export default function Footer() {
   }, []);
 
   const getStarScale = () => {
-    if (windowWidth === null) return 1.05;
-    // Mobile feedback: larger footer star for visibility
-    if (windowWidth < 768) return 1.2;
-    if (windowWidth < 1024) return 1.0;
-    return 1.05;
+    if (windowWidth === null) return 0.85;
+    if (windowWidth < 768) return 0.75;
+    if (windowWidth < 1024) return 0.9;
+    return 0.95;
   };
   const starScale = getStarScale();
 
@@ -73,15 +72,16 @@ export default function Footer() {
             <Link href="/terms">Terms</Link>
             <Link href="/privacy-policy">Privacy Policy</Link>
           </div>
-          <div>
+          <div className="footer__weare">
             <h4>We are playR</h4>
+            {/* Our Story (/about) intentionally omitted from nav — route kept */}
             <Link href="/stores">Coming soon</Link>
             <Link href="/collaborations">Collaborations</Link>
           </div>
           <div className="footer__bag flex flex-col items-center justify-center">
             <div
               ref={starContainerRef}
-              className="w-full max-w-[280px] sm:max-w-[260px] md:max-w-[280px] aspect-square select-none pointer-events-auto flex items-center justify-center"
+              className="footer__star-wrap select-none pointer-events-auto flex items-center justify-center"
             >
               {showStar && <NinjaStar scale={starScale} scrollReactive={false} />}
             </div>

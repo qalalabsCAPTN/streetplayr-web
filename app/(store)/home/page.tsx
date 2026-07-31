@@ -1,8 +1,10 @@
 import Hero from "@/components/ui/Hero";
 import ProductSection from "@/components/ui/ProductSection";
 import BannerSlider from "@/components/ui/BannerSlider";
+import DiscoverCollections from "@/components/ui/DiscoverCollections";
 import RecentlyVisited from "@/components/ui/RecentlyVisited";
 import HomeMobileLatestCarousel from "@/components/ui/HomeMobileLatestCarousel";
+import StoriesBar from "@/components/layout/StoriesBar";
 import { BlockRenderer } from "@/components/page-editor/block-renderer";
 import { getPageBlocks } from "@/lib/page-editor/get-page-blocks";
 import { ProductQueries } from "@/lib/products/queries";
@@ -89,6 +91,8 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
   const productSections = (
     <>
+      {/* Mobile only — CSS-hidden on desktop */}
+      <StoriesBar />
       {/* Mobile only — CSS-hidden on desktop; reuses latestProducts */}
       <HomeMobileLatestCarousel products={latestProducts} />
 
@@ -106,6 +110,8 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         gallery
       />
       <BannerSlider />
+      {/* Category promos between sections — same aspect as Collection Banner */}
+      <DiscoverCollections />
       <ProductSection
         title="Pants"
         products={pants}
@@ -133,7 +139,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   }
 
   return (
-    <div className="flex flex-col w-full">
+    <div className="flex flex-col w-full home-page">
       <Hero />
       {activeProducts.length === 0 ? (
         <section className="panel panel--flat" aria-live="polite">

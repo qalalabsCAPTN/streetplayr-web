@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { motion, useInView, useScroll, useTransform } from "framer-motion";
+import { motion, useInView, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
 
 const instagramPosts = [
@@ -14,30 +14,31 @@ const instagramPosts = [
 export default function SocialProof() {
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
+  const reduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start end", "end start"],
   });
 
-  const y1 = useTransform(scrollYProgress, [0, 1], ["0%", "-10%"]);
-  const y2 = useTransform(scrollYProgress, [0, 1], ["0%", "10%"]);
+  const y1 = useTransform(scrollYProgress, [0, 1], reduceMotion ? ["0%", "0%"] : ["0%", "-4%"]);
+  const y2 = useTransform(scrollYProgress, [0, 1], reduceMotion ? ["0%", "0%"] : ["0%", "4%"]);
 
   return (
     <section ref={containerRef} className="w-full bg-transparent py-32 px-4 md:px-8 lg:px-12 overflow-hidden border-t border-white/10">
       <div className="flex flex-col items-center mb-32 text-center relative z-10">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={reduceMotion ? false : { opacity: 0, y: 16 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: reduceMotion ? 0 : 0.5, ease: [0.16, 1, 0.3, 1] }}
           className="flex items-center justify-center gap-4 mb-6"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-[var(--sp-accent)]"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
           <span className="font-mono text-xs md:text-sm tracking-[0.3em] uppercase text-white/70">The Community</span>
         </motion.div>
         <motion.h2
-          initial={{ opacity: 0, y: 30 }}
+          initial={reduceMotion ? false : { opacity: 0, y: 16 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: reduceMotion ? 0 : 0.5, delay: reduceMotion ? 0 : 0.1, ease: [0.16, 1, 0.3, 1] }}
           className="font-display text-5xl md:text-8xl uppercase tracking-widest text-white leading-[0.9]"
         >
           STREETPLAYR <br />
@@ -51,9 +52,9 @@ export default function SocialProof() {
             <motion.div
               key={post.id}
               style={{ y: index % 2 === 0 ? y1 : y2 }}
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={reduceMotion ? false : { opacity: 0, scale: 0.97 }}
               animate={isInView ? { opacity: 1, scale: 1 } : {}}
-              transition={{ duration: 1.2, delay: 0.3 + index * 0.15, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: reduceMotion ? 0 : 0.55, delay: reduceMotion ? 0 : 0.08 + index * 0.06, ease: [0.16, 1, 0.3, 1] }}
               className={`group relative aspect-[3/4] overflow-hidden bg-[#111] cursor-none rounded-xl ${post.className}`}
               data-cursor="product"
             >
