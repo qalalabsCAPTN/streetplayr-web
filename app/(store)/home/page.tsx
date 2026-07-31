@@ -96,12 +96,14 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       {/* Mobile only — CSS-hidden on desktop; reuses latestProducts */}
       <HomeMobileLatestCarousel products={latestProducts} />
 
+      {/* Desktop grid — CSS-hidden on mobile (carousel above covers Latest Drop) */}
       <ProductSection
         title="Latest Drop"
         products={latestProducts}
         moreHref="/collections"
         gallery
         flat
+        className="home-latest-grid"
       />
       <ProductSection
         title="playR Tees Collection"

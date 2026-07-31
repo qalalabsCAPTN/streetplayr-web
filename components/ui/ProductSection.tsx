@@ -27,6 +27,7 @@ interface ProductSectionProps {
   gallery?: boolean;
   grid?: boolean;
   flat?: boolean;
+  className?: string;
 }
 
 /**
@@ -47,6 +48,7 @@ export default function ProductSection({
   gallery = true,
   grid = false,
   flat = false,
+  className = "",
 }: ProductSectionProps) {
   const [isMobile, setIsMobile] = useState(false);
 
@@ -64,7 +66,7 @@ export default function ProductSection({
   const showMobileViewAll = Boolean(moreHref) && products.length <= 3;
 
   return (
-    <section className={`panel ${flat ? 'panel--flat' : ''}`}>
+    <section className={`panel ${flat ? 'panel--flat' : ''} ${className}`.trim()}>
       <div className="panel__head">
         <h2 className="panel__title">{displayTitle}</h2>
         {moreHref && (

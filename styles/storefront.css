@@ -715,6 +715,13 @@ body.hdr-solid .page-frame { opacity: 1; }
   }
 }
 
+/* Desktop Latest Drop grid — hide on mobile (carousel owns that slot) */
+@media (max-width: 900px) {
+  .home-latest-grid {
+    display: none !important;
+  }
+}
+
 /* ============ 3D COVERFLOW STACK CAROUSEL ============ */
 .carousel3d {
   position: relative;
