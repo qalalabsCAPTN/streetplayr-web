@@ -217,6 +217,17 @@
      pinned gallery). overflow-x: clip prevents horizontal bleed without
      establishing a scroll container or triggering that pairing quirk. */
   overflow-x: clip;
+  max-width: 100%;
+}
+
+/* Kill page-level horizontal scroll / white strip (100vw + transform bleed) */
+html {
+  overflow-x: clip;
+  max-width: 100%;
+}
+body {
+  overflow-x: clip;
+  max-width: 100%;
 }
 
 .storefront-root a { color: inherit; text-decoration: none; }
@@ -372,12 +383,15 @@
   position: fixed;
   left: 50%;
   right: auto;
-  bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(8px + env(safe-area-inset-bottom, 0px));
   z-index: 80;
   transform: translateX(-50%);
   align-items: center;
-  gap: 12px;
-  width: min(480px, calc(100vw - 24px));
+  justify-content: center;
+  gap: 10px;
+  /* 100% not 100vw — avoids iOS white-strip from scrollbar/safe-area */
+  width: min(480px, calc(100% - 24px));
+  max-width: calc(100% - 24px);
   box-sizing: border-box;
   pointer-events: none;
 }
@@ -399,7 +413,8 @@
   backdrop-filter: blur(22px) saturate(170%);
   border: 1px solid rgba(255, 255, 255, 0.45);
   border-radius: 999px;
-  padding: 8px 14px;
+  /* ~7% shorter than prior 56px (8+40+8); expand hit with ::after */
+  padding: 7px 12px;
   align-items: center;
   justify-content: space-around;
   box-shadow:
@@ -408,9 +423,15 @@
 }
 .mobilenav__item {
   display: flex; align-items: center; justify-content: center;
-  width: 40px; height: 40px; border-radius: 50%; color: #16181d; position: relative;
+  width: 38px; height: 38px; border-radius: 50%; color: #16181d; position: relative;
+  flex: 0 0 auto;
 }
-.mobilenav__item svg { width: 21px; height: 21px; }
+.mobilenav__item::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+}
+.mobilenav__item svg { width: 20px; height: 20px; }
 .mobilenav__ring {
   display: flex; align-items: center; justify-content: center;
   width: 34px; height: 34px; border-radius: 50%;
@@ -422,12 +443,14 @@
   display: flex; align-items: center; justify-content: center; padding: 0 3px;
 }
 
-/* Stories — separate circle; same avatar + ring as Desktop Header `.iconbtn--story` */
+/* Stories / Lookbook — separate circle; vertically centered with pill via dock align-items */
 .mobilenav__lookbook.iconbtn {
   flex: 0 0 auto;
-  width: 48px;
-  height: 48px;
+  align-self: center;
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
+  margin: 0;
 }
 .mobilenav__lookbook.iconbtn img {
   width: 100%;
@@ -499,46 +522,65 @@
 /* Higher specificity than `.storefront-root a { color: inherit }` */
 .storefront-root a.hero__shop--dark,
 .hero__shop--dark {
-  position: absolute; left: 50%; bottom: 36px; transform: translateX(-50%);
+  position: absolute;
+  left: 50%;
+  bottom: max(28px, calc(env(safe-area-inset-bottom, 0px) + 16px));
+  transform: translateX(-50%);
   margin: 0;
   font-family: var(--font-sp-mono, ui-monospace, monospace);
-  background: transparent;
+  /* Frosted plate — opacity/blur only; keep white type for hero contrast */
+  background: rgba(0, 0, 0, 0.42);
   color: #ffffff !important;
-  font-size: 12px; font-weight: 700; letter-spacing: 0.26em; text-transform: uppercase;
-  padding: 0 0 5px;
-  border-radius: 0;
-  border: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.88);
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  box-shadow: none;
-  z-index: 6;
-  min-width: 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  padding: 12px 22px;
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+  z-index: 30;
+  pointer-events: auto;
   text-align: center;
   white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 @media (min-width: 901px) {
   .storefront-root a.hero__shop--dark,
   .hero__shop--dark {
-    bottom: 48px;
-    font-size: 13px;
+    bottom: 40px;
+    font-size: 14px;
     letter-spacing: 0.28em;
-    padding: 0 0 6px;
+    padding: 14px 28px;
   }
 }
 .storefront-root a.hero__shop--dark:hover,
 .hero__shop--dark:hover {
-  background: transparent;
+  background: rgba(0, 0, 0, 0.55);
   color: #eadfed !important;
-  border-color: #ddb7ff;
+  border-color: rgba(221, 183, 255, 0.65);
   opacity: 1;
-  transform: translateX(-50%) scale(1.04);
-  box-shadow: none;
+  transform: translateX(-50%) scale(1.03);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.4);
 }
 .storefront-root a.hero__shop--dark:focus-visible,
 .hero__shop--dark:focus-visible {
   outline: 2px solid #ddb7ff;
-  outline-offset: 6px;
+  outline-offset: 4px;
 }
 
 /* banner-image hero — full-bleed; page-frame softens corners under solid header */
@@ -550,15 +592,16 @@
 }
 .hslide {
   position: absolute; inset: 0; width: 100%; height: 100%;
-  opacity: 0; transform: scale(1.04);
-  transition: opacity 0.8s ease, transform 1.4s var(--ease);
+  opacity: 0;
+  /* No scale transform — subpixel scale softens the LCP banner */
+  transition: opacity 0.8s ease;
   pointer-events: none;
 }
 .storefront-root .hslide img {
   width: 100%; height: 100%; object-fit: cover;
   object-position: center center;
 }
-.hslide.active { opacity: 1; transform: scale(1); pointer-events: auto; }
+.hslide.active { opacity: 1; pointer-events: auto; }
 .hero__arrow {
   position: absolute; top: 50%; transform: translateY(-50%); z-index: 5;
   width: 42px; height: 42px; border-radius: 50%;
@@ -963,6 +1006,12 @@ body.theme-light .carousel3d__dot.active {
   min-height: 280px;
   aspect-ratio: unset;
 }
+/* Mobile/tablet only — hide collection banner on desktop */
+@media (min-width: 1024px) {
+  .bslider {
+    display: none !important;
+  }
+}
 @media (min-width: 768px) {
   .bslider {
     height: min(58vh, 560px);
@@ -983,6 +1032,34 @@ body.theme-light .carousel3d__dot.active {
   display: block;
   cursor: pointer;
 }
+/* Collection banner text — centered title + CTA over soft plate */
+.bslide__overlay {
+  position: absolute; inset: 0; z-index: 3;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 14px; text-align: center; padding: 24px 20px;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 50%, rgba(10, 8, 14, 0.55) 0%, rgba(10, 8, 14, 0.2) 55%, transparent 75%);
+}
+.bslide__title {
+  color: #fff;
+  margin: 0;
+  width: 100%;
+  max-width: 90%;
+  text-align: center;
+  font-family: var(--font-sp-display, Anton, Impact, sans-serif);
+  font-size: clamp(20px, 5.5vw, 30px);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  line-height: 1.15;
+  text-transform: uppercase;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.65), 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+.bslide__cta {
+  pointer-events: none;
+  width: auto;
+  margin: 0 auto;
+}
 .bslider__dots {
   position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%); z-index: 5;
   display: flex; gap: 7px;
@@ -995,15 +1072,17 @@ body.theme-light .carousel3d__dot.active {
 }
 .bslider__dot.active { background: #fff; transform: scale(1.2); }
 
-/* ============ DISCOVER COLLECTIONS — match Collection Banner sizing ============ */
+/* ============ DISCOVER COLLECTIONS — horizontal scroll-snap carousel ============ */
 .discover {
   display: flex;
   flex-direction: column;
   gap: 10px;
   margin: 10px 0;
   padding: 0;
+  max-width: 100%;
+  overflow-x: clip;
 }
-/* Mobile-only category promo strips — not part of desktop homepage */
+/* Mobile/tablet category promo strips — not part of desktop homepage */
 @media (min-width: 1024px) {
   .discover {
     display: none;
@@ -1018,9 +1097,28 @@ body.theme-light .carousel3d__dot.active {
   padding: 4px 14px 0;
   color: var(--muted);
 }
+.discover__track {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  scroll-behavior: smooth;
+  overscroll-behavior-x: contain;
+  padding: 0 10px 4px;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.discover__track::-webkit-scrollbar {
+  display: none;
+}
 .discover__panel {
   position: relative;
-  margin: 0 10px;
+  flex: 0 0 min(82%, 360px);
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  margin: 0;
   border-radius: var(--radius-lg);
   overflow: hidden;
   /* Same visual box as `.bslider` — no stretch, consistent height */
@@ -1030,13 +1128,14 @@ body.theme-light .carousel3d__dot.active {
 }
 @media (min-width: 768px) {
   .discover__panel {
+    flex-basis: min(48%, 420px);
     height: min(58vh, 560px);
     min-height: 420px;
   }
 }
 @media (max-width: 900px) {
   .discover { gap: 6px; margin: 4px 0; }
-  .discover__panel { margin: 0 6px; }
+  .discover__track { gap: 8px; padding: 0 6px 4px; }
   .discover__label { padding-left: 12px; padding-right: 12px; }
 }
 .discover__panel img {
@@ -1046,11 +1145,41 @@ body.theme-light .carousel3d__dot.active {
 .discover__overlay {
   position: absolute; inset: 0; z-index: 2;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 12px; text-align: center; padding: 24px;
+  gap: 14px; text-align: center; padding: 24px 20px;
+  pointer-events: none;
+  /* Soft center plate — readability without redesign */
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 50%, rgba(10, 8, 14, 0.55) 0%, rgba(10, 8, 14, 0.2) 55%, transparent 75%);
+}
+.discover__overlay .btn,
+.discover__overlay .storefront-cta {
+  pointer-events: auto;
+  cursor: pointer;
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  margin: 0 auto;
 }
 .discover__title {
   color: #fff;
   margin: 0;
+  width: 100%;
+  max-width: 90%;
+  text-align: center;
+  font-family: var(--font-sp-display, Anton, Impact, sans-serif);
+  font-size: clamp(22px, 6vw, 32px);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.65), 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+@media (prefers-reduced-motion: reduce) {
+  .discover__track {
+    scroll-behavior: auto;
+  }
 }
 
 /* ============ HOMEPAGE STORIES ROW (mobile only) ============ */
@@ -1058,13 +1187,16 @@ body.theme-light .carousel3d__dot.active {
   display: none;
   align-items: center;
   gap: 6px;
-  margin: 8px 6px 4px;
-  padding: 0 2px;
+  margin: 14px 8px 12px;
+  padding: 0 2px 22px; /* room for absolute story labels */
+  box-sizing: border-box;
+  max-width: 100%;
 }
 .stories-bar__arrow {
   flex: 0 0 auto;
   width: 36px;
   height: 36px;
+  margin-top: 0;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -1096,16 +1228,20 @@ body.theme-light .carousel3d__dot.active {
   scrollbar-width: none;
   flex: 1;
   min-width: 0;
-  padding: 6px 4px 10px;
+  padding: 0 4px;
+  align-items: center;
 }
 .stories::-webkit-scrollbar { display: none; }
 .story {
   flex: 0 0 auto;
   width: 72px;
+  height: 64px;
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 0;
   scroll-snap-align: start;
   background: none;
   border: none;
@@ -1139,6 +1275,10 @@ body.theme-light .carousel3d__dot.active {
   object-fit: cover;
 }
 .story__label {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
   font-size: 10px;
   letter-spacing: 0.02em;
   max-width: 72px;
@@ -1146,6 +1286,8 @@ body.theme-light .carousel3d__dot.active {
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--muted);
+  text-align: center;
+  pointer-events: none;
 }
 @media (max-width: 900px) {
   .stories-bar { display: flex; }
@@ -1159,24 +1301,39 @@ body.theme-light .carousel3d__dot.active {
   background: none; border: none; cursor: pointer;
 }
 
-/* Homepage mobile spacing rhythm — tighter vertical gaps, no CLS */
+/* Homepage mobile spacing rhythm — Hero → Stories → Latest Drop breathing room */
 @media (max-width: 900px) {
+  .home-page .hero--banner {
+    margin-bottom: 0;
+  }
   .home-page .panel {
     margin: 4px 6px;
     padding: 10px 10px 14px;
   }
   .home-page .panel--flat {
-    margin: 2px 0 0;
+    margin: 4px 0 0;
     padding-left: 8px;
     padding-right: 8px;
   }
   .home-page .panel__head {
-    padding: 2px 4px 10px;
+    padding: 4px 4px 10px;
   }
   .home-page .pgrid { margin-top: 12px; gap: 10px; }
-  .home-page .bslider { margin: 4px 6px; }
-  .home-latest-carousel { margin-top: 0; }
-  .home-latest-carousel .carousel3d { margin: 12px auto 4px; }
+  .home-page .bslider { margin: 8px 6px; }
+  .home-latest-carousel {
+    margin-top: 4px;
+    margin-bottom: 8px;
+    overflow-x: clip;
+    max-width: 100%;
+  }
+  .home-latest-carousel .carousel3d {
+    margin: 10px auto 8px;
+    overflow-x: clip;
+    max-width: 100%;
+  }
+  .home-latest-carousel .carousel3d__container {
+    overflow: hidden;
+  }
 }
 
 /* ============ STORY VIEWER ============ */
@@ -1911,7 +2068,8 @@ body.theme-light .carousel3d__dot.active {
 }
 .scrim.open { opacity: 1; visibility: visible; pointer-events: auto; }
 .drawer {
-  position: fixed; top: 10px; right: 10px; bottom: 10px; width: min(430px, calc(100vw - 20px));
+  position: fixed; top: 10px; right: 10px; bottom: 10px; width: min(430px, calc(100% - 20px));
+  max-width: calc(100% - 20px);
   /* Homepage glass — not opaque white slab */
   background: rgba(255, 255, 255, 0.42);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
@@ -2217,8 +2375,8 @@ body.theme-light .carousel3d__dot.active {
   }
 
   .mobilenav-dock { display: flex; }
-  .storefront-root { padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
-  .toast { bottom: 84px; }
+  .storefront-root { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+  .toast { bottom: 82px; }
 
   /* Mobile top nav — transparent on hero; glass bar when solid */
   .header {
@@ -2259,15 +2417,13 @@ body.theme-light .carousel3d__dot.active {
   }
   .storefront-root a.hero__shop--dark,
   .hero__shop--dark {
-    bottom: max(20px, env(safe-area-inset-bottom, 0px));
-    padding: 0 0 4px;
+    bottom: max(16px, env(safe-area-inset-bottom, 0px));
+    padding: 11px 18px;
     font-size: 11px;
-    letter-spacing: 0.22em;
+    letter-spacing: 0.2em;
     font-weight: 700;
-    min-width: 0;
-    background: transparent;
-    border-radius: 0;
-    box-shadow: none;
+    min-height: 44px;
+    z-index: 30;
   }
   /* Empty search suggestions hidden on phone */
   .header__search-suggestions { display: none !important; }
@@ -5548,7 +5704,8 @@ body.theme-light .carousel3d__dot.active {
   right: 0;
   bottom: 0;
   left: auto;
-  width: min(380px, 100vw);
+  width: min(380px, 100%);
+  max-width: 100%;
   border-radius: 0;
   border: none;
   border-left: 1px solid rgba(0, 0, 0, 0.08);

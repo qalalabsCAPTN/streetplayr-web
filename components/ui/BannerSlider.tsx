@@ -54,13 +54,19 @@ export default function BannerSlider() {
               src={s.image}
               alt={s.title}
               fill
-              sizes="(max-width: 900px) calc(100vw - 12px), min(95vw, 2400px)"
+              sizes="(max-width: 900px) calc(100% - 12px), min(95vw, 2400px)"
               className="bslide__img object-cover"
               style={{ objectPosition: s.objectPosition ?? 'center 22%' }}
               priority={i === 0}
               loading={warm ? 'eager' : 'lazy'}
               quality={80}
             />
+            <div className="bslide__overlay">
+              <h2 className="bslide__title">{s.title}</h2>
+              <span className="storefront-cta storefront-cta--inline bslide__cta">
+                {s.cta || 'Shop now'}
+              </span>
+            </div>
           </div>
         );
       })}
