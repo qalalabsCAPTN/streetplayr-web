@@ -315,6 +315,15 @@ body {
   color: inherit;
   text-decoration: none;
   flex-shrink: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+/* Kill Chromium default blue focus ring on header/dock icon buttons */
+.iconbtn:focus { outline: none; }
+.iconbtn:focus-visible {
+  outline: 2px solid #ddb7ff;
+  outline-offset: 2px;
 }
 .iconbtn:hover { background: rgba(0, 0, 0, 0.07); }
 .header:not(.header--solid) .iconbtn:hover {
@@ -376,22 +385,22 @@ body {
 .storefront-root .mega a { display: block; font-size: 14px; padding: 5px 0; transition: opacity 0.2s; }
 .mega a:hover { opacity: 0.5; }
 
-/* ============ MOBILE BOTTOM NAV — pill + Stories circle ============ */
-/* Dock wraps pill + separate Stories avatar; fixed + safe-area live here (no CLS on children). */
+/* ============ MOBILE BOTTOM NAV — compact pill + Lookbook circle ============ */
+/* Dock = fixed safe-area host; pill hugs icons (no stretch spread). */
 .mobilenav-dock {
   display: none;
   position: fixed;
   left: 50%;
   right: auto;
-  bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  bottom: max(6px, env(safe-area-inset-bottom, 0px));
   z-index: 80;
   transform: translateX(-50%);
   align-items: center;
   justify-content: center;
+  /* Gap pill ↔ lookbook — room to breathe, still compact */
   gap: 10px;
-  /* 100% not 100vw — avoids iOS white-strip from scrollbar/safe-area */
-  width: min(480px, calc(100% - 24px));
-  max-width: calc(100% - 24px);
+  width: auto;
+  max-width: calc(100% - 20px);
   box-sizing: border-box;
   pointer-events: none;
 }
@@ -404,53 +413,56 @@ body {
   right: auto;
   bottom: auto;
   z-index: auto;
-  flex: 1 1 auto;
-  min-width: 0;
-  width: auto;
+  /* Hug content — do NOT flex-grow (space-around + grow = huge icon gaps) */
+  flex: 0 0 auto;
+  width: max-content;
+  max-width: 100%;
   transform: none;
   background: rgba(255, 255, 255, 0.72);
   -webkit-backdrop-filter: blur(22px) saturate(170%);
   backdrop-filter: blur(22px) saturate(170%);
   border: 1px solid rgba(255, 255, 255, 0.45);
   border-radius: 999px;
-  /* ~7% shorter than prior 56px (8+40+8); expand hit with ::after */
-  padding: 7px 12px;
+  padding: 6px 14px;
   align-items: center;
-  justify-content: space-around;
+  justify-content: center;
+  gap: 10px;
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.65) inset,
-    0 12px 36px rgba(0, 0, 0, 0.14);
+    0 10px 28px rgba(0, 0, 0, 0.16);
 }
 .mobilenav__item {
   display: flex; align-items: center; justify-content: center;
-  width: 38px; height: 38px; border-radius: 50%; color: #16181d; position: relative;
+  width: 36px; height: 36px; border-radius: 50%; color: #16181d; position: relative;
   flex: 0 0 auto;
 }
 .mobilenav__item::after {
   content: "";
   position: absolute;
-  inset: -4px;
+  inset: -6px;
 }
-.mobilenav__item svg { width: 20px; height: 20px; }
+.mobilenav__item svg { width: 18px; height: 18px; }
 .mobilenav__ring {
-  display: flex; align-items: center; justify-content: center;
-  width: 34px; height: 34px; border-radius: 50%;
-  border: 1.6px solid #1f6bff;
+  display: contents;
 }
 .mobilenav__count {
-  position: absolute; top: -2px; right: -2px; background: #ff5a1f; color: #fff;
-  font-size: 9px; min-width: 15px; height: 15px; border-radius: 999px;
+  position: absolute; top: -1px; right: -1px; background: #ff5a1f; color: #fff;
+  font-size: 9px; min-width: 14px; height: 14px; border-radius: 999px;
   display: flex; align-items: center; justify-content: center; padding: 0 3px;
+  z-index: 1;
 }
 
-/* Stories / Lookbook — separate circle; vertically centered with pill via dock align-items */
+/* Lookbook right of pill — match pill height, soft lilac ring (brand lock) */
 .mobilenav__lookbook.iconbtn {
   flex: 0 0 auto;
   align-self: center;
-  width: 46px;
-  height: 46px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   margin: 0;
+  box-shadow:
+    0 0 0 1px rgba(221, 183, 255, 0.28),
+    0 0 10px rgba(221, 183, 255, 0.35);
 }
 .mobilenav__lookbook.iconbtn img {
   width: 100%;
@@ -1090,12 +1102,13 @@ body.theme-light .carousel3d__dot.active {
 }
 .discover__label {
   font-family: var(--font-sp-mono, ui-monospace, monospace);
-  font-size: 11px;
-  letter-spacing: 0.22em;
+  font-size: 12px;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   font-weight: 700;
-  padding: 4px 14px 0;
-  color: var(--muted);
+  padding: 6px 14px 2px;
+  color: var(--fg);
+  opacity: 0.92;
 }
 .discover__track {
   display: flex;
@@ -1142,39 +1155,59 @@ body.theme-light .carousel3d__dot.active {
   object-fit: cover;
   object-position: center center;
 }
+/* Overlay sits in lower band — product face stays readable */
 .discover__overlay {
-  position: absolute; inset: 0; z-index: 2;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 14px; text-align: center; padding: 24px 20px;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: auto;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  text-align: center;
+  padding: 56px 18px 22px;
   pointer-events: none;
-  /* Soft center plate — readability without redesign */
-  background:
-    radial-gradient(ellipse 70% 55% at 50% 50%, rgba(10, 8, 14, 0.55) 0%, rgba(10, 8, 14, 0.2) 55%, transparent 75%);
+  background: linear-gradient(
+    to top,
+    rgba(8, 6, 12, 0.78) 0%,
+    rgba(8, 6, 12, 0.42) 45%,
+    transparent 100%
+  );
 }
 .discover__overlay .btn,
-.discover__overlay .storefront-cta {
+.discover__overlay .storefront-cta,
+.discover__cta {
   pointer-events: auto;
   cursor: pointer;
-  min-height: 44px;
-  min-width: 44px;
+  /* Compact pill — brand CTA tokens, not oversized bar */
+  min-height: 40px;
+  min-width: 0;
+  width: auto;
+  margin: 0;
+  padding: 10px 18px;
+  font-size: 10px;
+  letter-spacing: 0.2em;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: auto;
-  margin: 0 auto;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
 }
 .discover__title {
   color: #fff;
   margin: 0;
   width: 100%;
-  max-width: 90%;
+  max-width: 14ch;
   text-align: center;
   font-family: var(--font-sp-display, Anton, Impact, sans-serif);
-  font-size: clamp(22px, 6vw, 32px);
+  font-size: clamp(18px, 5vw, 26px);
   font-weight: 400;
-  letter-spacing: 0.04em;
-  line-height: 1.15;
-  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.65), 0 1px 2px rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.06em;
+  line-height: 1.1;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.7), 0 1px 2px rgba(0, 0, 0, 0.55);
 }
 @media (prefers-reduced-motion: reduce) {
   .discover__track {
@@ -1301,33 +1334,33 @@ body.theme-light .carousel3d__dot.active {
   background: none; border: none; cursor: pointer;
 }
 
-/* Homepage mobile spacing rhythm — Hero → Stories → Latest Drop breathing room */
+/* Homepage mobile spacing — Hero flush into Latest Drop */
 @media (max-width: 900px) {
   .home-page .hero--banner {
     margin-bottom: 0;
   }
   .home-page .panel {
-    margin: 4px 6px;
-    padding: 10px 10px 14px;
+    margin: 2px 6px;
+    padding: 8px 10px 12px;
   }
   .home-page .panel--flat {
-    margin: 4px 0 0;
+    margin: 2px 0 0;
     padding-left: 8px;
     padding-right: 8px;
   }
   .home-page .panel__head {
-    padding: 4px 4px 10px;
+    padding: 2px 4px 8px;
   }
   .home-page .pgrid { margin-top: 12px; gap: 10px; }
   .home-page .bslider { margin: 8px 6px; }
   .home-latest-carousel {
-    margin-top: 4px;
-    margin-bottom: 8px;
+    margin-top: 0;
+    margin-bottom: 6px;
     overflow-x: clip;
     max-width: 100%;
   }
   .home-latest-carousel .carousel3d {
-    margin: 10px auto 8px;
+    margin: 4px auto 6px;
     overflow-x: clip;
     max-width: 100%;
   }
@@ -2375,8 +2408,8 @@ body.theme-light .carousel3d__dot.active {
   }
 
   .mobilenav-dock { display: flex; }
-  .storefront-root { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
-  .toast { bottom: 82px; }
+  .storefront-root { padding-bottom: calc(62px + env(safe-area-inset-bottom, 0px)); }
+  .toast { bottom: 68px; }
 
   /* Mobile top nav — transparent on hero; glass bar when solid */
   .header {
@@ -2417,13 +2450,25 @@ body.theme-light .carousel3d__dot.active {
   }
   .storefront-root a.hero__shop--dark,
   .hero__shop--dark {
-    bottom: max(16px, env(safe-area-inset-bottom, 0px));
-    padding: 11px 18px;
+    bottom: 8px;
+    padding: 9px 16px;
     font-size: 11px;
     letter-spacing: 0.2em;
     font-weight: 700;
-    min-height: 44px;
+    min-height: 40px;
     z-index: 30;
+  }
+  /* Header bag — never inherit accidental browser blue focus chrome */
+  .header__right .iconbtn:focus,
+  .header__right .iconbtn:focus-visible,
+  .mobilenav__item:focus,
+  .mobilenav__item:focus-visible {
+    outline: 2px solid #ddb7ff;
+    outline-offset: 2px;
+  }
+  .header__right .iconbtn:focus:not(:focus-visible),
+  .mobilenav__item:focus:not(:focus-visible) {
+    outline: none;
   }
   /* Empty search suggestions hidden on phone */
   .header__search-suggestions { display: none !important; }

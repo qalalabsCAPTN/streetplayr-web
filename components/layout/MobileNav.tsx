@@ -40,8 +40,8 @@ interface MobileNavProps {
 }
 
 /**
- * Mobile dock: [ nav pill ] + separate Stories circle
- * (same avatar as Desktop Header `.iconbtn--story`).
+ * Mobile dock: compact icon pill + Lookbook circle (right).
+ * Pill hugs icons — spacing via CSS gap, not full-width stretch.
  */
 export default function MobileNav({ onSearch, onAccount, onStories }: MobileNavProps) {
   const cart = useCart();
@@ -64,7 +64,7 @@ export default function MobileNav({ onSearch, onAccount, onStories }: MobileNavP
           aria-label="Bag"
           onClick={() => cart.setOpen(true)}
         >
-          <span className="mobilenav__ring">{Icon.bag}</span>
+          {Icon.bag}
           {cart.count > 0 && <span className="mobilenav__count">{cart.count}</span>}
         </button>
       </nav>

@@ -37,7 +37,7 @@ export default function DiscoverCollections() {
               <h2 className="discover__title">{c.title}</h2>
               <Link
                 href={`/collections?category=${c.handle}`}
-                className="storefront-cta storefront-cta--inline"
+                className="storefront-cta storefront-cta--inline discover__cta"
               >
                 Shop now
               </Link>
