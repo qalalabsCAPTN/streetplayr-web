@@ -17,8 +17,9 @@ import { CartItem } from '@/store/cartStore';
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+import { resolveStorefrontBrandId } from '@/lib/products/brand';
+
 const ORG_ID = '00000000-0000-0000-0000-000000000001';
-const BRAND_ID = 'e56b72a5-3746-4c01-a054-885ed3e55c0f';
 
 export type CartSchemaKind = 'crm' | 'legacy' | 'unknown';
 
@@ -83,10 +84,12 @@ async function resolveCustomerId(
 ): Promise<string | null> {
   if (!email) return null;
 
+  const brandId = await resolveStorefrontBrandId(admin);
   const { data: existing } = await admin
     .from('customers')
     .select('id')
     .eq('email', email)
+    .eq('brand_id', brandId)
     .maybeSingle();
 
   if (existing?.id) return existing.id;
@@ -102,7 +105,7 @@ async function resolveCustomerId(
     .from('customers')
     .insert({
       organization_id: ORG_ID,
-      brand_id: BRAND_ID,
+      brand_id: brandId,
       email,
       first_name: name[0] ?? '',
       last_name: name.slice(1).join(' ') ?? '',
@@ -141,11 +144,12 @@ async function syncCrmCart(
     .maybeSingle();
 
   if (!cart) {
+    const brandId = await resolveStorefrontBrandId(admin);
     const { data: created, error: createErr } = await admin
       .from('carts')
       .insert({
         organization_id: ORG_ID,
-        brand_id: BRAND_ID,
+        brand_id: brandId,
         customer_id: customerId,
         status: 'active',
         item_count: 0,

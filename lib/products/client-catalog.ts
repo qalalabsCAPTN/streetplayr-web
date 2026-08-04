@@ -62,12 +62,15 @@ function resolveMembership(productId: string, slug: string, fromDb: CollectionSl
   return localMembershipFor(productId, slug);
 }
 
+import { resolveStorefrontBrandId } from './brand';
+
 export async function loadClientCatalog(): Promise<CatalogProduct[]> {
   if (!isSupabaseLive()) return mapLocal();
 
   try {
     const { createClient } = await import('@/lib/supabase/client');
     const supabase = createClient();
+    const brandId = await resolveStorefrontBrandId(supabase);
 
     const { data, error } = await supabase
       .from('products')
@@ -75,6 +78,7 @@ export async function loadClientCatalog(): Promise<CatalogProduct[]> {
         'id, title, slug, description, featured_image_url, metadata, status, created_at, product_variants(id, price, title, attributes)'
       )
       .eq('status', 'active')
+      .eq('brand_id', brandId)
       .order('created_at', { ascending: false });
 
     if (error || !data || data.length === 0) {

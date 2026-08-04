@@ -1,4 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin';
+import { resolveStorefrontBrandId } from '@/lib/products/brand';
 import type { Order, OrderStatus, OrchestrationResponse } from './types';
 import { recordEvent } from './events';
 
@@ -44,10 +45,12 @@ export const OrderService = {
 
       if (!profile?.email) return [];
 
+      const brandId = await resolveStorefrontBrandId(admin);
       const { data: customer } = await admin
         .from('customers')
         .select('id')
         .eq('email', profile.email)
+        .eq('brand_id', brandId)
         .single();
 
       if (!customer) return [];

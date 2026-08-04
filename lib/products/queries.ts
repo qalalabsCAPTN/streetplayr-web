@@ -4,6 +4,7 @@
  */
 
 import { createStaticClient } from '@/lib/supabase/static';
+import { resolveStorefrontBrandId } from './brand';
 import {
   getLocalProductBySlug,
   getLocalActiveProducts,
@@ -212,12 +213,14 @@ export const ProductQueries = {
 
     try {
       const supabase = createStaticClient();
+      const brandId = await resolveStorefrontBrandId(supabase);
       const { data, error } = await supabase
         .from('products')
         .select(
           `id, title, slug, description, featured_image_url, metadata, status, created_at, product_variants(id, price, title, attributes)`
         )
         .eq('status', 'active')
+        .eq('brand_id', brandId)
         .order('created_at', { ascending: false });
 
       if (error || !data || data.length === 0) {
@@ -380,6 +383,7 @@ export const ProductQueries = {
     }
     try {
       const supabase = createStaticClient();
+      const brandId = await resolveStorefrontBrandId(supabase);
       const { data, error } = await supabase
         .from('products')
         .select(`
@@ -394,6 +398,7 @@ export const ProductQueries = {
         `)
         .eq('slug', slug)
         .eq('status', 'active')
+        .eq('brand_id', brandId)
         .maybeSingle();
 
       if (error) {

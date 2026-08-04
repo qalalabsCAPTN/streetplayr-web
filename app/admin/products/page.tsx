@@ -1,10 +1,12 @@
 import { createAdminClient } from '@/lib/supabase/admin';
+import { resolveStorefrontBrandId } from '@/lib/products/brand';
 export const dynamic = 'force-dynamic';
 
 export default async function AdminProductsPage() {
   const admin = createAdminClient();
+  const brandId = await resolveStorefrontBrandId(admin);
   const [productsRes, variantsRes] = await Promise.all([
-    admin.from('products').select('*').order('created_at', { ascending: false }).limit(50),
+    admin.from('products').select('*').eq('brand_id', brandId).order('created_at', { ascending: false }).limit(50),
     admin.from('product_variants').select('product_id, stock_quantity, price'),
   ]);
   const products = productsRes.data ?? []; const variants = variantsRes.data ?? [];
