@@ -4,6 +4,7 @@ import Stripe from 'stripe';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import { recordEvent } from '@/lib/orchestration/events';
+import { resolveStorefrontBrandId } from '@/lib/products/brand';
 import type { OrchestrationResponse } from '@/lib/orchestration/types';
 
 /**
@@ -69,9 +70,9 @@ export async function createPaymentAndConfirmAction(
 
     const admin = createAdminClient();
 
-    // 1. Verify the order exists, is in draft/pending status, and belongs to this user
+    const brandId = await resolveStorefrontBrandId(admin);
     const { data: customer } = user.email
-      ? await admin.from('customers').select('id').eq('email', user.email).maybeSingle()
+      ? await admin.from('customers').select('id').eq('email', user.email).eq('brand_id', brandId).maybeSingle()
       : { data: null };
 
     const { data: order } = await admin
@@ -179,9 +180,9 @@ export async function releaseOrderReservationsAction(
     if (!user) return { success: false, error: 'Not authenticated.', code: 'UNAUTHORIZED' };
 
     const admin = createAdminClient();
-
+    const brandId = await resolveStorefrontBrandId(admin);
     const { data: customer } = user.email
-      ? await admin.from('customers').select('id').eq('email', user.email).maybeSingle()
+      ? await admin.from('customers').select('id').eq('email', user.email).eq('brand_id', brandId).maybeSingle()
       : { data: null };
 
     const { data: order } = await admin

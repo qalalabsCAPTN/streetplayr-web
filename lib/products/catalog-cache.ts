@@ -10,7 +10,7 @@ import type { CatalogProduct } from '@/lib/products/queries';
 
 const TTL_MS = 60 * 60 * 1000; // serve stale up to 1h after last success
 /** Bump when catalog shape / media mapping changes so stale session LKG can't blank cards. */
-const CLIENT_KEY = 'sp.catalog.lkg.v2';
+const CLIENT_KEY = 'sp.catalog.lkg.v3';
 
 type LkgEntry = {
   products: CatalogProduct[];
@@ -18,6 +18,17 @@ type LkgEntry = {
 };
 
 let memoryLkg: LkgEntry | null = null;
+
+export function clearCatalogLkg(): void {
+  memoryLkg = null;
+  if (typeof window !== 'undefined') {
+    try {
+      sessionStorage.removeItem(CLIENT_KEY);
+    } catch {
+      // ignore
+    }
+  }
+}
 
 export type CatalogSource = 'live' | 'lkg' | 'local' | 'empty';
 

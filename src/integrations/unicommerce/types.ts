@@ -16,6 +16,7 @@ export interface NormalizedProduct {
   category?: string;
   enabled: boolean;
   metadata?: Record<string, any>;
+  brand?: string;
 }
 
 export interface NormalizedVariant {

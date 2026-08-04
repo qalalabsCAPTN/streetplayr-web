@@ -34,6 +34,7 @@ export class UnicommerceProductService {
           price: localProduct.price,
           category: localProduct.category.name,
           enabled: true,
+          brand: 'playR STREET',
         };
       }
 
@@ -45,6 +46,7 @@ export class UnicommerceProductService {
         price: 1999,
         category: 'uncategorized',
         enabled: true,
+        brand: 'playR STREET',
       };
     }
 

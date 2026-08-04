@@ -33,6 +33,8 @@ export class UnicommerceSyncService {
       const admin = createAdminClient();
 
       let normalizedProducts: any[] = [];
+      let candidateParentSlugs: string[] = [];
+      const importedParentSlugs = new Set<string>();
       if (config.transportMode === 'SOAP') {
         let start = 0;
         let hasMore = true;
@@ -77,6 +79,11 @@ export class UnicommerceSyncService {
           return matchesAllowlist || existsInDb;
         });
 
+        candidateParentSlugs = Array.from(new Set(candidates.map(c => {
+          const lastDash = c.skuCode.lastIndexOf('-');
+          return lastDash > 0 ? c.skuCode.substring(0, lastDash) : c.skuCode;
+        })));
+
         await UnicommerceLogger.info(
           'sync.products_filter',
           `Filtered ${allItemTypes.length} catalog items down to ${candidates.length} storefront candidates`
@@ -117,20 +124,50 @@ export class UnicommerceSyncService {
           'warrior-bob-xs', 'warrior-bob-s', 'warrior-bob-m', 'warrior-bob-l', 'warrior-bob-xl', 'warrior-bob-2xl'
         ];
         normalizedProducts = await this.productService.getProductsBySkus(skusToSync);
+        candidateParentSlugs = Array.from(new Set(skusToSync.map(s => {
+          const lastDash = s.lastIndexOf('-');
+          return lastDash > 0 ? s.substring(0, lastDash) : s;
+        })));
       }
 
-      // Get default organization and brand ID from an existing product in the database to satisfy constraints
+      // Fetch dynamic brand_id for streetplayr storefront
+      const brandSlug = process.env.NEXT_PUBLIC_BRAND_ID || 'streetplayr';
+      const { data: brandData } = await admin
+        .from('brands')
+        .select('id')
+        .eq('slug', brandSlug)
+        .maybeSingle();
+
+      if (!brandData) {
+        throw new Error('Sync aborted: Brand record "streetplayr" not found in the database.');
+      }
+
       const { data: sampleProduct } = await admin
         .from('products')
-        .select('organization_id, brand_id')
+        .select('organization_id')
         .limit(1)
         .maybeSingle();
 
       const orgId = sampleProduct?.organization_id || '00000000-0000-0000-0000-000000000001';
-      const brandId = sampleProduct?.brand_id || 'e56b72a5-3746-4c01-a054-885ed3e55c0f';
+      const brandId = brandData.id;
 
       for (const normProd of normalizedProducts) {
         try {
+          const brandVal = (normProd.brand || '').trim();
+          const brandLower = brandVal.replace(/[®™]/g, '').replace(/\s+/g, ' ').toLowerCase();
+
+          if (brandLower !== 'playr street') {
+            const reason = 'Brand is not playR STREET';
+            const skipLogMsg = `Skipped: ${normProd.sku} (${brandVal || 'Unknown Brand'}) - Reason: ${reason}`;
+            console.log(skipLogMsg);
+            await UnicommerceLogger.info('sync.product_skip', skipLogMsg);
+            continue;
+          }
+
+          const importLogMsg = `Imported: ${normProd.sku} (${brandVal})`;
+          console.log(importLogMsg);
+          await UnicommerceLogger.info('sync.product_import', importLogMsg);
+
           // Parse parent SKU
           // e.g. "ctt-waffle-s" parent ID/slug is "ctt-waffle"
           const lastDashIndex = normProd.sku.lastIndexOf('-');
@@ -164,7 +201,10 @@ export class UnicommerceSyncService {
                 description: normProd.description || 'Synced from Unicommerce',
                 featured_image_url: normProd.imageUrl || null,
                 status: normProd.enabled ? 'active' : 'draft',
-                metadata: collectionSlug ? { category: collectionSlug } : {},
+                metadata: {
+                  brand: brandVal,
+                  ...(collectionSlug ? { category: collectionSlug } : {}),
+                },
               })
               .select('id')
               .single();
@@ -188,27 +228,35 @@ export class UnicommerceSyncService {
                 );
               }
             }
-          } else if (normProd.imageUrl) {
-            // Backfill missing media on existing UniCommerce parents
+          } else {
+            // Backfill missing media on existing UniCommerce parents, and ensure brand metadata is set
             const { data: existingParent } = await admin
               .from('products')
               .select('featured_image_url, metadata')
               .eq('id', dbProduct.id)
               .maybeSingle();
-            if (!existingParent?.featured_image_url) {
+            
+            const prevMeta =
+              existingParent?.metadata && typeof existingParent.metadata === 'object'
+                ? (existingParent.metadata as Record<string, unknown>)
+                : {};
+
+            const needsUrlUpdate = !existingParent?.featured_image_url && normProd.imageUrl;
+            const needsBrandUpdate = prevMeta.brand !== brandVal;
+
+            if (needsUrlUpdate || needsBrandUpdate) {
               const { resolveProductImages } = await import('@/lib/products/image-map');
               const pack = resolveProductImages(parentSlug) || resolveProductImages(normProd.sku);
-              const prevMeta =
-                existingParent?.metadata && typeof existingParent.metadata === 'object'
-                  ? (existingParent.metadata as Record<string, unknown>)
-                  : {};
+              
               await admin
                 .from('products')
                 .update({
-                  featured_image_url: normProd.imageUrl,
-                  ...(pack
-                    ? { metadata: { ...prevMeta, gallery_images: pack.gallery } }
-                    : {}),
+                  ...(needsUrlUpdate ? { featured_image_url: normProd.imageUrl } : {}),
+                  metadata: {
+                    ...prevMeta,
+                    brand: brandVal,
+                    ...(needsUrlUpdate && pack ? { gallery_images: pack.gallery } : {}),
+                  },
                 })
                 .eq('id', dbProduct.id);
             }
@@ -259,6 +307,7 @@ export class UnicommerceSyncService {
           }
 
           processed++;
+          importedParentSlugs.add(parentSlug);
         } catch (err: any) {
           errors++;
           await UnicommerceLogger.error(
@@ -268,6 +317,41 @@ export class UnicommerceSyncService {
             normProd.sku
           );
         }
+      }
+
+      // 3. Database Cleanup (safety check)
+      // Deactivate any active products that belong to the resolved brand_id and whose slug is in the slugsToDeactivate set
+      const slugsToDeactivate = candidateParentSlugs.filter(slug => !importedParentSlugs.has(slug));
+      if (slugsToDeactivate.length > 0) {
+        const { error: cleanupError } = await admin
+          .from('products')
+          .update({ status: 'draft' })
+          .eq('status', 'active')
+          .eq('brand_id', brandId)
+          .in('slug', slugsToDeactivate);
+
+        if (cleanupError) {
+          await UnicommerceLogger.error(
+            'sync.cleanup_error',
+            `Failed to deactivate skipped products: ${cleanupError.message}`,
+            cleanupError
+          );
+        } else {
+          const successMsg = `Deactivated any active products not belonging to playR STREET among candidates. Slugs: ${slugsToDeactivate.join(', ')}`;
+          console.log(successMsg);
+          await UnicommerceLogger.info('sync.cleanup_success', successMsg);
+        }
+      }
+
+      // 4. Cache Invalidation
+      try {
+        const { clearCatalogLkg } = await import('@/lib/products/catalog-cache');
+        clearCatalogLkg();
+        const cacheMsg = 'Catalog LKG cache invalidated successfully';
+        console.log(cacheMsg);
+        await UnicommerceLogger.info('sync.cache_invalidated', cacheMsg);
+      } catch (cacheErr) {
+        await UnicommerceLogger.error('sync.cache_invalidation_failed', 'Failed to invalidate catalog cache', cacheErr);
       }
 
       await UnicommerceLogger.info(

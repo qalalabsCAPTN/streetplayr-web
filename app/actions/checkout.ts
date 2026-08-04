@@ -6,9 +6,10 @@ import { getAvailableInventory } from '@/lib/inventory';
 import { recordEvent } from '@/lib/orchestration/events';
 import type { OrchestrationResponse } from '@/lib/orchestration/types';
 
+import { resolveStorefrontBrandId } from '@/lib/products/brand';
+
 const DEMO_MODE = process.env.DEMO_INVENTORY_MODE === 'true';
 const ORG_ID = '00000000-0000-0000-0000-000000000001';
-const BRAND_ID = 'e56b72a5-3746-4c01-a054-885ed3e55c0f';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -43,10 +44,12 @@ export interface CheckoutResult {
 async function resolveCustomerId(admin: any, userId: string, email?: string): Promise<string | null> {
   if (!email) return null;
 
+  const brandId = await resolveStorefrontBrandId(admin);
   const { data: existing } = await admin
     .from('customers')
     .select('id')
     .eq('email', email)
+    .eq('brand_id', brandId)
     .maybeSingle();
 
   if (existing) return existing.id;
@@ -62,7 +65,7 @@ async function resolveCustomerId(admin: any, userId: string, email?: string): Pr
     .from('customers')
     .insert({
       organization_id: ORG_ID,
-      brand_id: BRAND_ID,
+      brand_id: brandId,
       email,
       first_name: name[0] ?? '',
       last_name: name.slice(1).join(' ') ?? '',
@@ -140,11 +143,12 @@ export async function initiateCheckoutAction(
     const grandTotal = subtotal + shipping + tax;
     const orderNumber = `DEMO-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
 
+    const brandId = await resolveStorefrontBrandId(admin);
     const { data: order, error: orderError } = await admin
       .from('orders')
       .insert({
         organization_id: ORG_ID,
-        brand_id: BRAND_ID,
+        brand_id: brandId,
         order_number: orderNumber,
         customer_id: customerId,
         status: 'pending',
