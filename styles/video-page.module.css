@@ -51,6 +51,7 @@
   line-height: 1;
   text-align: center;
   text-transform: uppercase;
+  white-space: nowrap;
   font-family: var(--font-sp-mono), 'Space Mono', monospace;
   text-shadow: 0 0 12px rgba(221,183,255,0.25);
   backdrop-filter: blur(10px);
@@ -67,7 +68,7 @@
 @media (max-width: 480px) {
   .skip-button,
   .enter-cta {
-    padding: 0 28px;
+    padding: 0 20px;
     min-height: 48px;
     letter-spacing: 0.2em;
     font-size: 11px;

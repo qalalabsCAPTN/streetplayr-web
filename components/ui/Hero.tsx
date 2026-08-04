@@ -12,9 +12,10 @@ const NinjaStar = dynamic(() => import('./NinjaStar'), {
 
 const SLIDES = [
   {
-    // Prefer compressed asset (~0.28MB) over banners/empty centre.jpg (~2.28MB)
-    src: '/assets/empty_centre.jpg',
-    mobileSrc: '/banners/st-mobile-banner.webp',
+    // Desktop: streetplayR DSTOP BANNER · Mobile: streetplayR UPDATED BANNER MOBILE
+    // Use 2× JPEG masters (not chat-compressed 1k PNGs) for sharp LCP.
+    src: '/assets/drop-001-desktop.jpg',
+    mobileSrc: '/banners/drop-001-mobile.jpg',
     alt: 'Streetplayr Drop 001',
     href: '/collections',
   },
@@ -107,7 +108,9 @@ export default function Hero() {
           alt: s.alt,
           sizes: '100vw',
           fill: true as const,
-          quality: 75,
+          quality: 92,
+          // Bypass optimizer for LCP hero — chat PNGs were soft; 2× JPEG masters stay sharp
+          unoptimized: true,
           priority: isActive,
           className: 'object-cover hero__banner-img',
         };
@@ -167,7 +170,11 @@ export default function Hero() {
         </>
       )}
 
-      <Link href={current?.href || '/collections'} className="hero__shop hero__shop--dark">
+      <Link
+        href={current?.href || '/collections'}
+        className="hero__shop hero__shop--dark"
+        aria-label="Shop Now"
+      >
         Shop Now
       </Link>
     </section>

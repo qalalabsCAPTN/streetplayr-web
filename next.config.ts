@@ -17,8 +17,10 @@ const nextConfig: NextConfig = {
   },
   images: {
     formats: ["image/avif", "image/webp"],
-    deviceSizes: [480, 640, 768, 1024, 1280, 1536],
+    deviceSizes: [480, 640, 768, 1024, 1280, 1536, 1920, 2048, 2560],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    // Allow hero quality=92 (Next defaults to [75] only in recent versions)
+    qualities: [75, 85, 90, 92, 95],
     minimumCacheTTL: 60 * 60 * 24 * 30,
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },

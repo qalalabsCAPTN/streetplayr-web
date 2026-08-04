@@ -180,7 +180,7 @@ export default function EntryGate() {
               <button
                 onClick={(e) => { e.stopPropagation(); handleEnter(); }}
                 style={{ pointerEvents: "auto" }}
-                className="font-mono text-[12px] tracking-[0.6em] uppercase text-white/85 hover:text-[#ddb7ff] bg-transparent border-none transition-all duration-300 cursor-pointer hover:scale-105"
+                className="font-mono text-[12px] tracking-[0.6em] uppercase text-white/85 hover:text-[#ddb7ff] bg-transparent border-none transition-all duration-300 cursor-pointer hover:scale-105 whitespace-nowrap"
               >
                 [ CLICK TO ENTER ]
               </button>
