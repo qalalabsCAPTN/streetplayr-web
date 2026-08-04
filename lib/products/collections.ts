@@ -77,8 +77,9 @@ export const DISABLED_MOBILE: FilterChip[] = ['Hoodies'];
 
 export const SORT_OPTIONS = [
   'Popular',
-  'Price: Low to High',
-  'Price: High to Low',
+  'Newest',
+  'Price Low→High',
+  'Price High→Low',
 ] as const;
 
 export type SortOption = (typeof SORT_OPTIONS)[number];

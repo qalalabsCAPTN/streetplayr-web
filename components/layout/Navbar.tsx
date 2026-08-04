@@ -201,9 +201,8 @@ export default function Navbar() {
     return () => mq.removeEventListener('change', sync);
   }, []);
 
-  // Home hero: fully transparent until scroll/overlays. Other routes stay glass.
-  const isHome = pathname === '/home';
-  const solid = !isHome || scrolled || megaOpen || menuDrawerOpen || searchOpen;
+  // Start transparent on page load for all routes, transition to glass pills after 60px scroll or when overlays are open
+  const solid = scrolled || megaOpen || menuDrawerOpen || searchOpen;
 
   useEffect(() => {
     let raf = 0;
@@ -211,7 +210,7 @@ export default function Navbar() {
       if (raf) return;
       raf = window.requestAnimationFrame(() => {
         raf = 0;
-        setScrolled(window.scrollY > 24);
+        setScrolled(window.scrollY > 60);
       });
     };
     onScroll();
