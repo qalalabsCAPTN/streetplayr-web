@@ -593,10 +593,7 @@ body {
   height: auto; min-height: 0; background: #0a0a0a;
   display: block; position: relative;
   margin: 0; border-radius: 0; overflow: hidden;
-  aspect-ratio: 2 / 1;
-}
-@media (max-width: 900px) {
-  .hero--banner { aspect-ratio: 4 / 5; }
+  aspect-ratio: 16 / 9;
 }
 .hslide {
   display: block;
@@ -2523,7 +2520,7 @@ body.theme-light .carousel3d__dot.active {
 
   /* Mobile home banner — square Drop 001 asset, keep full group in frame */
   .hero--banner {
-    aspect-ratio: 1 / 1;
+    aspect-ratio: 895 / 1024;
     height: auto;
     min-height: 0;
     width: 100% !important;
@@ -2535,7 +2532,7 @@ body.theme-light .carousel3d__dot.active {
   .hero--banner .hero__banner-img,
   .hero--banner .hslide img {
     object-fit: cover !important;
-    object-position: center center !important;
+    object-position: center top !important;
   }
   .storefront-root a.hero__shop--dark,
   .hero__shop--dark {

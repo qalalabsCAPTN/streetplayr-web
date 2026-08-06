@@ -104,42 +104,30 @@ export default function Hero() {
     >
       {slides.map((s, i) => {
         const isActive = i === idx;
-        const common = {
-          alt: s.alt,
-          sizes: '100vw',
-          fill: true as const,
-          quality: 92,
-          // Bypass optimizer for LCP hero — chat PNGs were soft; 2× JPEG masters stay sharp
-          unoptimized: true,
-          priority: isActive,
-          className: 'object-cover hero__banner-img',
-        };
-
-        const {
-          props: { srcSet: desktopSrcSet, ...desktopRest },
-        } = getImageProps({ ...common, src: s.src });
-
-        const mobileProps = s.mobileSrc
-          ? getImageProps({ ...common, src: s.mobileSrc }).props
-          : null;
-
         return (
           <picture key={s.src} className={`hslide ${isActive ? 'active' : ''}`}>
-            {mobileProps && (
+            {s.mobileSrc && (
               <source
                 media="(max-width: 900px)"
-                srcSet={mobileProps.srcSet}
-                sizes={mobileProps.sizes}
+                srcSet={s.mobileSrc}
               />
             )}
-            {/* eslint-disable-next-line jsx-a11y/alt-text -- alt comes from getImageProps */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              {...desktopRest}
-              srcSet={desktopSrcSet}
+              src={s.src}
+              alt={s.alt}
+              className="hero__banner-img"
               fetchPriority={isActive ? 'high' : 'auto'}
               decoding={isActive ? 'sync' : 'async'}
               loading={isActive ? 'eager' : 'lazy'}
               onError={() => dropSlide(s.src)}
+              style={{
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+              }}
             />
           </picture>
         );
