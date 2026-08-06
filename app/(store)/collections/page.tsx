@@ -136,9 +136,6 @@ function CollectionsInner() {
   const [tempTypes, setTempTypes] = useState<Set<string>>(new Set());
   const [tempColors, setTempColors] = useState<Set<string>>(new Set());
 
-  // Torch / Spotlight state
-  const [torchActive, setTorchActive] = useState(false);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   // Sync temp states when drawer opens
   useEffect(() => {
@@ -150,15 +147,6 @@ function CollectionsInner() {
     }
   }, [filterDrawerOpen, activeSizes, activeAvailability, activeTypes, activeColors]);
 
-  // Track mouse for torchlight spotlight overlay
-  useEffect(() => {
-    if (!torchActive) return;
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePos({ x: e.clientX, y: e.clientY });
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [torchActive]);
 
   const categoryParam = searchParams.get('category') || '';
   const activeChip = paramToChip(categoryParam || '', false);
@@ -404,18 +392,6 @@ function CollectionsInner() {
     <div className="min-h-screen bg-transparent relative overflow-x-clip">
       <Navbar />
 
-      {torchActive && (
-        <div
-          className="torch-overlay"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            pointerEvents: 'none',
-            zIndex: 90,
-            background: `radial-gradient(circle 220px at ${mousePos.x}px ${mousePos.y}px, transparent 100%, rgba(13, 11, 16, 0.95) 100%)`,
-          }}
-        />
-      )}
 
       <section className="collections-hero relative z-[1] w-full overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -482,22 +458,6 @@ function CollectionsInner() {
             </div>
 
             <div className="collections-toolbar-actions">
-              {/* Flashlight/Torch Toggle Button */}
-              <button
-                type="button"
-                className={`torch-btn ${torchActive ? 'active' : ''}`}
-                onClick={() => setTorchActive(prev => !prev)}
-                title="Toggle torchlight spotlight"
-                aria-label="Toggle torchlight spotlight"
-              >
-                {/* SVG Torch icon */}
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M18 6h-2l-1.2-2.4a1 1 0 0 0-.8-.6H10a1 1 0 0 0-.8.6L8 6H6a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2z" />
-                  <path d="M6 12v6a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-6" />
-                  <circle cx="12" cy="9" r="2" />
-                </svg>
-                {torchActive && <span className="torch-btn-beam" />}
-              </button>
 
               {/* Advance Filters Button */}
               <button
