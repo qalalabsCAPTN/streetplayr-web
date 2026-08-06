@@ -47,6 +47,54 @@ function useHydrated() {
   );
 }
 
+const StarIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="collections-sort__option-icon">
+    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+  </svg>
+);
+
+const ClockIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="collections-sort__option-icon">
+    <circle cx="12" cy="12" r="10" />
+    <polyline points="12 6 12 12 16 14" />
+  </svg>
+);
+
+const TrendingUpIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="collections-sort__option-icon">
+    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+    <polyline points="17 6 23 6 23 12" />
+  </svg>
+);
+
+const TrendingDownIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="collections-sort__option-icon">
+    <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
+    <polyline points="17 18 23 18 23 12" />
+  </svg>
+);
+
+const CheckIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="collections-sort__option-check">
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+);
+
+function getSortIcon(option: string) {
+  switch (option) {
+    case 'Popular':
+      return <StarIcon />;
+    case 'Newest':
+      return <ClockIcon />;
+    case 'Price Low→High':
+      return <TrendingUpIcon />;
+    case 'Price High→Low':
+      return <TrendingDownIcon />;
+    default:
+      return null;
+  }
+}
+
 function ProductSkeletonGrid() {
   return (
     <div className="pgrid" aria-busy="true" aria-label="Loading products">
@@ -75,9 +123,44 @@ function CollectionsInner() {
   const sortRef = useRef<HTMLDivElement>(null);
   const prevChipRef = useRef<FilterChip | null>(null);
 
+  // Filter states
+  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
+  const [activeSizes, setActiveSizes] = useState<Set<string>>(new Set());
+  const [activeAvailability, setActiveAvailability] = useState<string>('');
+  const [activeTypes, setActiveTypes] = useState<Set<string>>(new Set());
+  const [activeColors, setActiveColors] = useState<Set<string>>(new Set());
+
+  // Temp states for filter drawer editing
+  const [tempSizes, setTempSizes] = useState<Set<string>>(new Set());
+  const [tempAvailability, setTempAvailability] = useState<string>('');
+  const [tempTypes, setTempTypes] = useState<Set<string>>(new Set());
+  const [tempColors, setTempColors] = useState<Set<string>>(new Set());
+
+  // Torch / Spotlight state
+  const [torchActive, setTorchActive] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+  // Sync temp states when drawer opens
+  useEffect(() => {
+    if (filterDrawerOpen) {
+      setTempSizes(new Set(activeSizes));
+      setTempAvailability(activeAvailability);
+      setTempTypes(new Set(activeTypes));
+      setTempColors(new Set(activeColors));
+    }
+  }, [filterDrawerOpen, activeSizes, activeAvailability, activeTypes, activeColors]);
+
+  // Track mouse for torchlight spotlight overlay
+  useEffect(() => {
+    if (!torchActive) return;
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePos({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [torchActive]);
+
   const categoryParam = searchParams.get('category') || '';
-  // Pre-hydrate: mobile chip semantics (View all / ALL) so mobile first paint
-  // Unified detailed categories for both mobile and desktop viewports
   const activeChip = paramToChip(categoryParam || '', false);
   const activeDesktopChip = activeChip;
 
@@ -141,28 +224,163 @@ function CollectionsInner() {
 
   const required = chipToCollectionSlugs(activeChip);
 
-  const filteredProducts = useMemo(() => {
+  // 1. Initial collection-level filtering
+  const collectionFilteredProducts = useMemo(() => {
     return products.filter((p) => {
       if (required === 'ALL') return true;
       const ok = productInCollections(p.collections, required);
-      if (!ok && p.collections.length === 0 && process.env.NODE_ENV !== 'production') {
-        // already warned at catalog load
-      }
       return ok;
     });
   }, [products, required]);
 
+  // 2. Extract available filter values from collection-level products (keeps sizes, colors and types relevant to current collection context)
+  const allAvailableSizes = useMemo(() => {
+    const sizes = new Set<string>();
+    collectionFilteredProducts.forEach(p => {
+      p.variants?.forEach(v => {
+        if (v.size) sizes.add(v.size.toUpperCase());
+      });
+    });
+    if (sizes.size === 0) {
+      return ["XS", "S", "M", "L", "XL", "2XL"];
+    }
+    const standardOrder = ["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL"];
+    return Array.from(sizes).sort((a, b) => {
+      const idxA = standardOrder.indexOf(a);
+      const idxB = standardOrder.indexOf(b);
+      if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+      if (idxA !== -1) return -1;
+      if (idxB !== -1) return 1;
+      return a.localeCompare(b);
+    });
+  }, [collectionFilteredProducts]);
+
+  const allAvailableTypes = useMemo(() => {
+    const types = new Set<string>();
+    collectionFilteredProducts.forEach(p => {
+      const cat = (p.metadata?.category as string) || (p.metadata?.category_name as string);
+      if (cat) {
+        types.add(cat);
+      } else {
+        p.collections?.forEach(c => {
+          if (c === 'tees') types.add('T-Shirts');
+          else if (c === 'long-sleeve') types.add('Long Sleeve');
+          else if (c === 'tanks') types.add('Tanks');
+          else if (c === 'pants') types.add('Pants');
+          else if (c === 'hoodies') types.add('Hoodies');
+        });
+      }
+    });
+    if (types.size === 0) {
+      return ['T-shirts', 'Tanks', 'Pants', 'Hoodies'];
+    }
+    // Capitalize properly
+    return Array.from(types).map(t => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase());
+  }, [collectionFilteredProducts]);
+
+  const allColors = useMemo(() => {
+    const colorMap = new Map<string, { name: string; hex: string }>();
+    collectionFilteredProducts.forEach(p => {
+      const colors = p.metadata?.colors as { id: string; name: string; hex: string }[] | undefined;
+      colors?.forEach(c => {
+        colorMap.set(c.id.toLowerCase(), { name: c.name, hex: c.hex });
+      });
+    });
+    return Array.from(colorMap.entries()).map(([id, data]) => ({ id, ...data }));
+  }, [collectionFilteredProducts]);
+
+  const groupedColors = useMemo(() => {
+    const groups = {
+      Blues: [] as { id: string; name: string; hex: string }[],
+      Browns: [] as { id: string; name: string; hex: string }[],
+      Greens: [] as { id: string; name: string; hex: string }[],
+      Neutrals: [] as { id: string; name: string; hex: string }[],
+      Purples: [] as { id: string; name: string; hex: string }[],
+      Reds: [] as { id: string; name: string; hex: string }[],
+    };
+
+    const defaultColors = [
+      { id: 'black', name: 'Black', hex: '#1a1a1a' },
+      { id: 'white', name: 'White', hex: '#f5f5f0' },
+      { id: 'maroon', name: 'Maroon', hex: '#6b1c2a' },
+      { id: 'brown', name: 'Brown', hex: '#5c3a2e' },
+      { id: 'blue', name: 'Blue', hex: '#3d5a80' },
+      { id: 'olive', name: 'Olive', hex: '#556b2f' },
+      { id: 'purple', name: 'Purple', hex: '#4a2d6b' },
+    ];
+
+    const list = allColors.length > 0 ? allColors : defaultColors;
+
+    list.forEach(c => {
+      const name = c.name.toLowerCase();
+      const id = c.id.toLowerCase();
+      if (name.includes('blue')) groups.Blues.push(c);
+      else if (name.includes('brown') || name.includes('tan') || id.includes('brown') || id.includes('olive') || name.includes('olive')) groups.Browns.push(c);
+      else if (name.includes('green') || name.includes('mint')) groups.Greens.push(c);
+      else if (name.includes('black') || name.includes('grey') || name.includes('gray') || name.includes('white') || name.includes('silver') || name.includes('charcoal')) groups.Neutrals.push(c);
+      else if (name.includes('purple') || name.includes('pink') || name.includes('lavender')) groups.Purples.push(c);
+      else if (name.includes('red') || name.includes('orange') || name.includes('maroon') || name.includes('peach')) groups.Reds.push(c);
+      else groups.Neutrals.push(c);
+    });
+
+    return Object.entries(groups).filter(([_, items]) => items.length > 0);
+  }, [allColors]);
+
+  // 3. Apply active sidebar filters
+  const sidebarFilteredProducts = useMemo(() => {
+    return collectionFilteredProducts.filter((p) => {
+      // Size Filter
+      if (activeSizes.size > 0) {
+        const pSizes = p.variants?.map(v => (v.size || '').toUpperCase()) || [];
+        if (!pSizes.some(sz => activeSizes.has(sz))) return false;
+      }
+
+      // Type Filter
+      if (activeTypes.size > 0) {
+        const cat = ((p.metadata?.category as string) || (p.metadata?.category_name as string) || '').toUpperCase();
+        let matches = activeTypes.has(cat);
+        if (!matches) {
+          p.collections?.forEach(c => {
+            let colName = '';
+            if (c === 'tees') colName = 'T-shirts';
+            else if (c === 'long-sleeve') colName = 'Long Sleeve';
+            else if (c === 'tanks') colName = 'Tanks';
+            else if (c === 'pants') colName = 'Pants';
+            else if (c === 'hoodies') colName = 'Hoodies';
+            
+            if (colName && activeTypes.has(colName.toUpperCase())) {
+              matches = true;
+            }
+          });
+        }
+        if (!matches) return false;
+      }
+
+      // Color Filter
+      if (activeColors.size > 0) {
+        const colors = p.metadata?.colors as { id: string; name: string; hex: string }[] | undefined;
+        if (!colors?.some(c => activeColors.has(c.id.toLowerCase()))) return false;
+      }
+
+      // Availability Filter
+      if (activeAvailability === 'Out of stock') {
+        return false; // local mock products are in stock by default
+      }
+
+      return true;
+    });
+  }, [collectionFilteredProducts, activeSizes, activeTypes, activeColors, activeAvailability]);
+
+  // 4. Sort the filtered products
   const sortedProducts = useMemo(() => {
-    const list = [...filteredProducts];
+    const list = [...sidebarFilteredProducts];
     if (sortBy === 'Price Low→High') {
       list.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
     } else if (sortBy === 'Price High→Low') {
       list.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
     } else if (sortBy === 'Newest') {
-      // Sort by creation time descending (newest first)
       list.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
     } else {
-      // Popular: latest_drop / featured first, then recency
       const score = (p: CatalogProduct) => {
         const m = p.metadata || {};
         let s = p.createdAt ?? 0;
@@ -175,7 +393,7 @@ function CollectionsInner() {
       list.sort((a, b) => score(b) - score(a));
     }
     return list;
-  }, [filteredProducts, sortBy]);
+  }, [sidebarFilteredProducts, sortBy]);
 
   const titleForChip =
     activeChip === 'View all' || activeChip === 'All Products'
@@ -185,6 +403,19 @@ function CollectionsInner() {
   return (
     <div className="min-h-screen bg-transparent relative overflow-x-clip">
       <Navbar />
+
+      {torchActive && (
+        <div
+          className="torch-overlay"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            pointerEvents: 'none',
+            zIndex: 90,
+            background: `radial-gradient(circle 220px at ${mousePos.x}px ${mousePos.y}px, transparent 100%, rgba(13, 11, 16, 0.95) 100%)`,
+          }}
+        />
+      )}
 
       <section className="collections-hero relative z-[1] w-full overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -211,38 +442,7 @@ function CollectionsInner() {
       <main className="relative z-[1] pb-10 md:pb-14 w-full max-w-[min(95vw,2400px)] mx-auto px-4 md:px-6">
         <div className="listing listing--collections">
           <div className="collections-toolbar">
-            {/* Category Pills Row */}
-            <div
-              className="chips chips--collections-categories"
-              role="tablist"
-              aria-label="Collection filters"
-            >
-              {DESKTOP_CHIPS.map((c) => {
-                const isActive = activeDesktopChip === c && (!categoryParam || categoryParam === 'all' ? false : true);
-                return (
-                  <button
-                    key={c}
-                    type="button"
-                    role="tab"
-                    aria-selected={isActive}
-                    className={`chip ${isActive ? 'active' : ''}`}
-                    onClick={() => handleChipClick(c)}
-                  >
-                    <span className="chip__bullet" aria-hidden="true">
-                      {isActive ? (
-                        <svg className="chip__bullet-svg" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3.5" fill="currentColor"/></svg>
-                      ) : (
-                        <svg className="chip__bullet-svg" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3.5" fill="none" stroke="currentColor" strokeWidth="1.2"/></svg>
-                      )}
-                    </span>
-                    <span>{c}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Utility Controls Row */}
-            <div className="collections-utility-row">
+            <div className="collections-toolbar-scroll-wrap">
               {/* View All Pill */}
               <button
                 type="button"
@@ -259,88 +459,142 @@ function CollectionsInner() {
                 <span>View All</span>
               </button>
 
-            <div
-              ref={sortRef}
-              className={`collections-sort${sortOpen ? ' is-open' : ''}`}
-              onMouseEnter={() => {
-                if (!isMobile) setSortOpen(true);
-              }}
-              onMouseLeave={() => {
-                if (!isMobile) setSortOpen(false);
-              }}
-            >
+              {DESKTOP_CHIPS.map((c) => {
+                const isActive = activeDesktopChip === c && (!categoryParam || categoryParam === 'all' ? false : true);
+                return (
+                  <button
+                    key={c}
+                    type="button"
+                    className={`chip ${isActive ? 'active' : ''}`}
+                    onClick={() => handleChipClick(c)}
+                  >
+                    <span className="chip__bullet" aria-hidden="true">
+                      {isActive ? (
+                        <svg className="chip__bullet-svg" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3.5" fill="currentColor"/></svg>
+                      ) : (
+                        <svg className="chip__bullet-svg" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3.5" fill="none" stroke="currentColor" strokeWidth="1.2"/></svg>
+                      )}
+                    </span>
+                    <span>{c}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="collections-toolbar-actions">
+              {/* Flashlight/Torch Toggle Button */}
               <button
                 type="button"
-                className="collections-sort__trigger"
-                aria-haspopup="menu"
-                aria-expanded={sortOpen}
-                aria-controls="collections-sort-menu"
-                onClick={() => setSortOpen((o) => !o)}
-                onKeyDown={(e) => {
-                  if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    setSortOpen(true);
-                    requestAnimationFrame(() => {
-                      sortRef.current
-                        ?.querySelector<HTMLButtonElement>('.collections-sort__option')
-                        ?.focus();
-                    });
-                  }
+                className={`torch-btn ${torchActive ? 'active' : ''}`}
+                onClick={() => setTorchActive(prev => !prev)}
+                title="Toggle torchlight spotlight"
+                aria-label="Toggle torchlight spotlight"
+              >
+                {/* SVG Torch icon */}
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 6h-2l-1.2-2.4a1 1 0 0 0-.8-.6H10a1 1 0 0 0-.8.6L8 6H6a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2z" />
+                  <path d="M6 12v6a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-6" />
+                  <circle cx="12" cy="9" r="2" />
+                </svg>
+                {torchActive && <span className="torch-btn-beam" />}
+              </button>
+
+              {/* Advance Filters Button */}
+              <button
+                type="button"
+                className={`advance-filters-btn ${(activeSizes.size > 0 || activeTypes.size > 0 || activeColors.size > 0 || activeAvailability) ? 'has-active' : ''}`}
+                onClick={() => setFilterDrawerOpen(true)}
+              >
+                Advance Filters
+              </button>
+
+              {/* Sort Dropdown */}
+              <div
+                ref={sortRef}
+                className={`collections-sort${sortOpen ? ' is-open' : ''}`}
+                onMouseEnter={() => {
+                  if (!isMobile) setSortOpen(true);
+                }}
+                onMouseLeave={() => {
+                  if (!isMobile) setSortOpen(false);
                 }}
               >
-                <span className="collections-sort__text">Sort ▾ {sortBy}</span>
-              </button>
-              <ul
-                id="collections-sort-menu"
-                className="collections-sort__menu"
-                role="menu"
-                aria-label="Sort products"
-                hidden={!sortOpen}
-              >
-                {SORT_OPTIONS.map((s) => (
-                  <li key={s} role="none">
-                    <button
-                      type="button"
-                      role="menuitem"
-                      className={`collections-sort__option${sortBy === s ? ' is-active' : ''}`}
-                      onClick={() => {
-                        setSortBy(s);
-                        setSortOpen(false);
-                      }}
-                      onKeyDown={(e) => {
-                        const items = Array.from(
-                          sortRef.current?.querySelectorAll<HTMLButtonElement>(
-                            '.collections-sort__option',
-                          ) ?? [],
-                        );
-                        const idx = items.indexOf(e.currentTarget);
-                        if (e.key === 'ArrowDown') {
-                          e.preventDefault();
-                          items[(idx + 1) % items.length]?.focus();
-                        } else if (e.key === 'ArrowUp') {
-                          e.preventDefault();
-                          items[(idx - 1 + items.length) % items.length]?.focus();
-                        } else if (e.key === 'Home') {
-                          e.preventDefault();
-                          items[0]?.focus();
-                        } else if (e.key === 'End') {
-                          e.preventDefault();
-                          items[items.length - 1]?.focus();
-                        } else if (e.key === 'Escape') {
-                          e.preventDefault();
+                <button
+                  type="button"
+                  className="collections-sort__trigger"
+                  aria-haspopup="menu"
+                  aria-expanded={sortOpen}
+                  aria-controls="collections-sort-menu"
+                  onClick={() => setSortOpen((o) => !o)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setSortOpen(true);
+                      requestAnimationFrame(() => {
+                        sortRef.current
+                          ?.querySelector<HTMLButtonElement>('.collections-sort__option')
+                          ?.focus();
+                      });
+                    }
+                  }}
+                >
+                  <span className="collections-sort__text">Sort <span className="collections-sort__arrow-inline">▾</span> {sortBy}</span>
+                </button>
+                <ul
+                  id="collections-sort-menu"
+                  className="collections-sort__menu"
+                  role="menu"
+                  aria-label="Sort products"
+                  hidden={!sortOpen}
+                >
+                  {SORT_OPTIONS.map((s) => (
+                    <li key={s} role="none">
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className={`collections-sort__option${sortBy === s ? ' is-active' : ''}`}
+                        onClick={() => {
+                          setSortBy(s);
                           setSortOpen(false);
-                          sortRef.current
-                            ?.querySelector<HTMLButtonElement>('.collections-sort__trigger')
-                            ?.focus();
-                        }
-                      }}
-                    >
-                      {s}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
+                        }}
+                        onKeyDown={(e) => {
+                          const items = Array.from(
+                            sortRef.current?.querySelectorAll<HTMLButtonElement>(
+                              '.collections-sort__option',
+                            ) ?? [],
+                          );
+                          const idx = items.indexOf(e.currentTarget);
+                          if (e.key === 'ArrowDown') {
+                            e.preventDefault();
+                            items[(idx + 1) % items.length]?.focus();
+                          } else if (e.key === 'ArrowUp') {
+                            e.preventDefault();
+                            items[(idx - 1 + items.length) % items.length]?.focus();
+                          } else if (e.key === 'Home') {
+                            e.preventDefault();
+                            items[0]?.focus();
+                          } else if (e.key === 'End') {
+                            e.preventDefault();
+                            items[items.length - 1]?.focus();
+                          } else if (e.key === 'Escape') {
+                            e.preventDefault();
+                            setSortOpen(false);
+                            sortRef.current
+                              ?.querySelector<HTMLButtonElement>('.collections-sort__trigger')
+                              ?.focus();
+                          }
+                        }}
+                      >
+                        <span className="collections-sort__option-left">
+                          {getSortIcon(s)}
+                          <span>{s}</span>
+                        </span>
+                        {sortBy === s && <CheckIcon />}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </div>
 
@@ -391,6 +645,179 @@ function CollectionsInner() {
           )}
         </div>
       </main>
+
+      {/* Filter Drawer Scrim */}
+      <div
+        className={`scrim ${filterDrawerOpen ? 'open' : ''}`}
+        onClick={() => setFilterDrawerOpen(false)}
+        style={{ zIndex: 95 }}
+      />
+
+      {/* Filter Drawer Side Panel */}
+      <aside
+        className={`drawer drawer--filter ${filterDrawerOpen ? 'open' : ''}`}
+        aria-hidden={!filterDrawerOpen}
+        inert={!filterDrawerOpen ? true : undefined}
+        style={{
+          left: 10,
+          right: 'auto',
+          width: 'min(440px, calc(100% - 20px))',
+          borderRadius: 18,
+          zIndex: 100,
+        }}
+      >
+        <div className="drawer__head">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            <h3 style={{ textTransform: 'uppercase', fontSize: '15px', fontWeight: 700, letterSpacing: '0.1em' }}>Filter</h3>
+            <span style={{ fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-sp-mono)', fontWeight: 600 }}>
+              {sidebarFilteredProducts.length} {sidebarFilteredProducts.length === 1 ? 'Product' : 'Products'}
+            </span>
+          </div>
+          <button
+            onClick={() => setFilterDrawerOpen(false)}
+            className="drawer__close"
+            aria-label="Close filters"
+            style={{ fontSize: '20px' }}
+          >
+            &times;
+          </button>
+        </div>
+
+        <div className="drawer__body drawer__body--filter">
+          {/* Size Section */}
+          <div className="filter-section">
+            <h4>Size</h4>
+            <div className="filter-chips">
+              {allAvailableSizes.map((sz) => {
+                const active = tempSizes.has(sz);
+                return (
+                  <button
+                    key={sz}
+                    type="button"
+                    className={`filter-chip ${active ? 'active' : ''}`}
+                    onClick={() => {
+                      const next = new Set(tempSizes);
+                      if (next.has(sz)) next.delete(sz);
+                      else next.add(sz);
+                      setTempSizes(next);
+                    }}
+                  >
+                    {sz}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Availability Section */}
+          <div className="filter-section">
+            <h4>Availability</h4>
+            <div className="filter-chips">
+              {['In stock', 'Out of stock'].map((av) => {
+                const active = tempAvailability === av;
+                return (
+                  <button
+                    key={av}
+                    type="button"
+                    className={`filter-chip ${active ? 'active' : ''}`}
+                    onClick={() => {
+                      setTempAvailability(tempAvailability === av ? '' : av);
+                    }}
+                  >
+                    {av}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Type Section */}
+          <div className="filter-section">
+            <h4>Type</h4>
+            <div className="filter-chips">
+              {allAvailableTypes.map((t) => {
+                const active = tempTypes.has(t.toUpperCase());
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    className={`filter-chip ${active ? 'active' : ''}`}
+                    onClick={() => {
+                      const next = new Set(tempTypes);
+                      const key = t.toUpperCase();
+                      if (next.has(key)) next.delete(key);
+                      else next.add(key);
+                      setTempTypes(next);
+                    }}
+                  >
+                    {t}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Color Section */}
+          <div className="filter-section">
+            <h4>Color</h4>
+            <div className="filter-color-groups">
+              {groupedColors.map(([groupName, items]) => (
+                <div key={groupName} className="filter-color-group-row">
+                  <span className="filter-color-group-label">{groupName}</span>
+                  <div className="filter-color-group-swatches">
+                    {items.map((c) => {
+                      const active = tempColors.has(c.id);
+                      return (
+                        <button
+                          key={c.id}
+                          type="button"
+                          className={`filter-color-swatch ${active ? 'active' : ''}`}
+                          style={{ '--swatch-color': c.hex } as any}
+                          onClick={() => {
+                            const next = new Set(tempColors);
+                            if (next.has(c.id)) next.delete(c.id);
+                            else next.add(c.id);
+                            setTempColors(next);
+                          }}
+                          title={c.name}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="drawer__foot" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', padding: '16px 20px' }}>
+          <button
+            type="button"
+            className="filter-btn-secondary"
+            onClick={() => {
+              setTempSizes(new Set());
+              setTempAvailability('');
+              setTempTypes(new Set());
+              setTempColors(new Set());
+            }}
+          >
+            Remove All
+          </button>
+          <button
+            type="button"
+            className="filter-btn-primary"
+            onClick={() => {
+              setActiveSizes(new Set(tempSizes));
+              setActiveAvailability(tempAvailability);
+              setActiveTypes(new Set(tempTypes));
+              setActiveColors(new Set(tempColors));
+              setFilterDrawerOpen(false);
+            }}
+          >
+            Apply
+          </button>
+        </div>
+      </aside>
 
       <Footer />
     </div>

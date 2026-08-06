@@ -86,6 +86,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
   const [tab, setTab] = useState('details');
   const [guideOpen, setGuideOpen] = useState(false);
   const [activeImg, setActiveImg] = useState(0);
+  const [sizeError, setSizeError] = useState('');
 
   const carouselRef = useRef<HTMLDivElement>(null);
   const galleryRightRef = useRef<HTMLDivElement>(null);
@@ -188,9 +189,10 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
 
   const addToBag = async () => {
     if (!selectedSize) {
-      alert('Please select a size.');
+      setSizeError('Please select a size');
       return;
     }
+    setSizeError('');
     const matchingVariant = liveVariants.find((v) => v.size === selectedSize);
     if (!matchingVariant) {
       alert('Selected size not available.');
@@ -224,6 +226,11 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
   };
 
   const buyNow = async () => {
+    if (!selectedSize) {
+      setSizeError('Please select a size');
+      return;
+    }
+    setSizeError('');
     await addToBag();
     router.push('/checkout');
   };
@@ -369,7 +376,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
                     key={s}
                     type="button"
                     className={`size ${selectedSize === s && !isSoldOut ? 'active' : ''} ${isSoldOut ? 'disabled' : ''}`}
-                    onClick={() => !isSoldOut && setSelectedSize(s)}
+                    onClick={() => { if (!isSoldOut) { setSelectedSize(s); setSizeError(''); } }}
                     disabled={isSoldOut}
                     aria-pressed={selectedSize === s && !isSoldOut}
                   >
@@ -378,6 +385,10 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
                 );
               })}
             </div>
+
+            {sizeError && (
+              <p className="text-[var(--sp-error,#ff3b30)] text-xs mt-1 font-mono tracking-wide uppercase animate-pulse">{sizeError}</p>
+            )}
 
             <div className="pdp__credits">
               <div className="pdp__credits-head">

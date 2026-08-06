@@ -15,6 +15,7 @@ import { idempotencyGuard } from './idempotency';
 import { OrderService } from './order';
 import { ReservationService } from './reservation';
 import { awardSPRR, awardXP, processReferral } from '@/lib/nectar/engine';
+import { UnicommerceService, UnicommerceLogger } from '@/src/integrations/unicommerce';
 
 /**
  * Map of payment event types to corresponding reservation state transitions.
@@ -209,6 +210,83 @@ export const PaymentService = {
 
           // NECTAR: process referral if this is the referred user's first paid order
           await processReferral(order.user_id);
+
+          // UNICOMMERCE: Forward confirmed order to Unicommerce (fire-and-forget)
+          // Failures are logged but do NOT block order confirmation.
+          try {
+            const { data: orderItems } = await admin
+              .from('order_items')
+              .select('variant_id, quantity, unit_price, product_variants!inner(sku, title)')
+              .eq('order_id', order.id);
+
+            const { data: fullOrder } = await admin
+              .from('orders')
+              .select('id, display_code, shipping_address, billing_address, currency, metadata, created_at, grand_total')
+              .eq('id', order.id)
+              .single();
+
+            if (fullOrder && orderItems && orderItems.length > 0) {
+              const shippingAddr = fullOrder.shipping_address as Record<string, any> || {};
+              const billingAddr = (fullOrder.billing_address as Record<string, any>) || shippingAddr;
+              const channelCode = process.env.UNICOMMERCE_CHANNEL_CODE || 'STREETPLAYR_WEB';
+
+              const ucResult = await UnicommerceService.orders.createOrder(
+                {
+                  id: fullOrder.id,
+                  displayCode: fullOrder.display_code || fullOrder.id.slice(0, 12).toUpperCase(),
+                  createdAt: fullOrder.created_at,
+                  currency: fullOrder.currency || 'INR',
+                  paymentMethod: 'PREPAID',
+                  shippingAddress: {
+                    name: shippingAddr.name || shippingAddr.full_name || '',
+                    addressLine1: shippingAddr.address_line_1 || shippingAddr.addressLine1 || '',
+                    addressLine2: shippingAddr.address_line_2 || shippingAddr.addressLine2 || '',
+                    city: shippingAddr.city || '',
+                    state: shippingAddr.state || '',
+                    country: shippingAddr.country || 'IN',
+                    pincode: shippingAddr.pincode || shippingAddr.zip || '',
+                    phone: shippingAddr.phone || '',
+                    email: shippingAddr.email || '',
+                  },
+                  billingAddress: {
+                    name: billingAddr.name || billingAddr.full_name || '',
+                    addressLine1: billingAddr.address_line_1 || billingAddr.addressLine1 || '',
+                    addressLine2: billingAddr.address_line_2 || billingAddr.addressLine2 || '',
+                    city: billingAddr.city || '',
+                    state: billingAddr.state || '',
+                    country: billingAddr.country || 'IN',
+                    pincode: billingAddr.pincode || billingAddr.zip || '',
+                    phone: billingAddr.phone || '',
+                    email: billingAddr.email || '',
+                  },
+                  items: orderItems.map((item: any) => ({
+                    sku: item.product_variants?.sku || '',
+                    name: item.product_variants?.title || '',
+                    price: item.unit_price,
+                    quantity: item.quantity,
+                  })),
+                },
+                channelCode
+              );
+
+              if (ucResult.success && ucResult.uniwareCode) {
+                // Store Unicommerce code in order metadata for status sync
+                const prevMeta = (fullOrder.metadata as Record<string, any>) || {};
+                await admin
+                  .from('orders')
+                  .update({ metadata: { ...prevMeta, uniwareCode: ucResult.uniwareCode } })
+                  .eq('id', order.id);
+              }
+            }
+          } catch (ucErr: any) {
+            // Non-blocking: log and continue
+            await UnicommerceLogger.error(
+              'payment.unicommerce_forward_failed',
+              `Failed to forward order ${order.id} to Unicommerce`,
+              ucErr,
+              order.id
+            );
+          }
         }
       }
 

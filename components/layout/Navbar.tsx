@@ -62,7 +62,7 @@ const menu = {
     { label: 'Sweatpants', href: '/collections?category=pants' },
   ],
   footwear: [
-    { label: 'Coming Soon', href: '/stores' },
+    { label: 'Footwear', href: '/stores' },
   ],
   shopAndSupport: [
     { label: 'All Products', href: '/collections?category=all' },
@@ -70,7 +70,6 @@ const menu = {
     { label: 'FAQ', href: '/faq' },
     { label: 'Shipping Policy', href: '/shipping-policy' },
     { label: 'Refund Policy', href: '/refund-policy' },
-    { label: 'Support', href: '/contact' },
   ],
 };
 

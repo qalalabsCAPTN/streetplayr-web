@@ -1,11 +1,14 @@
 /**
  * Webhooks Module for Unicommerce.
  * Validates cryptographic signatures and processes asynchronous webhooks.
+ * On valid events: updates Supabase order status and inventory.
  */
 
 import crypto from 'crypto';
 import { getUnicommerceConfig } from './config';
 import { UnicommerceLogger } from './logging';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { OrderService } from '@/lib/orchestration/order';
 
 export type UnicommerceWebhookEvent =
   | { type: 'order.shipped'; payload: { orderCode: string; trackingNumber: string; waybill: string; courier: string } }
@@ -67,7 +70,7 @@ export class UnicommerceWebhookService {
 
   /**
    * Processes a verified Unicommerce webhook payload.
-   * Standardizes events and routes them to appropriate application handlers.
+   * Routes events to appropriate DB update handlers.
    */
   async processWebhook(event: UnicommerceWebhookEvent): Promise<void> {
     await UnicommerceLogger.info(
@@ -80,36 +83,176 @@ export class UnicommerceWebhookService {
     switch (event.type) {
       case 'order.shipped': {
         const { orderCode, trackingNumber, waybill, courier } = event.payload;
-        // In a production system, this would call the internal OrderService to update status to "shipped"
-        // and record tracking details. Let's log it.
+
         await UnicommerceLogger.info(
           'webhooks.order_shipped',
           `Order ${orderCode} shipped via ${courier}. trackingNumber: ${trackingNumber}, AWB: ${waybill}`,
           orderCode,
           event.payload
         );
+
+        // Update order status and tracking metadata in Supabase
+        try {
+          const admin = createAdminClient();
+
+          // Find order by Unicommerce code stored in metadata
+          const { data: orders } = await admin
+            .from('orders')
+            .select('id, status, metadata')
+            .contains('metadata', { uniwareCode: orderCode });
+
+          if (orders && orders.length > 0) {
+            const order = orders[0];
+            const meta = (order.metadata as Record<string, any>) || {};
+
+            // Transition status to shipped
+            await OrderService.transitionStatus(
+              order.id,
+              'shipped',
+              'system',
+              `webhook:order.shipped`
+            );
+
+            // Store tracking metadata
+            await admin
+              .from('orders')
+              .update({
+                metadata: {
+                  ...meta,
+                  tracking: {
+                    courierName: courier,
+                    trackingNumber,
+                    waybillNumber: waybill,
+                    lastSyncedAt: new Date().toISOString(),
+                  },
+                },
+              })
+              .eq('id', order.id);
+          }
+        } catch (err: any) {
+          await UnicommerceLogger.error(
+            'webhooks.order_shipped_db_update_failed',
+            `Failed to update DB for shipped order ${orderCode}`,
+            err,
+            orderCode
+          );
+        }
         break;
       }
 
       case 'order.delivered': {
         const { orderCode, deliveredAt } = event.payload;
+
         await UnicommerceLogger.info(
           'webhooks.order_delivered',
           `Order ${orderCode} marked as delivered at ${deliveredAt}`,
           orderCode,
           event.payload
         );
+
+        // Update order status to delivered in Supabase
+        try {
+          const admin = createAdminClient();
+
+          const { data: orders } = await admin
+            .from('orders')
+            .select('id, status, metadata')
+            .contains('metadata', { uniwareCode: orderCode });
+
+          if (orders && orders.length > 0) {
+            const order = orders[0];
+            const meta = (order.metadata as Record<string, any>) || {};
+
+            await OrderService.transitionStatus(
+              order.id,
+              'delivered',
+              'system',
+              `webhook:order.delivered`
+            );
+
+            // Update tracking with delivery timestamp
+            const prevTracking = (meta.tracking as Record<string, any>) || {};
+            await admin
+              .from('orders')
+              .update({
+                metadata: {
+                  ...meta,
+                  tracking: {
+                    ...prevTracking,
+                    deliveredAt,
+                    lastSyncedAt: new Date().toISOString(),
+                  },
+                },
+              })
+              .eq('id', order.id);
+          }
+        } catch (err: any) {
+          await UnicommerceLogger.error(
+            'webhooks.order_delivered_db_update_failed',
+            `Failed to update DB for delivered order ${orderCode}`,
+            err,
+            orderCode
+          );
+        }
         break;
       }
 
       case 'inventory.updated': {
-        // Triggers inventory synchronization for modified items
+        // Targeted inventory refresh for affected SKUs
         await UnicommerceLogger.info(
           'webhooks.inventory_updated',
           `Inventory updated for ${event.payload.length} items`,
           'inventory',
           { items: event.payload }
         );
+
+        try {
+          const admin = createAdminClient();
+
+          for (const item of event.payload) {
+            // Find the variant by SKU
+            const { data: variant } = await admin
+              .from('product_variants')
+              .select('id')
+              .eq('sku', item.sku)
+              .maybeSingle();
+
+            if (!variant) continue;
+
+            // Upsert inventory record
+            const { data: existingInv } = await admin
+              .from('inventory')
+              .select('id')
+              .eq('variant_id', variant.id)
+              .maybeSingle();
+
+            const stock = Math.max(0, item.stock);
+
+            if (existingInv) {
+              await admin
+                .from('inventory')
+                .update({ quantity: stock, updated_at: new Date().toISOString() })
+                .eq('id', existingInv.id);
+            } else {
+              await admin
+                .from('inventory')
+                .insert({
+                  variant_id: variant.id,
+                  quantity: stock,
+                  reserved_quantity: 0,
+                  low_stock_threshold: 10,
+                  updated_at: new Date().toISOString(),
+                });
+            }
+          }
+        } catch (err: any) {
+          await UnicommerceLogger.error(
+            'webhooks.inventory_update_db_failed',
+            'Failed to update inventory from webhook',
+            err,
+            'inventory'
+          );
+        }
         break;
       }
 

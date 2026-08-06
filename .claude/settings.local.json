@@ -52,7 +52,15 @@
       "Bash(curl -sS -o /dev/null -w \"STATUS:%{http_code} SIZE:%{size_download}\\\\n\" \"http://localhost:3900/lookbook/artboard-1.jpg\" --max-time 15)",
       "Bash(curl -sS \"http://localhost:3900/home\" --max-time 15)",
       "Bash(curl -sS \"http://localhost:3900/home\" --max-time 15 -o /tmp/home.html)",
-      "Bash(npx react-doctor *)"
+      "Bash(npx react-doctor *)",
+      "mcp__12bb6671-8415-420e-9707-d53c9fa1b468__list_projects",
+      "Bash(curl -s \"https://sayxtpglwjiinnrftifq.supabase.co/rest/v1/brands?select=id,slug,name&slug=eq.streetplayr\" -H \"apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNheXh0cGdsd2ppaW5ucmZ0aWZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyODQxMzksImV4cCI6MjA5Mzg2MDEzOX0.NiT5r6z4HABTfP7LXYihnkic8xSLqldEoJ6KK4HLDVU\" -w \"\\\\nHTTP_STATUS:%{http_code}\\\\n\")",
+      "Bash(npm -v)",
+      "Bash(curl -s 'https://sayxtpglwjiinnrftifq.supabase.co/rest/v1/products?select=id&is_active=eq.true&brand_id=eq.e56b72a5-3746-4c01-a054-885ed3e55c0f' -H 'apikey: __TRACKED_VAR__' -H 'Prefer: count=exact' -H 'Range: 0-0' -I)",
+      "Bash(curl -s 'https://sayxtpglwjiinnrftifq.supabase.co/rest/v1/products?select=id&brand_id=eq.e56b72a5-3746-4c01-a054-885ed3e55c0f' -H 'apikey: __TRACKED_VAR__' -H 'Prefer: count=exact' -H 'Range: 0-0' -D - -o /dev/null)",
+      "Bash(git rm *)",
+      "Bash(rm -f scripts/print_any.js scripts/print_cols2.js scripts/parse_matrix_out.js scripts/parse_boundaries.js)",
+      "Bash(node \"C:/Users/pc/AppData/Local/Temp/claude/C--Users-pc-Desktop-streetplayr---open-code/80e04bd6-ae43-4068-813e-715e8ee9f4f4/scratchpad/audit.mjs\")"
     ]
   }
 }

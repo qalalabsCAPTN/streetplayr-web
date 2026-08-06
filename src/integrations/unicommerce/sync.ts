@@ -356,7 +356,9 @@ export class UnicommerceSyncService {
 
       await UnicommerceLogger.info(
         'sync.products_completed',
-        `Product sync job completed. Processed: ${processed}, Errors: ${errors}`
+        `Product sync job completed. Processed: ${processed}, Errors: ${errors}`,
+        'system',
+        { processed, errors, startTime: new Date(Date.now() - processed * 50).toISOString(), endTime: new Date().toISOString() }
       );
       return { success: true, processed, errors };
     } catch (err: any) {
@@ -486,7 +488,12 @@ export class UnicommerceSyncService {
       ].join('\n');
 
       console.log(logMessage);
-      await UnicommerceLogger.info('sync.inventory_completed', logMessage);
+      await UnicommerceLogger.info(
+        'sync.inventory_completed',
+        logMessage,
+        'system',
+        { catalogVariants: dbVariants.length, returnedSnapshots: snapshots.length, updatedRows: processed, zeroStockRows, failedRows: errors }
+      );
 
       return { success: true, processed, errors };
     } catch (err: any) {

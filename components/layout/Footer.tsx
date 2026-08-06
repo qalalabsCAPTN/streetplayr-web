@@ -33,10 +33,10 @@ export default function Footer() {
   }, []);
 
   const getStarScale = () => {
-    if (windowWidth === null) return 0.85;
-    if (windowWidth < 768) return 0.75;
-    if (windowWidth < 1024) return 0.9;
-    return 0.95;
+    if (windowWidth === null) return 1.0;
+    if (windowWidth < 768) return 0.85;
+    if (windowWidth < 1024) return 1.0;
+    return 1.1;
   };
   const starScale = getStarScale();
 
@@ -75,7 +75,7 @@ export default function Footer() {
           <div className="footer__weare">
             <h4>We are playR</h4>
             {/* Our Story (/about) intentionally omitted from nav — route kept */}
-            <Link href="/stores">Coming soon</Link>
+            <Link href="/stores">Stores</Link>
             <Link href="/collaborations">Collaborations</Link>
           </div>
           <div className="footer__bag flex flex-col items-center justify-center">
