@@ -198,6 +198,26 @@ async function fetchMembershipMap(
   return map;
 }
 
+function isValidStorefrontProduct(p: any): boolean {
+  if (!p) return false;
+  
+  // If it's a raw Supabase product or mapped catalog product:
+  const status = p.status ?? (p.is_active !== false ? 'active' : 'draft');
+  if (status !== 'active') return false;
+
+  const meta = p.metadata || {};
+  if (meta.draft === true || meta.placeholder === true) return false;
+
+  const featured = p.image || p.featured_image_url || p.image_url;
+  if (!featured || typeof featured !== 'string' || featured.trim() === '' || featured.includes('null')) return false;
+
+  const gallery = meta.gallery_images || p.gallery;
+  if (!Array.isArray(gallery) || gallery.length === 0) return false;
+  if (gallery.some((img: any) => !img || typeof img !== 'string' || img.trim() === '' || img.includes('null'))) return false;
+
+  return true;
+}
+
 function getDefaultClassName(idx: number) {
   return idx === 0 ? 'md:col-span-5 md:mt-24' : idx === 1 ? 'md:col-span-3' : 'md:col-span-4 md:mt-48';
 }
@@ -208,7 +228,7 @@ export const ProductQueries = {
       const local = mapLocalCatalog();
       if (local.length) logCatalogDegraded('local', 'supabase not live');
       else logCatalogDegraded('empty', 'supabase not live');
-      return local;
+      return local.filter(isValidStorefrontProduct);
     }
 
     try {
@@ -227,7 +247,7 @@ export const ProductQueries = {
         const reason = error
           ? `products query failed: ${JSON.stringify(formatSupabaseError(error))}`
           : 'products query returned 0 rows';
-        return resolveCatalogFallback(reason);
+        return resolveCatalogFallback(reason).filter(isValidStorefrontProduct);
       }
 
       const membership = await fetchMembershipMap(supabase);
@@ -276,17 +296,19 @@ export const ProductQueries = {
         };
       });
 
-      if (!mapped.some((p) => p.collections.length > 0)) {
+      const filteredMapped = mapped.filter(isValidStorefrontProduct);
+
+      if (!filteredMapped.some((p) => p.collections.length > 0)) {
         console.warn(
           '[catalog] No collection membership resolved — returning unfiltered DB products'
         );
       }
 
-      saveCatalogLkg(mapped);
-      return mapped;
+      saveCatalogLkg(filteredMapped);
+      return filteredMapped;
     } catch (err) {
       console.error('[catalog] getCatalogProducts exception:', formatSupabaseError(err));
-      return resolveCatalogFallback(`exception: ${JSON.stringify(formatSupabaseError(err))}`);
+      return resolveCatalogFallback(`exception: ${JSON.stringify(formatSupabaseError(err))}`).filter(isValidStorefrontProduct);
     }
   },
 
@@ -351,7 +373,7 @@ export const ProductQueries = {
       const hit = lkg?.products.find((p) => p.slug === slug || p.slug.toLowerCase() === slug.toLowerCase());
       if (hit) {
         logCatalogDegraded('lkg', `getProductBySlug(${slug})`);
-        return {
+        const result = {
           id: hit.id,
           name: hit.name,
           slug: hit.slug,
@@ -370,16 +392,22 @@ export const ProductQueries = {
           metadata: hit.metadata ?? {},
           is_active: true,
         };
+        return isValidStorefrontProduct(result) ? result : null;
       }
       if (allowLocalCatalog()) {
         logCatalogDegraded('local', `getProductBySlug(${slug})`);
-        return getLocalProductBySlug(slug) || null;
+        const result = getLocalProductBySlug(slug) || null;
+        return isValidStorefrontProduct(result) ? result : null;
       }
       return null;
     };
 
     if (!isSupabaseLive()) {
-      return allowLocalCatalog() ? getLocalProductBySlug(slug) || null : null;
+      if (allowLocalCatalog()) {
+        const result = getLocalProductBySlug(slug) || null;
+        return isValidStorefrontProduct(result) ? result : null;
+      }
+      return null;
     }
     try {
       const supabase = createStaticClient();
@@ -424,7 +452,7 @@ export const ProductQueries = {
       const membership = await fetchMembershipMap(supabase);
       const collections = resolveMembership(data.id, data.slug, membership.get(data.id) || []);
 
-      return {
+      const result = {
         id: data.id,
         name: data.title,
         slug: data.slug,
@@ -437,6 +465,8 @@ export const ProductQueries = {
         metadata: data.metadata ?? {},
         is_active: data.status === 'active',
       };
+
+      return isValidStorefrontProduct(result) ? result : null;
     } catch (err) {
       console.error('Exception in getProductBySlug:', formatSupabaseError(err));
       return fromLkgOrLocal();

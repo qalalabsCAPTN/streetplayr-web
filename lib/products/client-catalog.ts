@@ -64,8 +64,26 @@ function resolveMembership(productId: string, slug: string, fromDb: CollectionSl
 
 import { resolveStorefrontBrandId } from './brand';
 
+function isValidStorefrontProduct(p: any): boolean {
+  if (!p) return false;
+  const status = p.status ?? (p.is_active !== false ? 'active' : 'draft');
+  if (status !== 'active') return false;
+
+  const meta = p.metadata || {};
+  if (meta.draft === true || meta.placeholder === true) return false;
+
+  const featured = p.image || p.featured_image_url || p.image_url;
+  if (!featured || typeof featured !== 'string' || featured.trim() === '' || featured.includes('null')) return false;
+
+  const gallery = meta.gallery_images || p.gallery;
+  if (!Array.isArray(gallery) || gallery.length === 0) return false;
+  if (gallery.some((img: any) => !img || typeof img !== 'string' || img.trim() === '' || img.includes('null'))) return false;
+
+  return true;
+}
+
 export async function loadClientCatalog(): Promise<CatalogProduct[]> {
-  if (!isSupabaseLive()) return mapLocal();
+  if (!isSupabaseLive()) return mapLocal().filter(isValidStorefrontProduct);
 
   try {
     const { createClient } = await import('@/lib/supabase/client');
@@ -83,7 +101,7 @@ export async function loadClientCatalog(): Promise<CatalogProduct[]> {
 
     if (error || !data || data.length === 0) {
       const reason = error ? `products failed: ${error.message}` : 'products returned 0 rows';
-      return resolveFallback(reason);
+      return resolveFallback(reason).filter(isValidStorefrontProduct);
     }
 
     const membership = new Map<string, CollectionSlug[]>();
@@ -149,16 +167,18 @@ export async function loadClientCatalog(): Promise<CatalogProduct[]> {
       };
     });
 
-    if (!mapped.some((p) => p.collections.length > 0)) {
+    const filtered = mapped.filter(isValidStorefrontProduct);
+
+    if (!filtered.some((p) => p.collections.length > 0)) {
       console.warn(
         '[catalog:client] No collection membership resolved — returning unfiltered DB products'
       );
     }
 
-    saveCatalogLkg(mapped);
-    return mapped;
+    saveCatalogLkg(filtered);
+    return filtered;
   } catch (err) {
     console.error('[catalog:client] exception:', err);
-    return resolveFallback(`exception: ${err instanceof Error ? err.message : String(err)}`);
+    return resolveFallback(`exception: ${err instanceof Error ? err.message : String(err)}`).filter(isValidStorefrontProduct);
   }
 }

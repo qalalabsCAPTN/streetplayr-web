@@ -7,6 +7,7 @@ import Image from 'next/image';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import ProductCard from '@/components/ui/ProductCard';
+import CollectionHero from '@/components/sections/collections/CollectionHero';
 import {
   DESKTOP_CHIPS,
   MOBILE_CHIPS,
@@ -384,6 +385,42 @@ function CollectionsInner() {
     return list;
   }, [sidebarFilteredProducts, sortBy]);
 
+  const heroImage = useMemo(() => {
+    switch (activeChip) {
+      case 'Short Sleeve T-Shirts':
+        return '/assets/empty_centre.jpg';
+      case 'Long Sleeve T-Shirts':
+        return 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?q=80&w=2000&auto=format&fit=crop';
+      case 'Tanks':
+        return 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?q=80&w=2000&auto=format&fit=crop';
+      case 'Sweatpants':
+      case 'Bottomwear':
+        return 'https://images.unsplash.com/photo-1551854838-212c50b4c184?q=80&w=2000&auto=format&fit=crop';
+      case 'View all':
+      case 'All Products':
+      default:
+        return 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?q=80&w=2000&auto=format&fit=crop';
+    }
+  }, [activeChip]);
+
+  const heroDescription = useMemo(() => {
+    switch (activeChip) {
+      case 'Short Sleeve T-Shirts':
+        return 'Heavyweight structural t-shirts. Engineered for daily wear.';
+      case 'Long Sleeve T-Shirts':
+        return 'Oversized waffle knit long-sleeves with boxy shoulders.';
+      case 'Tanks':
+        return 'Deconstructed tanks with raw panels and puff print.';
+      case 'Sweatpants':
+      case 'Bottomwear':
+        return 'Ultra-heavyweight fleece sweatpants with utility pockets.';
+      case 'View all':
+      case 'All Products':
+      default:
+        return 'Explore the complete StreetPlayR collection.';
+    }
+  }, [activeChip]);
+
   const titleForChip =
     activeChip === 'View all' || activeChip === 'All Products'
       ? 'All Products'
@@ -394,38 +431,12 @@ function CollectionsInner() {
       <Navbar />
 
 
-      <section className="collections-hero relative z-[1] w-full overflow-hidden">
-        <Image
-          src="/assets/empty_centre.jpg"
-          alt="Collection Campaign Hero"
-          fill
-          priority
-          sizes="100vw"
-          className="collections-hero__img"
-        />
-        <div className="collections-hero__overlay" />
-        <div className="collections-hero__content absolute inset-0 z-[1] flex items-end">
-          <div className="collections-hero__container w-full max-w-[min(95vw,2400px)] mx-auto px-4 md:px-6">
-            <span className="collections-hero__label">Collection / SS26</span>
-            <h1 className="collections-hero__title">{titleForChip}</h1>
-            <p className="collections-hero__desc">
-              {required === 'ALL'
-                ? 'Full archive — every active piece.'
-                : required[0] === COLLECTION_SLUG.LATEST
-                  ? 'Curated from the current drop only.'
-                  : 'Members of this collection only.'}
-            </p>
-            <div className="collections-hero__buttons">
-              <a href="#collections-products" className="chip chip--view-all active">
-                Explore Drop
-              </a>
-              <a href="#collections-products" className="chip">
-                Shop Now
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
+      <CollectionHero
+        title={titleForChip}
+        description={heroDescription}
+        imageSrc={heroImage}
+        label="Collection / SS26"
+      />
 
       <main id="collections-products" className="relative z-[1] pb-10 md:pb-14 w-full max-w-[min(95vw,2400px)] mx-auto px-4 md:px-6">
         <div className="listing listing--collections">

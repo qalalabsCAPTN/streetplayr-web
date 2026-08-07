@@ -117,7 +117,10 @@ export function chipToParam(chip: FilterChip): string | null {
 
 export function paramToChip(category: string, mobile: boolean): FilterChip {
   const raw = (category || '').trim().toLowerCase();
-  if (!raw || raw === 'latest' || raw === 'latest-drop' || raw === 'all') {
+  if (raw === 'all') {
+    return mobile ? 'View all' : 'All Products';
+  }
+  if (!raw || raw === 'latest' || raw === 'latest-drop') {
     return mobile ? 'View all' : 'Short Sleeve T-Shirts';
   }
   if (raw === 'topwear') return mobile ? 'Topwear' : 'Short Sleeve T-Shirts';
