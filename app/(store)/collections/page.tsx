@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense, useMemo, useRef, useSyncExternalStore } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import ProductCard from '@/components/ui/ProductCard';
@@ -394,28 +395,39 @@ function CollectionsInner() {
 
 
       <section className="collections-hero relative z-[1] w-full overflow-hidden">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          className="absolute inset-0 w-full h-full object-cover object-center opacity-100"
+        <Image
           src="/assets/empty_centre.jpg"
-          alt=""
+          alt="Collection Campaign Hero"
+          fill
+          priority
+          sizes="100vw"
+          className="collections-hero__img"
         />
-        <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/55 via-black/40 to-black/20" />
-        <div className="absolute inset-x-0 bottom-0 h-[42%] pointer-events-none bg-gradient-to-t from-[var(--page-bg)] to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 z-[1] px-4 md:px-6 pb-10 md:pb-14 w-full max-w-[min(95vw,2400px)] mx-auto">
-          <span className="listing__eyebrow block mb-3">Collection / SS26</span>
-          <h1 className="listing__title text-white drop-shadow-sm">{titleForChip}</h1>
-          <p className="collections-hero__sub">
-            {required === 'ALL'
-              ? 'Full archive — every active piece.'
-              : required[0] === COLLECTION_SLUG.LATEST
-                ? 'Curated from the current drop only.'
-                : 'Members of this collection only.'}
-          </p>
+        <div className="collections-hero__overlay" />
+        <div className="collections-hero__content absolute inset-0 z-[1] flex items-end">
+          <div className="collections-hero__container w-full max-w-[min(95vw,2400px)] mx-auto px-4 md:px-6">
+            <span className="collections-hero__label">Collection / SS26</span>
+            <h1 className="collections-hero__title">{titleForChip}</h1>
+            <p className="collections-hero__desc">
+              {required === 'ALL'
+                ? 'Full archive — every active piece.'
+                : required[0] === COLLECTION_SLUG.LATEST
+                  ? 'Curated from the current drop only.'
+                  : 'Members of this collection only.'}
+            </p>
+            <div className="collections-hero__buttons">
+              <a href="#collections-products" className="chip chip--view-all active">
+                Explore Drop
+              </a>
+              <a href="#collections-products" className="chip">
+                Shop Now
+              </a>
+            </div>
+          </div>
         </div>
       </section>
 
-      <main className="relative z-[1] pb-10 md:pb-14 w-full max-w-[min(95vw,2400px)] mx-auto px-4 md:px-6">
+      <main id="collections-products" className="relative z-[1] pb-10 md:pb-14 w-full max-w-[min(95vw,2400px)] mx-auto px-4 md:px-6">
         <div className="listing listing--collections">
           <div className="collections-toolbar">
             <div className="collections-toolbar-scroll-wrap">

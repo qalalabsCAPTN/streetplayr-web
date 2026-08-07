@@ -238,17 +238,8 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
   const isWishlisted = useWishlistStore((s) => s.isSaved(props.productId));
   const requestToggle = useWishlistStore((s) => s.requestToggle);
   const saved = isWishlisted;
-
   return (
-    <div className="pdp-page pt-20" style={{ background: pageTint(props.title) }}>
-      <nav className="pdp__breadcrumb" aria-label="Breadcrumb">
-        <Link href="/home">Home</Link>
-        <span aria-hidden="true">&gt;</span>
-        <Link href="/collections">Collection</Link>
-        <span aria-hidden="true">&gt;</span>
-        <span className="pdp__breadcrumb-current">{props.title}</span>
-      </nav>
-
+    <div className="pdp-page" style={{ background: pageTint(props.title) }}>
       <div className="pdp">
         {/* Mobile gallery — full-bleed snap carousel */}
         <div className="pdp__mgallery">

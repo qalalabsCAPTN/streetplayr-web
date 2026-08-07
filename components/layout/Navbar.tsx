@@ -96,6 +96,20 @@ export default function Navbar() {
   const clearWishlistPending = useWishlistStore((s) => s.clearPending);
   const router = useRouter();
 
+  const isProductPage = pathname ? pathname.startsWith('/product/') : false;
+  const [productTitle, setProductTitle] = useState('');
+
+  useEffect(() => {
+    if (isProductPage) {
+      const slug = pathname.split('/').pop() || '';
+      const formatted = slug
+        .split('-')
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+      setProductTitle(formatted);
+    }
+  }, [pathname, isProductPage]);
+
   const handleAccount = () => {
     if (isAuthenticated) {
       router.push('/profile');
@@ -134,7 +148,7 @@ export default function Navbar() {
   }, [theme]);
 
   useEffect(() => {
-    if (!searchOpen || products.length > 0) return;
+    if ((!searchOpen && !isProductPage) || products.length > 0) return;
     let cancelled = false;
     async function loadProducts() {
       try {
@@ -159,7 +173,10 @@ export default function Navbar() {
     return () => {
       cancelled = true;
     };
-  }, [searchOpen, products.length]);
+  }, [searchOpen, isProductPage, products.length]);
+
+  const currentProduct = isProductPage ? products.find((p) => p.slug === pathname.split('/').pop()) : null;
+  const displayTitle = currentProduct ? currentProduct.name : productTitle;
 
   const toggleTheme = () => {
     const next = theme === 'default' ? 'dark' : 'default';
@@ -247,14 +264,24 @@ export default function Navbar() {
       >
         <div className="header__inner">
           <nav className="header__nav header__nav--desktop">
-            <Link
-              href="/collections"
-              className="header__link"
-              onMouseEnter={() => setMegaOpen(true)}
-              onClick={() => setMegaOpen((v) => !v)}
-            >
-              Collection
-            </Link>
+            {isProductPage ? (
+              <div className="header__breadcrumb">
+                <Link href="/collections" className="header__breadcrumb-link">
+                  Collection
+                </Link>
+                <span className="header__breadcrumb-sep">/</span>
+                <span className="header__breadcrumb-current">{displayTitle}</span>
+              </div>
+            ) : (
+              <Link
+                href="/collections"
+                className="header__link"
+                onMouseEnter={() => setMegaOpen(true)}
+                onClick={() => setMegaOpen((v) => !v)}
+              >
+                Collection
+              </Link>
+            )}
           </nav>
 
           <div className="header__logo">
