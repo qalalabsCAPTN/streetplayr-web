@@ -201,19 +201,29 @@ async function fetchMembershipMap(
 function isValidStorefrontProduct(p: any): boolean {
   if (!p) return false;
   
-  // If it's a raw Supabase product or mapped catalog product:
+  // 1. Status check
   const status = p.status ?? (p.is_active !== false ? 'active' : 'draft');
   if (status !== 'active') return false;
 
+  // 2. Metadata draft/placeholder flags
   const meta = p.metadata || {};
   if (meta.draft === true || meta.placeholder === true) return false;
 
+  // 3. Slug check
+  if (!p.slug || typeof p.slug !== 'string' || p.slug.trim() === '') return false;
+
+  // 4. Featured image check
   const featured = p.image || p.featured_image_url || p.image_url;
   if (!featured || typeof featured !== 'string' || featured.trim() === '' || featured.includes('null')) return false;
 
+  // 5. Gallery images check
   const gallery = meta.gallery_images || p.gallery;
   if (!Array.isArray(gallery) || gallery.length === 0) return false;
   if (gallery.some((img: any) => !img || typeof img !== 'string' || img.trim() === '' || img.includes('null'))) return false;
+
+  // 6. Variants/Inventory check (has at least one variant to prevent ghost listings)
+  const variants = p.variants;
+  if (!Array.isArray(variants) || variants.length === 0) return false;
 
   return true;
 }
