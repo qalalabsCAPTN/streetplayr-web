@@ -4882,20 +4882,40 @@ body.theme-light .carousel3d__dot.active {
   background: transparent;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
-  color: #ffffff;
+  /* In light mode the header is over a light-background page — use dark ink so icons are always visible */
+  color: #16111b;
   border-bottom-color: transparent;
   box-shadow: none;
 }
 .storefront-root:not(.theme-dark) .header--solid {
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.82);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   backdrop-filter: blur(20px) saturate(180%);
   color: #16111b;
   border-color: rgba(0, 0, 0, 0.08);
   box-shadow: 0 8px 32px rgba(22, 17, 27, 0.06);
 }
+/* Transparent non-scrolled state in light mode — keep icons dark + readable */
+.storefront-root:not(.theme-dark) .header:not(.header--solid) {
+  color: #16111b;
+}
+.storefront-root:not(.theme-dark) .header:not(.header--solid) .iconbtn:hover {
+  background: rgba(22, 17, 27, 0.08);
+}
 .storefront-root:not(.theme-dark) .iconbtn:hover {
   background: rgba(22, 17, 27, 0.06);
+}
+/* Menu hamburger pill — dark bg in dark mode, light bg in light mode */
+.storefront-root:not(.theme-dark) .iconbtn--menu {
+  background: #16111b;
+  color: #ffffff;
+}
+.storefront-root:not(.theme-dark) .iconbtn--menu:hover {
+  background: #2a2030;
+}
+/* Story ring fill colour in light transparent header */
+.storefront-root:not(.theme-dark) .header:not(.header--solid) .iconbtn--story {
+  --story-ring-fill: transparent;
 }
 /* Desktop: bigger centered mark — no extra circle/pill */
 @media (min-width: 901px) {
@@ -6865,9 +6885,10 @@ body.theme-light .carousel3d__dot.active {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
   margin-bottom: 24px;
-  flex-wrap: wrap;
+  /* Desktop: single row. Mobile: stacks cleanly */
+  flex-wrap: nowrap;
 }
 
 .collections-toolbar-scroll-wrap {
@@ -6878,6 +6899,7 @@ body.theme-light .carousel3d__dot.active {
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE10+ */
   flex: 1;
+  min-width: 0; /* critical — allows flex child to shrink and scroll */
   padding: 4px 0;
 }
 .collections-toolbar-scroll-wrap::-webkit-scrollbar {
@@ -6887,8 +6909,43 @@ body.theme-light .carousel3d__dot.active {
 .collections-toolbar-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
+  gap: 8px;
+  flex-shrink: 0; /* never squish actions off-screen */
+}
+
+/* Mobile: stack chips row on top, actions row on bottom */
+@media (max-width: 600px) {
+  .collections-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .collections-toolbar-scroll-wrap {
+    width: 100%;
+    /* Fade out edges to hint scroll */
+    -webkit-mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
+    padding: 4px 16px;
+  }
+  .collections-toolbar-actions {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 0 2px;
+  }
+  .collections-toolbar-actions .advance-filters-btn {
+    flex: 1;
+    justify-content: center;
+    min-height: 40px;
+    font-size: 10px;
+  }
+  .collections-toolbar-actions .collections-sort {
+    flex: 1;
+  }
+  .collections-toolbar-actions .collections-sort__trigger {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 /* Advance Filters Button */
