@@ -1,6 +1,7 @@
 /**
  * Map UniCommerce / DB product slugs → storefront image assets under /public/assets/products.
  * UniCommerce item types do not ship media URLs; we attach known playR streetwear photos.
+ * All images are converted to WebP format as the single authoritative media standard.
  */
 
 export type ProductImagePack = {
@@ -8,26 +9,8 @@ export type ProductImagePack = {
   gallery: string[];
 };
 
-const WEBP_FRAMES = new Set([
-  'black-warrior/1',
-  'black-warrior/3',
-  'black-warrior/5',
-  'brown-warrior/1',
-  'brown-warrior/3',
-  'brown-warrior/5',
-  'ctt-waffle/1',
-  'ctt-waffle/5',
-  'inspired/1',
-  'inspired/3',
-  'inspired/5',
-  'warrior-bob/1',
-]);
-
 function gallery(folder: string): string[] {
-  return [1, 2, 3, 4, 5].map((n) => {
-    const ext = WEBP_FRAMES.has(`${folder}/${n}`) ? 'webp' : 'jpg';
-    return `/assets/products/${folder}/image-${n}.${ext}`;
-  });
+  return [1, 2, 3, 4, 5].map((n) => `/assets/products/${folder}/image-${n}.webp`);
 }
 
 function pack(folder: string): ProductImagePack {
@@ -41,28 +24,26 @@ const BY_SLUG: Record<string, ProductImagePack> = {
   'ctt-waffle': pack('ctt-waffle'),
   'PS-TEE-CRT-WHT': pack('ctt-waffle'),
   'PS-TEE-CRT-RED': pack('ctt-maroon'),
+  
   // Warrior tee
-  'black-warrior': pack('black-warrior'),
-  'warrior-tee': pack('black-warrior'),
-  'PS-TEE-WAR-BLK': pack('black-warrior'),
   'PS-TEE-WAR-BRW': pack('brown-warrior'),
+  
   // Inspired
-  inspired: pack('inspired'),
+  'inspired': pack('inspired'),
   'PS-TEE-INS-PRP': pack('inspired'),
-  // STAAR tanks (white assets not shot yet — reuse dark pack so shelf isn't blank)
-  'star-tank-dark': pack('star-tank-dark'),
+  
+  // STAAR tanks
   'PS-TNK-STR-BLK': pack('star-tank-dark'),
-  'PS-TNK-STR-WHT': pack('star-tank-dark'),
+  'PS-TNK-STR-WHT': pack('star-tank-white'),
+  
   // Carpenter / pants
-  'carpenter-grey': pack('carpenter-grey'),
   'PS-PNT-CARP-GRY': pack('carpenter-grey'),
   'PS-PNT-CARP-GRN': pack('carpenter-olive'),
-  'PS-PNT-CORE-BLK': pack('carpenter-grey'),
-  'PS-PNT-CORE-CRM': pack('carpenter-grey'),
+  'PS-PNT-CORE-BLK': pack('sweat-pant-black'),
+  'PS-PNT-CORE-CRM': pack('sweat-pants-white'),
+  
   // Long sleeve / SNB
   'stick-no-bills': pack('stick-no-bills'),
-  // Bob
-  'warrior-bob': pack('warrior-bob'),
 };
 
 /** Prefix fallbacks when exact slug missing (size-suffixed SKUs etc.). */
@@ -70,12 +51,13 @@ const BY_PREFIX: Array<{ prefix: string; pack: ProductImagePack }> = [
   { prefix: 'PS-TEE-CRT-RED', pack: pack('ctt-maroon') },
   { prefix: 'PS-TEE-CRT', pack: pack('ctt-waffle') },
   { prefix: 'PS-TEE-WAR-BRW', pack: pack('brown-warrior') },
-  { prefix: 'PS-TEE-WAR', pack: pack('black-warrior') },
   { prefix: 'PS-TEE-INS', pack: pack('inspired') },
-  { prefix: 'PS-TNK-STR', pack: pack('star-tank-dark') },
+  { prefix: 'PS-TNK-STR-BLK', pack: pack('star-tank-dark') },
+  { prefix: 'PS-TNK-STR-WHT', pack: pack('star-tank-white') },
   { prefix: 'PS-PNT-CARP-GRN', pack: pack('carpenter-olive') },
   { prefix: 'PS-PNT-CARP', pack: pack('carpenter-grey') },
-  { prefix: 'PS-PNT-CORE', pack: pack('carpenter-grey') },
+  { prefix: 'PS-PNT-CORE-BLK', pack: pack('sweat-pant-black') },
+  { prefix: 'PS-PNT-CORE-CRM', pack: pack('sweat-pants-white') },
 ];
 
 export function resolveProductImages(

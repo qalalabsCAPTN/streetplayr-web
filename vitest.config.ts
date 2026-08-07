@@ -9,6 +9,7 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './'),
       '@nectar/types': path.resolve(__dirname, './packages/types/src'),
+      'server-only': path.resolve(__dirname, './scripts/stubs/server-only-empty.js'),
     },
   },
 });

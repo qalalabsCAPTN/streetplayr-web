@@ -24,32 +24,14 @@ export interface LocalProduct {
   }[];
 }
 
-/** Prefer WebP when a high-quality encode exists (see scripts/convert-to-webp.cjs). */
-const WEBP_PRODUCT_FRAMES = new Set([
-  "black-warrior/1",
-  "black-warrior/3",
-  "black-warrior/5",
-  "brown-warrior/1",
-  "brown-warrior/3",
-  "brown-warrior/5",
-  "ctt-waffle/1",
-  "ctt-waffle/5",
-  "inspired/1",
-  "inspired/3",
-  "inspired/5",
-  "warrior-bob/1",
-]);
-
 const GALLERY_IMAGES = (slug: string) =>
-  [1, 2, 3, 4, 5].map((n) => {
-    const ext = WEBP_PRODUCT_FRAMES.has(`${slug}/${n}`) ? "webp" : "jpg";
-    return `/assets/products/${slug}/image-${n}.${ext}`;
-  });
+  [1, 2, 3, 4, 5].map((n) => `/assets/products/${slug}/image-${n}.webp`);
 
 const ALL_SIZES = ["XS", "S", "M", "L", "XL", "2XL"];
+const TANK_SIZES = ["S", "M", "L", "XL"];
 
-function buildVariants(slug: string, baseStock = 25) {
-  return ALL_SIZES.map((size) => ({
+function buildVariants(slug: string, sizes = ALL_SIZES, baseStock = 25) {
+  return sizes.map((size) => ({
     id: `${slug}-${size.toLowerCase()}`,
     size,
     color: "default",
@@ -60,13 +42,12 @@ function buildVariants(slug: string, baseStock = 25) {
 
 export const LOCAL_PRODUCTS: LocalProduct[] = [
   {
-    id: "ctt-waffle",
-    name: "playR Create Waffle Tee",
+    id: "PS-TEE-CRT-WHT",
+    name: "playR Street Create Waffle Tee (White)",
     price: 1999,
-    description:
-      "Crafted from textured waffle-knit fabric with a relaxed fit and full-length sleeves",
+    description: "Crafted from textured waffle-knit fabric with a relaxed fit and full-length sleeves in classic white.",
     image_url: `/assets/products/ctt-waffle/image-1.webp`,
-    slug: "ctt-waffle",
+    slug: "PS-TEE-CRT-WHT",
     category: { name: "TEES" },
     metadata: {
       points: "300",
@@ -74,41 +55,37 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
       gallery_images: GALLERY_IMAGES("ctt-waffle"),
       colors: [
         { id: "white", name: "White", hex: "#f5f5f0", images: GALLERY_IMAGES("ctt-waffle") },
-        { id: "maroon", name: "Maroon", hex: "#6b1c2a", images: GALLERY_IMAGES("ctt-maroon") },
       ],
       latest_drop: true,
     },
-    variants: buildVariants("ctt-waffle"),
+    variants: buildVariants("PS-TEE-CRT-WHT"),
   },
   {
-    id: "warrior-tee",
-    name: "WARRIOR Tee",
+    id: "PS-TEE-CRT-RED",
+    name: "playR Street Create Waffle Tee (Red)",
     price: 1999,
-    description:
-      "Made from heavyweight premium cotton terry, this oversized T-shirt is designed for all-day comfort and a structured drape. Signature aligned puff print detailing around the neckline and back adds a distinctive, elevated finish",
-    image_url: `/assets/products/black-warrior/image-1.webp`,
-    slug: "black-warrior",
+    description: "Crafted from textured waffle-knit fabric with a relaxed fit and full-length sleeves in premium maroon red.",
+    image_url: `/assets/products/ctt-maroon/image-1.webp`,
+    slug: "PS-TEE-CRT-RED",
     category: { name: "TEES" },
     metadata: {
       points: "300",
       category: "TEES",
-      gallery_images: GALLERY_IMAGES("black-warrior"),
+      gallery_images: GALLERY_IMAGES("ctt-maroon"),
       colors: [
-        { id: "black", name: "Black", hex: "#1a1a1a", images: GALLERY_IMAGES("black-warrior") },
-        { id: "brown", name: "Brown", hex: "#5c3a2e", images: GALLERY_IMAGES("brown-warrior") },
+        { id: "red", name: "Red", hex: "#6b1c2a", images: GALLERY_IMAGES("ctt-maroon") },
       ],
       latest_drop: true,
     },
-    variants: buildVariants("black-warrior"),
+    variants: buildVariants("PS-TEE-CRT-RED"),
   },
   {
-    id: "inspired",
-    name: "INSPIRED Tee",
+    id: "PS-TEE-INS-PRP",
+    name: "playR Street INSPIRED Tee (Purple)",
     price: 2499,
-    description:
-      "Made from premium single jersey cotton for a soft, lightweight feel, this oversized T-shirt combines a unique purple acid-washed finish with a striking white screen print for elevated everyday wear.",
+    description: "Made from premium single jersey cotton for a soft, lightweight feel, this oversized T-shirt combines a unique purple acid-washed finish with a striking white screen print for elevated everyday wear.",
     image_url: `/assets/products/inspired/image-1.webp`,
-    slug: "inspired",
+    slug: "PS-TEE-INS-PRP",
     category: { name: "TEES" },
     metadata: {
       points: "350",
@@ -120,38 +97,89 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
       model3d: "/models/inspired.glb",
       latest_drop: true,
     },
-    variants: buildVariants("inspired"),
+    variants: buildVariants("PS-TEE-INS-PRP"),
   },
   {
-    id: "star-tank-dark",
-    name: "STAAR playR Tank",
+    id: "PS-TNK-STR-BLK",
+    name: "playR Street STAAR Tank (Black)",
     price: 2499,
-    description:
-      "Crafted from heavyweight premium cotton, this sleeveless acid-washed tank features distressed panel seams across the entire garment for a deconstructed aesthetic. A premium raised puff print on the back completes the piece with bold dimension and lasting durability.",
-    image_url: `/assets/products/star-tank-dark/image-1.jpg`,
-    slug: "star-tank-dark",
+    description: "Crafted from heavyweight premium cotton, this sleeveless acid-washed tank features distressed panel seams across the entire garment for a deconstructed aesthetic. A premium raised puff print on the back completes the piece with bold dimension and lasting durability.",
+    image_url: `/assets/products/star-tank-dark/image-1.webp`,
+    slug: "PS-TNK-STR-BLK",
     category: { name: "TANKS" },
     metadata: {
       points: "350",
       category: "TANKS",
       gallery_images: GALLERY_IMAGES("star-tank-dark"),
       colors: [
-        { id: "dark", name: "Dark", hex: "#1a1a1a", images: GALLERY_IMAGES("star-tank-dark") },
+        { id: "black", name: "Black", hex: "#1a1a1a", images: GALLERY_IMAGES("star-tank-dark") },
+      ],
+      latest_drop: true,
+    },
+    variants: buildVariants("PS-TNK-STR-BLK", TANK_SIZES),
+  },
+  {
+    id: "PS-TNK-STR-WHT",
+    name: "playR Street STAAR Tank (White)",
+    price: 2499,
+    description: "Crafted from heavyweight premium cotton, this sleeveless clean white tank features distressed panel seams across the entire garment for a deconstructed aesthetic. A premium raised puff print on the back completes the piece with bold dimension and lasting durability.",
+    image_url: `/assets/products/star-tank-white/image-1.webp`,
+    slug: "PS-TNK-STR-WHT",
+    category: { name: "TANKS" },
+    metadata: {
+      points: "350",
+      category: "TANKS",
+      gallery_images: GALLERY_IMAGES("star-tank-white"),
+      colors: [
+        { id: "white", name: "White", hex: "#ffffff", images: GALLERY_IMAGES("star-tank-white") },
+      ],
+      latest_drop: true,
+    },
+    variants: buildVariants("PS-TNK-STR-WHT", TANK_SIZES),
+  },
+  {
+    id: "PS-PNT-CORE-BLK",
+    name: "playR Street Sweats Pant (Black)",
+    price: 3499,
+    description: "Designed for ultimate street comfort. Made of ultra-heavyweight cotton fleece, these sweatpants feature deep utility side pockets, structured panel seams, and an adjustable waistband.",
+    image_url: `/assets/products/sweat-pant-black/image-1.webp`,
+    slug: "PS-PNT-CORE-BLK",
+    category: { name: "SWEATPANTS" },
+    metadata: {
+      points: "500",
+      category: "SWEATPANTS",
+      gallery_images: GALLERY_IMAGES("sweat-pant-black"),
+      colors: [
+        { id: "black", name: "Black", hex: "#111111", images: GALLERY_IMAGES("sweat-pant-black") },
       ],
     },
-    variants: buildVariants("star-tank-dark"),
+    variants: buildVariants("PS-PNT-CORE-BLK"),
   },
-  // playR Sweats (PS-PNT-CORE-BLK / -CRM, Rs.3499) — hidden until real product
-  // photos land. Black + Cream shots pending; the old olive images belonged to
-  // the Carpenter Olive colourway, not these.
   {
-    id: "carpenter-grey",
-    name: "Carpenter Pants",
+    id: "PS-PNT-CORE-CRM",
+    name: "playR Street Sweats Pant (Cream)",
+    price: 3499,
+    description: "Designed for ultimate street comfort. Made of ultra-heavyweight cotton fleece, these sweatpants feature deep utility side pockets, structured panel seams, and an adjustable waistband in an off-white cream colorway.",
+    image_url: `/assets/products/sweat-pants-white/image-1.webp`,
+    slug: "PS-PNT-CORE-CRM",
+    category: { name: "SWEATPANTS" },
+    metadata: {
+      points: "500",
+      category: "SWEATPANTS",
+      gallery_images: GALLERY_IMAGES("sweat-pants-white"),
+      colors: [
+        { id: "cream", name: "Cream", hex: "#fdfbf7", images: GALLERY_IMAGES("sweat-pants-white") },
+      ],
+    },
+    variants: buildVariants("PS-PNT-CORE-CRM"),
+  },
+  {
+    id: "PS-PNT-CARP-GRY",
+    name: "playR Street Carpenter Pant Fleece 350GSM (Grey)",
     price: 3699,
-    description:
-      "Crafted from premium heavyweight fabric, the playR Carpenter Pants are designed for everyday comfort with a clean, timeless silhouette. Featuring a relaxed fit, subtle carpenter-inspired detailing, and a discreet side pocket for quick access to your phone or everyday essentials, they balance functionality with effortless style. Minimal, durable, and versatile, they're built to pair seamlessly with any outfit.",
-    image_url: `/assets/products/carpenter-grey/image-1.jpg`,
-    slug: "carpenter-grey",
+    description: "Crafted from premium heavyweight fabric, the playR Carpenter Pants are designed for everyday comfort with a clean, timeless silhouette. Featuring a relaxed fit, subtle carpenter-inspired detailing, and a discreet side pocket for quick access to your phone or everyday essentials, they balance functionality with effortless style. Minimal, durable, and versatile, they're built to pair seamlessly with any outfit.",
+    image_url: `/assets/products/carpenter-grey/image-1.webp`,
+    slug: "PS-PNT-CARP-GRY",
     category: { name: "SWEATPANTS" },
     metadata: {
       points: "500",
@@ -159,18 +187,53 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
       gallery_images: GALLERY_IMAGES("carpenter-grey"),
       colors: [
         { id: "grey", name: "Grey", hex: "#8a8a8a", images: GALLERY_IMAGES("carpenter-grey") },
-        { id: "olive", name: "Olive", hex: "#5c5a3a", images: GALLERY_IMAGES("carpenter-olive") },
       ],
     },
-    variants: buildVariants("carpenter-grey"),
+    variants: buildVariants("PS-PNT-CARP-GRY"),
+  },
+  {
+    id: "PS-PNT-CARP-GRN",
+    name: "playR Street Carpenter Pant Fleece 350GSM (Green)",
+    price: 3699,
+    description: "Crafted from premium heavyweight fabric, the playR Carpenter Pants are designed for everyday comfort with a clean, timeless silhouette. Featuring a relaxed fit, subtle carpenter-inspired detailing, and a discreet side pocket for quick access to your phone or everyday essentials, they balance functionality with effortless style. Minimal, durable, and versatile, they're built to pair seamlessly with any outfit in a dark green olive colorway.",
+    image_url: `/assets/products/carpenter-olive/image-1.webp`,
+    slug: "PS-PNT-CARP-GRN",
+    category: { name: "SWEATPANTS" },
+    metadata: {
+      points: "500",
+      category: "SWEATPANTS",
+      gallery_images: GALLERY_IMAGES("carpenter-olive"),
+      colors: [
+        { id: "green", name: "Green/Olive", hex: "#5c5a3a", images: GALLERY_IMAGES("carpenter-olive") },
+      ],
+    },
+    variants: buildVariants("PS-PNT-CARP-GRN"),
+  },
+  {
+    id: "PS-TEE-WAR-BRW",
+    name: "playR Street WARRIOR Tee (Brown)",
+    price: 1999,
+    description: "Made from heavyweight premium cotton terry, this oversized T-shirt is designed for all-day comfort and a structured drape. Signature aligned puff print detailing around the neckline and back adds a distinctive, elevated finish.",
+    image_url: `/assets/products/brown-warrior/image-1.webp`,
+    slug: "PS-TEE-WAR-BRW",
+    category: { name: "TEES" },
+    metadata: {
+      points: "300",
+      category: "TEES",
+      gallery_images: GALLERY_IMAGES("brown-warrior"),
+      colors: [
+        { id: "brown", name: "Brown", hex: "#5c3a2e", images: GALLERY_IMAGES("brown-warrior") },
+      ],
+      latest_drop: true,
+    },
+    variants: buildVariants("PS-TEE-WAR-BRW"),
   },
   {
     id: "stick-no-bills",
     name: "playR Street SNB Waffle Tee",
     price: 2299,
-    description:
-      "Crafted from heavyweight acid-washed ribbed cotton, this oversized long sleeve features a structured, boxy fit with dropped shoulders and a worn-in vintage finish. The phrase \"Stick No Bills\" comes from the iconic notices painted on city walls to discourage posters and advertisements, becoming a recognizable part of the urban landscape. The graphics draw inspiration from this piece of street culture, reinterpreting a familiar symbol of the city.",
-    image_url: `/assets/products/stick-no-bills/image-1.jpg`,
+    description: "Crafted from heavyweight acid-washed ribbed cotton, this oversized long sleeve features a structured, boxy fit with dropped shoulders and a worn-in vintage finish. The graphics draw inspiration from urban city walls and street culture.",
+    image_url: `/assets/products/stick-no-bills/image-1.webp`,
     slug: "stick-no-bills",
     category: { name: "LONG-SLEEVE" },
     metadata: {
@@ -183,25 +246,6 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
       latest_drop: true,
     },
     variants: buildVariants("stick-no-bills"),
-  },
-  {
-    id: "warrior-bob",
-    name: "WARRIOR Bob",
-    price: 1999,
-    description:
-      "The boldest cut in the Warrior family. Heavyweight cotton terry with an oversized silhouette and signature puff print detailing — raw, structured, unapologetic.",
-    image_url: `/assets/products/warrior-bob/image-1.webp`,
-    slug: "warrior-bob",
-    category: { name: "TEES" },
-    metadata: {
-      points: "300",
-      category: "TEES",
-      gallery_images: GALLERY_IMAGES("warrior-bob"),
-      colors: [
-        { id: "default", name: "Standard", hex: "#ffffff", images: GALLERY_IMAGES("warrior-bob") },
-      ],
-    },
-    variants: buildVariants("warrior-bob"),
   },
 ];
 
@@ -222,7 +266,8 @@ export function getLocalActiveProducts() {
 }
 
 export function getLocalLatestDrops() {
-  return LOCAL_PRODUCTS.map((p, idx) => ({
+  const drops = LOCAL_PRODUCTS.filter((p) => p.metadata.latest_drop);
+  return drops.map((p, idx) => ({
     id: p.id,
     name: p.name,
     price: p.price,
