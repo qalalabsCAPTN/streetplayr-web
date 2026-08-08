@@ -39,8 +39,16 @@ export default function StoryViewer({ onClose }: StoryViewerProps) {
   return (
     <div className="storyviewer" onClick={onClose}>
       <div className="storyviewer__top" onClick={(e) => e.stopPropagation()}>
-        <button onClick={() => setPaused((v) => !v)} aria-label="Pause">
-          {paused ? '▶' : '⏸'}
+        <button onClick={() => setPaused((v) => !v)} aria-label={paused ? "Play" : "Pause"}>
+          {paused ? (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          ) : (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+            </svg>
+          )}
         </button>
         <button onClick={onClose} aria-label="Close">
           ✕

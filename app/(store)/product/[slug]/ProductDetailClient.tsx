@@ -157,6 +157,18 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
     setActiveImg(Math.round(el.scrollLeft / el.clientWidth));
   };
 
+  const nextImg = () => {
+    const el = carouselRef.current;
+    if (!el) return;
+    el.scrollBy({ left: el.clientWidth, behavior: 'smooth' });
+  };
+
+  const prevImg = () => {
+    const el = carouselRef.current;
+    if (!el) return;
+    el.scrollBy({ left: -el.clientWidth, behavior: 'smooth' });
+  };
+
   // Scroll-reveal for the stacked gallery images (desktop only — mobile uses the swipe carousel)
   useEffect(() => {
     const container = galleryRightRef.current;
@@ -239,7 +251,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
   const requestToggle = useWishlistStore((s) => s.requestToggle);
   const saved = isWishlisted;
   return (
-    <div className="pdp-page" style={{ background: pageTint(props.title) }}>
+    <div className="pdp-page">
       <div className="pdp">
         {/* Mobile gallery — full-bleed snap carousel */}
         <div className="pdp__mgallery">
@@ -261,6 +273,20 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
           </div>
           {allImages.length > 1 && (
             <>
+              <button
+                className="pdp__mgallery-nav pdp__mgallery-nav--prev"
+                onClick={prevImg}
+                aria-label="Previous image"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+              </button>
+              <button
+                className="pdp__mgallery-nav pdp__mgallery-nav--next"
+                onClick={nextImg}
+                aria-label="Next image"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+              </button>
               <div className="pdp__counter" aria-live="polite">
                 {activeImg + 1} / {allImages.length}
               </div>
@@ -501,11 +527,13 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
                   <h6>Details</h6>
                   <ul>
                     {props.points && <li>Earn {props.points} Member Credits on purchase</li>}
-                    <li>Heavyweight premium fabric construction</li>
                     <li>Oversized comfort with tailored drape</li>
                   </ul>
                   <h6>Description</h6>
                   <p>{props.description}</p>
+                  <p className="mt-4 text-[13px] opacity-75 font-mono uppercase tracking-wide">
+                    * Heavyweight premium fabric construction (350 GSM)
+                  </p>
                 </>
               )}
               {tab === 'care' && (

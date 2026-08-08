@@ -229,6 +229,25 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
     variants: buildVariants("PS-TEE-WAR-BRW"),
   },
   {
+    id: "PS-TEE-WAR-BLK",
+    name: "playR Street WARRIOR Tee (Black)",
+    price: 1999,
+    description: "Made from heavyweight premium cotton terry, this oversized T-shirt is designed for all-day comfort and a structured drape. Signature aligned puff print detailing around the neckline and back adds a distinctive, elevated finish.",
+    image_url: `/assets/products/black-warrior/image-1.webp`,
+    slug: "PS-TEE-WAR-BLK",
+    category: { name: "TEES" },
+    metadata: {
+      points: "300",
+      category: "TEES",
+      gallery_images: GALLERY_IMAGES("black-warrior"),
+      colors: [
+        { id: "black", name: "Black", hex: "#000000", images: GALLERY_IMAGES("black-warrior") },
+      ],
+      latest_drop: true,
+    },
+    variants: buildVariants("PS-TEE-WAR-BLK"),
+  },
+  {
     id: "stick-no-bills",
     name: "playR Street SNB Waffle Tee",
     price: 2299,

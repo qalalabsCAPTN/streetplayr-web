@@ -61,9 +61,6 @@ const menu = {
   bottomwear: [
     { label: 'Sweatpants', href: '/collections?category=pants' },
   ],
-  footwear: [
-    { label: 'Footwear', href: '/stores' },
-  ],
   shopAndSupport: [
     { label: 'All Products', href: '/collections?category=all' },
     { label: 'Collaborations', href: '/collaborations' },
@@ -97,6 +94,7 @@ export default function Navbar() {
   const router = useRouter();
 
   const isProductPage = pathname ? pathname.startsWith('/product/') : false;
+  const isCollectionPage = pathname ? pathname.startsWith('/collections') : false;
   const [productTitle, setProductTitle] = useState('');
 
   useEffect(() => {
@@ -163,6 +161,7 @@ export default function Navbar() {
             price: p.price,
             slug: p.slug,
             image: p.image,
+            category: String(p.metadata?.category ?? p.metadata?.category_name ?? ''),
           }))
         );
       } catch (err) {
@@ -190,7 +189,8 @@ export default function Navbar() {
     const name = String(p.name ?? '').toLowerCase();
     const description = String(p.description ?? '').toLowerCase();
     const slug = String(p.slug ?? '').toLowerCase();
-    const text = `${name} ${description} ${slug}`;
+    const category = String(p.category ?? '').toLowerCase();
+    const text = `${name} ${description} ${slug} ${category}`;
     if (text.includes(q)) return true;
     const tokens = q.split(/\s+/).filter(Boolean);
     if (tokens.length > 1 && tokens.every((t) => text.includes(t))) return true;
@@ -272,7 +272,7 @@ export default function Navbar() {
                 <span className="header__breadcrumb-sep">/</span>
                 <span className="header__breadcrumb-current">{displayTitle}</span>
               </div>
-            ) : (
+            ) : !isCollectionPage ? (
               <Link
                 href="/collections"
                 className="header__link"
@@ -281,7 +281,7 @@ export default function Navbar() {
               >
                 Collection
               </Link>
-            )}
+            ) : null}
           </nav>
 
           <div className="header__logo">
@@ -467,14 +467,6 @@ export default function Navbar() {
           <div>
             <h4>Bottomwear</h4>
             {menu.bottomwear.map((l) => (
-              <Link key={l.label} href={l.href} onClick={() => setMegaOpen(false)}>
-                {l.label}
-              </Link>
-            ))}
-          </div>
-          <div>
-            <h4>Footwear</h4>
-            {menu.footwear.map((l) => (
               <Link key={l.label} href={l.href} onClick={() => setMegaOpen(false)}>
                 {l.label}
               </Link>

@@ -159,7 +159,7 @@ export default function Hero() {
       )}
 
       <Link
-        href={current?.href || '/collections'}
+        href={current?.href || '/collections?category=all'}
         className="hero__shop hero__shop--dark"
         aria-label="Shop Now"
       >

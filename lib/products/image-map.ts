@@ -27,6 +27,7 @@ const BY_SLUG: Record<string, ProductImagePack> = {
   
   // Warrior tee
   'PS-TEE-WAR-BRW': pack('brown-warrior'),
+  'PS-TEE-WAR-BLK': pack('black-warrior'),
   
   // Inspired
   'inspired': pack('inspired'),
@@ -51,6 +52,7 @@ const BY_PREFIX: Array<{ prefix: string; pack: ProductImagePack }> = [
   { prefix: 'PS-TEE-CRT-RED', pack: pack('ctt-maroon') },
   { prefix: 'PS-TEE-CRT', pack: pack('ctt-waffle') },
   { prefix: 'PS-TEE-WAR-BRW', pack: pack('brown-warrior') },
+  { prefix: 'PS-TEE-WAR-BLK', pack: pack('black-warrior') },
   { prefix: 'PS-TEE-INS', pack: pack('inspired') },
   { prefix: 'PS-TNK-STR-BLK', pack: pack('star-tank-dark') },
   { prefix: 'PS-TNK-STR-WHT', pack: pack('star-tank-white') },

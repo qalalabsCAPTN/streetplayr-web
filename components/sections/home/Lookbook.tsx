@@ -73,6 +73,8 @@ export default function Lookbook({
 
   // Pointer drag state
   const pointerStartXRef = useRef(0);
+  const pointerStartYRef = useRef(0);
+  const isScrollIntentRef = useRef(false);
   const dragStartTranslationRef = useRef<number | null>(null);
   const dragHistoryRef = useRef<{ x: number; t: number }[]>([]);
   const dragDistanceRef = useRef(0);
@@ -325,20 +327,45 @@ export default function Lookbook({
 
   // Pointer drag event handlers
   const handlePointerDown = (e: React.PointerEvent) => {
-    if (e.button !== 0) return; // Left click only
+    if (e.pointerType === "mouse" && e.button !== 0) return; // Left click only
     isDraggingRef.current = true;
+    isScrollIntentRef.current = false;
     modeRef.current = "drag";
     pointerStartXRef.current = e.clientX;
+    pointerStartYRef.current = e.clientY;
     dragStartTranslationRef.current = xRef.current;
     dragHistoryRef.current = [{ x: e.clientX, t: performance.now() }];
     dragDistanceRef.current = 0;
-    e.currentTarget.setPointerCapture(e.pointerId);
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!isDraggingRef.current || dragStartTranslationRef.current === null) return;
+    
     const deltaX = e.clientX - pointerStartXRef.current;
-    dragDistanceRef.current = Math.abs(deltaX);
+    const deltaY = e.clientY - pointerStartYRef.current;
+
+    // Detect scroll intent vs drag intent early
+    if (!isScrollIntentRef.current && dragDistanceRef.current === 0) {
+      if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 5) {
+        // User is scrolling vertically. Release control to browser.
+        isScrollIntentRef.current = true;
+        isDraggingRef.current = false;
+        modeRef.current = "autoplay";
+        return;
+      }
+      
+      // If user clearly started horizontal drag, capture pointer to prevent interference
+      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 5) {
+         e.currentTarget.setPointerCapture(e.pointerId);
+      }
+    }
+
+    if (isScrollIntentRef.current) return;
+
+    if (Math.abs(deltaX) > 5) {
+      dragDistanceRef.current = Math.abs(deltaX);
+    }
+    
     xRef.current = dragStartTranslationRef.current + deltaX;
 
     const now = performance.now();
@@ -349,9 +376,11 @@ export default function Lookbook({
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
     if (!isDraggingRef.current) return;
     isDraggingRef.current = false;
-    e.currentTarget.releasePointerCapture(e.pointerId);
 
     const history = dragHistoryRef.current;
     let velocity = 0;
