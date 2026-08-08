@@ -2,7 +2,7 @@ import ProductDetailClient from "./ProductDetailClient";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProductQueries } from "@/lib/products/queries";
-import { formatPrice, formatProductTitle } from "@/lib/utils/format";
+import { formatPrice } from "@/lib/utils/format";
 import { getAvailableInventory } from "@/lib/inventory";
 
 export const revalidate = 300;
@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   const { slug } = await params;
   const product = await resolveProduct(slug);
   if (!product) return { title: "Product Not Found — Street PlayR" };
-  const title = formatProductTitle(product.name);
+  const title = product.name;
   return {
     title: `${title} — Street PlayR`,
     description: product.description,
@@ -61,7 +61,7 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
   );
 
   const displayData = {
-    title: formatProductTitle(product.name),
+    title: product.name,
     price: formatPrice(product.price),
     description: product.description ?? "",
     points: meta?.points ?? "100",
