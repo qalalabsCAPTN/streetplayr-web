@@ -94,7 +94,6 @@ export default function Navbar() {
   const router = useRouter();
 
   const isProductPage = pathname ? pathname.startsWith('/product/') : false;
-  const isCollectionPage = pathname ? pathname.startsWith('/collections') : false;
   const [productTitle, setProductTitle] = useState('');
 
   useEffect(() => {
@@ -272,7 +271,7 @@ export default function Navbar() {
                 <span className="header__breadcrumb-sep">/</span>
                 <span className="header__breadcrumb-current">{displayTitle}</span>
               </div>
-            ) : !isCollectionPage ? (
+            ) : (
               <Link
                 href="/collections"
                 className="header__link"
@@ -281,7 +280,7 @@ export default function Navbar() {
               >
                 Collection
               </Link>
-            ) : null}
+            )}
           </nav>
 
           <div className="header__logo">
