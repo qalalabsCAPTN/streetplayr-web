@@ -255,7 +255,7 @@ export default function Navbar() {
       {/* Bluorng inverse corner notches — visible only when header is solid */}
       <div className="page-frame" aria-hidden="true" />
       <header
-        className={`header ${solid ? 'header--solid' : ''}`}
+        className={`header ${solid ? 'header--solid' : ''} ${scrolled ? 'header--scrolled' : ''}`}
         onMouseLeave={() => {
           if (typeof window !== 'undefined' && window.innerWidth > 900) {
             setMegaOpen(false);

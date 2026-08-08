@@ -6,6 +6,9 @@ import Image from "next/image";
 import { motion, useInView } from "framer-motion";
 import { animationController } from "@/lib/AnimationController";
 
+const AUTOPLAY_DELAY_MS = 3500;
+const PAGE_ANIM_DURATION_MS = 750;
+
 function FadeIn({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-8% 0px" });
@@ -68,6 +71,11 @@ export default function Lookbook({
   const xRef = useRef(0);
   const targetXRef = useRef(0);
   const loopWidthRef = useRef(0);
+  const pageWidthRef = useRef(0);
+  const nextAutoplayAtRef = useRef(0);
+  const animStartXRef = useRef(0);
+  const animTargetXRef = useRef(0);
+  const animStartTimeRef = useRef(0);
 
   const lastTimeRef = useRef(0);
 
@@ -117,6 +125,7 @@ export default function Lookbook({
     loopWidthRef.current = W;
 
     const viewportWidth = el.clientWidth;
+    pageWidthRef.current = viewportWidth;
     setNeedsNavigation(W > viewportWidth);
   }, [activeItems.length]);
 
@@ -130,78 +139,48 @@ export default function Lookbook({
     }, 50);
   }, [calculateWidths]);
 
-  // Snaps translation target to closest card offset, keeping it in [-2W, -W]
+  // Snaps translation target to the closest full-page boundary, keeping it in [-2W, -W]
   const findClosestSnapX = useCallback((currentX: number) => {
-    const track = trackRef.current;
-    if (!track) return currentX;
-    const children = Array.from(track.children) as HTMLElement[];
-    if (children.length === 0) return currentX;
-
     const W = loopWidthRef.current;
-    if (W <= 0) return currentX;
+    const pageW = pageWidthRef.current;
+    if (W <= 0 || pageW <= 0) return currentX;
 
-    let closestX = currentX;
-    let minDiff = Infinity;
+    let norm = currentX;
+    while (norm < -2 * W) norm += W;
+    while (norm > -W) norm -= W;
 
-    children.forEach((child) => {
-      const snapX = -child.offsetLeft;
-      let targetSnap = snapX;
-      // Normalize targetSnap into the [-2W, -W] range
-      while (targetSnap < -2 * W) targetSnap += W;
-      while (targetSnap > -W) targetSnap -= W;
+    const pagesFromStart = Math.round((-norm - W) / pageW);
+    let snapX = -W - pagesFromStart * pageW;
+    while (snapX < -2 * W) snapX += W;
+    while (snapX > -W) snapX -= W;
 
-      const diff = Math.abs(currentX - targetSnap);
-      if (diff < minDiff) {
-        minDiff = diff;
-        closestX = targetSnap;
-      }
-    });
-
-    return closestX;
+    return snapX;
   }, []);
 
-  const scroll = useCallback((direction: "prev" | "next") => {
-    const track = trackRef.current;
-    if (!track) return;
-    const children = Array.from(track.children) as HTMLElement[];
-    if (children.length === 0) return;
+  // Kicks off an eased animation toward a target translation
+  const startAnimationTo = useCallback((targetX: number) => {
+    animStartXRef.current = xRef.current;
+    animTargetXRef.current = targetX;
+    animStartTimeRef.current = performance.now();
+    targetXRef.current = targetX;
+    modeRef.current = "animating";
+  }, []);
 
+  // Moves exactly one full carousel "page" (one viewport width)
+  const scroll = useCallback((direction: "prev" | "next") => {
     const W = loopWidthRef.current;
-    if (W <= 0) return;
+    const pageW = pageWidthRef.current;
+    if (W <= 0 || pageW <= 0) return;
 
     // Normalize current position
     let curX = xRef.current;
     while (curX < -2 * W) curX += W;
     while (curX > -W) curX -= W;
+    xRef.current = curX;
 
-    let nextIndex = 0;
-    const N = activeItems.length;
-
-    // Find the current active item index based on closest offset
-    let minDiff = Infinity;
-    children.forEach((child, idx) => {
-      const offset = -child.offsetLeft;
-      let targetOffset = offset;
-      while (targetOffset < -2 * W) targetOffset += W;
-      while (targetOffset > -W) targetOffset -= W;
-
-      const diff = Math.abs(curX - targetOffset);
-      if (diff < minDiff) {
-        minDiff = diff;
-        nextIndex = idx;
-      }
-    });
-
-    if (direction === "next") {
-      nextIndex = (nextIndex + 1) % (N * 3);
-    } else {
-      nextIndex = (nextIndex - 1 + N * 3) % (N * 3);
-    }
-
-    const targetSnap = -children[nextIndex].offsetLeft;
-    targetXRef.current = targetSnap;
-    modeRef.current = "animating";
-  }, [activeItems.length]);
+    const targetX = direction === "next" ? curX - pageW : curX + pageW;
+    startAnimationTo(targetX);
+  }, [startAnimationTo]);
 
   // Set up frame animation loop using unified animation coordinator
   useEffect(() => {
@@ -212,6 +191,7 @@ export default function Lookbook({
 
     // Initial width calculation
     calculateWidths();
+    nextAutoplayAtRef.current = performance.now() + AUTOPLAY_DELAY_MS;
 
     // Set starting position to -W
     const W = loopWidthRef.current;
@@ -225,43 +205,44 @@ export default function Lookbook({
 
     const carouselTick = (deltaTime: number, timestamp: number) => {
       if (!lastTimeRef.current) lastTimeRef.current = timestamp;
-      const dt = Math.min(deltaTime, 100);
 
       const track = trackRef.current;
       const loopW = loopWidthRef.current;
+      const pageW = pageWidthRef.current;
 
-      if (track && loopW > 0) {
-        if (modeRef.current === "autoplay") {
-          if (!isHoveredRef.current) {
-            // Constant autoplay speed (~48px per second at 60Hz)
-            const speed = 0.8;
-            xRef.current -= speed * (dt / 16.666);
-            targetXRef.current = xRef.current;
-          }
-        } else if (modeRef.current === "animating") {
-          // Frame-rate independent lerp
-          const damping = 0.12;
-          const t = 1 - Math.pow(1 - damping, dt / 16.666);
-          xRef.current += (targetXRef.current - xRef.current) * t;
+      if (track && loopW > 0 && pageW > 0) {
+        if (modeRef.current === "animating") {
+          // Eased page movement (cubic ease-out over a fixed duration)
+          const elapsed = Math.min(timestamp - animStartTimeRef.current, PAGE_ANIM_DURATION_MS);
+          const progress = elapsed / PAGE_ANIM_DURATION_MS;
+          const eased = 1 - Math.pow(1 - progress, 3);
+          xRef.current = animStartXRef.current + (animTargetXRef.current - animStartXRef.current) * eased;
 
-          if (Math.abs(targetXRef.current - xRef.current) < 0.1) {
-            xRef.current = targetXRef.current;
+          if (progress >= 1) {
+            xRef.current = animTargetXRef.current;
             modeRef.current = "autoplay";
+            nextAutoplayAtRef.current = timestamp + AUTOPLAY_DELAY_MS;
           }
-        }
+        } else if (modeRef.current === "autoplay") {
+          // Normalize back into the [-2W, -W] window (visual no-op, identical copies)
+          let norm = xRef.current;
+          while (norm < -2 * loopW) norm += loopW;
+          while (norm > -loopW) norm -= loopW;
+          if (norm !== xRef.current) {
+            xRef.current = norm;
+            targetXRef.current = norm;
+            if (dragStartTranslationRef.current !== null) {
+              dragStartTranslationRef.current = norm;
+            }
+          }
 
-        // Boundary wrapping
-        if (xRef.current < -2 * loopW) {
-          xRef.current += loopW;
-          targetXRef.current += loopW;
-          if (dragStartTranslationRef.current !== null) {
-            dragStartTranslationRef.current += loopW;
-          }
-        } else if (xRef.current > -loopW) {
-          xRef.current -= loopW;
-          targetXRef.current -= loopW;
-          if (dragStartTranslationRef.current !== null) {
-            dragStartTranslationRef.current -= loopW;
+          // Advance one full page after the pause interval
+          if (!isHoveredRef.current && loopW > pageW && timestamp >= nextAutoplayAtRef.current) {
+            animStartXRef.current = norm;
+            animTargetXRef.current = norm - pageW;
+            animStartTimeRef.current = timestamp;
+            targetXRef.current = animTargetXRef.current;
+            modeRef.current = "animating";
           }
         }
 
@@ -392,15 +373,10 @@ export default function Lookbook({
       velocity = dt > 0 ? dx / dt : 0;
     }
 
-    modeRef.current = "animating";
-
-    if (Math.abs(velocity) > 0.15) {
-      const inertiaFactor = 220;
-      const target = xRef.current + velocity * inertiaFactor;
-      targetXRef.current = findClosestSnapX(target);
-    } else {
-      targetXRef.current = findClosestSnapX(xRef.current);
-    }
+    const target = Math.abs(velocity) > 0.15
+      ? findClosestSnapX(xRef.current + velocity * 220)
+      : findClosestSnapX(xRef.current);
+    startAnimationTo(target);
     dragStartTranslationRef.current = null;
   };
 
@@ -429,7 +405,7 @@ export default function Lookbook({
         <button
           onClick={() => scroll("prev")}
           onMouseEnter={() => { isHoveredRef.current = true; }}
-          onMouseLeave={() => { isHoveredRef.current = false; }}
+          onMouseLeave={() => { isHoveredRef.current = false; nextAutoplayAtRef.current = performance.now() + AUTOPLAY_DELAY_MS; }}
           className={`absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-40 flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-full bg-black/60 backdrop-blur-md border border-white/[0.18] text-white/80 hover:text-white hover:bg-black/80 hover:scale-110 active:scale-95 shadow-lg transition-all duration-200 after:content-[''] after:absolute after:-inset-4 ${needsNavigation ? "flex" : "hidden"}`}
           aria-label="Previous lookbook item"
         >
@@ -441,9 +417,9 @@ export default function Lookbook({
         <div
           ref={scrollRef}
           onMouseEnter={() => { isHoveredRef.current = true; }}
-          onMouseLeave={() => { isHoveredRef.current = false; }}
+          onMouseLeave={() => { isHoveredRef.current = false; nextAutoplayAtRef.current = performance.now() + AUTOPLAY_DELAY_MS; }}
           onTouchStart={() => { isHoveredRef.current = true; }}
-          onTouchEnd={() => { isHoveredRef.current = false; }}
+          onTouchEnd={() => { isHoveredRef.current = false; nextAutoplayAtRef.current = performance.now() + AUTOPLAY_DELAY_MS; }}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
@@ -567,7 +543,7 @@ export default function Lookbook({
         <button
           onClick={() => scroll("next")}
           onMouseEnter={() => { isHoveredRef.current = true; }}
-          onMouseLeave={() => { isHoveredRef.current = false; }}
+          onMouseLeave={() => { isHoveredRef.current = false; nextAutoplayAtRef.current = performance.now() + AUTOPLAY_DELAY_MS; }}
           className={`absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-40 flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-full bg-black/60 backdrop-blur-md border border-white/[0.18] text-white/80 hover:text-white hover:bg-black/80 hover:scale-110 active:scale-95 shadow-lg transition-all duration-200 after:content-[''] after:absolute after:-inset-4 ${needsNavigation ? "flex" : "hidden"}`}
           aria-label="Next lookbook item"
         >

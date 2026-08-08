@@ -311,7 +311,8 @@ body {
 }
 
 /* ============ HEADER ============ */
-/* Default (not scrolled): fully transparent floating frame */
+/* ============ HEADER ============ */
+/* Always a floating pill — glassmorphism on scroll */
 .header {
   position: fixed;
   top: 16px;
@@ -334,7 +335,7 @@ body {
     backdrop-filter 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Scrolled / overlays: premium dark luxury glass capsule */
+/* Scrolled state: frosted glass pill */
 .header--solid {
   background: rgba(25, 25, 28, 0.45);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
@@ -7082,7 +7083,7 @@ body.theme-light .carousel3d__dot.active {
   background: transparent;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
-  /* In light mode the header is over a light-background page — use dark ink so icons are always visible */
+  /* In light mode the header floats over varying backgrounds — use dark ink for readability */
   color: #16111b;
   border-bottom-color: transparent;
   box-shadow: none;
@@ -7131,7 +7132,7 @@ body.theme-light .carousel3d__dot.active {
     --header-h: 56px;
   }
 
-  .storefront-root .header__logo {
+  .storefront-root .header:not(.header--scrolled) .header__logo {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
@@ -7149,6 +7150,25 @@ body.theme-light .carousel3d__dot.active {
   filter: none;
   opacity: 1;
   border-radius: 0;
+}
+
+/* Logo PNG = white mark on black plate. The plate self-adapts: the black plate
+   disappears over dark imagery (white wordmark shows). On DESKTOP only, the
+   scrolled/solid logo pill is translucent glass, so the logo is inverted +
+   multiplied there to read as a black wordmark on the light glass. Mobile keeps
+   the native plate on its solid black logo pill (white wordmark). */
+/* Home & About open over a full-bleed dark hero image even in light mode, so
+   the transparent header must keep white ink there — the dark-theme default.
+   Every other light-mode page has a light top strip (measured) and keeps the
+   dark ink below, which stays readable. */
+.storefront-root:not(.theme-dark) .home-layout .header:not(.header--solid) {
+  color: #ffffff;
+}
+
+/* Collections (/collections, /shop) opens over a dark full-bleed MP4 banner,
+   so keep the transparent header white there in light mode. */
+.storefront-root:not(.theme-dark) .collections-page .header:not(.header--solid) {
+  color: #ffffff;
 }
 
 .storefront-root:not(.theme-dark) .listing__title,
@@ -8312,9 +8332,12 @@ body.theme-light .carousel3d__dot.active {
 
 /* Collections hero + listing polish */
 .collections-hero {
-  height: 340px;
-  /* Mobile height */
-  margin-top: var(--header-h);
+  /* Banner MP4s: desktop 1920x720 (8:3), mobile 1920x1170 (64/39). The section
+     aspect-ratio matches the video so object-cover fills edge-to-edge with
+     ZERO cropping. Runs full-bleed to the top of the page — the floating
+     transparent header overlays it (no top margin gap, aligned with navbar). */
+  width: 100%;
+  aspect-ratio: 64 / 39;
   position: relative;
   overflow: hidden;
   z-index: 1;
@@ -8324,8 +8347,7 @@ body.theme-light .carousel3d__dot.active {
 
 @media (min-width: 901px) {
   .collections-hero {
-    height: 440px;
-    /* Desktop height */
+    aspect-ratio: 8 / 3;
   }
 }
 
@@ -10001,4 +10023,134 @@ body.theme-light .carousel3d__dot.active {
 .storefront-root:not(.theme-dark) .drawer--filter .filter-btn-secondary:hover {
   background: rgba(0, 0, 0, 0.04) !important;
   border-color: #16111b !important;
+}
+
+/* ============ DESKTOP HEADER — SCROLLED GLASS-PILL TRANSFORMATION ============
+   Desktop only (`min-width: 901px`, the breakpoint the desktop header uses).
+   When `.header--scrolled` (scrollY > 60, added by Navbar.tsx alongside
+   `.header--solid`):
+     - `.header` drops the `.header--solid` full-width glass pill -> transparent
+     - Collection (left) · playR logo (center) · actions (right) KEEP their
+       grid orientation and each become an independent floating glass pill
+     - pills use extra-transparent glass (stronger glassmorphism) in both themes
+     - the decorative `.page-frame` corner notches are removed on desktop
+   `.header--pdp` (product pages) keeps the transparent header legible at
+   0 scroll: the PDP page tint is light, so the breadcrumb / icons switch to
+   dark ink until the scrolled glass state or a solid state kicks in.
+   Mobile (< 901px) is untouched. */
+@media (min-width: 901px) {
+  /* Corner-notch frame only suited the old full-width glass bar — remove on desktop */
+  .page-frame {
+    display: none;
+  }
+
+  /* Reusable floating-pill primitive */
+  .storefront-root .nav-pill {
+    display: flex;
+    align-items: center;
+    height: 44px;
+    padding: 2px 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.28);
+    -webkit-backdrop-filter: blur(36px) saturate(200%);
+    backdrop-filter: blur(36px) saturate(200%);
+    border: 1px solid rgba(0, 0, 0, 0.10);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.6) inset,
+      0 8px 28px rgba(0, 0, 0, 0.08);
+  }
+
+  .storefront-root.theme-dark .nav-pill {
+    background: rgba(10, 10, 10, 0.28);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.06) inset,
+      0 10px 30px rgba(0, 0, 0, 0.30);
+  }
+
+  /* Scrolled header pills — extra-transparent glass (more glassmorphism than
+     the old bar). `!important` beats the legacy desktop `.header--solid`
+     logo/right capsule rules further up in this file (both themes). */
+  .storefront-root .header--scrolled .header__nav,
+  .storefront-root .header--scrolled .header__logo,
+  .storefront-root .header--scrolled .header__right {
+    display: flex !important;
+    align-items: center !important;
+    height: 44px !important;
+    padding: 2px 12px !important;
+    border-radius: 999px !important;
+    background: rgba(255, 255, 255, 0.28) !important;
+    -webkit-backdrop-filter: blur(36px) saturate(200%) !important;
+    backdrop-filter: blur(36px) saturate(200%) !important;
+    border: 1px solid rgba(0, 0, 0, 0.10) !important;
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.6) inset,
+      0 8px 28px rgba(0, 0, 0, 0.08) !important;
+  }
+
+  .storefront-root.theme-dark .header--scrolled .header__nav,
+  .storefront-root.theme-dark .header--scrolled .header__logo,
+  .storefront-root.theme-dark .header--scrolled .header__right {
+    background: rgba(10, 10, 10, 0.28) !important;
+    border: 1px solid rgba(255, 255, 255, 0.10) !important;
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.06) inset,
+      0 10px 30px rgba(0, 0, 0, 0.30) !important;
+  }
+
+  /* Scrolled header: strip the full-width glass pill (beats `.header--solid`,
+     both themes) so only the three pills carry the glass */
+  .storefront-root .header--scrolled,
+  .storefront-root.theme-dark .header--scrolled,
+  .storefront-root:not(.theme-dark) .header--scrolled {
+    background: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    border-color: transparent;
+    box-shadow: none;
+  }
+
+  /* Pills fade in/out smoothly */
+  .storefront-root .header__nav,
+  .storefront-root .header__logo,
+  .storefront-root .header__right {
+    transition:
+      background 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+      border-radius 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+      padding 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+      height 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+      -webkit-backdrop-filter 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+      backdrop-filter 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* Each scrolled pill hugs its own content — the 1fr side columns would
+     otherwise stretch the pills edge-to-edge. Left pill anchors left, logo
+     stays dead-center, right pill anchors right. */
+  .storefront-root .header--scrolled .header__nav {
+    justify-self: start;
+    width: fit-content;
+    max-width: fit-content;
+  }
+
+  .storefront-root .header--scrolled .header__logo {
+    justify-self: center;
+    width: fit-content;
+    max-width: fit-content;
+  }
+
+  .storefront-root .header--scrolled .header__right {
+    justify-self: end;
+    width: fit-content;
+    max-width: fit-content;
+  }
+
+  /* Desktop scrolled logo pill is translucent glass — invert the white-on-black
+     plate so it reads as a black wordmark on the light glass (mobile solid pill
+     keeps the native plate on its black pill). */
+  .storefront-root:not(.theme-dark) .header--scrolled .header__logo img {
+    filter: invert(1);
+    mix-blend-mode: multiply;
+  }
 }

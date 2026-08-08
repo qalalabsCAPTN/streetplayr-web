@@ -380,7 +380,7 @@ function CollectionsInner() {
       : activeChip;
 
   return (
-    <div className="min-h-screen bg-transparent relative overflow-x-clip">
+    <div className="collections-page min-h-screen bg-transparent relative overflow-x-clip">
       <Navbar />
 
 

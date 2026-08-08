@@ -230,18 +230,18 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
   },
   {
     id: "PS-TEE-WAR-BLK",
-    name: "playR Street WARRIOR Tee (Black)",
+    name: "WARRIOR Tee Black",
     price: 1999,
     description: "Made from heavyweight premium cotton terry, this oversized T-shirt is designed for all-day comfort and a structured drape. Signature aligned puff print detailing around the neckline and back adds a distinctive, elevated finish.",
-    image_url: `/assets/products/black-warrior/image-1.webp`,
+    image_url: `/assets/products/black-warrior/image-1.jpg`,
     slug: "PS-TEE-WAR-BLK",
     category: { name: "TEES" },
     metadata: {
       points: "300",
       category: "TEES",
-      gallery_images: GALLERY_IMAGES("black-warrior"),
+      gallery_images: [1, 2, 3, 4, 5].map((n) => `/assets/products/black-warrior/image-${n}.jpg`),
       colors: [
-        { id: "black", name: "Black", hex: "#000000", images: GALLERY_IMAGES("black-warrior") },
+        { id: "black", name: "Black", hex: "#000000", images: [1, 2, 3, 4, 5].map((n) => `/assets/products/black-warrior/image-${n}.jpg`) },
       ],
       latest_drop: true,
     },
