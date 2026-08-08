@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useCart } from '@/components/CartContext';
 import { stories } from '@/lib/bluorng-data';
@@ -42,12 +43,40 @@ interface MobileNavProps {
 /**
  * Mobile dock: compact icon pill + Lookbook circle (right).
  * Pill hugs icons — spacing via CSS gap, not full-width stretch.
+ * Includes scroll-based compact shrink/expand interaction.
  */
 export default function MobileNav({ onSearch, onAccount, onStories }: MobileNavProps) {
   const cart = useCart();
+  const [isCompact, setIsCompact] = useState(false);
+
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+    let timeoutId: NodeJS.Timeout | null = null;
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > 40 && currentScrollY > lastScrollY) {
+        setIsCompact(true);
+      } else if (currentScrollY < lastScrollY || currentScrollY <= 10) {
+        setIsCompact(false);
+      }
+      lastScrollY = currentScrollY;
+
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        setIsCompact(false);
+      }, 1200);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, []);
 
   return (
-    <div className="mobilenav-dock">
+    <div className={`mobilenav-dock ${isCompact ? 'is-compact' : ''}`}>
       <nav className="mobilenav" aria-label="Primary">
         <Link href="/collections" className="mobilenav__item" aria-label="Collections">
           {Icon.grid}

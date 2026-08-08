@@ -49,7 +49,7 @@ export const banners = [
     cta: 'Shop now',
     href: '/collections?category=pants',
     // Full lifestyle frame — avoids waist-only crop in wide banner
-    image: '/assets/products/carpenter-olive/image-3.jpg',
+    image: '/assets/products/carpenter-olive/image-3.webp',
     objectPosition: 'center 30%',
     bg: 'linear-gradient(120deg, #2b3a1a, #111a0b)',
   },
@@ -72,12 +72,12 @@ export const discoverCollections = [
   {
     handle: 'pants',
     title: 'Bottomwear',
-    image: '/assets/products/carpenter-grey/image-1.jpg',
+    image: '/assets/products/carpenter-grey/image-1.webp',
   },
   {
     handle: 'tanks',
     title: 'Topwear',
-    image: '/assets/products/star-tank-dark/image-1.jpg',
+    image: '/assets/products/star-tank-dark/image-1.webp',
   },
 ];
 

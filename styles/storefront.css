@@ -449,6 +449,11 @@ body {
   max-width: calc(100% - 20px);
   box-sizing: border-box;
   pointer-events: none;
+  transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  will-change: transform;
+}
+.mobilenav-dock.is-compact {
+  transform: translateX(-50%) scale(0.92);
 }
 .mobilenav-dock > * { pointer-events: auto; }
 
@@ -476,6 +481,12 @@ body {
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.65) inset,
     0 10px 28px rgba(0, 0, 0, 0.16);
+  transition: padding 0.3s var(--ease), gap 0.3s var(--ease), background 0.3s var(--ease);
+}
+.mobilenav-dock.is-compact .mobilenav {
+  padding: 4px 10px;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.84);
 }
 .mobilenav__item {
   display: flex; align-items: center; justify-content: center;
@@ -6561,37 +6572,42 @@ body.theme-light .carousel3d__dot.active {
     justify-content: space-between !important;
     width: 100% !important;
     gap: 10px !important;
-    flex-wrap: nowrap !important;
     margin-bottom: 20px !important;
   }
   
+  /* HIDE category chips row on mobile completely — eliminate clipped chip & overflow */
   .collections-toolbar-scroll-wrap {
-    flex: 1 1 auto !important;
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    gap: 8px !important;
-    scrollbar-width: none !important;
-    -ms-overflow-style: none !important;
-    -webkit-overflow-scrolling: touch !important;
-    width: auto !important;
-  }
-  .collections-toolbar-scroll-wrap::-webkit-scrollbar {
     display: none !important;
   }
   
   .collections-toolbar-actions {
-    flex: 0 0 auto !important;
+    flex: 1 1 100% !important;
+    width: 100% !important;
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
-    gap: 8px !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+  }
+  
+  .collections-toolbar-actions .advance-filters-btn {
+    flex: 1 1 50% !important;
+    min-width: 0 !important;
+    justify-content: center !important;
+  }
+
+  .collections-toolbar-actions .collections-sort {
+    flex: 1 1 50% !important;
+    min-width: 0 !important;
+    position: relative !important;
+  }
+
+  .collections-toolbar-actions .collections-sort__trigger {
+    width: 100% !important;
+    justify-content: center !important;
   }
   
   /* Unified pill styling on mobile */
-  .listing--collections .chip,
-  .listing--collections .chip--view-all,
   .advance-filters-btn,
   .collections-sort__trigger {
     display: inline-flex !important;
@@ -6606,14 +6622,7 @@ body.theme-light .carousel3d__dot.active {
     text-transform: uppercase !important;
     white-space: nowrap !important;
     flex-shrink: 0 !important;
-    width: auto !important;
     border-radius: 999px !important;
-  }
-
-  .collections-sort {
-    flex: 0 0 auto !important;
-    width: auto !important;
-    position: relative !important;
   }
   
   .collections-sort__menu {
@@ -6913,38 +6922,14 @@ body.theme-light .carousel3d__dot.active {
   flex-shrink: 0; /* never squish actions off-screen */
 }
 
-/* Mobile: stack chips row on top, actions row on bottom */
+/* Mobile layout balance */
 @media (max-width: 600px) {
-  .collections-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-  }
   .collections-toolbar-scroll-wrap {
-    width: 100%;
-    /* Fade out edges to hint scroll */
-    -webkit-mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
-    mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
-    padding: 4px 16px;
+    display: none !important;
   }
   .collections-toolbar-actions {
-    width: 100%;
-    justify-content: flex-start;
-    gap: 8px;
-    padding: 0 2px;
-  }
-  .collections-toolbar-actions .advance-filters-btn {
-    flex: 1;
-    justify-content: center;
-    min-height: 40px;
-    font-size: 10px;
-  }
-  .collections-toolbar-actions .collections-sort {
-    flex: 1;
-  }
-  .collections-toolbar-actions .collections-sort__trigger {
-    width: 100%;
-    justify-content: center;
+    width: 100% !important;
+    gap: 10px !important;
   }
 }
 

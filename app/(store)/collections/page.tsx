@@ -130,13 +130,11 @@ function CollectionsInner() {
   const [activeSizes, setActiveSizes] = useState<Set<string>>(new Set());
   const [activeAvailability, setActiveAvailability] = useState<string>('');
   const [activeTypes, setActiveTypes] = useState<Set<string>>(new Set());
-  const [activeColors, setActiveColors] = useState<Set<string>>(new Set());
 
   // Temp states for filter drawer editing
   const [tempSizes, setTempSizes] = useState<Set<string>>(new Set());
   const [tempAvailability, setTempAvailability] = useState<string>('');
   const [tempTypes, setTempTypes] = useState<Set<string>>(new Set());
-  const [tempColors, setTempColors] = useState<Set<string>>(new Set());
 
 
   // Sync temp states when drawer opens
@@ -145,9 +143,8 @@ function CollectionsInner() {
       setTempSizes(new Set(activeSizes));
       setTempAvailability(activeAvailability);
       setTempTypes(new Set(activeTypes));
-      setTempColors(new Set(activeColors));
     }
-  }, [filterDrawerOpen, activeSizes, activeAvailability, activeTypes, activeColors]);
+  }, [filterDrawerOpen, activeSizes, activeAvailability, activeTypes]);
 
 
   const categoryParam = searchParams.get('category') || '';
@@ -268,53 +265,7 @@ function CollectionsInner() {
     return Array.from(types).map(t => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase());
   }, [collectionFilteredProducts]);
 
-  const allColors = useMemo(() => {
-    const colorMap = new Map<string, { name: string; hex: string }>();
-    collectionFilteredProducts.forEach(p => {
-      const colors = p.metadata?.colors as { id: string; name: string; hex: string }[] | undefined;
-      colors?.forEach(c => {
-        colorMap.set(c.id.toLowerCase(), { name: c.name, hex: c.hex });
-      });
-    });
-    return Array.from(colorMap.entries()).map(([id, data]) => ({ id, ...data }));
-  }, [collectionFilteredProducts]);
 
-  const groupedColors = useMemo(() => {
-    const groups = {
-      Blues: [] as { id: string; name: string; hex: string }[],
-      Browns: [] as { id: string; name: string; hex: string }[],
-      Greens: [] as { id: string; name: string; hex: string }[],
-      Neutrals: [] as { id: string; name: string; hex: string }[],
-      Purples: [] as { id: string; name: string; hex: string }[],
-      Reds: [] as { id: string; name: string; hex: string }[],
-    };
-
-    const defaultColors = [
-      { id: 'black', name: 'Black', hex: '#1a1a1a' },
-      { id: 'white', name: 'White', hex: '#f5f5f0' },
-      { id: 'maroon', name: 'Maroon', hex: '#6b1c2a' },
-      { id: 'brown', name: 'Brown', hex: '#5c3a2e' },
-      { id: 'blue', name: 'Blue', hex: '#3d5a80' },
-      { id: 'olive', name: 'Olive', hex: '#556b2f' },
-      { id: 'purple', name: 'Purple', hex: '#4a2d6b' },
-    ];
-
-    const list = allColors.length > 0 ? allColors : defaultColors;
-
-    list.forEach(c => {
-      const name = c.name.toLowerCase();
-      const id = c.id.toLowerCase();
-      if (name.includes('blue')) groups.Blues.push(c);
-      else if (name.includes('brown') || name.includes('tan') || id.includes('brown') || id.includes('olive') || name.includes('olive')) groups.Browns.push(c);
-      else if (name.includes('green') || name.includes('mint')) groups.Greens.push(c);
-      else if (name.includes('black') || name.includes('grey') || name.includes('gray') || name.includes('white') || name.includes('silver') || name.includes('charcoal')) groups.Neutrals.push(c);
-      else if (name.includes('purple') || name.includes('pink') || name.includes('lavender')) groups.Purples.push(c);
-      else if (name.includes('red') || name.includes('orange') || name.includes('maroon') || name.includes('peach')) groups.Reds.push(c);
-      else groups.Neutrals.push(c);
-    });
-
-    return Object.entries(groups).filter(([_, items]) => items.length > 0);
-  }, [allColors]);
 
   // 3. Apply active sidebar filters
   const sidebarFilteredProducts = useMemo(() => {
@@ -346,12 +297,6 @@ function CollectionsInner() {
         if (!matches) return false;
       }
 
-      // Color Filter
-      if (activeColors.size > 0) {
-        const colors = p.metadata?.colors as { id: string; name: string; hex: string }[] | undefined;
-        if (!colors?.some(c => activeColors.has(c.id.toLowerCase()))) return false;
-      }
-
       // Availability Filter
       if (activeAvailability === 'Out of stock') {
         return false; // local mock products are in stock by default
@@ -359,7 +304,7 @@ function CollectionsInner() {
 
       return true;
     });
-  }, [collectionFilteredProducts, activeSizes, activeTypes, activeColors, activeAvailability]);
+  }, [collectionFilteredProducts, activeSizes, activeTypes, activeAvailability]);
 
   // 4. Sort the filtered products
   const sortedProducts = useMemo(() => {
@@ -441,7 +386,7 @@ function CollectionsInner() {
       <main id="collections-products" className="relative z-[1] pb-10 md:pb-14 w-full max-w-[min(95vw,2400px)] mx-auto px-4 md:px-6">
         <div className="listing listing--collections">
           <div className="collections-toolbar">
-            <div className="collections-toolbar-scroll-wrap">
+            <div className="collections-toolbar-scroll-wrap hidden md:flex">
               {/* View All Pill */}
               <button
                 type="button"
@@ -485,7 +430,7 @@ function CollectionsInner() {
               {/* Advance Filters Button */}
               <button
                 type="button"
-                className={`advance-filters-btn ${(activeSizes.size > 0 || activeTypes.size > 0 || activeColors.size > 0 || activeAvailability) ? 'has-active' : ''}`}
+                className={`advance-filters-btn ${(activeSizes.size > 0 || activeTypes.size > 0 || activeAvailability) ? 'has-active' : ''}`}
                 onClick={() => setFilterDrawerOpen(true)}
               >
                 Advance Filters
@@ -739,38 +684,6 @@ function CollectionsInner() {
               })}
             </div>
           </div>
-
-          {/* Color Section */}
-          <div className="filter-section">
-            <h4>Color</h4>
-            <div className="filter-color-groups">
-              {groupedColors.map(([groupName, items]) => (
-                <div key={groupName} className="filter-color-group-row">
-                  <span className="filter-color-group-label">{groupName}</span>
-                  <div className="filter-color-group-swatches">
-                    {items.map((c) => {
-                      const active = tempColors.has(c.id);
-                      return (
-                        <button
-                          key={c.id}
-                          type="button"
-                          className={`filter-color-swatch ${active ? 'active' : ''}`}
-                          style={{ '--swatch-color': c.hex } as any}
-                          onClick={() => {
-                            const next = new Set(tempColors);
-                            if (next.has(c.id)) next.delete(c.id);
-                            else next.add(c.id);
-                            setTempColors(next);
-                          }}
-                          title={c.name}
-                        />
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
         <div className="drawer__foot" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', padding: '16px 20px' }}>
@@ -781,7 +694,6 @@ function CollectionsInner() {
               setTempSizes(new Set());
               setTempAvailability('');
               setTempTypes(new Set());
-              setTempColors(new Set());
             }}
           >
             Remove All
@@ -793,7 +705,6 @@ function CollectionsInner() {
               setActiveSizes(new Set(tempSizes));
               setActiveAvailability(tempAvailability);
               setActiveTypes(new Set(tempTypes));
-              setActiveColors(new Set(tempColors));
               setFilterDrawerOpen(false);
             }}
           >
