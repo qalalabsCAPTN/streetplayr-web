@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion, useInView } from "framer-motion";
 import { animationController } from "@/lib/AnimationController";
+import { LOOKBOOK_SYNC } from "@/lib/lookbook/lookbook-sync";
 
 const AUTOPLAY_DELAY_MS = 3500;
 const PAGE_ANIM_DURATION_MS = 750;
@@ -30,7 +31,7 @@ interface LookbookItem {
   type: "video" | "youtube" | "placeholder" | "image";
   src: string;
   label: string;
-  href: string;
+  href?: string;
   widthClass?: string;
 }
 
@@ -40,18 +41,13 @@ interface LookbookProps {
   items?: LookbookItem[];
 }
 
-const defaultLookbookItems: LookbookItem[] = [
-  { id: "lb-1", type: "image" as const, src: "/lookbook/artboard-1.webp", label: "SS25 / STICK NO BILLS", href: "/product/stick-no-bills" },
-  { id: "lb-2", type: "image" as const, src: "/lookbook/artboard-2.webp", label: "SS25 / INSPIRED TEE", href: "/product/inspired" },
-  { id: "lb-3", type: "image" as const, src: "/lookbook/artboard-3.webp", label: "SS25 / CTT WAFFLE HOODIE", href: "/product/ctt-waffle" },
-  { id: "lb-4", type: "image" as const, src: "/lookbook/artboard-4.webp", label: "SS25 / BROWN WARRIOR", href: "/product/brown-warrior" },
-  { id: "lb-5", type: "image" as const, src: "/lookbook/artboard-5.webp", label: "SS25 / BLACK WARRIOR", href: "/product/black-warrior" },
-  { id: "lb-6", type: "image" as const, src: "/lookbook/artboard-6.webp", label: "SS25 / STICK NO BILLS", href: "/product/stick-no-bills" },
-  { id: "lb-7", type: "image" as const, src: "/lookbook/artboard-7.webp", label: "SS25 / INSPIRED TEE", href: "/product/inspired" },
-  { id: "lb-8", type: "image" as const, src: "/lookbook/artboard-8.webp", label: "SS25 / CTT WAFFLE HOODIE", href: "/product/ctt-waffle" },
-  { id: "lb-9", type: "image" as const, src: "/lookbook/artboard-9.webp", label: "SS25 / BROWN WARRIOR", href: "/product/brown-warrior" },
-  { id: "lb-10", type: "image" as const, src: "/lookbook/artboard-10.webp", label: "SS25 / BLACK WARRIOR", href: "/product/black-warrior" }
-];
+const defaultLookbookItems: LookbookItem[] = LOOKBOOK_SYNC.map((entry) => ({
+  id: `lb-${entry.imageIndex}`,
+  type: "image" as const,
+  src: `/lookbook/synced/${entry.imageFile.split("/").pop()}`,
+  label: entry.name,
+  href: entry.url || undefined,
+}));
 
 export default function Lookbook({
   title = "Lookbook",
@@ -436,11 +432,10 @@ export default function Lookbook({
               const widthClass = item.widthClass || ['w-[36vw] min-w-[220px] max-w-[560px]', 'w-[22vw] min-w-[160px] max-w-[340px]', 'w-[28vw] min-w-[180px] max-w-[440px]', 'w-[32vw] min-w-[200px] max-w-[500px]'][i % 4];
               return (
                 <FadeIn key={`${item.id}-${index}`} delay={0.1 * i} className={`${widthClass} shrink-0 h-full`}>
-                <Link
-                  href={item.href}
-                  data-card
-                  className="group flex flex-col h-full bg-[#1f1a23] border border-white/[0.06] hover:border-[#ddb7ff]/20 transition-colors overflow-hidden rounded-xl"
-                >
+                {(() => {
+                  const cardClassName = "group flex flex-col h-full bg-[#1f1a23] border border-white/[0.06] hover:border-[#ddb7ff]/20 transition-colors overflow-hidden rounded-xl";
+                  const cardBody = (
+                    <>
                   <div className="flex-1 relative overflow-hidden bg-[#0a0a0a]">
                     <div
                       className="absolute inset-0"
@@ -533,7 +528,18 @@ export default function Lookbook({
                       {item.label}
                     </span>
                   </div>
-                </Link>
+                    </>
+                  );
+                  return item.href ? (
+                    <Link href={item.href} data-card className={cardClassName}>
+                      {cardBody}
+                    </Link>
+                  ) : (
+                    <div data-card className={`${cardClassName} cursor-default`}>
+                      {cardBody}
+                    </div>
+                  );
+                })()}
               </FadeIn>
               );
             })}
