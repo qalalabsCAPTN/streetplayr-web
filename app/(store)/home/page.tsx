@@ -4,6 +4,7 @@ import BannerSlider from "@/components/ui/BannerSlider";
 import DiscoverCollections from "@/components/ui/DiscoverCollections";
 import RecentlyVisited from "@/components/ui/RecentlyVisited";
 import HomeMobileLatestCarousel from "@/components/ui/HomeMobileLatestCarousel";
+import Lookbook from "@/components/sections/home/Lookbook";
 import { BlockRenderer } from "@/components/page-editor/block-renderer";
 import { getPageBlocks } from "@/lib/page-editor/get-page-blocks";
 import { ProductQueries } from "@/lib/products/queries";
@@ -70,14 +71,23 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       )
       .slice(0, 8);
 
+  const byCollections = (slugs: string[]) =>
+    activeProducts
+      .filter(
+        (p) =>
+          Array.isArray((p as { collections?: string[] }).collections) &&
+          slugs.some(s => (p as { collections?: string[] }).collections!.includes(s))
+      )
+      .slice(0, 8);
+
   let latest = byCollection(COLLECTION_SLUG.LATEST);
-  const tees = byCollection(COLLECTION_SLUG.TEES);
+  const topwear = byCollections([COLLECTION_SLUG.TEES, COLLECTION_SLUG.LONG_SLEEVE, COLLECTION_SLUG.TANKS]);
   const pants = byCollection(COLLECTION_SLUG.PANTS);
   const tanks = byCollection(COLLECTION_SLUG.TANKS);
 
   // Last-resort shelf: if every section is empty but we have products, show them
   // under Latest Drop so home never looks like an empty store.
-  const anySection = latest.length + tees.length + pants.length + tanks.length > 0;
+  const anySection = latest.length + topwear.length + pants.length + tanks.length > 0;
   if (!anySection && activeProducts.length > 0) {
     console.warn(
       "[home] Collection filters empty — showing unfiltered active products in Latest Drop"
@@ -103,9 +113,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         className="home-latest-grid"
       />
       <ProductSection
-        title="playR Tees Collection"
-        products={tees}
-        moreHref="/collections?category=tees"
+        title="Topwear"
+        products={topwear}
+        moreHref="/collections?category=topwear"
         gallery
       />
       <BannerSlider />
@@ -124,6 +134,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         gallery
       />
       <RecentlyVisited />
+      <Lookbook />
     </>
   );
 

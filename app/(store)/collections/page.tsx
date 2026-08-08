@@ -135,6 +135,7 @@ function CollectionsInner() {
   const [tempSizes, setTempSizes] = useState<Set<string>>(new Set());
   const [tempAvailability, setTempAvailability] = useState<string>('');
   const [tempTypes, setTempTypes] = useState<Set<string>>(new Set());
+  const [tempSortBy, setTempSortBy] = useState<SortOption>('Popular');
 
 
   // Sync temp states when drawer opens
@@ -143,8 +144,9 @@ function CollectionsInner() {
       setTempSizes(new Set(activeSizes));
       setTempAvailability(activeAvailability);
       setTempTypes(new Set(activeTypes));
+      setTempSortBy(sortBy);
     }
-  }, [filterDrawerOpen, activeSizes, activeAvailability, activeTypes]);
+  }, [filterDrawerOpen, activeSizes, activeAvailability, activeTypes, sortBy]);
 
 
   const categoryParam = searchParams.get('category') || '';
@@ -250,16 +252,19 @@ function CollectionsInner() {
         types.add(cat);
       } else {
         p.collections?.forEach(c => {
-          if (c === 'tees') types.add('T-Shirts');
+          if (c === 'tees') types.add('T-shirts');
           else if (c === 'long-sleeve') types.add('Long Sleeve');
           else if (c === 'tanks') types.add('Tanks');
-          else if (c === 'pants') types.add('Pants');
+          else if (c === 'pants') {
+            if (p.slug.includes('carp')) types.add('Pants');
+            else types.add('Sweatpants');
+          }
           else if (c === 'hoodies') types.add('Hoodies');
         });
       }
     });
     if (types.size === 0) {
-      return ['T-shirts', 'Tanks', 'Pants', 'Hoodies'];
+      return ['T-shirts', 'Long Sleeve', 'Tanks', 'Pants', 'Sweatpants', 'Hoodies'];
     }
     // Capitalize properly
     return Array.from(types).map(t => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase());
@@ -286,7 +291,10 @@ function CollectionsInner() {
             if (c === 'tees') colName = 'T-shirts';
             else if (c === 'long-sleeve') colName = 'Long Sleeve';
             else if (c === 'tanks') colName = 'Tanks';
-            else if (c === 'pants') colName = 'Pants';
+            else if (c === 'pants') {
+              if (p.slug.includes('carp')) colName = 'Pants';
+              else colName = 'Sweatpants';
+            }
             else if (c === 'hoodies') colName = 'Hoodies';
             
             if (colName && activeTypes.has(colName.toUpperCase())) {
@@ -427,102 +435,16 @@ function CollectionsInner() {
 
             <div className="collections-toolbar-actions">
 
-              {/* Advance Filters Button */}
+              {/* Filter Button */}
               <button
                 type="button"
                 className={`advance-filters-btn ${(activeSizes.size > 0 || activeTypes.size > 0 || activeAvailability) ? 'has-active' : ''}`}
                 onClick={() => setFilterDrawerOpen(true)}
               >
-                Advance Filters
+                FILTER
               </button>
 
-              {/* Sort Dropdown */}
-              <div
-                ref={sortRef}
-                className={`collections-sort${sortOpen ? ' is-open' : ''}`}
-                onMouseEnter={() => {
-                  if (!isMobile) setSortOpen(true);
-                }}
-                onMouseLeave={() => {
-                  if (!isMobile) setSortOpen(false);
-                }}
-              >
-                <button
-                  type="button"
-                  className="collections-sort__trigger"
-                  aria-haspopup="menu"
-                  aria-expanded={sortOpen}
-                  aria-controls="collections-sort-menu"
-                  onClick={() => setSortOpen((o) => !o)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      setSortOpen(true);
-                      requestAnimationFrame(() => {
-                        sortRef.current
-                          ?.querySelector<HTMLButtonElement>('.collections-sort__option')
-                          ?.focus();
-                      });
-                    }
-                  }}
-                >
-                  <span className="collections-sort__text">Sort <span className="collections-sort__arrow-inline">▾</span> {sortBy}</span>
-                </button>
-                <ul
-                  id="collections-sort-menu"
-                  className="collections-sort__menu"
-                  role="menu"
-                  aria-label="Sort products"
-                  hidden={!sortOpen}
-                >
-                  {SORT_OPTIONS.map((s) => (
-                    <li key={s} role="none">
-                      <button
-                        type="button"
-                        role="menuitem"
-                        className={`collections-sort__option${sortBy === s ? ' is-active' : ''}`}
-                        onClick={() => {
-                          setSortBy(s);
-                          setSortOpen(false);
-                        }}
-                        onKeyDown={(e) => {
-                          const items = Array.from(
-                            sortRef.current?.querySelectorAll<HTMLButtonElement>(
-                              '.collections-sort__option',
-                            ) ?? [],
-                          );
-                          const idx = items.indexOf(e.currentTarget);
-                          if (e.key === 'ArrowDown') {
-                            e.preventDefault();
-                            items[(idx + 1) % items.length]?.focus();
-                          } else if (e.key === 'ArrowUp') {
-                            e.preventDefault();
-                            items[(idx - 1 + items.length) % items.length]?.focus();
-                          } else if (e.key === 'Home') {
-                            e.preventDefault();
-                            items[0]?.focus();
-                          } else if (e.key === 'End') {
-                            e.preventDefault();
-                            items[items.length - 1]?.focus();
-                          } else if (e.key === 'Escape') {
-                            e.preventDefault();
-                            setSortOpen(false);
-                            sortRef.current
-                              ?.querySelector<HTMLButtonElement>('.collections-sort__trigger')
-                              ?.focus();
-                          }
-                        }}
-                      >
-                        <span className="collections-sort__option-left">
-                          {getSortIcon(s)}
-                          <span>{s}</span>
-                        </span>
-                        {sortBy === s && <CheckIcon />}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              {/* Sort Control moved to Drawer */}
             </div>
           </div>
 
@@ -612,6 +534,26 @@ function CollectionsInner() {
         </div>
 
         <div className="drawer__body drawer__body--filter">
+          {/* Sort Section */}
+          <div className="filter-section">
+            <h4>Sort By</h4>
+            <div className="filter-chips">
+              {SORT_OPTIONS.map((s) => {
+                const active = tempSortBy === s;
+                return (
+                  <button
+                    key={s}
+                    type="button"
+                    className={`filter-chip ${active ? 'active' : ''}`}
+                    onClick={() => setTempSortBy(s)}
+                  >
+                    {s}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Size Section */}
           <div className="filter-section">
             <h4>Size</h4>
@@ -694,6 +636,7 @@ function CollectionsInner() {
               setTempSizes(new Set());
               setTempAvailability('');
               setTempTypes(new Set());
+              setTempSortBy('Popular');
             }}
           >
             Remove All
@@ -705,6 +648,7 @@ function CollectionsInner() {
               setActiveSizes(new Set(tempSizes));
               setActiveAvailability(tempAvailability);
               setActiveTypes(new Set(tempTypes));
+              setSortBy(tempSortBy);
               setFilterDrawerOpen(false);
             }}
           >

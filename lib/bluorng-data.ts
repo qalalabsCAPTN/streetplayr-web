@@ -65,7 +65,7 @@ export const banners = [
 
 export const discoverCollections = [
   {
-    handle: 'tees',
+    handle: 'topwear',
     title: 'Topwear',
     image: '/assets/products/inspired/image-1.webp',
   },
@@ -76,7 +76,7 @@ export const discoverCollections = [
   },
   {
     handle: 'tanks',
-    title: 'Topwear',
+    title: 'Tank Tops',
     image: '/assets/products/star-tank-dark/image-1.webp',
   },
 ];

@@ -2498,7 +2498,14 @@ body.theme-light .carousel3d__dot.active {
     backdrop-filter: blur(20px) saturate(180%) !important;
     color: #ffffff !important;
   }
-  .storefront-root:not(.theme-dark) .header--solid .header__logo,
+  .storefront-root:not(.theme-dark) .header--solid .header__logo {
+    background: #000000 !important;
+    border-color: #000000 !important;
+    box-shadow: 0 8px 32px rgba(22, 17, 27, 0.06) !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    color: #ffffff !important;
+  }
   .storefront-root:not(.theme-dark) .header--solid .header__right {
     background: rgba(255, 255, 255, 0.72) !important;
     border-color: rgba(0, 0, 0, 0.08) !important;
@@ -4934,11 +4941,11 @@ body.theme-light .carousel3d__dot.active {
     --header-h: 56px;
   }
   .storefront-root .header__logo {
-    background: transparent;
-    border: none;
-    box-shadow: none;
-    padding: 0;
-    border-radius: 0;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
   }
   .storefront-root .header__logo img {
     height: 40px;
@@ -4948,7 +4955,7 @@ body.theme-light .carousel3d__dot.active {
 .storefront-root .header__logo img {
   filter: none;
   opacity: 1;
-  border-radius: 10px;
+  border-radius: 0;
 }
 .storefront-root:not(.theme-dark) .listing__title,
 .storefront-root:not(.theme-dark) .panel__title,

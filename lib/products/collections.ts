@@ -127,18 +127,14 @@ export function paramToChip(category: string, mobile: boolean): FilterChip {
   if (raw === 'bottomwear') return mobile ? 'Bottomwear' : 'Sweatpants';
 
   const slug = normalizeCollectionSlug(raw);
-  if (mobile) {
-    if (slug === COLLECTION_SLUG.HOODIES) return 'Hoodies';
-    if (slug === COLLECTION_SLUG.PANTS) return 'Bottomwear';
-    if (slug && TOPWEAR_SLUGS.includes(slug)) return 'Topwear';
-    return 'View all';
-  }
+  
   if (slug === COLLECTION_SLUG.TEES) return 'Short Sleeve T-Shirts';
   if (slug === COLLECTION_SLUG.LONG_SLEEVE) return 'Long Sleeve T-Shirts';
   if (slug === COLLECTION_SLUG.TANKS) return 'Tanks';
   if (slug === COLLECTION_SLUG.PANTS) return 'Sweatpants';
   if (slug === COLLECTION_SLUG.HOODIES) return 'Hoodies';
-  return 'Short Sleeve T-Shirts';
+  
+  return mobile ? 'View all' : 'Short Sleeve T-Shirts';
 }
 
 /** Slugs a chip requires membership in (OR). Empty = show all products. */
