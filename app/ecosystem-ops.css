@@ -20,6 +20,21 @@
 
   --status-success: #34D399;
   --status-error: #EF4444;
+  --status-warning: #F59E0B;
+  --status-info: #60A5FA;
+  --status-pending: #8A8AA8;
+
+  /* Platform accent colors — used by PlatformBadge/platform-switcher.
+     Best-effort palette (no original design spec was found for these —
+     see ADMIN_CURRENT_STATE.md "Design system gaps"): streetplayr keeps
+     the existing brand nectar-gold; the other three platforms get
+     distinct, readable-on-dark hues so they're visually distinguishable
+     in the site switcher ahead of those sites actually existing. */
+  --platform-all: var(--text-secondary);
+  --platform-streetplayr: var(--nectar-400);
+  --platform-playr: #60A5FA;
+  --platform-club: #C084FC;
+  --platform-game: #34D399;
 
   --sidebar-w: 240px;
   --topbar-h:  56px;

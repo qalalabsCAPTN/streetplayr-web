@@ -48,7 +48,8 @@ const NAV: NavSection[] = [
     items: [
       { label: 'Events',      href: '/admin/nectar/events',       icon: Activity },
       { label: 'Wallets',     href: '/admin/nectar/wallets',      icon: Wallet },
-      { label: 'Rewards',     href: '/admin/nectar/rewards',      icon: Gift },
+      { label: 'Executions',  href: '/admin/nectar/executions',   icon: ClipboardList },
+      { label: 'Reward Rules',href: '/admin/nectar/rewards',      icon: Gift },
       { label: 'Campaigns',   href: '/admin/nectar/campaigns',    icon: Zap },
       { label: 'Progression', href: '/admin/nectar/progression',  icon: Trophy },
       { label: 'Referrals',   href: '/admin/nectar/referrals',    icon: GitBranch },

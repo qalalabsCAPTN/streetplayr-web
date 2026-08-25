@@ -1,0 +1,10 @@
+{
+  "orderId": "8c3372c6-c1b4-4200-86b5-ad483d54374e",
+  "orderNumber": "LIVE-SMOKE-MT7VQ4PZ",
+  "amount": "34.99",
+  "payHost": "https://pay.easebuzz.in",
+  "initiateEndpoint": "https://pay.easebuzz.in/payment/initiateLink",
+  "callbackUrl": "https://www.streetplayr.com/api/webhooks/easebuzz",
+  "createdAt": "2026-08-24T23:40:48.905Z",
+  "paymentSubmitted": false
+}

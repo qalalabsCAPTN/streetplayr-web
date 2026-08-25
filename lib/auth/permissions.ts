@@ -29,7 +29,13 @@ export type Permission =
   | 'content:publish'
   | 'users:manage_roles'
   | 'system:configure'
-  | 'reports:view';
+  | 'reports:view'
+  // NECTAR ecosystem — read-only for now (Phase 7: "read-side first").
+  // No 'nectar:*_write' permission exists yet because there is no
+  // Admin-side write path into NECTAR's ledger/reward tables — see
+  // lib/nectar/service.ts's header comment. Add one only alongside a
+  // real write seam, not before.
+  | 'nectar:view';
 
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   super_admin: [
@@ -40,6 +46,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     'wallet:view', 'wallet:adjust',
     'content:edit', 'content:publish',
     'users:manage_roles', 'system:configure', 'reports:view',
+    'nectar:view',
   ],
   ops_admin: [
     'ops:access', 'products:view', 'products:create', 'products:edit',
@@ -48,6 +55,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     'customers:view', 'customers:edit',
     'wallet:view', 'wallet:adjust',
     'reports:view',
+    'nectar:view',
   ],
   fulfillment: [
     'ops:access', 'products:view',
@@ -68,11 +76,13 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     'customers:view', 'customers:edit',
     'wallet:view',
     'reports:view',
+    'nectar:view',
   ],
   viewer: [
     'ops:access', 'products:view',
     'drops:view',
     'reports:view',
+    'nectar:view',
   ],
   member: [],
 };
