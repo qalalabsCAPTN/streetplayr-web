@@ -478,3 +478,97 @@ A live-only score of this production host would be **RED**. This verdict stays Y
 
 *End of report (Pass 1 retained above; Pass 2 is this section).*
 
+---
+
+# POST-DEPLOYMENT LIVE VALIDATION
+
+**Date:** 2026-08-25  
+**Target commit:** `dd72583c2c2aabf011e5c9341e94fa1a32e40a43` (`Final version`)  
+**Parent fix commit:** `364f6a206b5fc712e41ce4dfffe42123a1554eda`
+
+## Actual production host (discovered, not assumed)
+
+| Fact | Evidence |
+| ---- | -------- |
+| Platform | **Vercel** |
+| Live headers | `Server: Vercel`, `X-Vercel-Cache`, `X-Vercel-Id: bom1::…` on `https://www.streetplayr.com/home` |
+| Apex | `https://streetplayr.com` → 308 → `https://www.streetplayr.com` (Vercel) |
+| Team | `qa-la-labs-s-projects` |
+| Production project | `streetplayr-live` |
+| Staging project | `streetplayr-staging` |
+| GitHub repo | `qalalabsCAPTN/streetplayr-web` (`main`) |
+| Trigger | Git push to `main` creates a Vercel Git deployment |
+| `playR.in` | Separate Shopify IPL store — **not** this Next.js app |
+| GCP / Cloud Run | Repo has `cloudbuild.yaml` / `DEPLOYMENT.md`, but **www.streetplayr.com is not Cloud Run**. No `streetplayr-web` Cloud Run service in the accessible GCP project. |
+
+## Deployment attempt for `dd72583`
+
+GitHub commit status (public API):
+
+- `Vercel – streetplayr-live` → **failure** — `Deployment was blocked`  
+  https://vercel.com/qa-la-labs-s-projects/streetplayr-live/5Y82BP15gscpirp1ZSrkhM4F5MuJ
+- `Vercel – streetplayr-staging` → **failure** — `Deployment was blocked`  
+  https://vercel.com/qa-la-labs-s-projects/streetplayr-staging/32k7nz6MUNb4YNSFYA55HAmrfTDc
+
+CLI: `npx vercel whoami` → **Not authorized** (no `VERCEL_TOKEN` in this environment).  
+Dashboard: Vercel login wall; GitHub OAuth requires interactive credentials.
+
+**Result: `dd72583` is on `origin/main` but was not promoted to production.**
+
+Production HTML/title still matches the old storefront (`Street PlayR`, Carpenter `350GSM`, Privacy §3 `NECTAR Ecosystem`, `/api/storefront/best-sellers` 404).
+
+## Environment (names only — no secret values)
+
+Local `.env.local` (existence only; **not** proof of Vercel Production env):
+
+| Variable | Local | Required for prod | Notes |
+| -------- | ----- | ----------------- | ----- |
+| `NEXT_PUBLIC_SUPABASE_URL` | exists | required (build) | Present locally |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | exists | required (build) | Present locally |
+| `SUPABASE_SERVICE_ROLE_KEY` | exists | required (build) | Present locally |
+| `NEXT_PUBLIC_SITE_URL` | exists | required | `https://www.streetplayr.com` |
+| `EASEBUZZ_ENV` / `EASEBUZZ_MERCHANT_KEY` / `EASEBUZZ_SALT` | exists | required for live pay | Present locally; Vercel Production values **unverified** (dashboard locked) |
+| `UNICOMMERCE_*` | exists | required for sync | Present locally |
+| `CRON_SECRET` | exists | required (runtime) | Present locally |
+| `GOOGLE_AI_API_KEY` | exists | required if try-on on | Present locally |
+| `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` / `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | **missing locally** | listed as runtime-blocking in `lib/env/validate.ts` | Unknown on Vercel; live storefront uses Easebuzz. Missing Stripe may fail only if that validator runs at Vercel build |
+| `NEXT_PUBLIC_SANITY_*` / `NEXT_PUBLIC_CLOUDINARY_*` | missing | optional | CMS/media fallback |
+| `VERCEL_TOKEN` | **missing** | required to deploy from this agent | Blocks CLI deploy |
+| Phone OTP provider | missing | required for OTP | **BLOCKED** |
+
+Vercel Production environment variables could not be listed without dashboard/token access.
+
+## POST-DEPLOYMENT LIVE VALIDATION
+
+| Requirement | Production Before | Production After | Evidence | Status |
+| ----------- | ----------------- | ---------------- | -------- | ------ |
+| Deploy `dd72583` to `www.streetplayr.com` | Old storefront (Lookbook-era behaviour) | Unchanged | GitHub status `Deployment was blocked`; live title still `Street PlayR` | **FAIL** |
+| Size order XS→S→M→L→XL | Jumbled + 2XL | Unchanged | No new deployment | **FAIL** |
+| 2XL not selectable | Selectable | Unchanged | No new deployment | **FAIL** |
+| GSM out of Carpenter titles | `350GSM` in names | Still in live home/lookbook names | `https://www.streetplayr.com/home` | **FAIL** |
+| Buy Now solid black | Old styling | Unchanged | No new deployment | **FAIL** |
+| Header StreetplayR | `Street PlayR` / playR mark | Unchanged | Live `<title>Street PlayR \| Enter The Play</title>` | **FAIL** |
+| Best Sellers 1×3 + API | Missing / 404 | Still 404 | `https://www.streetplayr.com/api/storefront/best-sellers` | **FAIL** |
+| Privacy no NECTAR Ecosystem | §3 NECTAR Ecosystem | Still present | `https://www.streetplayr.com/privacy-policy` | **FAIL** |
+| Mobile 390×844 PDP/dock | Old layout | Not retested (same build) | Deployment did not complete | **FAIL** |
+| Checkout no Demo / Easebuzz present | Old checkout | Not retested (same build) | Deployment did not complete | **FAIL** |
+| Phone OTP | Unsupported provider | Same | No ConvertWay/Interakt/Netcore; no Vercel/Supabase SMS config access | **BLOCKED** |
+| Live Easebuzz charge | Not executed | Not executed | Policy + no new deploy | **BLOCKED** |
+| Authenticated member credits | Not logged in | Not logged in | No test account | **BLOCKED** |
+
+## What a team member must do
+
+1. Log in to Vercel team **QA La Labs's Projects** (`qa-la-labs-s-projects`).
+2. Open project **streetplayr-live**.
+3. Approve / Redeploy commit `dd72583` (blocked Git deployment `5Y82BP15gscpirp1ZSrkhM4F5MuJ`).
+4. Confirm Production alias `www.streetplayr.com` points at that deployment.
+5. Optional: add a `VERCEL_TOKEN` (or add the Git author as a Vercel team member) so Git pushes are not blocked.
+
+Until that happens, production remains the old Vercel deployment.
+
+## Final Verdict
+
+### RED
+
+Deployment of `dd72583` **did not complete**. Production still serves the old storefront. Git push is not a Vercel promote.
+
