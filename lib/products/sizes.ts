@@ -1,5 +1,14 @@
 export const APPAREL_SIZE_ORDER = ['XS', 'S', 'M', 'L', 'XL'] as const;
 
+/** Canonical size-guide rows — always XS → XL, matching selector order sitewide. */
+export const SIZE_GUIDE_ROWS = [
+  { size: 'XS', chestWaist: '34" / 28"', fit: 'Slim fit / standard waist' },
+  { size: 'S', chestWaist: '36" / 30"', fit: 'Slim fit / standard waist' },
+  { size: 'M', chestWaist: '38" / 32"', fit: 'Relaxed fit / standard waist' },
+  { size: 'L', chestWaist: '40" / 34"', fit: 'Relaxed fit / comfortable waist' },
+  { size: 'XL', chestWaist: '42" / 36"', fit: 'Oversized fit / comfortable waist' },
+] as const;
+
 export const REMOVED_APPAREL_SIZES = new Set([
   '2XL',
   'XXL',

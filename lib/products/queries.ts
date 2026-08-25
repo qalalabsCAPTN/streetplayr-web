@@ -28,7 +28,7 @@ import {
 import { resolveProductImages } from '@/lib/products/image-map';
 import { withClientProductCopy, displayProductName } from '@/lib/products/copy';
 import { BEST_SELLERS_LIMIT, BEST_SELLERS_WINDOW_DAYS, bestSellersSince } from '@/lib/products/best-sellers';
-import { sortApparelSizes, isRemovedApparelSize } from '@/lib/products/sizes';
+import { sortApparelSizes, isRemovedApparelSize, normalizeSizeLabel } from '@/lib/products/sizes';
 
 export interface FeedItemData {
   id: string;
@@ -80,7 +80,7 @@ function mapCatalogVariants(
     }))
     .filter((v) => !isRemovedApparelSize(v.size));
   const order = sortApparelSizes(mapped.map((v) => v.size));
-  const bySize = new Map(mapped.map((v) => [v.size.toUpperCase(), v]));
+  const bySize = new Map(mapped.map((v) => [normalizeSizeLabel(v.size), v]));
   return order
     .map((size) => bySize.get(size))
     .filter((v): v is CatalogVariant => v !== undefined);
@@ -145,13 +145,15 @@ function mapLocalCatalog(): CatalogProduct[] {
       description: withClientProductCopy(p.slug, p.name, full?.description ?? p.description ?? ''),
       collections,
       createdAt: Date.now() - i * 1000,
-      variants: (full?.variants ?? [])
-        .filter((v) => !isRemovedApparelSize(v.size))
-        .map((v) => ({
-          id: v.id,
-          size: v.size,
-          price: v.price_override ?? p.price,
-        })),
+      variants: mapCatalogVariants(
+        (full?.variants ?? [])
+          .filter((v) => !isRemovedApparelSize(v.size))
+          .map((v) => ({
+            id: v.id,
+            size: v.size,
+            price: v.price_override ?? p.price,
+          }))
+      ),
       metadata: full?.metadata as Record<string, unknown> | undefined,
     };
   });
@@ -547,7 +549,9 @@ export const ProductQueries = {
         }))
         .filter((v: { size: string }) => !isRemovedApparelSize(v.size));
       const sizeOrder = sortApparelSizes(variants.map((v: { size: string }) => v.size));
-      const bySize = new Map(variants.map((v: { size: string }) => [v.size.toUpperCase(), v]));
+      const bySize = new Map(
+        variants.map((v: { size: string }) => [normalizeSizeLabel(v.size), v])
+      );
       const sortedVariants = sizeOrder
         .map((size) => bySize.get(size))
         .filter(Boolean);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
@@ -14,7 +14,12 @@ import RecommendedProducts from '@/components/product/RecommendedProducts';
 import RecentlyVisited, { pushRecentlyVisited } from '@/components/ui/RecentlyVisited';
 import { maxRedeemableCredits } from '@/lib/loyalty/redemption';
 import { extractGsmSpec } from '@/lib/products/copy';
-import { isRemovedApparelSize } from '@/lib/products/sizes';
+import {
+  isRemovedApparelSize,
+  normalizeSizeLabel,
+  SIZE_GUIDE_ROWS,
+  sortApparelSizes,
+} from '@/lib/products/sizes';
 
 /* ── Lazy-load AI Try-On — no SSR ── */
 const AITryOn = dynamic(
@@ -143,21 +148,28 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
     stockQuantity: liveStock[v.id] ?? v.stockQuantity,
   }));
 
+  const orderedSizes = useMemo(() => sortApparelSizes(props.sizes), [props.sizes]);
+
+  const findVariantForSize = useCallback(
+    (size: string) =>
+      liveVariants.find((v) => normalizeSizeLabel(v.size) === normalizeSizeLabel(size)),
+    [liveVariants]
+  );
+
   const activeColor = props.colors.find((c) => c.id === selectedColor);
   const colorImages = activeColor?.images?.length ? activeColor.images : props.images;
   const heroImage = colorImages[0] ?? props.image;
   const allImages = colorImages.length > 0 ? colorImages : [heroImage];
 
-  // Set default size on mount (first available size)
   useEffect(() => {
-    if (props.sizes.length > 0) {
-      const firstAvailable = props.sizes.find((s) => {
-        const matchingVariant = liveVariants.find((v) => v.size === s);
+    if (orderedSizes.length > 0) {
+      const firstAvailable = orderedSizes.find((s) => {
+        const matchingVariant = findVariantForSize(s);
         return matchingVariant && matchingVariant.stockQuantity > 0;
       });
-      setSelectedSize(firstAvailable || props.sizes[0]);
+      setSelectedSize(firstAvailable || orderedSizes[0]);
     }
-  }, [liveVariants, props.sizes]);
+  }, [findVariantForSize, orderedSizes]);
 
   const onCarouselScroll = () => {
     const el = carouselRef.current;
@@ -217,7 +229,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
       return false;
     }
     setSizeError('');
-    const matchingVariant = liveVariants.find((v) => v.size === selectedSize);
+    const matchingVariant = findVariantForSize(selectedSize);
     if (!matchingVariant) {
       alert('Selected size not available.');
       return false;
@@ -416,8 +428,8 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
             })()}
 
             <div className="sizes" role="group" aria-label="Select size">
-              {props.sizes.map((s) => {
-                const matchingVariant = liveVariants.find((v) => v.size === s);
+              {orderedSizes.map((s) => {
+                const matchingVariant = findVariantForSize(s);
                 const isSoldOut = !matchingVariant || matchingVariant.stockQuantity <= 0;
                 return (
                   <button
@@ -609,26 +621,13 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>S</td>
-                  <td>36&quot; / 30&quot;</td>
-                  <td>Slim fit / standard waist</td>
-                </tr>
-                <tr>
-                  <td>M</td>
-                  <td>38&quot; / 32&quot;</td>
-                  <td>Relaxed fit / standard waist</td>
-                </tr>
-                <tr>
-                  <td>L</td>
-                  <td>40&quot; / 34&quot;</td>
-                  <td>Relaxed fit / comfortable waist</td>
-                </tr>
-                <tr>
-                  <td>XL</td>
-                  <td>42&quot; / 36&quot;</td>
-                  <td>Oversized fit / comfortable waist</td>
-                </tr>
+                {SIZE_GUIDE_ROWS.map((row) => (
+                  <tr key={row.size}>
+                    <td>{row.size}</td>
+                    <td>{row.chestWaist}</td>
+                    <td>{row.fit}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
             <p style={{ fontSize: 12, color: '#757575', marginTop: 14, lineHeight: 1.6 }}>
