@@ -3,6 +3,7 @@
 import { createContext, useContext, useMemo, useState, useCallback, useEffect } from 'react';
 import { useCartStore, CartItem as ZustandCartItem } from '@/store/cartStore';
 import { isRemovedApparelSize } from '@/lib/products/sizes';
+import { resolveCartLineImage } from '@/lib/products/image-map';
 
 const CartCtx = createContext<any>(null);
 
@@ -38,7 +39,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         handle: item.productId,
         title: item.name,
         price: item.price,
-        images: [item.image],
+        images: [resolveCartLineImage(item.image, item.productId)],
       },
       size: item.size,
       qty: item.quantity,
@@ -66,7 +67,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       quantity: 1,
       color: product.color || 'default',
       size: size,
-      image: product.images?.[0] || '',
+      image: resolveCartLineImage(product.images?.[0] || '', product.handle),
     };
     zustandCart.addItem(zustandItem);
     setOpen(true);

@@ -36,13 +36,13 @@ export default function CartPage() {
                   <div className="cartline__meta">
                     Size: {line.size} · {formatPrice(line.product.price)}
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <div className="cartline__actions">
                     <div className="qty">
                       <button onClick={() => cart.updateQty(line.key, -1)}>−</button>
                       <span>{line.qty}</span>
                       <button onClick={() => cart.updateQty(line.key, 1)}>+</button>
                     </div>
-                    <button className="cartline__remove" onClick={() => cart.removeItem(line.key)}>
+                    <button type="button" className="cartline__remove" onClick={() => cart.removeItem(line.key)}>
                       Remove
                     </button>
                   </div>

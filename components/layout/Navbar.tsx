@@ -253,14 +253,36 @@ export default function Navbar() {
                 <span className="header__breadcrumb-current">{displayTitle}</span>
               </div>
             ) : (
-              <Link
-                href="/collections"
-                className="header__link"
-                onMouseEnter={() => setMegaOpen(true)}
-                onClick={() => setMegaOpen((v) => !v)}
-              >
-                Collection
-              </Link>
+              <div className="header__nav-dropdown">
+                <Link
+                  href="/collections"
+                  className="header__link"
+                  aria-expanded={megaOpen}
+                  aria-haspopup="true"
+                  onMouseEnter={() => setMegaOpen(true)}
+                  onClick={() => setMegaOpen((v) => !v)}
+                >
+                  Collection
+                </Link>
+                <div className={`mega ${megaOpen ? 'open' : ''}`}>
+                  <div>
+                    <h4>Topwear</h4>
+                    {menu.topwear.map((l) => (
+                      <Link key={l.label} href={l.href} onClick={() => setMegaOpen(false)}>
+                        {l.label}
+                      </Link>
+                    ))}
+                  </div>
+                  <div>
+                    <h4>Bottomwear</h4>
+                    {menu.bottomwear.map((l) => (
+                      <Link key={l.label} href={l.href} onClick={() => setMegaOpen(false)}>
+                        {l.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </div>
             )}
           </nav>
 
@@ -278,7 +300,6 @@ export default function Navbar() {
               }}
             >
               <Image src="/playR.street logo.png" alt="StreetplayR" width={1024} height={660} priority />
-              <span className="header__brand-name">StreetplayR</span>
             </Link>
           </div>
 
@@ -436,7 +457,8 @@ export default function Navbar() {
           </div>
         )}
 
-        <div className={`mega ${megaOpen ? 'open' : ''}`}>
+        {/* Mobile / + button: mega lives outside hidden desktop nav */}
+        <div className={`mega mega--mobile ${megaOpen ? 'open' : ''}`}>
           <div>
             <h4>Topwear</h4>
             {menu.topwear.map((l) => (

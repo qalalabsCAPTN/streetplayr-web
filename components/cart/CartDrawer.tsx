@@ -89,7 +89,7 @@ export default function CartDrawer() {
                   <div className="cartline__meta">
                     Size: {line.size} · {formatPrice(line.product.price)}
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <div className="cartline__actions">
                     <div className="qty">
                       <button type="button" onClick={() => cart.updateQty(line.key, -1)}>−</button>
                       <span>{line.qty}</span>

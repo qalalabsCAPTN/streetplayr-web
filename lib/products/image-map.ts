@@ -18,6 +18,41 @@ function pack(folder: string): ProductImagePack {
   return { featured: g[0], gallery: g };
 }
 
+/**
+ * Rewrite legacy/broken asset paths (old .jpg flat paths, pre-webp gallery URLs)
+ * to the current webp pack under /public/assets/products.
+ */
+export function normalizeProductImageUrl(
+  url: string | null | undefined,
+  slug?: string | null
+): string {
+  if (!url?.trim()) {
+    return resolveProductImages(slug)?.featured ?? '';
+  }
+
+  let u = url.trim();
+
+  // Flat legacy inspired thumbnail — common in old DB rows + persisted carts
+  if (/\/products\/inspired\.jpg$/i.test(u)) {
+    u = '/assets/products/inspired/image-1.webp';
+  }
+
+  // image-N.jpg → image-N.webp for webp-only asset folders
+  u = u.replace(/^(\/assets\/products\/[^/]+\/image-\d+)\.jpg$/i, '$1.webp');
+
+  return u;
+}
+
+/** Best image for a cart line — normalizes legacy URLs and falls back to slug pack. */
+export function resolveCartLineImage(
+  image: string | null | undefined,
+  slug?: string | null
+): string {
+  const normalized = normalizeProductImageUrl(image, slug);
+  if (normalized) return normalized;
+  return resolveProductImages(slug)?.featured ?? '/images/placeholder.jpg';
+}
+
 /** Exact slug → asset pack (UniCommerce parent SKUs + local demo slugs). */
 const BY_SLUG: Record<string, ProductImagePack> = {
   // Create waffle tee
@@ -67,11 +102,14 @@ export function resolveProductImages(
   existing?: { featured?: string | null; gallery?: string[] | null }
 ): ProductImagePack | null {
   if (existing?.featured) {
+    const normalizedFeatured = normalizeProductImageUrl(existing.featured, slug);
     const galleryFromMeta =
       Array.isArray(existing.gallery) && existing.gallery.length > 0
-        ? existing.gallery
-        : [existing.featured];
-    return { featured: existing.featured, gallery: galleryFromMeta };
+        ? existing.gallery.map((g) => normalizeProductImageUrl(g, slug))
+        : [normalizedFeatured];
+    if (normalizedFeatured) {
+      return { featured: normalizedFeatured, gallery: galleryFromMeta };
+    }
   }
 
   if (!slug) return null;

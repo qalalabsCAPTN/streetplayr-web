@@ -329,25 +329,6 @@ function CollectionsInner() {
     return list;
   }, [sidebarFilteredProducts, sortBy]);
 
-  const heroImage = useMemo(() => {
-    switch (activeChip) {
-      case 'Topwear':
-      case 'Short Sleeve T-Shirts':
-        return '/assets/empty_centre.jpg';
-      case 'Long Sleeve T-Shirts':
-        return 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?q=80&w=2000&auto=format&fit=crop';
-      case 'Tanks':
-        return 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?q=80&w=2000&auto=format&fit=crop';
-      case 'Sweatpants':
-      case 'Bottomwear':
-        return 'https://images.unsplash.com/photo-1551854838-212c50b4c184?q=80&w=2000&auto=format&fit=crop';
-      case 'View all':
-      case 'All Products':
-      default:
-        return 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?q=80&w=2000&auto=format&fit=crop';
-    }
-  }, [activeChip]);
-
   const heroDescription = useMemo(() => {
     switch (activeChip) {
       case 'Topwear':
@@ -380,7 +361,6 @@ function CollectionsInner() {
       <CollectionHero
         title={titleForChip}
         description={heroDescription}
-        imageSrc={heroImage}
         label="Collection / SS26"
       />
 
@@ -433,8 +413,31 @@ function CollectionsInner() {
                 type="button"
                 className={`advance-filters-btn ${(activeSizes.size > 0 || activeTypes.size > 0 || activeAvailability) ? 'has-active' : ''}`}
                 onClick={() => setFilterDrawerOpen(true)}
+                aria-label={
+                  activeSizes.size + activeTypes.size + (activeAvailability ? 1 : 0) > 0
+                    ? `Filters (${activeSizes.size + activeTypes.size + (activeAvailability ? 1 : 0)} active)`
+                    : 'Open filters'
+                }
               >
-                FILTER
+                <svg
+                  className="advance-filters-btn__icon"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M2 3.5h12M4.5 8h7M6.5 12.5h3"
+                    stroke="currentColor"
+                    strokeWidth="1.4"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <span>Filter</span>
+                {(activeSizes.size > 0 || activeTypes.size > 0 || activeAvailability) ? (
+                  <span className="advance-filters-btn__badge" aria-hidden="true">
+                    {activeSizes.size + activeTypes.size + (activeAvailability ? 1 : 0)}
+                  </span>
+                ) : null}
               </button>
 
               {/* Sort Control moved to Drawer */}

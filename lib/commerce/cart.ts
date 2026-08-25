@@ -18,6 +18,7 @@ const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 import { resolveStorefrontBrandId } from '@/lib/products/brand';
+import { resolveCartLineImage } from '@/lib/products/image-map';
 
 const ORG_ID = '00000000-0000-0000-0000-000000000001';
 
@@ -280,7 +281,7 @@ async function getCrmCart(
         price,
         attributes,
         product_id,
-        products ( title, featured_image_url )
+        products ( title, featured_image_url, slug )
       )
     `
     )
@@ -307,7 +308,10 @@ async function getCrmCart(
         quantity: Number(row.quantity) || 1,
         color: (attrs.color as string) || 'default',
         size: (attrs.size as string) || (pv?.title as string) || '',
-        image: (product?.featured_image_url as string) || '',
+        image: resolveCartLineImage(
+          (product?.featured_image_url as string) || '',
+          (product?.slug as string) || undefined
+        ),
       } satisfies CartItem;
     });
 }

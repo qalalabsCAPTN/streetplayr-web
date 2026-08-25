@@ -25,7 +25,7 @@ import {
   readCatalogLkg,
   saveCatalogLkg,
 } from '@/lib/products/catalog-cache';
-import { resolveProductImages } from '@/lib/products/image-map';
+import { normalizeProductImageUrl, resolveProductImages } from '@/lib/products/image-map';
 import { withClientProductCopy, displayProductName } from '@/lib/products/copy';
 import { BEST_SELLERS_LIMIT, BEST_SELLERS_WINDOW_DAYS, bestSellersSince } from '@/lib/products/best-sellers';
 import { sortApparelSizes, isRemovedApparelSize, normalizeSizeLabel } from '@/lib/products/sizes';
@@ -562,6 +562,22 @@ export const ProductQueries = {
       const membership = await fetchMembershipMap(supabase);
       const collections = resolveMembership(data.id, data.slug, membership.get(data.id) || []);
 
+      const meta = (data.metadata ?? {}) as Record<string, unknown>;
+      const galleryMeta = Array.isArray(meta.gallery_images)
+        ? (meta.gallery_images as string[])
+        : null;
+      const images = resolveProductImages(data.slug, {
+        featured: data.featured_image_url,
+        gallery: galleryMeta,
+      });
+      const featured =
+        images?.featured ||
+        normalizeProductImageUrl(data.featured_image_url, data.slug) ||
+        '';
+      const gallery =
+        images?.gallery ||
+        (galleryMeta?.map((g) => normalizeProductImageUrl(g, data.slug)) ?? [featured]);
+
       const result = {
         id: data.id,
         name: displayProductName(data.title),
@@ -572,11 +588,11 @@ export const ProductQueries = {
           data.title,
           data.description ?? ''
         ),
-        image_url: data.featured_image_url,
+        image_url: featured,
         category: collections[0] || '',
         collections,
         variants: sortedVariants,
-        metadata: data.metadata ?? {},
+        metadata: { ...meta, gallery_images: gallery },
         is_active: data.status === 'active',
       };
 

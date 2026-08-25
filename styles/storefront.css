@@ -332,6 +332,7 @@ body {
   border: 1px solid transparent;
   border-radius: 999px;
   box-shadow: none;
+  overflow: visible;
   transition:
     background 0.3s cubic-bezier(0.22, 1, 0.36, 1),
     color 0.3s cubic-bezier(0.22, 1, 0.36, 1),
@@ -470,15 +471,6 @@ body {
   line-height: 1;
 }
 
-.header__brand-name {
-  font-family: var(--font-sp-display), Anton, sans-serif;
-  font-size: 15px;
-  letter-spacing: 0.04em;
-  font-weight: 400;
-  color: inherit;
-  white-space: nowrap;
-}
-
 .header__right {
   display: flex;
   gap: 6px;
@@ -596,30 +588,59 @@ body {
   background: #000;
 }
 
-/* mega menu — Topwear + Bottomwear + Footwear (Support under Footwear; Shop in hamburger) */
+/* mega menu — Topwear + Bottomwear (anchored under Collection nav) */
 .mega {
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 100%;
-  background: #fff;
-  color: #111;
-  border-bottom: 1px solid var(--line);
+  top: calc(100% + 10px);
+  left: 16px;
+  right: auto;
+  width: max-content;
+  min-width: min(380px, calc(100vw - 32px));
+  max-width: min(520px, calc(100vw - 32px));
+  background: rgba(25, 25, 28, 0.92);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(-8px);
-  transition: all 0.32s var(--ease);
-  padding: 34px 48px 42px;
+  pointer-events: none;
+  transform: translateY(-6px);
+  transition:
+    opacity 0.28s var(--ease),
+    visibility 0.28s var(--ease),
+    transform 0.28s var(--ease);
+  padding: 22px 26px 26px;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 220px));
-  gap: 40px;
-  max-width: 820px;
+  grid-template-columns: repeat(2, minmax(140px, 1fr));
+  gap: 28px 36px;
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.06) inset,
+    0 16px 48px rgba(0, 0, 0, 0.35);
+  z-index: 65;
+  overflow: hidden;
 }
 
 .mega.open {
   opacity: 1;
   visibility: visible;
+  pointer-events: auto;
   transform: translateY(0);
+}
+
+.header__nav-dropdown {
+  position: relative;
+}
+
+.header__nav-dropdown .mega {
+  top: calc(100% + 10px);
+  left: 0;
+}
+
+/* Desktop: dropdown under Collection link; mobile: separate panel under + pill */
+.mega--mobile {
+  display: none;
 }
 
 .mega h4 {
@@ -688,10 +709,10 @@ body {
   backdrop-filter: blur(22px) saturate(170%);
   border: 1px solid rgba(255, 255, 255, 0.45);
   border-radius: 999px;
-  padding: 6px 14px;
+  padding: 8px 18px;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 12px;
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.65) inset,
     0 10px 28px rgba(0, 0, 0, 0.16);
@@ -699,8 +720,8 @@ body {
 }
 
 .mobilenav-dock.is-compact .mobilenav {
-  padding: 4px 10px;
-  gap: 8px;
+  padding: 6px 14px;
+  gap: 10px;
   background: rgba(255, 255, 255, 0.84);
 }
 
@@ -708,8 +729,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   color: #16181d;
   position: relative;
@@ -723,8 +744,8 @@ body {
 }
 
 .mobilenav__item svg {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
 }
 
 .mobilenav__ring {
@@ -737,9 +758,9 @@ body {
   right: -1px;
   background: #ff5a1f;
   color: #fff;
-  font-size: 9px;
-  min-width: 14px;
-  height: 14px;
+  font-size: 10px;
+  min-width: 16px;
+  height: 16px;
   border-radius: 999px;
   display: flex;
   align-items: center;
@@ -752,8 +773,8 @@ body {
 .mobilenav__lookbook.iconbtn {
   flex: 0 0 auto;
   align-self: center;
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   margin: 0;
   box-shadow:
@@ -1085,6 +1106,18 @@ body.hdr-solid .page-frame {
   .page-frame::after {
     background: radial-gradient(circle at 0 100%, transparent 21.5px, var(--page-bg) 22px);
   }
+}
+
+/* Mobile uses floating header pills — inverse-corner notches read as white
+   artifacts over dark full-bleed heroes (collections banner, etc.). */
+@media (max-width: 900px) {
+  .page-frame {
+    display: none !important;
+  }
+}
+
+.collections-page .page-frame {
+  display: none !important;
 }
 
 /* ============ SECTION PANELS ============ */
@@ -3733,10 +3766,18 @@ body.theme-light .carousel3d__dot.active {
 
 .storefront-root .cartline img {
   width: 78px;
+  min-height: 98px;
   border-radius: 10px;
   aspect-ratio: 4/5;
   object-fit: cover;
   flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.storefront-root.theme-dark .cartline img {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .cartline__info {
@@ -3754,7 +3795,14 @@ body.theme-light .carousel3d__dot.active {
 .cartline__meta {
   font-size: 11.5px;
   color: var(--muted);
-  margin: 4px 0 12px;
+  margin: 4px 0 10px;
+}
+
+.cartline__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
 }
 
 .cartline__price {
@@ -3791,13 +3839,19 @@ body.theme-light .carousel3d__dot.active {
   font-variant-numeric: tabular-nums;
 }
 
-.cartline__remove {
+.storefront-root .cartline__remove {
   font-size: 11px;
   color: var(--muted);
   text-decoration: underline;
-  margin-left: 12px;
+  text-underline-offset: 3px;
   min-height: 44px;
-  padding: 0 4px;
+  padding: 0 2px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.storefront-root .cartline__remove:hover {
+  color: var(--fg);
 }
 
 .drawer__foot {
@@ -3982,10 +4036,19 @@ body.theme-light .carousel3d__dot.active {
   }
 
   .mega {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-    padding: 24px 18px 28px;
-    max-width: 100%;
+    left: 12px;
+    right: 12px;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 24px;
+    padding: 20px 18px 22px;
+    border-radius: 18px;
+  }
+
+  .mega--mobile {
+    display: grid;
   }
 
   .pdp {
@@ -4231,10 +4294,6 @@ body.theme-light .carousel3d__dot.active {
     border-radius: 6px;
   }
 
-  .header__brand-name {
-    font-size: 12px;
-  }
-
   .header__right {
     flex-shrink: 0;
     display: flex;
@@ -4357,11 +4416,11 @@ body.theme-light .carousel3d__dot.active {
   }
 
   .footer {
-    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)) !important;
+    padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px)) !important;
   }
 
   .toast {
-    bottom: 68px;
+    bottom: 76px;
   }
 
   /* Mobile top nav — transparent always; inner pills become glass on scroll */
@@ -5794,8 +5853,9 @@ body.theme-light .carousel3d__dot.active {
 
 @media (min-width: 900px) {
   .storefront-root .cart-page-grid {
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
     align-items: start;
+    gap: 40px;
   }
 }
 
@@ -5807,6 +5867,8 @@ body.theme-light .carousel3d__dot.active {
 
 .storefront-root .cart-page-summary {
   /* Homepage glass card */
+  display: flex;
+  flex-direction: column;
   background: rgba(255, 255, 255, 0.55);
   -webkit-backdrop-filter: blur(20px) saturate(160%);
   backdrop-filter: blur(20px) saturate(160%);
@@ -5815,9 +5877,34 @@ body.theme-light .carousel3d__dot.active {
     0 1px 0 rgba(255, 255, 255, 0.45) inset,
     0 12px 32px rgba(0, 0, 0, 0.08);
   border-radius: var(--radius-lg);
-  padding: 24px;
+  padding: 24px 22px;
   position: sticky;
   top: 100px;
+  width: 100%;
+  max-width: 380px;
+  justify-self: end;
+}
+
+.storefront-root .cart-page-summary .drawer__total {
+  margin-bottom: 8px;
+  font-size: 15px;
+}
+
+.storefront-root .cart-page-summary .drawer__note {
+  margin-bottom: 20px;
+  line-height: 1.55;
+  max-width: 32ch;
+}
+
+.storefront-root .cart-page-summary .drawer__checkout {
+  margin-top: 4px;
+}
+
+@media (max-width: 899px) {
+  .storefront-root .cart-page-summary {
+    max-width: none;
+    justify-self: stretch;
+  }
 }
 
 .storefront-root.theme-dark .cart-page-summary {
@@ -8478,10 +8565,14 @@ body.theme-light .carousel3d__dot.active {
 .collections-hero__media {
   position: absolute;
   inset: 0;
+  z-index: 0;
   width: 100%;
   height: 100%;
   object-fit: cover !important;
   object-position: center center !important;
+  /* Bleed past edges — kills sub-pixel white seams on mobile GPUs */
+  transform: scale(1.03);
+  transform-origin: center center;
 }
 
 .collections-hero__overlay {
@@ -9710,6 +9801,27 @@ body.theme-light .carousel3d__dot.active {
   box-shadow: 0 16px 40px rgba(22, 17, 27, 0.08);
 }
 
+.storefront-root:not(.theme-dark) .header .mega {
+  background: rgba(255, 255, 255, 0.92) !important;
+  color: #16111b !important;
+  border-color: rgba(22, 17, 27, 0.1) !important;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 16px 40px rgba(22, 17, 27, 0.1) !important;
+}
+
+.storefront-root:not(.theme-dark) .header .mega h4 {
+  color: #5c5663;
+}
+
+.storefront-root:not(.theme-dark) .header .mega a {
+  color: #16111b;
+}
+
+.storefront-root:not(.theme-dark) .header .mega a:hover {
+  opacity: 0.65;
+}
+
 /* ============ COLLECTION FILTER & TOOLBAR ADVANCEMENTS ============ */
 .collections-toolbar {
   display: flex;
@@ -9761,34 +9873,75 @@ body.theme-light .carousel3d__dot.active {
   }
 }
 
-/* Advance Filters Button */
+/* Advance Filters Button — matches collections-sort pill */
 .advance-filters-btn {
   display: inline-flex;
   align-items: center;
-  min-height: 36px;
-  padding: 8px 16px;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 18px;
   border-radius: 999px;
   cursor: pointer;
   font-family: var(--font-sp-mono, ui-monospace, monospace);
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+  white-space: nowrap;
   background: rgba(25, 25, 28, 0.45) !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
   color: #ffffff !important;
-  transition: all 0.25s var(--ease);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+}
+
+.advance-filters-btn__icon {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  opacity: 0.85;
+  transition: opacity 0.15s;
+}
+
+.advance-filters-btn__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  font-family: var(--font-sp-mono, ui-monospace, monospace);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1;
+  background: var(--sp-cta-bg, #eadfed);
+  color: var(--sp-cta-text, #16111b);
 }
 
 .advance-filters-btn:hover {
   background: rgba(25, 25, 28, 0.6) !important;
-  border-color: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(221, 183, 255, 0.45) !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
   transform: scale(1.02);
+}
+
+.advance-filters-btn:hover .advance-filters-btn__icon {
+  opacity: 1;
+}
+
+.advance-filters-btn:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 3px;
 }
 
 .advance-filters-btn.has-active {
   border-color: #ddb7ff !important;
-  box-shadow: 0 0 12px rgba(221, 183, 255, 0.25);
+  box-shadow: 0 0 12px rgba(221, 183, 255, 0.25), 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
 /* Filter Drawer specific styles */
@@ -9951,18 +10104,21 @@ body.theme-light .carousel3d__dot.active {
 
 
 .storefront-root:not(.theme-dark) .advance-filters-btn {
-  background: rgba(0, 0, 0, 0.04) !important;
-  border-color: rgba(0, 0, 0, 0.06) !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
   color: #16111b !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
 }
 
 .storefront-root:not(.theme-dark) .advance-filters-btn:hover {
-  background: rgba(0, 0, 0, 0.08) !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  border-color: rgba(22, 17, 27, 0.14) !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
 }
 
 .storefront-root:not(.theme-dark) .advance-filters-btn.has-active {
-  border-color: #7c3aed !important;
-  box-shadow: 0 0 12px rgba(124, 58, 237, 0.2);
+  border-color: rgba(22, 17, 27, 0.22) !important;
+  box-shadow: 0 0 0 1px rgba(234, 223, 237, 0.9), 0 6px 20px rgba(0, 0, 0, 0.08);
 }
 
 /* Rebuild Filter Drawer using StreetPlayR design tokens */
@@ -10175,6 +10331,10 @@ body.theme-light .carousel3d__dot.active {
     display: none;
   }
 
+  .mega--mobile {
+    display: none !important;
+  }
+
   /* Reusable floating-pill primitive */
   .storefront-root .nav-pill {
     display: flex;
@@ -10263,6 +10423,7 @@ body.theme-light .carousel3d__dot.active {
     justify-self: start;
     width: fit-content;
     max-width: fit-content;
+    position: relative;
   }
 
   .storefront-root .header--scrolled .header__logo {

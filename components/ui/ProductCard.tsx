@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/components/CartContext';
 import { formatPrice } from '@/lib/utils/format';
 import { useWishlistStore } from '@/store/wishlistStore';
+import { normalizeProductImageUrl, resolveProductImages } from '@/lib/products/image-map';
 
 interface ProductCardProps {
   product: {
@@ -37,7 +38,6 @@ function BookmarkIcon({ filled }: { filled: boolean }) {
 }
 
 export default function ProductCard({ product, gallery = true }: ProductCardProps) {
-  const [idx, setIdx] = useState(0);
   const cart = useCart();
   const isSaved = useWishlistStore((s) => s.isSaved(product.id));
   const requestToggle = useWishlistStore((s) => s.requestToggle);
@@ -47,15 +47,26 @@ export default function ProductCard({ product, gallery = true }: ProductCardProp
     : Array.isArray(product.metadata?.gallery_images)
       ? product.metadata.gallery_images
       : null;
-  // Dedupe — catalog often repeats primary URL as image2 / gallery[0]
-  const imgs = Array.from(
-    new Set(
-      (galleryMeta && galleryMeta.length > 0
+  const imgs = useMemo(() => {
+    const raw = (
+      galleryMeta && galleryMeta.length > 0
         ? galleryMeta
         : [product.image, product.image2]
-      ).filter((src): src is string => typeof src === 'string' && src.length > 0)
-    )
-  );
+    ).filter((src): src is string => typeof src === 'string' && src.length > 0);
+
+    const normalized = Array.from(
+      new Set(raw.map((src) => normalizeProductImageUrl(src, product.slug)).filter(Boolean))
+    );
+
+    if (normalized.length > 0) return normalized;
+
+    const pack = resolveProductImages(product.slug);
+    return pack ? pack.gallery : [];
+  }, [galleryMeta, product.image, product.image2, product.slug, product.images]);
+
+  const [idx, setIdx] = useState(0);
+  const activeSrc = imgs[idx] ?? imgs[0] ?? '';
+
   const onSale = product.compareAt && product.compareAt > product.price;
 
   const step = (e: React.MouseEvent, dir: number) => {
@@ -113,17 +124,20 @@ export default function ProductCard({ product, gallery = true }: ProductCardProp
   return (
     <Link href={`/product/${product.slug}`} className="card">
       <div className="card__media">
-        {imgs.map((src, i) => (
+        {activeSrc ? (
           <Image
-            key={`${product.id}-${i}`}
-            src={src ?? ''}
+            key={activeSrc}
+            src={activeSrc}
             alt={product.name}
             fill
             loading="lazy"
-            className={i === idx ? 'active' : ''}
+            className="active object-cover"
             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            onError={() => {
+              if (idx < imgs.length - 1) setIdx((i) => i + 1);
+            }}
           />
-        ))}
+        ) : null}
 
         <button className="card__wish" onClick={toggleSave} aria-label="Save to wishlist" aria-pressed={isSaved}>
           <BookmarkIcon filled={isSaved} />
