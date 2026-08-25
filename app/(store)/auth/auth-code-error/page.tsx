@@ -4,7 +4,7 @@ import Link from 'next/link';
 export const dynamic = 'force-dynamic';
 
 export const metadata = {
-  title: 'Authentication Error | Street PlayR',
+  title: 'Authentication Error | StreetplayR',
 };
 
 export default function AuthCodeErrorPage() {

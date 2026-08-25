@@ -34,7 +34,7 @@ export default function EnteringStreetPlayR() {
     <div
       className={`${styles["video-page"]} ${isExiting ? styles["exit"] : ""}`}
       role="dialog"
-      aria-label="Street PlayR intro"
+      aria-label="StreetplayR intro"
     >
       <video
         className={styles["preloader-video"]}

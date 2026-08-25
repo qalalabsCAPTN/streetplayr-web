@@ -51,6 +51,7 @@ export async function submitContactAction(input: ContactInput): Promise<ActionRe
             email,
             subject,
             message,
+            cc: 'orders@playR.in',
             created_at: new Date().toISOString(),
           }
         ]);

@@ -8,6 +8,7 @@ import Image from "next/image";
 import { formatPrice, formatProductTitle } from "@/lib/utils/format";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import { maxRedeemableCredits } from "@/lib/loyalty/redemption";
 
 function CheckoutInput({ label, id, type = "text", value, onChange, placeholder }: {
   label: string;
@@ -36,20 +37,50 @@ const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }>(f
   const { items, clearCart } = useCartStore();
   const [phase, setPhase] = useState<'form' | 'processing' | 'error'>('form');
   const [error, setError] = useState<string | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<'demo' | 'razorpay'>('demo');
+  const [paymentMethod, setPaymentMethod] = useState<'demo' | 'easebuzz'>('easebuzz');
+  const [creditsToApply, setCreditsToApply] = useState(0);
+  const [memberBalance, setMemberBalance] = useState(0);
 
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const [country, setCountry] = useState("");
 
+  const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const maxCredits = maxRedeemableCredits(memberBalance, subtotal);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { getProfileAction } = await import('@/app/actions/auth');
+        const profile = await getProfileAction();
+        if (!cancelled) {
+          const balance = profile?.sprrBalance ?? 0;
+          setMemberBalance(balance);
+          setCreditsToApply((prev) => Math.min(prev, maxRedeemableCredits(balance, subtotal)));
+        }
+      } catch {
+        if (!cancelled) setMemberBalance(0);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [subtotal]);
+
   const handleCompleteOrder = useCallback(async () => {
     if (!email || !firstName || !lastName || !address || !city || !country) {
       setError("Please fill in all required fields.");
+      return;
+    }
+    if (paymentMethod === 'easebuzz' && !phone) {
+      setError("Phone number is required for card/UPI/netbanking payment.");
       return;
     }
     setPhase('processing');
@@ -84,7 +115,7 @@ const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }>(f
         state,
         postalCode: postalCode,
         country,
-      });
+      }, undefined, creditsToApply);
 
       if (!checkout.success) {
         setError(checkout.error ?? "Checkout failed.");
@@ -93,6 +124,27 @@ const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }>(f
       }
 
       const createdOrderId = checkout.data!.orderId;
+
+      if (paymentMethod === 'easebuzz') {
+        const { createEasebuzzPaymentAction } = await import('@/app/actions/easebuzz');
+        const session = await createEasebuzzPaymentAction({
+          orderId: createdOrderId,
+          customerName: `${firstName} ${lastName}`.trim(),
+          customerEmail: email,
+          customerPhone: phone,
+        });
+
+        if (!session.success || !session.data) {
+          setError(session.error ?? "Could not start payment. Please try again.");
+          setPhase('form');
+          return;
+        }
+
+        // Full redirect to Easebuzz's hosted checkout — the webhook
+        // (surl/furl) brings the customer back to /checkout/success.
+        window.location.href = session.data.paymentUrl;
+        return;
+      }
 
       const { confirmDemoOrderAction } = await import('@/app/actions/demo-checkout');
       const result = await confirmDemoOrderAction(createdOrderId);
@@ -108,7 +160,7 @@ const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }>(f
       setError(e.message ?? "An unexpected error occurred.");
       setPhase('form');
     }
-  }, [email, firstName, lastName, address, city, state, postalCode, country, items, router, clearCart]);
+  }, [email, firstName, lastName, phone, address, city, state, postalCode, country, items, router, clearCart, paymentMethod, creditsToApply]);
 
   useImperativeHandle(ref, () => ({ completeOrder: handleCompleteOrder }), [handleCompleteOrder]);
 
@@ -131,7 +183,10 @@ const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }>(f
             <CheckoutInput id="firstName" label="First name" placeholder="First name" value={firstName} onChange={setFirstName} />
             <CheckoutInput id="lastName" label="Last name" placeholder="Last name" value={lastName} onChange={setLastName} />
           </div>
-          <CheckoutInput id="email" type="email" label="Email" placeholder="email@address.com" value={email} onChange={setEmail} />
+          <div className="checkout-fields-row">
+            <CheckoutInput id="email" type="email" label="Email" placeholder="email@address.com" value={email} onChange={setEmail} />
+            <CheckoutInput id="phone" type="tel" label="Phone" placeholder="10-digit mobile number" value={phone} onChange={setPhone} />
+          </div>
           <CheckoutInput id="address" label="Street address" placeholder="Address" value={address} onChange={setAddress} />
           <div className="checkout-fields-row checkout-fields-row--3">
             <CheckoutInput id="city" label="City" placeholder="City" value={city} onChange={setCity} />
@@ -154,6 +209,35 @@ const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }>(f
         {error && <p className="checkout-error">{error}</p>}
       </div>
 
+      {/* ── Loyalty ── */}
+      <div className="checkout-panel">
+        <h2 className="checkout-panel__title">Loyalty</h2>
+        <div className="checkout-loyalty">
+          <div className="checkout-loyalty__icon">✦</div>
+          <div className="checkout-loyalty__info">
+            <div>Member balance</div>
+            <small>{memberBalance.toLocaleString('en-IN')} credits · max {maxCredits.toLocaleString('en-IN')} this order (50%)</small>
+          </div>
+          <span className="checkout-loyalty__status">{memberBalance > 0 ? 'Active' : 'Empty'}</span>
+        </div>
+        {maxCredits > 0 && (
+          <label className="checkout-loyalty-apply">
+            Apply credits
+            <input
+              type="range"
+              min={0}
+              max={maxCredits}
+              step={1}
+              value={Math.min(creditsToApply, maxCredits)}
+              onChange={(e) => setCreditsToApply(Number(e.target.value))}
+              className="pdp__credits-range"
+              aria-label="Member credits to redeem"
+            />
+            <span>{Math.min(creditsToApply, maxCredits)} / {maxCredits}</span>
+          </label>
+        )}
+      </div>
+
       {/* ── Payment Method ── */}
       <div className="checkout-panel">
         <h2 className="checkout-panel__title">Payment</h2>
@@ -161,46 +245,36 @@ const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }>(f
         <div className="checkout-payment-options">
           <button
             type="button"
-            onClick={() => setPaymentMethod('demo')}
-            className={`checkout-payment-option ${paymentMethod === 'demo' ? 'active' : ''}`}
+            onClick={() => setPaymentMethod('easebuzz')}
+            className={`checkout-payment-option ${paymentMethod === 'easebuzz' ? 'active' : ''}`}
           >
             <span className="checkout-payment-option__radio" />
             <span className="checkout-payment-option__label">
-              <span>Demo Payment</span>
-              <small>Active</small>
+              <span>Card / UPI / NetBanking</span>
+              <small>Powered by Easebuzz</small>
             </span>
-            <span className="checkout-payment-option__tag">Test Mode</span>
+            <span className="checkout-payment-option__tag">Secure</span>
           </button>
 
-          <button type="button" disabled className="checkout-payment-option disabled">
-            <span className="checkout-payment-option__radio" />
-            <span className="checkout-payment-option__label">
-              <span>Razorpay</span>
-              <small>Coming Soon</small>
-            </span>
-            <span className="checkout-payment-option__tag">Unavailable</span>
-          </button>
+          {process.env.NODE_ENV !== 'production' && (
+            <button
+              type="button"
+              onClick={() => setPaymentMethod('demo')}
+              className={`checkout-payment-option ${paymentMethod === 'demo' ? 'active' : ''}`}
+            >
+              <span className="checkout-payment-option__radio" />
+              <span className="checkout-payment-option__label">
+                <span>Demo Payment</span>
+                <small>Skips real gateway</small>
+              </span>
+              <span className="checkout-payment-option__tag">Test Mode</span>
+            </button>
+          )}
         </div>
       </div>
     </div>
   );
 });
-
-function WalletModule() {
-  return (
-    <div className="checkout-panel">
-      <h2 className="checkout-panel__title">Loyalty</h2>
-      <div className="checkout-loyalty">
-        <div className="checkout-loyalty__icon">✦</div>
-        <div className="checkout-loyalty__info">
-          <div>Member balance</div>
-          <small>2,450 Reward Points</small>
-        </div>
-        <span className="checkout-loyalty__status">Active</span>
-      </div>
-    </div>
-  );
-}
 
 function OrderSummary({ items, total }: { items: any[]; total: number }) {
   return (
@@ -299,7 +373,6 @@ export default function CheckoutPage() {
         <div className="checkout-grid">
           <div className="checkout-main">
             <CheckoutFormContent ref={formRef} />
-            <WalletModule />
             <button
               type="button"
               onClick={handleCheckout}

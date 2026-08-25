@@ -42,6 +42,7 @@ export function normalizeCollectionSlug(raw: string | null | undefined): Collect
   if (s === 'all' || s === 'view-all') return null;
   // legacy aliases that still mean pants collection
   if (s === 'sweatpants' || s === 'bottomwear' || s === 'bottoms') return COLLECTION_SLUG.PANTS;
+  if (s === 'topwear' || s === 'tees-all') return COLLECTION_SLUG.TEES;
   if (s === 'latest' || s === 'latest-drop') return COLLECTION_SLUG.LATEST;
   if (SLUG_SET.has(s)) return s as CollectionSlug;
   return null;
@@ -60,10 +61,9 @@ export type FilterChip =
   | 'Hoodies';
 
 export const DESKTOP_CHIPS: FilterChip[] = [
-  'Short Sleeve T-Shirts',
-  'Long Sleeve T-Shirts',
+  'Topwear',
+  'Bottomwear',
   'Tanks',
-  'Sweatpants',
 ];
 
 export const MOBILE_CHIPS: FilterChip[] = [
@@ -117,24 +117,20 @@ export function chipToParam(chip: FilterChip): string | null {
 
 export function paramToChip(category: string, mobile: boolean): FilterChip {
   const raw = (category || '').trim().toLowerCase();
-  if (raw === 'all') {
+  if (!raw || raw === 'all' || raw === 'latest' || raw === 'latest-drop') {
     return mobile ? 'View all' : 'All Products';
   }
-  if (!raw || raw === 'latest' || raw === 'latest-drop') {
-    return mobile ? 'View all' : 'Short Sleeve T-Shirts';
-  }
-  if (raw === 'topwear') return mobile ? 'Topwear' : 'Short Sleeve T-Shirts';
-  if (raw === 'bottomwear') return mobile ? 'Bottomwear' : 'Sweatpants';
+  if (raw === 'topwear') return 'Topwear';
+  if (raw === 'bottomwear') return 'Bottomwear';
 
   const slug = normalizeCollectionSlug(raw);
-  
-  if (slug === COLLECTION_SLUG.TEES) return 'Short Sleeve T-Shirts';
-  if (slug === COLLECTION_SLUG.LONG_SLEEVE) return 'Long Sleeve T-Shirts';
+
+  if (slug === COLLECTION_SLUG.TEES || slug === COLLECTION_SLUG.LONG_SLEEVE) return 'Topwear';
   if (slug === COLLECTION_SLUG.TANKS) return 'Tanks';
-  if (slug === COLLECTION_SLUG.PANTS) return 'Sweatpants';
+  if (slug === COLLECTION_SLUG.PANTS) return 'Bottomwear';
   if (slug === COLLECTION_SLUG.HOODIES) return 'Hoodies';
-  
-  return mobile ? 'View all' : 'Short Sleeve T-Shirts';
+
+  return mobile ? 'View all' : 'All Products';
 }
 
 /** Slugs a chip requires membership in (OR). Empty = show all products. */

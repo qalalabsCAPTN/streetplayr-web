@@ -22,6 +22,7 @@ import {
   COLLECTION_SLUG,
 } from '@/lib/products/collections';
 import type { CatalogProduct } from '@/lib/products/queries';
+import { sortApparelSizes } from '@/lib/products/sizes';
 
 const MOBILE_MQ = '(max-width: 900px)';
 
@@ -231,17 +232,9 @@ function CollectionsInner() {
       });
     });
     if (sizes.size === 0) {
-      return ["XS", "S", "M", "L", "XL", "2XL"];
+      return ["XS", "S", "M", "L", "XL"];
     }
-    const standardOrder = ["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL"];
-    return Array.from(sizes).sort((a, b) => {
-      const idxA = standardOrder.indexOf(a);
-      const idxB = standardOrder.indexOf(b);
-      if (idxA !== -1 && idxB !== -1) return idxA - idxB;
-      if (idxA !== -1) return -1;
-      if (idxB !== -1) return 1;
-      return a.localeCompare(b);
-    });
+    return sortApparelSizes(Array.from(sizes));
   }, [collectionFilteredProducts]);
 
   const allAvailableTypes = useMemo(() => {
@@ -252,19 +245,18 @@ function CollectionsInner() {
         types.add(cat);
       } else {
         p.collections?.forEach(c => {
-          if (c === 'tees') types.add('T-shirts');
+          if (c === 'tees') types.add('Topwear');
           else if (c === 'long-sleeve') types.add('Long Sleeve');
           else if (c === 'tanks') types.add('Tanks');
           else if (c === 'pants') {
-            if (p.slug.includes('carp')) types.add('Pants');
-            else types.add('Sweatpants');
+            types.add('Bottomwear');
           }
           else if (c === 'hoodies') types.add('Hoodies');
         });
       }
     });
     if (types.size === 0) {
-      return ['T-shirts', 'Long Sleeve', 'Tanks', 'Pants', 'Sweatpants', 'Hoodies'];
+      return ['Topwear', 'Long Sleeve', 'Tanks', 'Bottomwear', 'Sweatpants', 'Hoodies'];
     }
     // Capitalize properly
     return Array.from(types).map(t => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase());
@@ -288,12 +280,11 @@ function CollectionsInner() {
         if (!matches) {
           p.collections?.forEach(c => {
             let colName = '';
-            if (c === 'tees') colName = 'T-shirts';
+            if (c === 'tees') colName = 'Topwear';
             else if (c === 'long-sleeve') colName = 'Long Sleeve';
             else if (c === 'tanks') colName = 'Tanks';
             else if (c === 'pants') {
-              if (p.slug.includes('carp')) colName = 'Pants';
-              else colName = 'Sweatpants';
+              colName = 'Bottomwear';
             }
             else if (c === 'hoodies') colName = 'Hoodies';
             
@@ -340,6 +331,7 @@ function CollectionsInner() {
 
   const heroImage = useMemo(() => {
     switch (activeChip) {
+      case 'Topwear':
       case 'Short Sleeve T-Shirts':
         return '/assets/empty_centre.jpg';
       case 'Long Sleeve T-Shirts':
@@ -358,6 +350,7 @@ function CollectionsInner() {
 
   const heroDescription = useMemo(() => {
     switch (activeChip) {
+      case 'Topwear':
       case 'Short Sleeve T-Shirts':
         return 'Heavyweight structural t-shirts. Engineered for daily wear.';
       case 'Long Sleeve T-Shirts':
@@ -370,7 +363,7 @@ function CollectionsInner() {
       case 'View all':
       case 'All Products':
       default:
-        return 'Explore the complete StreetPlayR collection.';
+        return 'Explore the complete StreetplayR collection.';
     }
   }, [activeChip]);
 
@@ -487,8 +480,8 @@ function CollectionsInner() {
                 ))}
               </div>
               <div className="collections-discover">
-                <Link href="/collections?category=all" className="pill pill--ghost">
-                  Discover more
+                <Link href="/home" className="pill pill--ghost">
+                  Back to home
                 </Link>
               </div>
             </>

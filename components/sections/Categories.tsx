@@ -27,8 +27,8 @@ const categories = [
     image: "/assets/products/stick-no-bills/image-1.jpg",
   },
   {
-    name: "Pants",
-    href: "/collections?category=pants",
+    name: "Bottomwear",
+    href: "/collections?category=bottomwear",
     image: "/assets/products/carpenter-grey/image-1.jpg",
   },
 ];
@@ -70,7 +70,7 @@ export default function Categories() {
               <Link className="block" href={category.href}>
                 <div className="relative aspect-[4/5]">
                   <Image
-                    alt={`Street PlayR ${category.name} category`}
+                    alt={`StreetplayR ${category.name} category`}
                     className="h-full w-full object-cover opacity-[0.72] transition duration-500 group-hover:scale-105 group-hover:opacity-90"
                     fill
                     sizes="(min-width: 1024px) 20vw, 72vw"

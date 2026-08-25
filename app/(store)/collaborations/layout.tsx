@@ -3,7 +3,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
 export const metadata: Metadata = {
-  title: "Collaborations — Street PlayR",
+  title: "Collaborations — StreetplayR",
   description: "Partner with playR on limited drops, artist collabs, and brand collaborations.",
 };
 

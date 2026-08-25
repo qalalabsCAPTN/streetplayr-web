@@ -32,11 +32,15 @@ export default function LazyVideo({
 }: LazyVideoProps) {
   const ref = useRef<HTMLVideoElement>(null);
   const [active, setActive] = useState(false);
+  const [inView, setInView] = useState(false);
 
   useEffect(() => {
     const el = ref.current;
     if (!el || typeof IntersectionObserver === 'undefined') {
-      const t = setTimeout(() => setActive(true), deferMs);
+      const t = setTimeout(() => {
+        setActive(true);
+        setInView(true);
+      }, deferMs);
       return () => clearTimeout(t);
     }
 
@@ -44,8 +48,14 @@ export default function LazyVideo({
     const io = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          delayTimer = setTimeout(() => setActive(true), deferMs);
-          io.disconnect();
+          delayTimer = setTimeout(() => {
+            setActive(true);
+            setInView(true);
+          }, deferMs);
+        } else {
+          if (delayTimer) clearTimeout(delayTimer);
+          setInView(false);
+          el.pause();
         }
       },
       { rootMargin, threshold: 0.01 }
@@ -61,10 +71,33 @@ export default function LazyVideo({
   useEffect(() => {
     const el = ref.current;
     if (!el || !active || !autoPlay) return;
-    el.play().catch(() => {
-      /* autoplay may be blocked; muted+playsInline usually ok */
-    });
-  }, [active, autoPlay]);
+    if (!inView) {
+      el.pause();
+      return;
+    }
+    const play = () => {
+      el.play().catch(() => {
+        /* autoplay may be blocked; muted+playsInline usually ok */
+      });
+    };
+    play();
+    const onEnded = () => {
+      el.currentTime = 0;
+      play();
+    };
+    el.addEventListener('ended', onEnded);
+    return () => el.removeEventListener('ended', onEnded);
+  }, [active, autoPlay, inView]);
+
+  useEffect(() => {
+    const el = ref.current;
+    return () => {
+      if (!el) return;
+      el.pause();
+      el.removeAttribute('src');
+      el.load();
+    };
+  }, [src]);
 
   return (
     <video

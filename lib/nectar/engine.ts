@@ -81,6 +81,50 @@ export async function awardSPRR(
 }
 
 /**
+ * Deduct member credits once per order. Idempotent on source string.
+ */
+export async function redeemSPRR(userId: string, amount: number, source: string): Promise<boolean> {
+  if (amount <= 0) return true;
+  const admin = createAdminClient();
+  const { data: existing } = await admin
+    .from('wallet_transactions')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('source', source)
+    .eq('type', 'redemption')
+    .maybeSingle();
+  if (existing) return true;
+
+  const { data: profile } = await admin.from('profiles').select('sprr_balance').eq('id', userId).single();
+  const currentSprr = profile?.sprr_balance ?? 0;
+  if (currentSprr < amount) return false;
+  await admin.from('profiles').update({ sprr_balance: currentSprr - amount }).eq('id', userId);
+  await admin.from('wallet_transactions').insert({
+    user_id: userId,
+    type: 'redemption',
+    delta: -amount,
+    source,
+  });
+  return true;
+}
+
+/**
+ * Restore credits after cancelled/refunded payment. Idempotent on source string.
+ */
+export async function refundSPRR(userId: string, amount: number, source: string): Promise<void> {
+  if (amount <= 0) return;
+  const admin = createAdminClient();
+  const { data: existing } = await admin
+    .from('wallet_transactions')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('source', source)
+    .maybeSingle();
+  if (existing) return;
+  await awardSPRR(userId, amount, source, 'adjustment');
+}
+
+/**
  * Get active bonus campaigns.
  */
 export async function getActiveCampaigns() {

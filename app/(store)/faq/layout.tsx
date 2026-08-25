@@ -3,7 +3,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
 export const metadata: Metadata = {
-  title: "FAQs — Street PlayR",
+  title: "FAQs — StreetplayR",
   description: "Answers to common questions about shipping, returns, sizing, and orders.",
 };
 

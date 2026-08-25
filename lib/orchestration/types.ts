@@ -77,6 +77,13 @@ export interface OrderItem {
 
 // ─── Payment ──────────────────────────────────────────────────────────────
 
+// Kept as-is deliberately: this is the canonical, provider-neutral event
+// vocabulary the whole orchestration layer already speaks (matches the live
+// `payment_event_type` DB enum exactly). The "payment_intent."/"charge."
+// prefixes read as Stripe-flavored naming but the values themselves are the
+// shared contract every provider's webhook adapter maps into — renaming
+// them would mean an `ALTER TYPE ... RENAME VALUE` on the live enum, which
+// is a live DB change out of scope for this pass (see audit report).
 export type PaymentEventType =
   | 'payment_intent.created'
   | 'payment_intent.processing'
@@ -88,12 +95,25 @@ export type PaymentEventType =
   | 'charge.disputed'
   | 'charge.refund.updated';
 
+// Gateways that plug into this orchestration layer via a webhook adapter.
+// 'stripe' is a currently-inactive/orphaned adapter (no checkout flow
+// creates a Stripe PaymentIntent anywhere in this app) kept only because
+// its webhook route still exists; 'easebuzz' is the active provider.
+export type PaymentProvider = 'stripe' | 'easebuzz';
+
 export interface PaymentEvent {
   id: string;
   orderId: string;
   eventType: PaymentEventType;
-  stripeEventId?: string;
-  stripePaymentIntentId?: string;
+  provider?: PaymentProvider;
+  /** Provider-issued event identifier (Stripe's `event.id`, or an
+   *  app-constructed `easebuzz:{txnid}:{eventType}` key). Physically still
+   *  stored in the `stripe_event_id` DB column pending the provider-neutral
+   *  rename migration proposed in the audit — see lib/orchestration/payment.ts. */
+  providerEventId?: string;
+  /** Provider-issued transaction identifier (Stripe PaymentIntent id, or
+   *  Easebuzz `txnid`). Physically still stored in `stripe_payment_intent_id`. */
+  providerTransactionId?: string;
   amount: number;
   currency: string;
   rawPayload?: Record<string, unknown>;

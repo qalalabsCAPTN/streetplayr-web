@@ -27,7 +27,7 @@ export default function RefundPolicyPage() {
 
         <div className="legal-section">
           <h2>4. Process Duration</h2>
-          <p>Once returned items are received and cleared by our warehouse, exchanges or credit adjustments will be processed within 5-7 business days. Points earned on returned items in your NECTAR wallet will be adjusted accordingly.</p>
+          <p>Once returned items are received and cleared by our warehouse, exchanges or credit adjustments will be processed within 5-7 business days. Member Credits earned on returned items will be adjusted accordingly.</p>
         </div>
 
         <LegalContact title="5. Contact Us" />

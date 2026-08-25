@@ -5,8 +5,8 @@ import Footer from '@/components/layout/Footer';
 import ProfileShell from './ProfileShell';
 
 export const metadata: Metadata = {
-  title: 'My Profile | Street PlayR',
-  description: 'Your Street PlayR membership identity, wallet, and orders.',
+  title: 'My Profile | StreetplayR',
+  description: 'Your StreetplayR membership identity, wallet, and orders.',
 };
 
 export default function ProfileLayout({

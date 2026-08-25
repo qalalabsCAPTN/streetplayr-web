@@ -7,6 +7,8 @@ import { recordEvent } from '@/lib/orchestration/events';
 import type { OrchestrationResponse } from '@/lib/orchestration/types';
 
 import { resolveStorefrontBrandId } from '@/lib/products/brand';
+import { maxRedeemableCredits, payableAfterCredits } from '@/lib/loyalty/redemption';
+import { isRemovedApparelSize } from '@/lib/products/sizes';
 
 const DEMO_MODE = process.env.DEMO_INVENTORY_MODE === 'true';
 const ORG_ID = '00000000-0000-0000-0000-000000000001';
@@ -79,7 +81,8 @@ async function resolveCustomerId(admin: any, userId: string, email?: string): Pr
 export async function initiateCheckoutAction(
   items: CheckoutItem[],
   shippingAddress: CheckoutAddress,
-  paymentIntentId?: string
+  paymentIntentId?: string,
+  creditsToApply = 0
 ): Promise<OrchestrationResponse<CheckoutResult>> {
   try {
     const supabase = await createClient();
@@ -96,7 +99,7 @@ export async function initiateCheckoutAction(
     for (const item of items) {
       const { data: variant } = await admin
         .from('product_variants')
-        .select('price, product_id')
+        .select('price, product_id, title, attributes')
         .eq('id', item.variantId)
         .single();
 
@@ -110,6 +113,16 @@ export async function initiateCheckoutAction(
           continue;
         }
         return { success: false, error: `Variant ${item.variantId} not found.`, code: 'VARIANT_NOT_FOUND' };
+      }
+
+      const sizeLabel =
+        (variant.attributes as { size?: string } | null)?.size || variant.title || '';
+      if (isRemovedApparelSize(sizeLabel)) {
+        return {
+          success: false,
+          error: 'Selected size is not available.',
+          code: 'SIZE_UNAVAILABLE',
+        };
       }
 
       const available = await getAvailableInventory(item.variantId);
@@ -140,7 +153,27 @@ export async function initiateCheckoutAction(
     const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
     const shipping = shippingAddress.shippingCost ?? 0;
     const tax = shippingAddress.taxAmount ?? 0;
-    const grandTotal = subtotal + shipping + tax;
+
+    let creditsApplied = 0;
+    let balanceAfter = 0;
+    try {
+      const { data: walletProfile } = await admin
+        .from('profiles')
+        .select('sprr_balance')
+        .eq('id', user.id)
+        .maybeSingle();
+      const balance = typeof walletProfile?.sprr_balance === 'number' ? walletProfile.sprr_balance : 0;
+      creditsApplied = Math.min(
+        Math.max(0, Math.floor(creditsToApply)),
+        maxRedeemableCredits(balance, subtotal)
+      );
+      balanceAfter = balance - creditsApplied;
+    } catch {
+      creditsApplied = 0;
+    }
+
+    const discountedSubtotal = payableAfterCredits(subtotal, creditsApplied);
+    const grandTotal = discountedSubtotal + shipping + tax;
     const orderNumber = `DEMO-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
 
     const brandId = await resolveStorefrontBrandId(admin);
@@ -151,13 +184,17 @@ export async function initiateCheckoutAction(
         brand_id: brandId,
         order_number: orderNumber,
         customer_id: customerId,
+        // 'pending' is the live orders_status_check-valid value — see
+        // lib/orchestration/order.ts VALID_TRANSITIONS comment. Do NOT
+        // change to 'pending_payment' without re-verifying the live DB;
+        // that value does not exist in the live CHECK constraint.
         status: 'pending',
         fulfillment_status: 'unfulfilled',
         payment_status: 'pending',
         subtotal,
         shipping_total: shipping,
         tax_total: tax,
-        discount_total: 0,
+        discount_total: creditsApplied,
         grand_total: grandTotal,
         currency: 'INR',
         source: 'streetplayr',

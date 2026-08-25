@@ -3,8 +3,8 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
 export const metadata: Metadata = {
-  title: "Exchanges — Street PlayR",
-  description: "Exchange window, process, and support for Street PlayR orders.",
+  title: "Exchanges — StreetplayR",
+  description: "Exchange window, process, and support for StreetplayR orders.",
 };
 
 export default function ExchangesLayout({

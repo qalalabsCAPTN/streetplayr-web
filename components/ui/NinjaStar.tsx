@@ -770,7 +770,8 @@ function CompassStar({
     // Scroll-driven 3D rotation, tilt, and depth translation
     // Only run if star is visible (on-screen). Skip expensive transforms when scrolled out.
     if (scrollReactive && scrollRef.current && isVisible && typeof window !== "undefined") {
-      const scrollY = (window as any).__scrollDampingY !== undefined ? (window as any).__scrollDampingY : 0;
+      const damped = (window as unknown as { __scrollDampingY?: number }).__scrollDampingY;
+      const scrollY = typeof damped === "number" ? damped : window.scrollY || window.pageYOffset || 0;
 
       const targetScrollRotY = scrollY * 0.0015;
       const targetScrollRotX = scrollY * 0.0008;

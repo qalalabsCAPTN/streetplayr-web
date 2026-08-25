@@ -47,9 +47,20 @@ export const AuthService = {
     const fetchProfile = async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, email, full_name, avatar_url, role, created_at')
+        .select('id, email, full_name, avatar_url, role, created_at, sprr_balance')
         .eq('id', session.user.id)
         .single();
+
+      if (error && /sprr_balance/i.test(error.message)) {
+        debug('sprr_balance column missing — retrying without it');
+        const retry = await supabase
+          .from('profiles')
+          .select('id, email, full_name, avatar_url, role, created_at')
+          .eq('id', session.user.id)
+          .single();
+        if (retry.error) debug('profile fetch error:', retry.error.message);
+        return retry.data;
+      }
 
       if (error) debug('profile fetch error:', error.message);
       return data;
@@ -118,7 +129,9 @@ export const AuthService = {
       authProvider: (session.user.app_metadata?.provider as any) || 'google',
       isOnboarded: false,
       memberSince: profile.created_at,
-      sprrBalance: 0,
+      sprrBalance: typeof (profile as { sprr_balance?: number }).sprr_balance === 'number'
+        ? (profile as { sprr_balance?: number }).sprr_balance!
+        : 0,
       role: (profile.role as UserRole) || 'member',
     };
   },

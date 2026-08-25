@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Journal — Street PlayR | Field Notes",
+  title: "Journal — StreetplayR | Field Notes",
   description:
-    "Field notes from Street PlayR. Not documentation. Culture in motion. Archive of intent.",
+    "Field notes from StreetplayR. Not documentation. Culture in motion. Archive of intent.",
 };
 
 export default function JournalLayout({

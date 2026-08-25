@@ -82,7 +82,7 @@ export default function LaunchExperience() {
               className="text-center"
             >
               <h1 className="font-display text-6xl md:text-8xl tracking-widest uppercase mb-4">
-                Street PlayR
+                StreetplayR
               </h1>
               <p className="font-mono text-sm md:text-base tracking-[0.3em] uppercase text-gray-400 mb-12">
                 The New Standard of Streetwear

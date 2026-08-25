@@ -17,6 +17,8 @@ import {
   saveCatalogLkg,
 } from '@/lib/products/catalog-cache';
 import { resolveProductImages } from '@/lib/products/image-map';
+import { displayProductName, withClientProductCopy } from '@/lib/products/copy';
+import { isRemovedApparelSize } from '@/lib/products/sizes';
 
 function mapLocal(): CatalogProduct[] {
   if (!allowLocalCatalog()) return [];
@@ -24,15 +26,17 @@ function mapLocal(): CatalogProduct[] {
     const full = LOCAL_PRODUCTS.find((lp) => lp.id === p.id || lp.slug === p.slug);
     return {
       id: p.id,
-      name: p.name,
+      name: displayProductName(p.name),
       price: p.price,
       slug: p.slug,
       image: p.image,
       image2: full?.metadata.gallery_images?.[1],
-      description: full?.description ?? '',
+      description: withClientProductCopy(p.slug, p.name, full?.description ?? ''),
       collections: localMembershipFor(p.id, p.slug),
       createdAt: Date.now() - i * 1000,
-      variants: (full?.variants ?? []).map((v) => ({
+      variants: (full?.variants ?? [])
+        .filter((v) => !isRemovedApparelSize(v.size))
+        .map((v) => ({
         id: v.id,
         size: v.size,
         price: v.price_override ?? p.price,
@@ -135,11 +139,13 @@ export async function loadClientCatalog(): Promise<CatalogProduct[]> {
     }
 
     const mapped: CatalogProduct[] = data.map((p) => {
-      const variants = (p.product_variants ?? []).map((v: any) => ({
-        id: v.id as string,
-        size: (v.attributes?.size as string) || (v.title as string) || 'M',
-        price: v.price as number | undefined,
-      }));
+      const variants = (p.product_variants ?? [])
+        .map((v: any) => ({
+          id: v.id as string,
+          size: (v.attributes?.size as string) || (v.title as string) || 'M',
+          price: v.price as number | undefined,
+        }))
+        .filter((v: { size: string }) => !isRemovedApparelSize(v.size));
       const prices = variants.map((v) => v.price).filter(Boolean) as number[];
       const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
       const collections = resolveMembership(p.id, p.slug, membership.get(p.id) || []);
@@ -160,15 +166,18 @@ export async function loadClientCatalog(): Promise<CatalogProduct[]> {
       const image2 = images?.gallery?.[1] || galleryMeta?.[1] || featured;
       return {
         id: p.id,
-        name: p.title,
+        name: displayProductName(p.title),
         price: minPrice,
         slug: p.slug,
         image: featured,
         image2,
-        description:
+        description: withClientProductCopy(
+          p.slug,
+          p.title,
           (typeof p.description === 'string' && p.description) ||
-          (typeof meta.description === 'string' ? meta.description : '') ||
-          '',
+            (typeof meta.description === 'string' ? meta.description : '') ||
+            ''
+        ),
         collections,
         createdAt: p.created_at ? Date.parse(p.created_at) : 0,
         variants,

@@ -3,8 +3,8 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
 export const metadata: Metadata = {
-  title: "Shipping Policy — Street PlayR",
-  description: "Shipping timelines, carrier options, and tracking details for Street PlayR members.",
+  title: "Shipping Policy — StreetplayR",
+  description: "Shipping timelines, carrier options, and tracking details for StreetplayR members.",
 };
 
 export default function ShippingPolicyLayout({

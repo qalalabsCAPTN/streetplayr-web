@@ -12,6 +12,8 @@ export interface LocalProduct {
     colors: { id: string; name: string; hex: string; images?: string[] }[];
     /** Path to GLB file in /public/models/ — enables "View in 3D" button on PDP */
     model3d?: string;
+    /** Search tags for storefront search */
+    tags?: string[];
     category?: string;
     latest_drop?: boolean;
   };
@@ -27,7 +29,7 @@ export interface LocalProduct {
 const GALLERY_IMAGES = (slug: string) =>
   [1, 2, 3, 4, 5].map((n) => `/assets/products/${slug}/image-${n}.webp`);
 
-const ALL_SIZES = ["XS", "S", "M", "L", "XL", "2XL"];
+const ALL_SIZES = ["XS", "S", "M", "L", "XL"];
 const TANK_SIZES = ["S", "M", "L", "XL"];
 
 function buildVariants(slug: string, sizes = ALL_SIZES, baseStock = 25) {
@@ -45,13 +47,14 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
     id: "PS-TEE-CRT-WHT",
     name: "playR Street Create Waffle Tee (White)",
     price: 1999,
-    description: "Crafted from textured waffle-knit fabric with a relaxed fit and full-length sleeves in classic white.",
+    description: "Crafted from 220 GSM lightweight waffle-knit fabric with a relaxed fit and full-length sleeves in classic white.",
     image_url: `/assets/products/ctt-waffle/image-1.webp`,
     slug: "PS-TEE-CRT-WHT",
     category: { name: "TEES" },
     metadata: {
       points: "300",
       category: "TEES",
+      tags: ["waffle", "220 GSM", "tee", "topwear"],
       gallery_images: GALLERY_IMAGES("ctt-waffle"),
       colors: [
         { id: "white", name: "White", hex: "#f5f5f0", images: GALLERY_IMAGES("ctt-waffle") },
@@ -64,13 +67,14 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
     id: "PS-TEE-CRT-RED",
     name: "playR Street Create Waffle Tee (Red)",
     price: 1999,
-    description: "Crafted from textured waffle-knit fabric with a relaxed fit and full-length sleeves in premium maroon red.",
+    description: "Crafted from 220 GSM lightweight waffle-knit fabric with a relaxed fit and full-length sleeves in premium maroon red.",
     image_url: `/assets/products/ctt-maroon/image-1.webp`,
     slug: "PS-TEE-CRT-RED",
     category: { name: "TEES" },
     metadata: {
       points: "300",
       category: "TEES",
+      tags: ["waffle", "220 GSM", "tee", "topwear"],
       gallery_images: GALLERY_IMAGES("ctt-maroon"),
       colors: [
         { id: "red", name: "Red", hex: "#6b1c2a", images: GALLERY_IMAGES("ctt-maroon") },
@@ -175,9 +179,9 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
   },
   {
     id: "PS-PNT-CARP-GRY",
-    name: "playR Street Carpenter Pant Fleece 350GSM (Grey)",
+    name: "playR Street Carpenter Pant Fleece (Grey)",
     price: 3699,
-    description: "Crafted from premium heavyweight fabric, the playR Carpenter Pants are designed for everyday comfort with a clean, timeless silhouette. Featuring a relaxed fit, subtle carpenter-inspired detailing, and a discreet side pocket for quick access to your phone or everyday essentials, they balance functionality with effortless style. Minimal, durable, and versatile, they're built to pair seamlessly with any outfit.",
+    description: "Crafted from premium heavyweight fabric (350 GSM fleece), the playR Carpenter Pants are designed for everyday comfort with a clean, timeless silhouette. Featuring a relaxed fit, subtle carpenter-inspired detailing, and a discreet side pocket for quick access to your phone or everyday essentials, they balance functionality with effortless style. Minimal, durable, and versatile, they're built to pair seamlessly with any outfit.",
     image_url: `/assets/products/carpenter-grey/image-1.webp`,
     slug: "PS-PNT-CARP-GRY",
     category: { name: "SWEATPANTS" },
@@ -193,9 +197,9 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
   },
   {
     id: "PS-PNT-CARP-GRN",
-    name: "playR Street Carpenter Pant Fleece 350GSM (Green)",
+    name: "playR Street Carpenter Pant Fleece (Green)",
     price: 3699,
-    description: "Crafted from premium heavyweight fabric, the playR Carpenter Pants are designed for everyday comfort with a clean, timeless silhouette. Featuring a relaxed fit, subtle carpenter-inspired detailing, and a discreet side pocket for quick access to your phone or everyday essentials, they balance functionality with effortless style. Minimal, durable, and versatile, they're built to pair seamlessly with any outfit in a dark green olive colorway.",
+    description: "Crafted from premium heavyweight fabric (350 GSM fleece), the playR Carpenter Pants are designed for everyday comfort with a clean, timeless silhouette. Featuring a relaxed fit, subtle carpenter-inspired detailing, and a discreet side pocket for quick access to your phone or everyday essentials, they balance functionality with effortless style. Minimal, durable, and versatile, they're built to pair seamlessly with any outfit in a dark green olive colorway.",
     image_url: `/assets/products/carpenter-olive/image-1.webp`,
     slug: "PS-PNT-CARP-GRN",
     category: { name: "SWEATPANTS" },
@@ -220,6 +224,7 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
     metadata: {
       points: "300",
       category: "TEES",
+      tags: ["tee", "topwear", "warrior"],
       gallery_images: GALLERY_IMAGES("brown-warrior"),
       colors: [
         { id: "brown", name: "Brown", hex: "#5c3a2e", images: GALLERY_IMAGES("brown-warrior") },
@@ -239,6 +244,7 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
     metadata: {
       points: "300",
       category: "TEES",
+      tags: ["tee", "topwear", "warrior"],
       gallery_images: [1, 2, 3, 4, 5].map((n) => `/assets/products/black-warrior/image-${n}.jpg`),
       colors: [
         { id: "black", name: "Black", hex: "#000000", images: [1, 2, 3, 4, 5].map((n) => `/assets/products/black-warrior/image-${n}.jpg`) },

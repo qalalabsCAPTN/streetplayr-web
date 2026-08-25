@@ -1,14 +1,14 @@
 'use server';
 
-import crypto from 'crypto';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
+import { resolveStorefrontBrandId } from '@/lib/products/brand';
 import { recordEvent } from '@/lib/orchestration/events';
 import type { OrchestrationResponse } from '@/lib/orchestration/types';
+import { getEasebuzzCredentials, initiatePayment } from '@/lib/easebuzz/client';
 
 export interface EasebuzzInitiateParams {
   orderId: string;
-  amount: number;
   customerName: string;
   customerEmail: string;
   customerPhone: string;
@@ -20,25 +20,11 @@ export interface EasebuzzInitiateResult {
 }
 
 /**
- * Generates SHA-512 Hash for Easebuzz API initiation
- * Format: key|txnid|amount|productinfo|firstname|email|udf1|udf2|udf3|udf4|udf5|udf6|udf7|udf8|udf9|udf10|salt
- */
-function generateEasebuzzHash(
-  key: string,
-  txnid: string,
-  amount: string,
-  productinfo: string,
-  firstname: string,
-  email: string,
-  udf1: string,
-  salt: string
-): string {
-  const hashString = `${key}|${txnid}|${amount}|${productinfo}|${firstname}|${email}|${udf1}||||||||||${salt}`;
-  return crypto.createHash('sha512').update(hashString).digest('hex');
-}
-
-/**
- * Initiates Easebuzz payment session for an order
+ * Initiates an Easebuzz payment session for an order.
+ *
+ * SECURITY: the charged amount is always derived from the order row in the
+ * DB (server-authoritative), never from client input — a tampered client
+ * amount can never change what Easebuzz is asked to collect.
  */
 export async function createEasebuzzPaymentAction(
   params: EasebuzzInitiateParams
@@ -48,11 +34,8 @@ export async function createEasebuzzPaymentAction(
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { success: false, error: 'Not authenticated.', code: 'UNAUTHORIZED' };
 
-    const merchantKey = process.env.EASEBUZZ_MERCHANT_KEY;
-    const salt = process.env.EASEBUZZ_SALT;
-    const env = process.env.EASEBUZZ_ENV || 'test'; // 'test' or 'prod'
-
-    if (!merchantKey || !salt) {
+    const creds = getEasebuzzCredentials();
+    if (!creds) {
       return {
         success: false,
         error: 'Easebuzz payment gateway is not configured. Missing EASEBUZZ_MERCHANT_KEY or EASEBUZZ_SALT.',
@@ -61,11 +44,14 @@ export async function createEasebuzzPaymentAction(
     }
 
     const admin = createAdminClient();
+    const brandId = await resolveStorefrontBrandId(admin);
+    const { data: customer } = user.email
+      ? await admin.from('customers').select('id').eq('email', user.email).eq('brand_id', brandId).maybeSingle()
+      : { data: null };
 
-    // Verify order
     const { data: order } = await admin
       .from('orders')
-      .select('id, order_number, grand_total, status')
+      .select('id, order_number, grand_total, status, customer_id, notes')
       .eq('id', params.orderId)
       .single();
 
@@ -73,33 +59,45 @@ export async function createEasebuzzPaymentAction(
       return { success: false, error: 'Order not found.', code: 'ORDER_NOT_FOUND' };
     }
 
-    const txnid = order.order_number || `TXN-${Date.now()}`;
-    const amountStr = params.amount.toFixed(2);
-    const productInfo = 'Streetplayr Order';
-    const udf1 = params.orderId;
-    const firstname = params.customerName.split(' ')[0] || 'Customer';
+    const isOwner =
+      (customer && order.customer_id === customer.id) || order.notes === user.id;
+    if (!isOwner) {
+      return { success: false, error: 'Order does not belong to user.', code: 'UNAUTHORIZED_ORDER' };
+    }
 
-    const hash = generateEasebuzzHash(
-      merchantKey,
-      txnid,
-      amountStr,
-      productInfo,
-      firstname,
-      params.customerEmail,
-      udf1,
-      salt
-    );
+    if (order.status !== 'pending') {
+      return {
+        success: false,
+        error: `Order is not payable in its current state (${order.status}).`,
+        code: 'ORDER_NOT_PAYABLE',
+      };
+    }
+
+    if (!order.grand_total || order.grand_total <= 0) {
+      return { success: false, error: 'Order has no payable amount.', code: 'INVALID_AMOUNT' };
+    }
+
+    // Official txnid max length 40: /^[a-zA-Z0-9_|\-\/]{1,40}$/
+    const rawTxn =
+      `${(order.order_number || order.id.slice(0, 8)).replace(/[^a-zA-Z0-9_|/-]/g, '')}-${Date.now().toString(36).toUpperCase()}`;
+    const txnid = rawTxn.slice(0, 40);
+    const amountStr = Number(order.grand_total).toFixed(2);
+    if (Number.parseFloat(amountStr) < 1) {
+      return {
+        success: false,
+        error: 'Easebuzz requires amount >= 1.00 INR.',
+        code: 'INVALID_AMOUNT',
+      };
+    }
+    const productInfo = 'StreetplayR Order';
+    const udf1 = order.id;
+    const firstname = (params.customerName || 'Customer').trim().split(' ')[0] || 'Customer';
 
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://streetplayr.com';
     const surl = `${baseUrl}/api/webhooks/easebuzz`;
-    const furl = `${baseUrl}/checkout?error=payment_failed`;
+    const furl = `${baseUrl}/api/webhooks/easebuzz`;
 
-    const easebuzzHost = env === 'prod' 
-      ? 'https://pay.easebuzz.in' 
-      : 'https://testpay.easebuzz.in';
-
-    const payload = new URLSearchParams({
-      key: merchantKey,
+    const result = await initiatePayment(creds, {
       txnid,
       amount: amountStr,
       productinfo: productInfo,
@@ -108,33 +106,37 @@ export async function createEasebuzzPaymentAction(
       phone: params.customerPhone,
       surl,
       furl,
-      hash,
       udf1,
     });
 
-    const response = await fetch(`${easebuzzHost}/payment/initiateLink`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: payload.toString(),
-    });
-
-    const data = await response.json();
-
-    if (data.status !== 1 || !data.data) {
+    if (!result.success) {
+      await recordEvent({
+        domain: 'payment',
+        severity: 'warning',
+        action: result.error.includes('timeout') || result.error.includes('unreachable')
+          ? 'easebuzz.gateway_unreachable'
+          : 'easebuzz.initiation_rejected',
+        actorId: user.id,
+        resourceType: 'orders',
+        resourceId: params.orderId,
+        message: `Easebuzz payment initiation failed for order ${params.orderId}`,
+        metadata: { txnid, reason: result.error },
+      });
       return {
         success: false,
-        error: data.error_desc || 'Failed to initiate Easebuzz payment session.',
-        code: 'EASEBUZZ_INIT_FAILED',
+        error:
+          result.error.includes('timeout') || result.error.includes('unreachable')
+            ? 'Payment gateway is temporarily unavailable. Please try again.'
+            : result.error || 'Failed to initiate Easebuzz payment session.',
+        code: result.error.includes('timeout') || result.error.includes('unreachable')
+          ? 'GATEWAY_UNAVAILABLE'
+          : 'EASEBUZZ_INIT_FAILED',
       };
     }
 
-    // Link transaction ID to order
     await admin
       .from('orders')
-      .update({
-        payment_intent_id: txnid,
-        status: 'pending_payment',
-      })
+      .update({ payment_intent_id: txnid })
       .eq('id', params.orderId);
 
     await recordEvent({
@@ -145,17 +147,12 @@ export async function createEasebuzzPaymentAction(
       resourceType: 'orders',
       resourceId: params.orderId,
       message: `Easebuzz payment session initiated for order ${params.orderId}`,
-      metadata: { txnid, amount: params.amount },
+      metadata: { txnid, amount: order.grand_total },
     });
 
-    return {
-      success: true,
-      data: {
-        accessKey: data.data,
-        paymentUrl: `${easebuzzHost}/pay/${data.data}`,
-      },
-    };
-  } catch (e: any) {
-    return { success: false, error: e.message || 'Easebuzz initialization error', code: 'EASEBUZZ_ERROR' };
+    return { success: true, data: result.data };
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : 'Easebuzz initialization error';
+    return { success: false, error: message, code: 'EASEBUZZ_ERROR' };
   }
 }

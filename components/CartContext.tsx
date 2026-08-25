@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useMemo, useState, useCallback, useEffect } from 'react';
 import { useCartStore, CartItem as ZustandCartItem } from '@/store/cartStore';
+import { isRemovedApparelSize } from '@/lib/products/sizes';
 
 const CartCtx = createContext<any>(null);
 
@@ -48,6 +49,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (!product?.variantId) {
       console.warn('[Cart] Rejected add-to-cart without variant UUID');
       setToast('Unable to add — missing variant');
+      setTimeout(() => setToast(''), 2400);
+      return;
+    }
+    if (isRemovedApparelSize(size)) {
+      setToast('Selected size is not available');
       setTimeout(() => setToast(''), 2400);
       return;
     }

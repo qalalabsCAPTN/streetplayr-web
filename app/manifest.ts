@@ -2,18 +2,25 @@ import { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Street PlayR',
-    short_name: 'StreetPlayR',
-    description: 'Street PlayR - Enter The Play. Exclusive drops, luxury streetwear membership.',
-    start_url: '/',
+    name: 'STREET playR',
+    short_name: 'STREET playR',
+    description: 'StreetplayR - Enter The Play. Exclusive drops, luxury streetwear membership.',
+    start_url: '/home',
     display: 'standalone',
     background_color: '#16111b',
-    theme_color: '#ddb7ff',
+    theme_color: '#16111b',
     icons: [
       {
-        src: '/favicon.ico',
-        sizes: 'any',
-        type: 'image/x-icon',
+        src: '/playR.street logo.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'any',
+      },
+      {
+        src: '/playR.street logo.png',
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'maskable',
       },
     ],
   };

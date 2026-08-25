@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import { isRemovedApparelSize } from '@/lib/products/sizes';
 
 // SSR-safe storage — no localStorage access during server-side render/build
 const ssrSafeStorage = createJSONStorage(() => {
@@ -51,6 +52,7 @@ export const useCartStore = create<CartState>()(
       error: null,
 
       addItem: (newItem) => {
+        if (isRemovedApparelSize(newItem.size)) return;
         set((state) => {
           const existingItemIndex = state.items.findIndex((item) => item.id === newItem.id);
           let updatedItems;
@@ -89,7 +91,7 @@ export const useCartStore = create<CartState>()(
       },
 
       hydrateItems: (items) => {
-        set({ items, error: null });
+        set({ items: items.filter((item) => !isRemovedApparelSize(item.size)), error: null });
       },
 
       _scheduleSync: () => {
@@ -128,8 +130,9 @@ export const useCartStore = create<CartState>()(
             return;
           }
           const localMap = new Map(currentItems.map((i) => [i.id, i]));
-          const merged: CartItem[] = [...currentItems];
+          const merged: CartItem[] = [...currentItems].filter((i) => !isRemovedApparelSize(i.size));
           for (const dbItem of dbItems) {
+            if (isRemovedApparelSize(dbItem.size)) continue;
             if (!localMap.has(dbItem.id)) {
               merged.push(dbItem);
             }
@@ -152,6 +155,13 @@ export const useCartStore = create<CartState>()(
     {
       name: 'streetplayr-cart',
       storage: ssrSafeStorage,
+      merge: (persisted, current) => {
+        const incoming = (persisted as Partial<CartState> | undefined) ?? {};
+        const items = (incoming.items ?? current.items).filter(
+          (item) => !isRemovedApparelSize(item.size)
+        );
+        return { ...current, ...incoming, items };
+      },
     }
   )
 );

@@ -6,6 +6,7 @@ import Image from "next/image";
 import { motion, useInView } from "framer-motion";
 import { animationController } from "@/lib/AnimationController";
 import { LOOKBOOK_SYNC } from "@/lib/lookbook/lookbook-sync";
+import LazyVideo from "@/components/ui/LazyVideo";
 
 const AUTOPLAY_DELAY_MS = 3500;
 const PAGE_ANIM_DURATION_MS = 750;
@@ -473,13 +474,9 @@ export default function Lookbook({
                     <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_60px_rgba(0,0,0,0.5)]" />
 
                     {item.type === "video" && (
-                      <video
+                      <LazyVideo
                         className="absolute inset-0 w-full h-full object-cover"
                         src={item.src}
-                        muted
-                        loop
-                        playsInline
-                        preload="none"
                       />
                     )}
                     {item.type === "youtube" && (

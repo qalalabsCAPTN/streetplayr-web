@@ -3,9 +3,9 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
 export const metadata: Metadata = {
-  title: "Contact Us — Street PlayR | Born From the Streets",
+  title: "Contact Us — StreetplayR | Born From the Streets",
   description:
-    "Connect with the Street PlayR team. For order support, collaborations, press, or general inquiries, access our transmission portal.",
+    "Connect with the StreetplayR team. For order support, collaborations, press, or general inquiries, access our transmission portal.",
 };
 
 export default function ContactLayout({

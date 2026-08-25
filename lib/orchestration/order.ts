@@ -2,13 +2,48 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { resolveStorefrontBrandId } from '@/lib/products/brand';
 import type { Order, OrderStatus, OrchestrationResponse } from './types';
 import { recordEvent } from './events';
+import { emitPurchaseCompleted } from '@/lib/nectar/purchase-event';
 
+/**
+ * Fires the NECTAR purchase.completed bridge event exactly once, at the
+ * pending -> confirmed transition (the real "payment succeeded, order is
+ * now real" signal in this codebase). Never throws and never blocks the
+ * order transition — a NECTAR outage must not fail a StreetPlayR order.
+ * See PURCHASE_COMPLETED_CONTRACT.md.
+ */
+function fireNectarPurchaseCompletedIfNewlyConfirmed(fromStatus: string, updatedOrder: any): void {
+  if (fromStatus !== 'pending' || updatedOrder.status !== 'confirmed') return;
+  void emitPurchaseCompleted({
+    id: updatedOrder.id,
+    customer_id: updatedOrder.customer_id ?? null,
+    grand_total: updatedOrder.grand_total ?? null,
+    currency: updatedOrder.currency ?? null,
+  }).catch((e) => {
+    console.error('[nectar] purchase.completed emit threw unexpectedly:', e);
+  });
+}
+
+// CORRECTION (verified against a live pg_dump of the actual DB, not the
+// migration files — see orders_status_check below): the migration files in
+// this repo describe an order_status ENUM with values that were never
+// actually applied to this database. The real live `orders.status` column
+// is TEXT with a CHECK constraint:
+//   orders_status_check: status = ANY (
+//     'pending','confirmed','processing','fulfilling','shipped',
+//     'delivered','cancelled','returned','refunded'
+//   )
+// A previous pass here mistakenly "fixed" this map to a draft/pending_payment/
+// on_hold vocabulary sourced from 00005/99999 — those values do not exist in
+// the live CHECK constraint and would have made every order insert/transition
+// throw once the app hit the real DB. Reverted to the live-verified vocabulary.
 const VALID_TRANSITIONS: Record<string, string[]> = {
   pending: ['confirmed', 'cancelled'],
   confirmed: ['processing', 'cancelled', 'refunded'],
-  processing: ['shipped', 'cancelled', 'refunded'],
-  shipped: ['delivered', 'refunded'],
-  delivered: ['refunded'],
+  processing: ['fulfilling', 'shipped', 'cancelled', 'refunded'],
+  fulfilling: ['shipped', 'cancelled', 'refunded'],
+  shipped: ['delivered', 'returned', 'refunded'],
+  delivered: ['returned', 'refunded'],
+  returned: ['refunded'],
   cancelled: [],
   refunded: [],
 };
@@ -116,6 +151,8 @@ export const OrderService = {
         metadata: { paymentIntentId },
       });
 
+      fireNectarPurchaseCompletedIfNewlyConfirmed('pending', updated);
+
       return { success: true, data: orderFromDb(updated) };
     } catch (e: any) {
       return { success: false, error: e.message, code: 'ORDER_TRANSITION_ERROR' };
@@ -202,9 +239,14 @@ export const OrderService = {
         };
       }
 
+      // `notes` stores the creating auth user's id (see checkout.ts) — never
+      // overwrite it with automated payment transition audit strings.
+      const notesUpdate =
+        reason && !reason.startsWith('payment:') ? reason : current.notes;
+
       const { data: updated, error } = await admin
         .from('orders')
-        .update({ status: targetStatus, notes: reason ?? current.notes })
+        .update({ status: targetStatus, notes: notesUpdate })
         .eq('id', orderId)
         .select('*')
         .single();
@@ -223,6 +265,8 @@ export const OrderService = {
         message: `Order ${current.status} -> ${targetStatus}${reason ? ': ' + reason : ''}`,
         metadata: { fromStatus: current.status, toStatus: targetStatus, reason },
       });
+
+      fireNectarPurchaseCompletedIfNewlyConfirmed(current.status, updated);
 
       return { success: true, data: orderFromDb(updated) };
     } catch (e: any) {

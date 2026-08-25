@@ -36,7 +36,7 @@ export default function Hero() {
   return (
     <section className="relative isolate flex min-h-[100dvh] overflow-hidden bg-black">
       <Image
-        alt="Street PlayR training tees lookbook"
+        alt="StreetplayR training tees lookbook"
         className="absolute inset-0 -z-20 h-full w-full scale-110 object-cover object-[62%_center] opacity-72"
         fill
         priority

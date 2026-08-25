@@ -26,6 +26,9 @@ import {
   saveCatalogLkg,
 } from '@/lib/products/catalog-cache';
 import { resolveProductImages } from '@/lib/products/image-map';
+import { withClientProductCopy, displayProductName } from '@/lib/products/copy';
+import { BEST_SELLERS_LIMIT, BEST_SELLERS_WINDOW_DAYS, bestSellersSince } from '@/lib/products/best-sellers';
+import { sortApparelSizes, isRemovedApparelSize } from '@/lib/products/sizes';
 
 export interface FeedItemData {
   id: string;
@@ -69,11 +72,18 @@ export type CatalogProduct = {
 function mapCatalogVariants(
   raw: { id: string; price?: number; title?: string; attributes?: { size?: string } }[] | null | undefined
 ): CatalogVariant[] {
-  return (raw ?? []).map((v) => ({
-    id: v.id,
-    size: v.attributes?.size || v.title || 'M',
-    price: v.price,
-  }));
+  const mapped: CatalogVariant[] = (raw ?? [])
+    .map((v) => ({
+      id: v.id,
+      size: v.attributes?.size || v.title || 'M',
+      price: v.price,
+    }))
+    .filter((v) => !isRemovedApparelSize(v.size));
+  const order = sortApparelSizes(mapped.map((v) => v.size));
+  const bySize = new Map(mapped.map((v) => [v.size.toUpperCase(), v]));
+  return order
+    .map((size) => bySize.get(size))
+    .filter((v): v is CatalogVariant => v !== undefined);
 }
 
 const EDITORIAL_ITEMS: FeedItemData[] = [
@@ -127,19 +137,21 @@ function mapLocalCatalog(): CatalogProduct[] {
     }
     return {
       id: p.id,
-      name: p.name,
+      name: displayProductName(p.name),
       price: p.price,
       slug: p.slug,
       image: p.image,
       image2: full?.metadata.gallery_images?.[1],
-      description: full?.description ?? p.description ?? '',
+      description: withClientProductCopy(p.slug, p.name, full?.description ?? p.description ?? ''),
       collections,
       createdAt: Date.now() - i * 1000,
-      variants: (full?.variants ?? []).map((v) => ({
-        id: v.id,
-        size: v.size,
-        price: v.price_override ?? p.price,
-      })),
+      variants: (full?.variants ?? [])
+        .filter((v) => !isRemovedApparelSize(v.size))
+        .map((v) => ({
+          id: v.id,
+          size: v.size,
+          price: v.price_override ?? p.price,
+        })),
       metadata: full?.metadata as Record<string, unknown> | undefined,
     };
   });
@@ -287,15 +299,18 @@ export const ProductQueries = {
 
         return {
           id: p.id,
-          name: p.title,
+          name: displayProductName(p.title),
           price: minPrice,
           slug: p.slug,
           image: featured,
           image2,
-          description:
+          description: withClientProductCopy(
+            p.slug,
+            p.title,
             (typeof p.description === 'string' && p.description) ||
-            (typeof meta.description === 'string' ? meta.description : '') ||
-            '',
+              (typeof meta.description === 'string' ? meta.description : '') ||
+              ''
+          ),
           collections,
           createdAt: p.created_at ? Date.parse(p.created_at) : 0,
           variants,
@@ -377,6 +392,80 @@ export const ProductQueries = {
     return [...productFeed, ...EDITORIAL_ITEMS];
   },
 
+  async getBestSellers(limit = BEST_SELLERS_LIMIT): Promise<CatalogProduct[]> {
+    const catalog = await this.getCatalogProducts();
+    if (catalog.length === 0) return [];
+
+    const byId = new Map(catalog.map((p) => [p.id, p]));
+    const bySlug = new Map(catalog.map((p) => [p.slug.toLowerCase(), p]));
+
+    if (!isSupabaseLive()) {
+      return catalog.slice(0, limit);
+    }
+
+    try {
+      const supabase = createStaticClient();
+      const since = bestSellersSince().toISOString();
+      const { data, error } = await supabase
+        .from('order_items')
+        .select('product_id, quantity, sku, orders!inner(created_at, payment_status, status)')
+        .gte('orders.created_at', since);
+
+      if (error || !data) {
+        console.warn(
+          `[catalog] best-sellers query failed (${BEST_SELLERS_WINDOW_DAYS}d); using catalog fallback`,
+          error?.message
+        );
+        return catalog.slice(0, limit);
+      }
+
+      const qty = new Map<string, number>();
+      for (const row of data as Array<{
+        product_id?: string;
+        quantity?: number;
+        sku?: string;
+        orders?: { payment_status?: string; status?: string };
+      }>) {
+        const paid =
+          row.orders?.payment_status === 'paid' ||
+          row.orders?.status === 'confirmed' ||
+          row.orders?.status === 'paid';
+        if (!paid) continue;
+        const key = row.product_id || row.sku || '';
+        if (!key) continue;
+        qty.set(key, (qty.get(key) ?? 0) + (row.quantity ?? 0));
+      }
+
+      const ranked = [...qty.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .map(([key]) => byId.get(key) || bySlug.get(key.toLowerCase()))
+        .filter((p): p is CatalogProduct => Boolean(p));
+
+      const unique: CatalogProduct[] = [];
+      const seen = new Set<string>();
+      for (const p of ranked) {
+        if (seen.has(p.id)) continue;
+        seen.add(p.id);
+        unique.push(p);
+        if (unique.length >= limit) break;
+      }
+
+      if (unique.length < limit) {
+        for (const p of catalog) {
+          if (seen.has(p.id)) continue;
+          unique.push(p);
+          seen.add(p.id);
+          if (unique.length >= limit) break;
+        }
+      }
+      if (unique.length > 0) return unique.slice(0, limit);
+      return catalog.slice(0, limit);
+    } catch (err) {
+      console.warn('[catalog] best-sellers exception; using catalog fallback', err);
+      return catalog.slice(0, limit);
+    }
+  },
+
   async getProductBySlug(slug: string) {
     const fromLkgOrLocal = () => {
       const lkg = readCatalogLkg();
@@ -385,14 +474,16 @@ export const ProductQueries = {
         logCatalogDegraded('lkg', `getProductBySlug(${slug})`);
         const result = {
           id: hit.id,
-          name: hit.name,
+          name: displayProductName(hit.name),
           slug: hit.slug,
           price: hit.price,
-          description: '',
+          description: withClientProductCopy(hit.slug, hit.name, ''),
           image_url: hit.image,
           category: hit.collections[0] || '',
           collections: hit.collections,
-          variants: (hit.variants ?? []).map((v) => ({
+          variants: (hit.variants ?? [])
+            .filter((v) => !isRemovedApparelSize(v.size))
+            .map((v) => ({
             id: v.id,
             size: v.size,
             color: 'Default',
@@ -446,15 +537,20 @@ export const ProductQueries = {
 
       if (!data) return fromLkgOrLocal();
 
-      const variants = (data.product_variants ?? []).map((v: any) => ({
-        id: v.id,
-        size: v.title,
-        color: v.attributes?.color ?? 'Default',
-        // Do not read product_variants.stock_quantity — missing on live CRM schema.
-        // Availability comes from inventory adapter (see PDP page / getVariantStockAction).
-        stock_quantity: 0,
-        price_override: v.price,
-      }));
+      const variants = (data.product_variants ?? [])
+        .map((v: any) => ({
+          id: v.id,
+          size: v.attributes?.size || v.title,
+          color: v.attributes?.color ?? 'Default',
+          stock_quantity: 0,
+          price_override: v.price,
+        }))
+        .filter((v: { size: string }) => !isRemovedApparelSize(v.size));
+      const sizeOrder = sortApparelSizes(variants.map((v: { size: string }) => v.size));
+      const bySize = new Map(variants.map((v: { size: string }) => [v.size.toUpperCase(), v]));
+      const sortedVariants = sizeOrder
+        .map((size) => bySize.get(size))
+        .filter(Boolean);
 
       const minPrice =
         variants.length > 0 ? Math.min(...variants.map((v: any) => v.price_override)) : 0;
@@ -464,14 +560,18 @@ export const ProductQueries = {
 
       const result = {
         id: data.id,
-        name: data.title,
+        name: displayProductName(data.title),
         slug: data.slug,
         price: minPrice,
-        description: data.description ?? '',
+        description: withClientProductCopy(
+          data.slug,
+          data.title,
+          data.description ?? ''
+        ),
         image_url: data.featured_image_url,
         category: collections[0] || '',
         collections,
-        variants,
+        variants: sortedVariants,
         metadata: data.metadata ?? {},
         is_active: data.status === 'active',
       };

@@ -214,7 +214,7 @@ export default function EntryGate() {
             className="absolute bottom-[30px] left-9 right-9 flex justify-between font-hud text-[10px] tracking-[0.3em] uppercase select-none"
             style={{ color: "rgba(122,122,122,1)" }}
           >
-            <span>v1.0.0 · STREETPLAYR.COM</span>
+            <span>v1.0.0 · STREET playR</span>
             <span>READY {ready ? "★" : " "}</span>
             <span>MUMBAI · 04:18 IST</span>
           </div>

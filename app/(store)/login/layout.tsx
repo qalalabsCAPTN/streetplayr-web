@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Member Access | StreetPlayR',
+  title: 'Member Access | StreetplayR',
   description: 'Restricted access terminal.',
 };
 

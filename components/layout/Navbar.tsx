@@ -9,6 +9,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useWishlistStore } from '@/store/wishlistStore';
 import WishlistLoginBridge from '@/components/auth/WishlistLoginBridge';
 import { stories } from '@/lib/bluorng-data';
+import { productMatchesQuery } from '@/lib/products/search';
 import MobileNav from './MobileNav';
 import dynamic from 'next/dynamic';
 
@@ -161,6 +162,8 @@ export default function Navbar() {
             slug: p.slug,
             image: p.image,
             category: String(p.metadata?.category ?? p.metadata?.category_name ?? ''),
+            tags: p.metadata?.tags,
+            metadata: p.metadata,
           }))
         );
       } catch (err) {
@@ -182,29 +185,7 @@ export default function Navbar() {
     localStorage.setItem('playr-theme', next);
   };
 
-  const filteredProducts = products.filter((p) => {
-    const q = searchQuery.toLowerCase().trim();
-    if (!q) return true;
-    const name = String(p.name ?? '').toLowerCase();
-    const description = String(p.description ?? '').toLowerCase();
-    const slug = String(p.slug ?? '').toLowerCase();
-    const category = String(p.category ?? '').toLowerCase();
-    const text = `${name} ${description} ${slug} ${category}`;
-    if (text.includes(q)) return true;
-    const tokens = q.split(/\s+/).filter(Boolean);
-    if (tokens.length > 1 && tokens.every((t) => text.includes(t))) return true;
-
-    // Category / style aliases (e.g. "Bottoms", "Oversized Tee")
-    const aliasHits: [RegExp, string[]][] = [
-      [/\bbottoms?\b|\bpants?\b|\bcargo\b|\bbottomwear\b/, ['pant', 'sweat', 'bottom', 'cargo']],
-      [/\btees?\b|\bt-?shirts?\b|\btopwear\b|\boversized\b/, ['tee', 't-shirt', 'shirt', 'top', 'oversized']],
-      [/\btanks?\b/, ['tank']],
-    ];
-    for (const [re, keys] of aliasHits) {
-      if (re.test(q) && keys.some((k) => text.includes(k))) return true;
-    }
-    return false;
-  });
+  const filteredProducts = products.filter((p) => productMatchesQuery(p, searchQuery));
 
   const [isMobile, setIsMobile] = useState(false);
 
@@ -290,13 +271,14 @@ export default function Navbar() {
             <Link
               href="/home"
               className="header__pill-link"
-              aria-label="playR Home"
+              aria-label="StreetplayR Home"
               onClick={(e) => {
                 e.preventDefault();
                 router.push('/home');
               }}
             >
-              <Image src="/playR.street logo.png" alt="playR" width={1024} height={660} priority />
+              <Image src="/playR.street logo.png" alt="StreetplayR" width={1024} height={660} priority />
+              <span className="header__brand-name">StreetplayR</span>
             </Link>
           </div>
 

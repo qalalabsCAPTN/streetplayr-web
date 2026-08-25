@@ -9,6 +9,7 @@ import { BlockRenderer } from "@/components/page-editor/block-renderer";
 import { getPageBlocks } from "@/lib/page-editor/get-page-blocks";
 import { ProductQueries } from "@/lib/products/queries";
 import { AuthService } from "@/lib/auth/service";
+import BestSellersRow from "@/components/sections/home/BestSellersRow";
 
 interface HomePageProps {
   searchParams: Promise<{ preview?: string }> | { preview?: string };
@@ -49,16 +50,19 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const cmsHasCatalog =
     hasCmsBlocks && blocks.some((b) => CATALOG_BLOCK_TYPES.has(b.block_type));
 
-  // CMS with its own product blocks → full CMS page
+  // CMS with its own product blocks → full CMS page, then dedicated Best Sellers
   if (cmsHasCatalog) {
+    const bestSellers = await ProductQueries.getBestSellers(3);
     return (
       <div className="flex flex-col w-full overflow-x-clip bg-transparent text-[#eadfed]">
         <BlockRenderer blocks={blocks} />
+        <BestSellersRow products={bestSellers} />
       </div>
     );
   }
 
   const activeProducts = await ProductQueries.getActiveProducts();
+  const bestSellers = await ProductQueries.getBestSellers(3);
 
   const { COLLECTION_SLUG } = await import("@/lib/products/collections");
 
@@ -122,9 +126,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       {/* Category promos between sections — same aspect as Collection Banner */}
       <DiscoverCollections />
       <ProductSection
-        title="Pants"
+        title="Bottomwear"
         products={pants}
-        moreHref="/collections?category=pants"
+        moreHref="/collections?category=bottomwear"
         gallery
       />
       <ProductSection
@@ -134,6 +138,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         gallery
       />
       <RecentlyVisited />
+      <BestSellersRow products={bestSellers} />
       <Lookbook />
     </>
   );

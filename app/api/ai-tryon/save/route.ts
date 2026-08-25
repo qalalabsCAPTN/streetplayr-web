@@ -37,7 +37,7 @@ export async function POST(req: Request) {
 
     const body = (await req.json()) as SaveBody;
     const rawUrl = body.resultUrl?.trim();
-    const productTitle = body.productTitle?.trim() || "StreetPlayR try-on";
+    const productTitle = body.productTitle?.trim() || "StreetplayR try-on";
 
     if (!rawUrl) {
       return NextResponse.json(

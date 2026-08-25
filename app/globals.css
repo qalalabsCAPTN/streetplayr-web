@@ -82,6 +82,49 @@
   --color-accent: var(--sp-accent);
   --font-sans: var(--font-sp-body);
   --font-mono: var(--font-sp-mono);
+
+  /* ── OpsOS/Admin design tokens ──────────────────────────────────
+     Root cause fix: components/ops2/* and app/admin/** have always
+     used utility classes like `bg-base`, `text-text-primary`,
+     `border-border`, `bg-status-error`, `text-platform-playr` etc.,
+     but no `@theme` block ever mapped them to real CSS custom
+     properties — they were undefined utilities producing zero CSS the
+     entire time (confirmed: no tailwind.config.* file exists in this
+     v4/CSS-first project, and no prior `--color-*` definitions existed
+     anywhere in the codebase). The values themselves (--bg-base,
+     --text-primary, --status-error, etc.) already existed in
+     ecosystem-ops.css — they just were never wired into Tailwind's
+     theme. This block is that wiring. See ADMIN_CURRENT_STATE.md
+     "Design system gap — undefined color utilities across app/admin".
+  */
+  --color-base: var(--bg-base);
+  --color-base-surface: var(--bg-surface);
+  --color-base-elevated: var(--bg-elevated);
+  --color-base-overlay: var(--bg-overlay);
+
+  --color-border: var(--border-default);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+
+  --color-status-success: var(--status-success);
+  --color-status-error: var(--status-error);
+  --color-status-warning: var(--status-warning);
+  --color-status-info: var(--status-info);
+  --color-status-pending: var(--status-pending);
+
+  --color-nectar-300: var(--nectar-300);
+  --color-nectar-400: var(--nectar-400);
+  --color-nectar-500: var(--nectar-500);
+
+  --color-platform-all: var(--platform-all);
+  --color-platform-streetplayr: var(--platform-streetplayr);
+  --color-platform-playr: var(--platform-playr);
+  --color-platform-club: var(--platform-club);
+  --color-platform-game: var(--platform-game);
 }
 
 * {

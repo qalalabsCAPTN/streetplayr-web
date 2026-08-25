@@ -15,7 +15,7 @@ export default function DiscoveryFeed() {
       <aside className="w-[200px] h-full border-r border-white/[0.08] flex-shrink-0 hidden lg:flex flex-col p-6 font-mono text-[10px] tracking-[0.22em] uppercase text-white/38">
         <div className="mb-12">
           <p className="mb-1">Editorial Index</p>
-          <p>StreetPlayR</p>
+          <p>StreetplayR</p>
         </div>
         <nav className="flex flex-col gap-4 text-[10px] uppercase tracking-[0.22em] text-white/55">
           <Link href="/collections" className="hover:text-white transition-colors">Collection</Link>

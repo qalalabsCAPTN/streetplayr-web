@@ -3,8 +3,8 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — Street PlayR",
-  description: "Privacy Policy and data protection guidelines for Street PlayR members.",
+  title: "Privacy Policy — StreetplayR",
+  description: "Privacy Policy and data protection guidelines for StreetplayR members.",
 };
 
 export default function PrivacyPolicyLayout({

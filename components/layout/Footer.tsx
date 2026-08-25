@@ -41,54 +41,49 @@ export default function Footer() {
   const starScale = getStarScale();
 
   return (
-    <>
-      <footer className="footer">
-        <div className="footer__grid">
-          <div>
-            <h4>Connect with us</h4>
-            <a href={SOCIAL_LINKS.phone}>Call</a>
-            <a href={SOCIAL_LINKS.whatsapp} target="_blank" rel="noopener noreferrer">Text (WhatsApp)</a>
-            <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer">
-              Instagram
-            </a>
-            <a href={SOCIAL_LINKS.facebook} target="_blank" rel="noopener noreferrer">
-              Facebook
-            </a>
-            <a href={SOCIAL_LINKS.youtube} target="_blank" rel="noopener noreferrer">
-              YouTube
-            </a>
-            <a href={SOCIAL_LINKS.linkedin} target="_blank" rel="noopener noreferrer">
-              LinkedIn
-            </a>
-            <a href={SOCIAL_LINKS.emailHref}>{SOCIAL_LINKS.email}</a>
-          </div>
-          <div>
-            <h4>Order Support</h4>
-            <Link href="/exchanges">Make a return/Exchange</Link>
-            <Link href="/refund-policy">Refund/Exchange policy</Link>
-            <Link href="/profile">Track your order</Link>
-            <Link href="/shipping-policy">Shipping policy</Link>
-            <Link href="/faq">FAQ&apos;s</Link>
-            <Link href="/terms">Terms</Link>
-            <Link href="/privacy-policy">Privacy Policy</Link>
-          </div>
-          <div className="footer__weare">
-            <h4>We are playR</h4>
-            {/* Our Story (/about) intentionally omitted from nav — route kept */}
-            <Link href="/stores">Stores</Link>
-            <Link href="/collaborations">Collaborations</Link>
-          </div>
-          <div className="footer__bag flex flex-col items-center justify-center">
-            <div
-              ref={starContainerRef}
-              className="footer__star-wrap select-none pointer-events-auto flex items-center justify-center"
-            >
-              {showStar && <NinjaStar scale={starScale} scrollReactive={false} />}
-            </div>
+    <footer className="footer footer--borderless">
+      <div className="footer__grid footer__grid--5">
+        <div>
+          <h4>Shop</h4>
+          <Link href="/collections?category=topwear">Topwear</Link>
+          <Link href="/collections?category=bottomwear">Bottomwear</Link>
+          <Link href="/collections?category=tanks">Tanks</Link>
+          <Link href="/collections">Latest Drop</Link>
+        </div>
+        <div>
+          <h4>Policies</h4>
+          <Link href="/shipping-policy">Shipping policy</Link>
+          <Link href="/refund-policy">Refund/Exchange policy</Link>
+          <Link href="/exchanges">Returns / Exchange</Link>
+          <Link href="/privacy-policy">Privacy Policy</Link>
+          <Link href="/terms">Terms</Link>
+          <Link href="/faq">FAQ</Link>
+        </div>
+        <div>
+          <h4>Contact</h4>
+          <a href={SOCIAL_LINKS.emailHref}>{SOCIAL_LINKS.email}</a>
+          <a href={SOCIAL_LINKS.phone}>{SOCIAL_LINKS.phoneDisplay}</a>
+          <a href={SOCIAL_LINKS.whatsapp} target="_blank" rel="noopener noreferrer">WhatsApp</a>
+        </div>
+        <div>
+          <h4>Connect</h4>
+          <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer">Instagram</a>
+          <a href={SOCIAL_LINKS.facebook} target="_blank" rel="noopener noreferrer">Facebook</a>
+          <a href={SOCIAL_LINKS.youtube} target="_blank" rel="noopener noreferrer">YouTube</a>
+          <a href={SOCIAL_LINKS.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</a>
+          <Link href="/stores">Stores</Link>
+          <Link href="/collaborations">Collaborations</Link>
+        </div>
+        <div className="footer__bag flex flex-col items-center justify-center">
+          <div
+            ref={starContainerRef}
+            className="footer__star-wrap select-none pointer-events-auto flex items-center justify-center"
+          >
+            {showStar && <NinjaStar scale={starScale} scrollReactive={false} />}
           </div>
         </div>
-        <p className="footer__bottom">© {new Date().getFullYear()} playR — All rights reserved</p>
-      </footer>
-    </>
+      </div>
+      <p className="footer__bottom">© {new Date().getFullYear()} StreetplayR — All rights reserved</p>
+    </footer>
   );
 }

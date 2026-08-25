@@ -3,9 +3,9 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
 export const metadata: Metadata = {
-  title: "Lookbook — Street PlayR | SS/25 Archive",
+  title: "Lookbook — StreetplayR | SS/25 Archive",
   description:
-    "The SS/25 campaign archive. Controlled chaos. Built in silence. Street PlayR luxury editorial lookbook.",
+    "The SS/25 campaign archive. Controlled chaos. Built in silence. StreetplayR luxury editorial lookbook.",
 };
 
 export default function LookbookLayout({

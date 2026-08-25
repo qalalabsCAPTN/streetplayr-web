@@ -17,6 +17,7 @@
 .video-page.exit {
   opacity: 0;
   pointer-events: none;
+  visibility: hidden;
 }
 
 .preloader-video {

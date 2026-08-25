@@ -122,7 +122,6 @@ export default function HomeHero({
   overlayOpacity = 0.4,
 }: HomeHeroProps = {}) {
   const router = useRouter();
-  const videoRef = useRef<HTMLVideoElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const [joinOpen, setJoinOpen] = useState(false);
   const [loadStar, setLoadStar] = useState(false);
@@ -183,16 +182,6 @@ export default function HomeHero({
         localStorage.setItem("streetplayr_popup_viewed", "true");
       }
     }, 6000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    const el = videoRef.current;
-    if (!el) return;
-    let timer: ReturnType<typeof setTimeout>;
-    el.play().catch(() => {
-      timer = setTimeout(() => el.play(), 300);
-    });
     return () => clearTimeout(timer);
   }, []);
 

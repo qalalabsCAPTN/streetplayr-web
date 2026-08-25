@@ -7,22 +7,22 @@ export default function TermsPage() {
         <div className="legal-hero">
           <span className="legal-hero__eyebrow">Legal</span>
           <h1>Terms of Service</h1>
-          <span className="legal-hero__meta">Last Updated: July 2026</span>
+          <span className="legal-hero__meta">Last Updated: August 2026</span>
         </div>
 
         <div className="legal-section">
-          <h2>1. Membership & Access</h2>
-          <p>StreetPlayR grants selective membership privileges to users. We reserve the right to limit access to exclusive product drops, bot-gated releases, and NECTAR tier progression details in cases of abuse or fraudulent activity.</p>
+          <h2>1. Membership &amp; Access</h2>
+          <p>StreetplayR grants selective membership privileges to users. We reserve the right to limit access to exclusive product drops, bot-gated releases, and member-credit progression in cases of abuse or fraudulent activity.</p>
         </div>
 
         <div className="legal-section">
-          <h2>2. Drop Rules & Bot-Gating</h2>
+          <h2>2. Drop Rules &amp; Bot-Gating</h2>
           <p>To ensure fair access to limited streetwear drops, we enforce automated bot checks and quantity limitations. Orders determined to be placed using automated scripts or multi-profile exploitation will be immediately cancelled.</p>
         </div>
 
         <div className="legal-section">
           <h2>3. Intellectual Property</h2>
-          <p>All structural designs, branding graphics, product photography, 3D star designs, and editorial copy exhibited on StreetPlayR are the exclusive property of StreetPlayR Pvt Ltd and may not be reproduced without written authorization.</p>
+          <p>All structural designs, branding graphics, product photography, 3D star designs, and editorial copy exhibited on StreetplayR are the exclusive property of StreetplayR and may not be reproduced without written authorization.</p>
         </div>
 
         <div className="legal-section">

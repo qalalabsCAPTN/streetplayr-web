@@ -49,7 +49,7 @@ export const LOOKBOOK_SYNC: SyncedLookbookEntry[] = [
   {
     imageIndex: 5,
     imageFile: "images/05-playr-street-carpenter-pant-fleece-350gsm-grey.png",
-    name: "playR Street Carpenter Pant Fleece 350GSM (Grey)",
+    name: "playR Street Carpenter Pant Fleece (Grey)",
     url: "https://www.streetplayr.com/product/PS-PNT-CARP-GRY",
     productCode: "PS-PNT-CARP-GRY",
     status: "Confirmed",
@@ -73,7 +73,7 @@ export const LOOKBOOK_SYNC: SyncedLookbookEntry[] = [
   {
     imageIndex: 8,
     imageFile: "images/08-playr-street-carpenter-pant-fleece-350gsm-green.png",
-    name: "playR Street Carpenter Pant Fleece 350GSM (Green)",
+    name: "playR Street Carpenter Pant Fleece (Green)",
     url: "https://www.streetplayr.com/product/PS-PNT-CARP-GRN",
     productCode: "PS-PNT-CARP-GRN",
     status: "Confirmed",
@@ -145,7 +145,7 @@ export const LOOKBOOK_SYNC: SyncedLookbookEntry[] = [
   {
     imageIndex: 18,
     imageFile: "images/18-playr-street-carpenter-pant-fleece-350gsm-green.png",
-    name: "playR Street Carpenter Pant Fleece 350GSM (Green)",
+    name: "playR Street Carpenter Pant Fleece (Green)",
     url: "https://www.streetplayr.com/product/PS-PNT-CARP-GRN",
     productCode: "PS-PNT-CARP-GRN",
     status: "Corrected",

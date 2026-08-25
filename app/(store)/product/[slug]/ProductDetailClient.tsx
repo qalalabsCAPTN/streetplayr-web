@@ -8,9 +8,13 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '@/components/CartContext';
 import { useWishlistStore } from '@/store/wishlistStore';
+import { useAuthStore } from '@/store/authStore';
 import { RealtimeSubscriptions } from '@/lib/realtime/subscriptions';
 import RecommendedProducts from '@/components/product/RecommendedProducts';
 import RecentlyVisited, { pushRecentlyVisited } from '@/components/ui/RecentlyVisited';
+import { maxRedeemableCredits } from '@/lib/loyalty/redemption';
+import { extractGsmSpec } from '@/lib/products/copy';
+import { isRemovedApparelSize } from '@/lib/products/sizes';
 
 /* ── Lazy-load AI Try-On — no SSR ── */
 const AITryOn = dynamic(
@@ -19,6 +23,9 @@ const AITryOn = dynamic(
 );
 
 /* ── Lazy-load the 3D viewer — no SSR ── */
+/* 3D viewer kept in tree for when final GLB assets ship. Hidden from PDP CTA. */
+const SHOW_3D_PRODUCT_VIEW = false;
+
 const ProductViewer3D = dynamic(
   () => import('@/components/product/ProductViewer3D'),
   {
@@ -82,7 +89,8 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
   const [show3DViewer, setShow3DViewer] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [liveStock, setLiveStock] = useState<Record<string, number>>({});
-  const [spCredits, setSpCredits] = useState(500);
+  const memberBalance = useAuthStore((s) => s.user?.sprrBalance ?? 0);
+  const [spCredits, setSpCredits] = useState(0);
   const [tab, setTab] = useState('details');
   const [guideOpen, setGuideOpen] = useState(false);
   const [activeImg, setActiveImg] = useState(0);
@@ -199,27 +207,31 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
     }
   }, [props.model3d]);
 
-  const addToBag = async () => {
+  const addToBag = async (): Promise<boolean> => {
     if (!selectedSize) {
       setSizeError('Please select a size');
-      return;
+      return false;
+    }
+    if (isRemovedApparelSize(selectedSize)) {
+      setSizeError('Selected size is not available');
+      return false;
     }
     setSizeError('');
     const matchingVariant = liveVariants.find((v) => v.size === selectedSize);
     if (!matchingVariant) {
       alert('Selected size not available.');
-      return;
+      return false;
     }
     if (matchingVariant.stockQuantity < quantity) {
       alert(`Only ${matchingVariant.stockQuantity} units available.`);
-      return;
+      return false;
     }
     try {
       const { getVariantStockAction } = await import('@/app/actions/stock');
       const res = await getVariantStockAction(matchingVariant.id);
       if (res.success && res.data && res.data.available < quantity) {
         alert(`Only ${res.data.available} units available.`);
-        return;
+        return false;
       }
     } catch {}
 
@@ -235,6 +247,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
       selectedSize
     );
     cart.showToast('Added to bag');
+    return true;
   };
 
   const buyNow = async () => {
@@ -242,11 +255,16 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
       setSizeError('Please select a size');
       return;
     }
+    if (isRemovedApparelSize(selectedSize)) {
+      setSizeError('Selected size is not available');
+      return;
+    }
     setSizeError('');
-    await addToBag();
-    router.push('/checkout');
+    const added = await addToBag();
+    if (added) router.push('/checkout');
   };
 
+  const gsmSpec = extractGsmSpec(props.description);
   const isWishlisted = useWishlistStore((s) => s.isSaved(props.productId));
   const requestToggle = useWishlistStore((s) => s.requestToggle);
   const saved = isWishlisted;
@@ -384,6 +402,19 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
               </div>
             </div>
 
+            {(() => {
+              const inStock = liveVariants.filter((v) => v.stockQuantity > 0);
+              const limited =
+                inStock.length > 0 &&
+                (inStock.some((v) => v.stockQuantity > 0 && v.stockQuantity <= 5) ||
+                  inStock.reduce((n, v) => n + v.stockQuantity, 0) <= 12);
+              return limited ? (
+                <p className="pdp__limited-stock" role="status">
+                  Limited Stock Available
+                </p>
+              ) : null;
+            })()}
+
             <div className="sizes" role="group" aria-label="Select size">
               {props.sizes.map((s) => {
                 const matchingVariant = liveVariants.find((v) => v.size === s);
@@ -411,31 +442,34 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
               <div className="pdp__credits-head">
                 <span className="pdp__credits-label">Member Credits</span>
                 <span className="pdp__credits-value">
-                  {spCredits} / 2500
+                  {spCredits} / {maxRedeemableCredits(memberBalance, Number(String(props.price).replace(/[^\d.]/g, '')) || 0) || memberBalance}
                 </span>
               </div>
               <input
                 type="range"
                 min="0"
-                max="2500"
+                max={Math.max(0, maxRedeemableCredits(memberBalance, Number(String(props.price).replace(/[^\d.]/g, '')) || 0))}
                 step="50"
                 value={spCredits}
                 onChange={(e) => setSpCredits(Number(e.target.value))}
                 className="pdp__credits-range"
                 aria-label="Member credits to apply"
+                disabled={memberBalance <= 0}
               />
             </div>
 
-            <div className="pdp__actions">
-              <button type="button" className="pdp__atb" onClick={addToBag}>
-                Add to Bag
-              </button>
-              <button type="button" className="pdp__buy" onClick={buyNow}>
-                Buy Now
-              </button>
+            <div className="pdp__actions-slot">
+              <div className="pdp__actions">
+                <button type="button" className="pdp__atb" onClick={addToBag}>
+                  Add to Bag
+                </button>
+                <button type="button" className="pdp__buy" onClick={buyNow}>
+                  Buy Now
+                </button>
+              </div>
             </div>
 
-            {props.model3d && (
+            {SHOW_3D_PRODUCT_VIEW && props.model3d && (
               <button
                 type="button"
                 onClick={() => setShow3DViewer(true)}
@@ -531,9 +565,11 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
                   </ul>
                   <h6>Description</h6>
                   <p>{props.description}</p>
-                  <p className="mt-4 text-[13px] opacity-75 font-mono uppercase tracking-wide">
-                    * Heavyweight premium fabric construction (350 GSM)
-                  </p>
+                  {gsmSpec && (
+                    <p className="mt-4 text-[13px] opacity-75 font-mono uppercase tracking-wide">
+                      Specifications: {gsmSpec}
+                    </p>
+                  )}
                 </>
               )}
               {tab === 'care' && (
@@ -604,7 +640,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
 
       {/* 3D Model Viewer Modal */}
       <AnimatePresence>
-        {show3DViewer && props.model3d && (
+        {SHOW_3D_PRODUCT_VIEW && show3DViewer && props.model3d && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

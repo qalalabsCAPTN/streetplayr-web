@@ -3,8 +3,8 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
 export const metadata: Metadata = {
-  title: "Terms & Conditions — Street PlayR",
-  description: "Terms & Conditions of service and membership rules for Street PlayR.",
+  title: "Terms & Conditions — StreetplayR",
+  description: "Terms & Conditions of service and membership rules for StreetplayR.",
 };
 
 export default function TermsLayout({

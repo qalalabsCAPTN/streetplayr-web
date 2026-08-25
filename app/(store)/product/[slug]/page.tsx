@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { ProductQueries } from "@/lib/products/queries";
 import { formatPrice } from "@/lib/utils/format";
 import { getAvailableInventory } from "@/lib/inventory";
+import { sortApparelSizes, isRemovedApparelSize } from "@/lib/products/sizes";
+import { displayProductName } from "@/lib/products/copy";
 
 export const revalidate = 300;
 
@@ -23,13 +25,13 @@ async function resolveProduct(slug: string) {
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const { slug } = await params;
   const product = await resolveProduct(slug);
-  if (!product) return { title: "Product Not Found — Street PlayR" };
-  const title = product.name;
+  if (!product) return { title: "Product Not Found — StreetplayR" };
+  const title = displayProductName(product.name);
   return {
-    title: `${title} — Street PlayR`,
+    title: `${title} — StreetplayR`,
     description: product.description,
     openGraph: {
-      title: `${title} — Street PlayR`,
+      title: `${title} — StreetplayR`,
       description: product.description,
       images: product.image_url ? [{ url: product.image_url }] : [],
     },
@@ -60,16 +62,20 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
     }))
   );
 
+  const sizes = sortApparelSizes(
+    [...new Set(variants.map((v) => v.size).filter((s) => !isRemovedApparelSize(s)))]
+  );
+
   const displayData = {
-    title: product.name,
+    title: displayProductName(product.name),
     price: formatPrice(product.price),
     description: product.description ?? "",
     points: meta?.points ?? "100",
     image: product.image_url,
     images: meta?.gallery_images || (product.image_url ? [product.image_url] : []),
     colors: meta?.colors ?? [],
-    sizes: [...new Set(variants.map((v) => v.size))],
-    variants: variantsWithStock,
+    sizes,
+    variants: variantsWithStock.filter((v) => !isRemovedApparelSize(v.size)),
     model3d: meta?.model3d,
   };
 

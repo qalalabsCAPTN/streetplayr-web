@@ -122,11 +122,15 @@ export async function POST(request: Request) {
 
     const paymentIntentId = event.data.id ?? event.data.object?.id;
 
-    // Process payment event
+    // Process payment event — Stripe's own vocabulary (event.id, PI id)
+    // gets translated into the provider-neutral PaymentService contract here,
+    // at the adapter boundary. Nothing past this call should ever see
+    // "stripe" again.
     const result = await PaymentService.processWebhookEvent({
       eventType: ourEventType,
-      stripeEventId: event.id,
-      stripePaymentIntentId: paymentIntentId,
+      provider: 'stripe',
+      providerEventId: event.id,
+      providerTransactionId: paymentIntentId,
       amount: event.data.amount ?? event.data.object?.amount ?? 0,
       currency: event.data.currency ?? event.data.object?.currency,
       rawPayload: event.data,
@@ -151,8 +155,9 @@ export async function POST(request: Request) {
         // Retry processing
         const retry = await PaymentService.processWebhookEvent({
           eventType: ourEventType,
-          stripeEventId: event.id,
-          stripePaymentIntentId: paymentIntentId,
+          provider: 'stripe',
+          providerEventId: event.id,
+          providerTransactionId: paymentIntentId,
           amount: event.data.amount ?? event.data.object?.amount ?? 0,
           currency: event.data.currency ?? event.data.object?.currency,
           rawPayload: event.data,

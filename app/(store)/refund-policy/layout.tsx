@@ -3,7 +3,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
 export const metadata: Metadata = {
-  title: "Refund & Exchange Policy — Street PlayR",
+  title: "Refund & Exchange Policy — StreetplayR",
   description: "Guidelines and procedures for product returns, refunds, and exchanges.",
 };
 

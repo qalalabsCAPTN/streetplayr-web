@@ -9,18 +9,19 @@
  * reservation state changes on webhook replay.
  */
 import { createAdminClient } from '@/lib/supabase/admin';
-import type { OrderStatus, PaymentEvent, PaymentEventType, OrchestrationResponse } from './types';
+import type { OrderStatus, PaymentEvent, PaymentEventType, PaymentProvider, OrchestrationResponse } from './types';
 import { recordEvent } from './events';
 import { idempotencyGuard } from './idempotency';
 import { OrderService } from './order';
 import { ReservationService } from './reservation';
-import { awardSPRR, awardXP, processReferral } from '@/lib/nectar/engine';
+import { awardSPRR, awardXP, processReferral, redeemSPRR, refundSPRR } from '@/lib/nectar/engine';
 import { UnicommerceService, UnicommerceLogger } from '@/src/integrations/unicommerce';
 
 /**
- * Map of payment event types to corresponding reservation state transitions.
- * Each entry maps a Stripe event to a function that transitions all
- * reservations linked to the affected order.
+ * Map of canonical payment event types to corresponding reservation state
+ * transitions. Provider-neutral: every gateway adapter (Stripe, Easebuzz)
+ * maps its own vocabulary into this shared PaymentEventType before it ever
+ * reaches this table.
  */
 const RESERVATION_TRANSITION_MAP: Record<string, (id: string, actor: string) => Promise<any>> = {
   'payment_intent.created': ReservationService.hold,
@@ -48,13 +49,28 @@ const ORDER_TRANSITION_MAP: Record<PaymentEventType, string | null> = {
   'charge.refund.updated': null,
 };
 
+/** Maps canonical payment events to orders.payment_status (live TEXT column). */
+const PAYMENT_STATUS_MAP: Partial<Record<PaymentEventType, string>> = {
+  'payment_intent.processing': 'pending',
+  'payment_intent.succeeded': 'paid',
+  'payment_intent.payment_failed': 'failed',
+  'payment_intent.canceled': 'failed',
+  'charge.refunded': 'refunded',
+};
+
 function paymentEventFromDb(row: any): PaymentEvent {
   return {
     id: row.id,
     orderId: row.order_id,
     eventType: row.event_type,
-    stripeEventId: row.stripe_event_id,
-    stripePaymentIntentId: row.stripe_payment_intent_id,
+    // Physical columns are still named stripe_event_id/stripe_payment_intent_id
+    // — a provider-neutral rename migration has been proposed (see audit
+    // report) but not yet applied to the live DB. This is the one place
+    // that translation happens; nothing outside this file should ever read
+    // the stripe_* names again.
+    provider: (row.raw_payload as { provider?: PaymentProvider } | null)?.provider,
+    providerEventId: row.stripe_event_id,
+    providerTransactionId: row.stripe_payment_intent_id,
     amount: row.amount,
     currency: row.currency ?? 'usd',
     rawPayload: row.raw_payload,
@@ -75,14 +91,20 @@ export const PaymentService = {
    */
   async processWebhookEvent(params: {
     eventType: PaymentEventType;
-    stripeEventId: string;
-    stripePaymentIntentId: string;
+    provider: PaymentProvider;
+    /** Provider-issued event id (Stripe's `event.id`, or an
+     *  app-constructed `easebuzz:{txnid}:{eventType}` key). */
+    providerEventId: string;
+    /** Provider-issued transaction id (Stripe PaymentIntent id, Easebuzz txnid). */
+    providerTransactionId: string;
     amount: number;
     currency?: string;
     rawPayload?: Record<string, unknown>;
   }): Promise<OrchestrationResponse<PaymentEvent>> {
-    // Idempotency — skip if this stripe event was already processed
-    const guard = await idempotencyGuard(`stripe_event:${params.stripeEventId}`, {
+    // Idempotency — skip if this exact provider event was already processed.
+    // Namespaced by provider (defense in depth on top of each provider's
+    // own event-id uniqueness).
+    const guard = await idempotencyGuard(`payment_event:${params.provider}:${params.providerEventId}`, {
       ttl: 86400,
     });
 
@@ -93,32 +115,42 @@ export const PaymentService = {
     try {
       const admin = createAdminClient();
 
-      // Find order by payment intent
+      // Find order by provider transaction id.
+      // `notes` carries the creating auth user's id (set at order creation
+      // in app/actions/checkout.ts, read the same way by OrderService's
+      // orderFromDb() and by app/actions/payment.ts's ownership checks) —
+      // this is the verified, already-live identity mechanism. The live
+      // `orders` table has no `user_id` column; do not select one.
       const { data: order } = await admin
         .from('orders')
-        .select('id, user_id, status')
-        .eq('payment_intent_id', params.stripePaymentIntentId)
+        .select('id, notes, status, discount_total')
+        .eq('payment_intent_id', params.providerTransactionId)
         .single();
 
       if (!order) {
         return {
           success: false,
-          error: `No order found for PaymentIntent ${params.stripePaymentIntentId}`,
+          error: `No order found for transaction ${params.providerTransactionId}`,
           code: 'ORDER_NOT_FOUND',
         };
       }
 
-      // Log the payment event
+      // Log the payment event. Physical columns are still named
+      // stripe_event_id/stripe_payment_intent_id pending the proposed
+      // provider-neutral rename migration (not yet applied to the live DB
+      // — see audit report). `provider` is stamped into raw_payload so it
+      // survives the read path (paymentEventFromDb) even before that
+      // migration lands.
       const { data: event, error: eventError } = await admin
         .from('payment_events')
         .insert({
           order_id: order.id,
           event_type: params.eventType,
-          stripe_event_id: params.stripeEventId,
-          stripe_payment_intent_id: params.stripePaymentIntentId,
+          stripe_event_id: params.providerEventId,
+          stripe_payment_intent_id: params.providerTransactionId,
           amount: params.amount,
           currency: params.currency ?? 'usd',
-          raw_payload: params.rawPayload ?? {},
+          raw_payload: { ...(params.rawPayload ?? {}), provider: params.provider },
         })
         .select('*')
         .single();
@@ -146,10 +178,19 @@ export const PaymentService = {
         metadata: {
           orderId: order.id,
           eventType: params.eventType,
-          stripeEventId: params.stripeEventId,
+          provider: params.provider,
+          providerEventId: params.providerEventId,
           amount: params.amount,
         },
       });
+
+      const paymentStatus = PAYMENT_STATUS_MAP[params.eventType];
+      if (paymentStatus) {
+        await admin
+          .from('orders')
+          .update({ payment_status: paymentStatus })
+          .eq('id', order.id);
+      }
 
       // Route order status transition through OrderService — NEVER bypass the state machine
       const targetStatus = ORDER_TRANSITION_MAP[params.eventType] as OrderStatus | undefined;
@@ -192,24 +233,54 @@ export const PaymentService = {
             message: `Payment completed for order ${order.id} — ${params.amount} ${params.currency ?? 'usd'}`,
             metadata: {
               orderId: order.id,
-              paymentIntentId: params.stripePaymentIntentId,
+              providerTransactionId: params.providerTransactionId,
               amount: params.amount,
               eventType: params.eventType,
             },
           });
 
-          // NECTAR: award XP and SPRR on successful payment
-          const sprrAward = Math.floor(params.amount / 100);
-          const xpAward = Math.floor(params.amount / 50);
-          if (sprrAward > 0) {
-            await awardSPRR(order.user_id, sprrAward, `Order #${order.id.slice(0, 8)}`, 'earned');
-          }
-          if (xpAward > 0) {
-            await awardXP(order.user_id, xpAward, `Order #${order.id.slice(0, 8)}`);
-          }
+          // NECTAR: award XP and SPRR on successful payment.
+          // Identity: `order.notes` carries the creating auth user's id
+          // (see the order-lookup comment above) — awardSPRR/awardXP/
+          // processReferral all key off `profiles.id`, which IS the auth
+          // user id, so this is the correct identifier, not a workaround.
+          // The live `orders` table has no `user_id` column and `customers`
+          // has no auth link at all (verified — see audit report), so this
+          // is genuinely the only live-working identity path today.
+          const orderUserId: string | null = order.notes || null;
 
-          // NECTAR: process referral if this is the referred user's first paid order
-          await processReferral(order.user_id);
+          if (orderUserId) {
+            const sprrAward = Math.floor(params.amount / 100);
+            const xpAward = Math.floor(params.amount / 50);
+            if (sprrAward > 0) {
+              await awardSPRR(orderUserId, sprrAward, `Order #${order.id.slice(0, 8)}`, 'earned');
+            }
+            if (xpAward > 0) {
+              await awardXP(orderUserId, xpAward, `Order #${order.id.slice(0, 8)}`);
+            }
+
+            // Member credits: deduct the order's discount_total once payment succeeds.
+            const creditsUsed = Math.floor(Number(order.discount_total ?? 0));
+            if (creditsUsed > 0) {
+              await redeemSPRR(orderUserId, creditsUsed, `Order credit ${order.id}`);
+            }
+
+            // NECTAR: process referral if this is the referred user's first paid order
+            await processReferral(orderUserId);
+          } else {
+            // Never silently skip — this order can't be credited and someone
+            // needs to know. Payment/order processing itself still succeeds.
+            await recordEvent({
+              domain: 'payment',
+              severity: 'warning',
+              action: 'payment.reward_identity_missing',
+              actorId: 'system',
+              resourceType: 'orders',
+              resourceId: order.id,
+              message: `Order ${order.id} has no resolvable auth user id (orders.notes empty) — Nectar rewards skipped for this payment.`,
+              metadata: { orderId: order.id, eventType: params.eventType },
+            });
+          }
 
           // UNICOMMERCE: Forward confirmed order to Unicommerce (fire-and-forget)
           // Failures are logged but do NOT block order confirmation.
@@ -290,6 +361,17 @@ export const PaymentService = {
         }
       }
 
+      if (
+        params.eventType === 'charge.refunded' ||
+        params.eventType === 'payment_intent.canceled'
+      ) {
+        const creditsUsed = Math.floor(Number(order.discount_total ?? 0));
+        const refundUserId: string | null = order.notes || null;
+        if (creditsUsed > 0 && refundUserId) {
+          await refundSPRR(refundUserId, creditsUsed, `Order credit refund ${order.id}`);
+        }
+      }
+
       // Trigger reservation transition if applicable
       const transitionFn = RESERVATION_TRANSITION_MAP[params.eventType];
       if (transitionFn) {
@@ -329,7 +411,7 @@ export const PaymentService = {
 
       return { success: true, data: paymentEventFromDb(event) };
     } catch (e: any) {
-      // Don't mark as failed on catch — allows Stripe retry
+      // Don't mark as failed on catch — allows the provider to retry the webhook
       return { success: false, error: e.message, code: 'PAYMENT_PROCESS_ERROR' };
     }
   },
@@ -352,15 +434,17 @@ export const PaymentService = {
   },
 
   /**
-   * Check if a PaymentIntent was already processed successfully.
+   * Check if a provider transaction (any gateway) was already processed
+   * successfully. `transactionId` matches Stripe's PaymentIntent id or
+   * Easebuzz's txnid — whichever was passed as providerTransactionId.
    */
-  async isPaymentConfirmed(paymentIntentId: string): Promise<boolean> {
+  async isPaymentConfirmed(transactionId: string): Promise<boolean> {
     try {
       const admin = createAdminClient();
       const { data } = await admin
         .from('payment_events')
         .select('id')
-        .eq('stripe_payment_intent_id', paymentIntentId)
+        .eq('stripe_payment_intent_id', transactionId) // physical column, see paymentEventFromDb
         .eq('event_type', 'payment_intent.succeeded')
         .maybeSingle();
       return !!data;

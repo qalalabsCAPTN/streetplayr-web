@@ -14,8 +14,15 @@ import { recordEvent } from './events';
 
 export const ReconciliationService = {
   /**
-   * Find orders stuck in pending_payment with no recent activity.
-   * These may have payments that succeeded on Stripe but weren't captured.
+   * Find orders stuck pending payment with no recent activity.
+   * These may have payments that succeeded with the provider (any gateway
+   * routed through PaymentService) but weren't captured/confirmed locally.
+   *
+   * Status value corrected to match the LIVE orders_status_check constraint
+   * (verified via pg_dump — see audit report): 'pending', not
+   * 'pending_payment'. The migration-file vocabulary this previously used
+   * was never applied to the live DB, so this query never matched a single
+   * real row.
    */
   async findOrphanedPayments(hoursOld = 24): Promise<string[]> {
     try {
@@ -25,7 +32,7 @@ export const ReconciliationService = {
       const { data } = await admin
         .from('orders')
         .select('id, payment_intent_id')
-        .eq('status', 'pending_payment')
+        .eq('status', 'pending')
         .lt('created_at', cutoff)
         .not('payment_intent_id', 'is', null);
 

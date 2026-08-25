@@ -68,11 +68,11 @@ export default function RecentlyVisited({ excludeSlug }: { excludeSlug?: string 
   if (items.length === 0) return null;
 
   return (
-    <section className="panel">
+    <section className="panel recently-visited">
       <div className="panel__head">
         <h2 className="panel__title">Recently visited</h2>
       </div>
-      <div className="prow">
+      <div className="prow recently-visited__row">
         {items.map((p) => (
           <ProductCard key={p.slug} product={p} gallery={true} />
         ))}

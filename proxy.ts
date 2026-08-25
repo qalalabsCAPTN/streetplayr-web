@@ -23,7 +23,8 @@ export async function proxy(request: NextRequest) {
 
   // Root: first visit → standalone intro; returning visit → home.
   // Manual /entering-street-playR is never redirected — always plays intro.
-  // Same flow for every host (streetplayr.com, www, playrstreet.com).
+  // Same flow for every host (streetplayr.com, www, playR.in, playrstreet.com).
+  // Never rewrite the Host to another domain — playR.in must stay on playR.in.
   if (pathname === '/' || pathname === '') {
     const seen = request.cookies.get(ENTRY_COOKIE)?.value === '1';
     return entryRootRedirect(request, seen ? '/home' : '/entering-street-playR');

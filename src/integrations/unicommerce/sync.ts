@@ -9,6 +9,8 @@ import { UnicommerceProductService } from './products';
 import { UnicommerceInventoryService } from './inventory';
 import { getUnicommerceConfig } from './config';
 import { soapRequest } from './soapClient';
+import { isRemovedApparelSize } from '@/lib/products/sizes';
+import { displayProductName, withClientProductCopy } from '@/lib/products/copy';
 
 export class UnicommerceSyncService {
   private productService: UnicommerceProductService;
@@ -174,6 +176,14 @@ export class UnicommerceSyncService {
           const parentSlug = lastDashIndex > 0 ? normProd.sku.substring(0, lastDashIndex) : normProd.sku;
           const size = lastDashIndex > 0 ? normProd.sku.substring(lastDashIndex + 1).toUpperCase() : 'DEFAULT';
 
+          if (isRemovedApparelSize(size)) {
+            await UnicommerceLogger.info(
+              'sync.product_skip',
+              `Skipped removed apparel size ${size} for SKU ${normProd.sku}`
+            );
+            continue;
+          }
+
           // 1. Fetch or create Parent Product in Database
           let { data: dbProduct } = await admin
             .from('products')
@@ -196,9 +206,13 @@ export class UnicommerceSyncService {
               .insert({
                 organization_id: orgId,
                 brand_id: brandId,
-                title: normProd.name.replace(/ - [A-Z0-9]+$/i, ''), // Clean name from size
+                title: displayProductName(normProd.name.replace(/ - [A-Z0-9]+$/i, '')),
                 slug: parentSlug,
-                description: normProd.description || 'Synced from Unicommerce',
+                description: withClientProductCopy(
+                  parentSlug,
+                  normProd.name,
+                  normProd.description || 'Synced from Unicommerce'
+                ),
                 featured_image_url: normProd.imageUrl || null,
                 status: normProd.enabled ? 'active' : 'draft',
                 metadata: {

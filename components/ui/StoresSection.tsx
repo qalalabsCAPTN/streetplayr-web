@@ -8,7 +8,7 @@ export default function StoresSection() {
   return (
     <section className="section">
       <Reveal className="section__head" as="div">
-        <h2 className="section__title">Find Streetplayr across India</h2>
+        <h2 className="section__title">Find StreetplayR across India</h2>
       </Reveal>
       <Reveal stagger className="stores" as="div">
         {stores.map((s) => (

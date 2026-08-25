@@ -47,7 +47,7 @@ export default function BrandMessage() {
               WE DO NOT FOLLOW STREETS. WE BUILD THEM.
             </h2>
             <p className="mt-6 max-w-2xl text-base leading-7 text-white/60 sm:text-lg">
-              Street PlayR is built for people who choose their uniform before
+              StreetplayR is built for people who choose their uniform before
               the room chooses a label for them. Every piece is direct, sharp,
               and made to earn repeat wear.
             </p>
