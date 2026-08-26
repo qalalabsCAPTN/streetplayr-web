@@ -1,7 +1,7 @@
 /**
  * Map UniCommerce / DB product slugs → storefront image assets under /public/assets/products.
  * UniCommerce item types do not ship media URLs; we attach known playR streetwear photos.
- * All images are converted to WebP format as the single authoritative media standard.
+ * Prefer WebP; a few packs still ship as JPG only.
  */
 
 export type ProductImagePack = {
@@ -9,18 +9,22 @@ export type ProductImagePack = {
   gallery: string[];
 };
 
-function gallery(folder: string): string[] {
-  return [1, 2, 3, 4, 5].map((n) => `/assets/products/${folder}/image-${n}.webp`);
+/** Folders that only have .jpg on disk (no webp yet). */
+const JPG_ONLY_FOLDERS = new Set(['black-warrior', 'olive-pant']);
+
+function gallery(folder: string, ext: 'webp' | 'jpg' = 'webp'): string[] {
+  return [1, 2, 3, 4, 5].map((n) => `/assets/products/${folder}/image-${n}.${ext}`);
 }
 
-function pack(folder: string): ProductImagePack {
-  const g = gallery(folder);
+function pack(folder: string, ext?: 'webp' | 'jpg'): ProductImagePack {
+  const format = ext ?? (JPG_ONLY_FOLDERS.has(folder) ? 'jpg' : 'webp');
+  const g = gallery(folder, format);
   return { featured: g[0], gallery: g };
 }
 
 /**
  * Rewrite legacy/broken asset paths (old .jpg flat paths, pre-webp gallery URLs)
- * to the current webp pack under /public/assets/products.
+ * to the current pack under /public/assets/products.
  */
 export function normalizeProductImageUrl(
   url: string | null | undefined,
@@ -37,8 +41,19 @@ export function normalizeProductImageUrl(
     u = '/assets/products/inspired/image-1.webp';
   }
 
-  // image-N.jpg → image-N.webp for webp-only asset folders
-  u = u.replace(/^(\/assets\/products\/[^/]+\/image-\d+)\.jpg$/i, '$1.webp');
+  // image-N.jpg → image-N.webp only when that folder ships webp
+  u = u.replace(
+    /^(\/assets\/products\/([^/]+)\/image-\d+)\.jpg$/i,
+    (_match, base: string, folder: string) =>
+      JPG_ONLY_FOLDERS.has(folder) ? `${base}.jpg` : `${base}.webp`
+  );
+
+  // image-N.webp → image-N.jpg for jpg-only folders (bad DB / old map)
+  u = u.replace(
+    /^(\/assets\/products\/([^/]+)\/image-\d+)\.webp$/i,
+    (_match, base: string, folder: string) =>
+      JPG_ONLY_FOLDERS.has(folder) ? `${base}.jpg` : `${base}.webp`
+  );
 
   return u;
 }

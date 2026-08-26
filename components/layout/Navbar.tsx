@@ -95,6 +95,9 @@ export default function Navbar() {
   const router = useRouter();
 
   const isProductPage = pathname ? pathname.startsWith('/product/') : false;
+  const hideMobileNav = Boolean(
+    pathname?.startsWith('/checkout') || pathname === '/cart'
+  );
   const [productTitle, setProductTitle] = useState('');
 
   useEffect(() => {
@@ -530,15 +533,17 @@ export default function Navbar() {
       />
       <WishlistLoginBridge />
 
-      <MobileNav
-        onSearch={() => {
-          setSearchOpen((v) => !v);
-          setMegaOpen(false);
-          setSearchQuery('');
-        }}
-        onAccount={handleAccount}
-        onStories={() => setStoryOpen(true)}
-      />
+      {!hideMobileNav && (
+        <MobileNav
+          onSearch={() => {
+            setSearchOpen((v) => !v);
+            setMegaOpen(false);
+            setSearchQuery('');
+          }}
+          onAccount={handleAccount}
+          onStories={() => setStoryOpen(true)}
+        />
+      )}
     </>
   );
 }
