@@ -7,11 +7,13 @@ import fs from 'fs';
 import path from 'path';
 
 const REQUIRED = [
-  'CRON_SECRET',
   'EASEBUZZ_MERCHANT_KEY',
   'EASEBUZZ_SALT',
   'EASEBUZZ_ENV',
-  'RESEND_API_KEY',
+  'SMTP_HOST',
+  'SMTP_PORT',
+  'SMTP_USER',
+  'SMTP_PASSWORD',
   'TRANSACTIONAL_FROM_EMAIL',
   'SENTRY_DSN',
 ] as const;

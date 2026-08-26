@@ -1,28 +1,46 @@
+import nodemailer from 'nodemailer';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { recordEvent } from '@/lib/orchestration/events';
 import { reportError } from '@/lib/monitoring/report';
+import { getSmtpConfig } from './smtp';
+import { EMAIL_SUBJECT, type TransactionalTemplate } from './templates';
 
-export type TransactionalTemplate =
-  | 'order_confirmation'
-  | 'payment_success'
-  | 'payment_failure'
-  | 'shipment'
-  | 'delivery'
-  | 'cancellation'
-  | 'refund'
-  | 'return_update'
-  | 'contact_ack';
+export type { TransactionalTemplate };
+export { orderEmailHtml } from './templates';
 
-const SUBJECT: Record<TransactionalTemplate, string> = {
-  order_confirmation: 'Your StreetPlayR order is confirmed',
-  payment_success: 'Payment received — StreetPlayR',
-  payment_failure: 'Payment failed — StreetPlayR',
-  shipment: 'Your StreetPlayR order has shipped',
-  delivery: 'Your StreetPlayR order was delivered',
-  cancellation: 'Your StreetPlayR order was cancelled',
-  refund: 'Refund processed — StreetPlayR',
-  return_update: 'Return / exchange update — StreetPlayR',
-  contact_ack: 'We received your message — StreetPlayR',
+type SendMailer = {
+  sendMail: (opts: {
+    from: string;
+    to: string;
+    subject: string;
+    html: string;
+    text: string;
+  }) => Promise<{ accepted?: unknown[] }>;
 };
+
+let testMailer: SendMailer | null = null;
+
+/** Test-only injection. Not used in production. */
+export function __setMailerForTests(mailer: SendMailer | null): void {
+  testMailer = mailer;
+}
+
+async function alreadySent(orderId: string, template: TransactionalTemplate): Promise<boolean> {
+  try {
+    const admin = createAdminClient();
+    const { data } = await admin
+      .from('operational_events')
+      .select('id')
+      .eq('action', `notify.${template}`)
+      .eq('resource_id', orderId)
+      .eq('severity', 'info')
+      .limit(1)
+      .maybeSingle();
+    return Boolean(data?.id);
+  } catch {
+    return false;
+  }
+}
 
 export async function sendTransactionalEmail(params: {
   to: string;
@@ -30,11 +48,9 @@ export async function sendTransactionalEmail(params: {
   html: string;
   text: string;
   orderId?: string;
-}): Promise<{ sent: boolean; error?: string }> {
-  const key = process.env.RESEND_API_KEY;
-  const from = process.env.TRANSACTIONAL_FROM_EMAIL || 'StreetPlayR <orders@playR.in>';
-
-  if (!key) {
+}): Promise<{ sent: boolean; skippedDuplicate?: boolean; error?: string }> {
+  const smtp = getSmtpConfig();
+  if (!smtp.ok) {
     await recordEvent({
       domain: 'system',
       severity: 'warning',
@@ -42,34 +58,47 @@ export async function sendTransactionalEmail(params: {
       actorId: 'system',
       resourceType: 'orders',
       resourceId: params.orderId || 'none',
-      message: `Skipped ${params.template} email to ${params.to} — RESEND_API_KEY missing`,
-      metadata: { template: params.template },
+      message: `Skipped ${params.template} email to ${params.to} — ${smtp.error}`,
+      metadata: { template: params.template, missing: smtp.missing },
     });
-    return { sent: false, error: 'Email delivery is not configured (RESEND_API_KEY).' };
+    return { sent: false, error: smtp.error };
+  }
+
+  if (params.orderId) {
+    const dup = await alreadySent(params.orderId, params.template);
+    if (dup) {
+      return { sent: true, skippedDuplicate: true };
+    }
   }
 
   try {
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${key}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from,
-        to: [params.to],
-        subject: SUBJECT[params.template],
-        html: params.html,
-        text: params.text,
-      }),
-      signal: AbortSignal.timeout(8000),
+    const mailer: SendMailer =
+      testMailer ??
+      nodemailer.createTransport({
+        host: smtp.config.host,
+        port: smtp.config.port,
+        secure: smtp.config.secure,
+        auth: { user: smtp.config.user, pass: smtp.config.password },
+        connectionTimeout: 8000,
+        greetingTimeout: 8000,
+        socketTimeout: 8000,
+      });
+
+    const info = await mailer.sendMail({
+      from: smtp.config.from,
+      to: params.to,
+      subject: EMAIL_SUBJECT[params.template],
+      html: params.html,
+      text: params.text,
     });
-    if (!res.ok) {
-      const body = await res.text();
-      const error = `Resend HTTP ${res.status}: ${body.slice(0, 200)}`;
+
+    const accepted = Array.isArray(info.accepted) ? info.accepted.length : 0;
+    if (accepted < 1) {
+      const error = 'SMTP accepted no recipients';
       await reportError('transactional email failed', { error, template: params.template });
       return { sent: false, error };
     }
+
     await recordEvent({
       domain: 'order',
       severity: 'info',
@@ -86,13 +115,4 @@ export async function sendTransactionalEmail(params: {
     await reportError('transactional email exception', { error, template: params.template });
     return { sent: false, error };
   }
-}
-
-export function orderEmailHtml(title: string, body: string, orderNumber: string): string {
-  return `<div style="font-family:Inter,sans-serif;color:#16111b">
-  <h1 style="font-family:Anton,sans-serif">${title}</h1>
-  <p>${body}</p>
-  <p>Order <strong>${orderNumber}</strong></p>
-  <p>— StreetPlayR</p>
-</div>`;
 }

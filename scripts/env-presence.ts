@@ -21,8 +21,8 @@ for (const line of fs.readFileSync(envPath, 'utf8').split(/\r?\n/)) {
 const keys = [
   'NEXT_PUBLIC_SUPABASE_URL',
   'SUPABASE_SERVICE_ROLE_KEY',
-  'CRON_SECRET',
-  'RESEND_API_KEY',
+  'SMTP_HOST',
+  'SMTP_USER',
   'SENTRY_DSN',
   'DATABASE_URL',
   'SUPABASE_DB_URL',

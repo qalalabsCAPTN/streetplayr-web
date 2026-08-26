@@ -4,4 +4,8 @@ import { scrubSentryEvent, sentryRuntimeOptions } from '@/lib/monitoring/sentry-
 Sentry.init({
   ...sentryRuntimeOptions(),
   beforeSend: scrubSentryEvent,
+  beforeSendTransaction(event) {
+    if (event.transaction?.includes('/api/health')) return null;
+    return event;
+  },
 });

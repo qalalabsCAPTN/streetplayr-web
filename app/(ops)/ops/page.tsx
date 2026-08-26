@@ -61,7 +61,7 @@ async function getDashboard() {
     }));
 
     const orderStatuses = (ordersRes.data ?? []).map((o: any) => o.status as string);
-    const pendingCount = orderStatuses.filter((s) => s === "pending_payment" || s === "processing" || s === "confirmed").length;
+    const pendingCount = orderStatuses.filter((s) => s === "pending" || s === "processing" || s === "confirmed").length;
 
     return { drops, events, pendingCount, totalOrders: orderStatuses.length };
   } catch {

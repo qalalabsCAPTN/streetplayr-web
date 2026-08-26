@@ -42,22 +42,32 @@ export class UnicommerceSyncService {
         let hasMore = true;
         const allItemTypes: any[] = [];
         while (hasMore) {
-          const searchRes = await soapRequest<{ successful: boolean; itemTypes: Array<any> }>(
-            'SearchItemTypesRequest',
-            `<ser:SearchItemTypesRequest>
+          try {
+            const searchRes = await soapRequest<{ successful: boolean; itemTypes: Array<any> }>(
+              'SearchItemTypesRequest',
+              `<ser:SearchItemTypesRequest>
               <ser:SearchOptions>
                 <ser:DisplayStart>${start}</ser:DisplayStart>
                 <ser:DisplayLength>100</ser:DisplayLength>
               </ser:SearchOptions>
             </ser:SearchItemTypesRequest>`
-          );
-          if (searchRes.successful && searchRes.itemTypes && searchRes.itemTypes.length > 0) {
-            allItemTypes.push(...searchRes.itemTypes);
-            start += 100;
-            if (searchRes.itemTypes.length < 100) {
+            );
+            if (searchRes.successful && searchRes.itemTypes && searchRes.itemTypes.length > 0) {
+              allItemTypes.push(...searchRes.itemTypes);
+              start += 100;
+              if (searchRes.itemTypes.length < 100) {
+                hasMore = false;
+              }
+            } else {
               hasMore = false;
             }
-          } else {
+          } catch (pageErr) {
+            errors++;
+            await UnicommerceLogger.error(
+              'sync.products_page_failed',
+              `SearchItemTypes page failed at start=${start}; continuing with ${allItemTypes.length} items already fetched`,
+              pageErr
+            );
             hasMore = false;
           }
         }
@@ -410,15 +420,24 @@ export class UnicommerceSyncService {
         return { success: true, processed: 0, errors: 0 };
       }
 
-      // 2. Fetch inventory snapshot in chunks of 100
-      const chunkSize = 100;
+      const chunkSize = 50;
       const snapshots: Array<{ sku: string; stock: number }> = [];
+      const fetchedSku = new Set<string>();
 
       for (let i = 0; i < skus.length; i += chunkSize) {
         const chunk = skus.slice(i, i + chunkSize);
-        // If the SOAP request fails, it throws and crashes the sync job, leaving database records intact.
-        const chunkSnapshots = await this.inventoryService.getInventorySnapshot(chunk);
-        snapshots.push(...chunkSnapshots);
+        try {
+          const chunkSnapshots = await this.inventoryService.getInventorySnapshot(chunk);
+          snapshots.push(...chunkSnapshots);
+          for (const sku of chunk) fetchedSku.add(sku.toLowerCase());
+        } catch (chunkErr) {
+          errors++;
+          await UnicommerceLogger.error(
+            'sync.inventory_chunk_failed',
+            `Inventory snapshot chunk failed at offset ${i}; leaving those SKUs unchanged`,
+            chunkErr
+          );
+        }
       }
 
       // 3. Build snapshot map keyed by SKU (case-insensitive)
@@ -427,10 +446,11 @@ export class UnicommerceSyncService {
         snapshotMap.set(snap.sku.toLowerCase(), snap.stock);
       }
 
-      // 4. Update stock quantity in the database inventory table for every variant
+      // 4. Update only SKUs we successfully fetched. Failed chunks keep existing stock.
       for (const dbVariant of dbVariants) {
+        const skuLower = dbVariant.sku.toLowerCase();
+        if (!fetchedSku.has(skuLower)) continue;
         try {
-          const skuLower = dbVariant.sku.toLowerCase();
           const hasSnapshot = snapshotMap.has(skuLower);
           const stock = hasSnapshot ? Math.max(0, snapshotMap.get(skuLower)!) : 0;
 
@@ -441,7 +461,7 @@ export class UnicommerceSyncService {
           // Check if there is an existing inventory record for this variant
           const { data: existingInv, error: checkError } = await admin
             .from('inventory')
-            .select('id')
+            .select('id, quantity')
             .eq('variant_id', dbVariant.id)
             .maybeSingle();
 
@@ -450,6 +470,10 @@ export class UnicommerceSyncService {
           }
 
           if (existingInv) {
+            if (Number(existingInv.quantity) === stock) {
+              processed++;
+              continue;
+            }
             // Update existing record, preserving reserved_quantity and other fields
             const { error: updateError } = await admin
               .from('inventory')
@@ -509,7 +533,7 @@ export class UnicommerceSyncService {
         { catalogVariants: dbVariants.length, returnedSnapshots: snapshots.length, updatedRows: processed, zeroStockRows, failedRows: errors }
       );
 
-      return { success: true, processed, errors };
+      return { success: processed > 0 || errors === 0, processed, errors };
     } catch (err: any) {
       await UnicommerceLogger.error('sync.inventory_error', 'Inventory synchronization job crashed', err);
       return { success: false, processed: 0, errors };

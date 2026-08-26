@@ -158,6 +158,38 @@ describe('UnicommerceSyncService - syncInventory', () => {
     expect(result.success).toBe(false);
     expect(result.processed).toBe(0);
   });
+
+  it('leaves failed snapshot chunks unchanged and still updates successful chunks', async () => {
+    const mockVariants = [
+      { id: 'var-1', sku: 'SKU-A' },
+    ];
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'product_variants') {
+        return {
+          select: () => ({
+            not: () => Promise.resolve({ data: mockVariants, error: null }),
+          }),
+        };
+      }
+      if (table === 'inventory') {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: () => Promise.resolve({ data: null, error: null }),
+            }),
+          }),
+          insert: () => Promise.resolve({ error: null }),
+        };
+      }
+    });
+    vi.spyOn(UnicommerceInventoryService.prototype, 'getInventorySnapshot')
+      .mockRejectedValueOnce(new Error('timeout'))
+      .mockResolvedValue([{ sku: 'SKU-A', stock: 3, blocked: 0 }]);
+
+    const first = await syncService.syncInventory();
+    expect(first.success).toBe(false);
+    expect(first.errors).toBeGreaterThan(0);
+  });
 });
 
 describe('UnicommerceSyncService - syncProducts', () => {

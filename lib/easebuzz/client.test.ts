@@ -8,6 +8,7 @@ import {
   verifyResponseHash,
   getEasebuzzCredentials,
   validateInitiateParams,
+  assertEasebuzzLiveAllowed,
 } from './client';
 
 const CREDS = { merchantKey: 'test_key', salt: 'test_salt', env: 'test' as const };
@@ -114,16 +115,55 @@ describe('getEasebuzzCredentials', () => {
     delete process.env.EASEBUZZ_MERCHANT_KEY;
     delete process.env.EASEBUZZ_SALT;
     delete process.env.EASEBUZZ_ENV;
+    delete process.env.EASEBUZZ_ALLOW_LIVE;
+    delete process.env.VERCEL_ENV;
   });
 
   it('returns null when credentials missing', () => {
     expect(getEasebuzzCredentials()).toBeNull();
   });
 
-  it('defaults to test env when EASEBUZZ_ENV unset', () => {
+  it('returns null when EASEBUZZ_ENV unset (no silent sandbox or live fallback)', () => {
     process.env.EASEBUZZ_MERCHANT_KEY = 'key';
     process.env.EASEBUZZ_SALT = 'salt';
+    expect(getEasebuzzCredentials()).toBeNull();
+  });
+
+  it('rejects production/live aliases — never maps them to prod', () => {
+    process.env.EASEBUZZ_MERCHANT_KEY = 'key';
+    process.env.EASEBUZZ_SALT = 'salt';
+    process.env.EASEBUZZ_ENV = 'production';
+    expect(getEasebuzzCredentials()).toBeNull();
+    process.env.EASEBUZZ_ENV = 'live';
+    expect(getEasebuzzCredentials()).toBeNull();
+  });
+
+  it('uses test host only when env is exactly test', () => {
+    process.env.EASEBUZZ_MERCHANT_KEY = 'key';
+    process.env.EASEBUZZ_SALT = 'salt';
+    process.env.EASEBUZZ_ENV = 'test';
     expect(getEasebuzzCredentials()?.env).toBe('test');
+  });
+});
+
+describe('assertEasebuzzLiveAllowed', () => {
+  beforeEach(() => {
+    delete process.env.EASEBUZZ_ALLOW_LIVE;
+    delete process.env.VERCEL_ENV;
+  });
+
+  it('allows sandbox always', () => {
+    expect(assertEasebuzzLiveAllowed(CREDS)).toBeNull();
+  });
+
+  it('blocks live charging outside Vercel production', () => {
+    const msg = assertEasebuzzLiveAllowed({ ...CREDS, env: 'prod' });
+    expect(msg).toMatch(/Refusing live Easebuzz/);
+  });
+
+  it('allows live on Vercel production', () => {
+    process.env.VERCEL_ENV = 'production';
+    expect(assertEasebuzzLiveAllowed({ ...CREDS, env: 'prod' })).toBeNull();
   });
 });
 

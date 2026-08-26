@@ -5,6 +5,7 @@
 import { getUnicommerceConfig } from './config';
 import { getAccessToken, invalidateToken } from './auth';
 import { UnicommerceLogger } from './logging';
+import { backoffMs, isRetryableSoapError, soapTimeoutMs } from './retry';
 
 interface RequestOptions extends Omit<RequestInit, 'body'> {
   body?: any; // JSON body
@@ -71,6 +72,7 @@ export async function request<T>(
         ...options,
         method,
         headers,
+        signal: options.signal ?? AbortSignal.timeout(soapTimeoutMs()),
       };
 
       if (options.body) {
@@ -102,7 +104,7 @@ export async function request<T>(
           throw new Error(`Max retries reached. Final error: ${msg}`);
         }
 
-        const delay = INITIAL_BACKOFF_MS * Math.pow(2, attempt) + Math.random() * 100;
+        const delay = backoffMs(attempt, INITIAL_BACKOFF_MS);
         await UnicommerceLogger.warn(
           'client.retry',
           `Transient HTTP error. Retrying attempt ${attempt + 1}/${MAX_RETRIES} in ${Math.round(delay)}ms. Error: ${msg}`,
@@ -143,10 +145,10 @@ export async function request<T>(
     } catch (error: any) {
       const latency = Date.now() - startTime;
       // Catch network-level issues
-      const isNetworkError = error.name === 'TypeError' || error.message.includes('fetch');
+      const isNetworkError = isRetryableSoapError(error);
 
       if (isNetworkError && attempt < MAX_RETRIES) {
-        const delay = INITIAL_BACKOFF_MS * Math.pow(2, attempt) + Math.random() * 100;
+        const delay = backoffMs(attempt, INITIAL_BACKOFF_MS);
         await UnicommerceLogger.warn(
           'client.retry_network',
           `Network issue on connection attempt ${attempt + 1}/${MAX_RETRIES}. Retrying in ${Math.round(delay)}ms. Error: ${error.message}`,

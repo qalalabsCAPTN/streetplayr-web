@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/server';
 import { resolveStorefrontBrandId } from '@/lib/products/brand';
 import { recordEvent } from '@/lib/orchestration/events';
 import type { OrchestrationResponse } from '@/lib/orchestration/types';
-import { getEasebuzzCredentials, initiatePayment } from '@/lib/easebuzz/client';
+import { assertEasebuzzLiveAllowed, getEasebuzzCredentials, initiatePayment } from '@/lib/easebuzz/client';
 import { rateLimit } from '@/lib/security/rate-limit';
 
 export interface EasebuzzInitiateParams {
@@ -44,9 +44,15 @@ export async function createEasebuzzPaymentAction(
     if (!creds) {
       return {
         success: false,
-        error: 'Easebuzz payment gateway is not configured. Missing EASEBUZZ_MERCHANT_KEY or EASEBUZZ_SALT.',
+        error:
+          'Easebuzz is not configured. Set EASEBUZZ_MERCHANT_KEY, EASEBUZZ_SALT, and EASEBUZZ_ENV=test or prod.',
         code: 'CONFIG_ERROR',
       };
+    }
+
+    const liveBlock = assertEasebuzzLiveAllowed(creds);
+    if (liveBlock) {
+      return { success: false, error: liveBlock, code: 'LIVE_CHARGING_BLOCKED' };
     }
 
     const admin = createAdminClient();

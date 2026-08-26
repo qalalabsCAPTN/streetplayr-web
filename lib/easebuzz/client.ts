@@ -66,33 +66,52 @@ export interface EasebuzzRefundParams {
   merchantRefundId: string;
 }
 
-/** Pay/checkout host — initiateLink + /pay/{accessKey} only. */
-export function getEasebuzzPayHost(env: EasebuzzEnv = 'test'): string {
-  return env === 'prod' ? 'https://pay.easebuzz.in' : 'https://testpay.easebuzz.in';
+/** Only exact `test` or `prod`. Never maps "production"/"live"/empty to either host. */
+export function parseEasebuzzEnv(raw: string | undefined): EasebuzzEnv | null {
+  const v = raw?.trim();
+  if (v === 'test' || v === 'prod') return v;
+  return null;
+}
+
+/** Pay/checkout host — initiateLink + /pay/{accessKey} only. Env must be explicit. */
+export function getEasebuzzPayHost(env: EasebuzzEnv): string {
+  if (env === 'prod') return 'https://pay.easebuzz.in';
+  if (env === 'test') return 'https://testpay.easebuzz.in';
+  throw new Error('EASEBUZZ_ENV must be exactly test or prod');
 }
 
 /**
  * Dashboard host — Transaction / Refund / Refund Status APIs.
  * Official SDK: fetchBaseUrl($env) WITHOUT 'initiate_api' → dashboard domain.
  */
-export function getEasebuzzDashboardHost(env: EasebuzzEnv = 'test'): string {
-  return env === 'prod'
-    ? 'https://dashboard.easebuzz.in'
-    : 'https://testdashboard.easebuzz.in';
+export function getEasebuzzDashboardHost(env: EasebuzzEnv): string {
+  if (env === 'prod') return 'https://dashboard.easebuzz.in';
+  if (env === 'test') return 'https://testdashboard.easebuzz.in';
+  throw new Error('EASEBUZZ_ENV must be exactly test or prod');
 }
 
 /** @deprecated Use getEasebuzzPayHost — kept for existing imports/tests. */
-export function getEasebuzzHost(env: EasebuzzEnv = 'test'): string {
+export function getEasebuzzHost(env: EasebuzzEnv): string {
   return getEasebuzzPayHost(env);
 }
 
 export function getEasebuzzCredentials(): EasebuzzCredentials | null {
   const merchantKey = process.env.EASEBUZZ_MERCHANT_KEY?.trim();
   const salt = process.env.EASEBUZZ_SALT?.trim();
-  if (!merchantKey || !salt) return null;
-
-  const env: EasebuzzEnv = process.env.EASEBUZZ_ENV === 'prod' ? 'prod' : 'test';
+  const env = parseEasebuzzEnv(process.env.EASEBUZZ_ENV);
+  if (!merchantKey || !salt || !env) return null;
   return { merchantKey, salt, env };
+}
+
+/**
+ * Live charging only on Vercel production, or explicit EASEBUZZ_ALLOW_LIVE=true.
+ * Blocks local/dev `EASEBUZZ_ENV=prod` from hitting pay.easebuzz.in.
+ */
+export function assertEasebuzzLiveAllowed(creds: EasebuzzCredentials): string | null {
+  if (creds.env === 'test') return null;
+  if (process.env.EASEBUZZ_ALLOW_LIVE === 'true') return null;
+  if (process.env.VERCEL_ENV === 'production') return null;
+  return 'Refusing live Easebuzz (EASEBUZZ_ENV=prod) outside Vercel production. Set EASEBUZZ_ENV=test for sandbox.';
 }
 
 /**

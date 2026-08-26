@@ -238,4 +238,16 @@ describe('SOAP Client Request Translation', () => {
       '[Uniware SOAP Fault] Code: SOAP-ENV:Client, Message: Illegal Access, facility is required'
     );
   });
+
+  it('attaches an AbortSignal timeout to SOAP fetch', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      status: 200,
+      ok: true,
+      text: async () =>
+        `<SOAP-ENV:Envelope><SOAP-ENV:Body><GetItemTypeResponse xmlns="http://uniware.unicommerce.com/services/"><Successful>true</Successful><SkuCode>X</SkuCode><Name>N</Name><MaxRetailPrice>1</MaxRetailPrice><Enabled>true</Enabled></GetItemTypeResponse></SOAP-ENV:Body></SOAP-ENV:Envelope>`,
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    await soapRequest<any>('GetItemTypeRequest', '<ser:SkuCode>X</ser:SkuCode>');
+    expect(fetchMock.mock.calls[0][1].signal).toBeDefined();
+  });
 });

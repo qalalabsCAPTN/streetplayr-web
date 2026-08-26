@@ -12,7 +12,6 @@ const PRODUCTION_ENV_VARS = {
   EASEBUZZ_MERCHANT_KEY: 'Easebuzz merchant key (server-only)',
   EASEBUZZ_SALT: 'Easebuzz salt (server-only)',
   EASEBUZZ_ENV: 'Easebuzz environment (test|prod)',
-  CRON_SECRET: 'Secret for cron job authorization',
 } as const;
 
 const OPTIONAL_ENV_VARS = {
@@ -21,9 +20,13 @@ const OPTIONAL_ENV_VARS = {
   NEXT_PUBLIC_SANITY_PROJECT_ID: 'Sanity CMS project ID (Phase 3)',
   NEXT_PUBLIC_SANITY_DATASET: 'Sanity CMS dataset',
   NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: 'Cloudinary cloud name (Phase 3)',
-  RESEND_API_KEY: 'Resend API key for transactional email',
+  SMTP_HOST: 'SMTP host for transactional email',
+  SMTP_PORT: 'SMTP port (465 or 587)',
+  SMTP_USER: 'SMTP username',
+  SMTP_PASSWORD: 'SMTP password / Gmail app password',
   TRANSACTIONAL_FROM_EMAIL: 'From address for transactional email',
   SENTRY_DSN: 'Sentry DSN for error ingest',
+  CRON_SECRET: 'Shared secret for GCR job HTTP invoke (not a Vercel cron requirement)',
 } as const;
 
 export type EnvCheckResult = {
@@ -68,12 +71,12 @@ export function validateEnvironment(): EnvCheckResult {
   return { valid: missing.length === 0, missing, warnings: [] };
 }
 
-/** Runtime: Easebuzz + cron required in production. */
+/** Runtime: Easebuzz required in production. Cron is deferred to GCR. */
 export function validateRuntime(): EnvCheckResult {
   const missing = collectMissing(PRODUCTION_ENV_VARS);
   const warnings = collectMissing(OPTIONAL_ENV_VARS);
 
-  if (process.env.EASEBUZZ_ENV && !['test', 'prod'].includes(process.env.EASEBUZZ_ENV)) {
+  if (process.env.EASEBUZZ_ENV && !['test', 'prod'].includes(process.env.EASEBUZZ_ENV.trim())) {
     warnings.push(`EASEBUZZ_ENV must be 'test' or 'prod' (got '${process.env.EASEBUZZ_ENV}')`);
   }
 
@@ -91,6 +94,18 @@ export function validateRuntime(): EnvCheckResult {
   return { valid: missing.length === 0, missing, warnings };
 }
 
+function smtpStatus(): 'SET' | 'MISSING' | 'INVALID' {
+  const host = process.env.SMTP_HOST?.trim();
+  const port = process.env.SMTP_PORT?.trim();
+  const user = process.env.SMTP_USER?.trim();
+  const pass = process.env.SMTP_PASSWORD?.trim();
+  if (!host && !port && !user && !pass) return 'MISSING';
+  if (!host || !user || !pass) return 'MISSING';
+  const n = Number(port);
+  if (!Number.isInteger(n) || n < 1) return 'INVALID';
+  return 'SET';
+}
+
 /** Presence-only launch env. Never returns secret values. */
 export function launchEnvPresence(): {
   vars: Record<string, 'SET' | 'MISSING' | 'INVALID'>;
@@ -101,11 +116,10 @@ export function launchEnvPresence(): {
   const dsn = process.env.SENTRY_DSN?.trim();
   return {
     vars: {
-      CRON_SECRET: process.env.CRON_SECRET ? 'SET' : 'MISSING',
       EASEBUZZ_MERCHANT_KEY: process.env.EASEBUZZ_MERCHANT_KEY ? 'SET' : 'MISSING',
       EASEBUZZ_SALT: process.env.EASEBUZZ_SALT ? 'SET' : 'MISSING',
       EASEBUZZ_ENV: !ease ? 'MISSING' : ['test', 'prod'].includes(ease) ? 'SET' : 'INVALID',
-      RESEND_API_KEY: process.env.RESEND_API_KEY ? 'SET' : 'MISSING',
+      SMTP: smtpStatus(),
       TRANSACTIONAL_FROM_EMAIL: !from ? 'MISSING' : from.includes('@') ? 'SET' : 'INVALID',
       SENTRY_DSN: !dsn ? 'MISSING' : (dsn.startsWith('https://') || dsn.includes('@')) ? 'SET' : 'INVALID',
     },

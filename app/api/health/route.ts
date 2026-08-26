@@ -135,8 +135,9 @@ export async function GET(req: NextRequest) {
   }
 
   if (!process.env.CRON_SECRET) {
-    report.subsystems.cron.status = 'degraded';
-    if (environment === 'production') report.status = 'degraded';
+    report.subsystems.cron.status = 'ok';
+    report.subsystems.cron.releaseExpiryConfigured = false;
+    report.subsystems.cron.reconciliationConfigured = false;
   }
 
   if (!report.subsystems.webhooks.easebuzzConfigured) {

@@ -3,15 +3,10 @@ import { ReservationService } from '@/lib/orchestration/reservation';
 import { idempotencyGuard } from '@/lib/orchestration/idempotency';
 
 /**
- * Cron: Release Expired Reservations
+ * Job: Release Expired Reservations
  *
- * Every 5 minutes. Releases reservations whose TTL has expired.
- *
- * Idempotent: Running multiple times within the same cron window
- * is safe — already-expired reservations are skipped.
- *
- * Lock-safe: Uses idempotency key for the cron window.
- * If a previous run is still processing, subsequent runs are skipped.
+ * Invoked by GCR (not Vercel cron). Releases reservations whose TTL expired.
+ * Idempotent across overlapping runs.
  */
 export async function GET(request: Request) {
   // Verify cron secret
