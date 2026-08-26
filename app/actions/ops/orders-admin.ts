@@ -6,16 +6,14 @@ import { OPS_ROLES } from '@/lib/auth/permissions';
 
 export type AdminOrderRow = {
   id: string;
-  user_id: string;
+  order_number: string;
+  customer_email: string;
   status: string;
-  total: number;
+  payment_status: string;
+  grand_total: number;
   created_at: string;
 };
 
-/**
- * Admin orders list — service-role read, no browser Supabase.
- * Replaces getSupabaseClient on /admin/orders.
- */
 export async function listAdminOrdersAction(opts?: {
   siteSlug?: string;
   limit?: number;
@@ -27,30 +25,45 @@ export async function listAdminOrdersAction(opts?: {
 
   try {
     const admin = createAdminClient();
-    let siteId: string | undefined;
-
-    if (opts?.siteSlug) {
-      const { data: site } = await admin
-        .from('sites')
-        .select('id')
-        .eq('slug', opts.siteSlug)
-        .single();
-      siteId = (site as { id: string } | null)?.id;
-      if (!siteId) return { success: true, orders: [] };
-    }
-
-    let query = admin
+    const { data, error } = await admin
       .from('orders')
-      .select('id, user_id, status, total, created_at')
+      .select('id, order_number, customer_id, status, payment_status, grand_total, created_at, customers(email)')
       .order('created_at', { ascending: false })
       .limit(limit);
 
-    if (siteId) query = query.eq('site_id', siteId);
+    if (error) {
+      const fallback = await admin
+        .from('orders')
+        .select('id, order_number, customer_id, status, payment_status, grand_total, created_at')
+        .order('created_at', { ascending: false })
+        .limit(limit);
+      if (fallback.error) return { success: false, error: fallback.error.message, orders: [] };
+      return {
+        success: true,
+        orders: (fallback.data ?? []).map((o: any) => ({
+          id: o.id,
+          order_number: o.order_number,
+          customer_email: o.customer_id,
+          status: o.status,
+          payment_status: o.payment_status,
+          grand_total: Number(o.grand_total ?? 0),
+          created_at: o.created_at,
+        })),
+      };
+    }
 
-    const { data, error } = await query;
-    if (error) return { success: false, error: error.message, orders: [] };
-
-    return { success: true, orders: (data ?? []) as AdminOrderRow[] };
+    return {
+      success: true,
+      orders: (data ?? []).map((o: any) => ({
+        id: o.id,
+        order_number: o.order_number,
+        customer_email: o.customers?.email ?? o.customer_id,
+        status: o.status,
+        payment_status: o.payment_status,
+        grand_total: Number(o.grand_total ?? 0),
+        created_at: o.created_at,
+      })),
+    };
   } catch (e: unknown) {
     return {
       success: false,
@@ -58,4 +71,13 @@ export async function listAdminOrdersAction(opts?: {
       orders: [],
     };
   }
+}
+
+export async function getAdminOrderAction(orderId: string) {
+  const auth = await requireSSRRole(OPS_ROLES);
+  if ('error' in auth) return { success: false as const, error: 'forbidden' };
+  const { OrderService } = await import('@/lib/orchestration/order');
+  const order = await OrderService.getById(orderId);
+  if (!order) return { success: false as const, error: 'not found' };
+  return { success: true as const, order };
 }

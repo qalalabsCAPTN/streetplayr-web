@@ -126,11 +126,15 @@ async function tryBackendRemove(userId: string, productId: string): Promise<bool
 export const wishlistAdapter: WishlistAdapter = {
   async load(userId) {
     if (userId) {
-      const remote = await tryBackendLoad(userId);
-      if (remote) {
-        writeCache(userId, remote);
-        return dedupe(remote);
+      const guest = readCache(null);
+      const remote = (await tryBackendLoad(userId)) ?? [];
+      const merged = dedupe([...guest, ...remote, ...readCache(userId)]);
+      for (const item of guest) {
+        await tryBackendAdd(userId, item.id);
       }
+      writeCache(userId, merged);
+      writeCache(null, []);
+      return merged;
     }
     return dedupe(readCache(userId));
   },

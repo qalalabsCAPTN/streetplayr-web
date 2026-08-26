@@ -21,6 +21,9 @@ const OPTIONAL_ENV_VARS = {
   NEXT_PUBLIC_SANITY_PROJECT_ID: 'Sanity CMS project ID (Phase 3)',
   NEXT_PUBLIC_SANITY_DATASET: 'Sanity CMS dataset',
   NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: 'Cloudinary cloud name (Phase 3)',
+  RESEND_API_KEY: 'Resend API key for transactional email',
+  TRANSACTIONAL_FROM_EMAIL: 'From address for transactional email',
+  SENTRY_DSN: 'Sentry DSN for error ingest',
 } as const;
 
 export type EnvCheckResult = {
@@ -88,7 +91,27 @@ export function validateRuntime(): EnvCheckResult {
   return { valid: missing.length === 0, missing, warnings };
 }
 
-/** Health-check friendly env status (no throw). */
+/** Presence-only launch env. Never returns secret values. */
+export function launchEnvPresence(): {
+  vars: Record<string, 'SET' | 'MISSING' | 'INVALID'>;
+  easebuzzEnv: 'prod' | 'test' | 'MISSING' | 'INVALID';
+} {
+  const ease = process.env.EASEBUZZ_ENV?.trim();
+  const from = process.env.TRANSACTIONAL_FROM_EMAIL?.trim();
+  const dsn = process.env.SENTRY_DSN?.trim();
+  return {
+    vars: {
+      CRON_SECRET: process.env.CRON_SECRET ? 'SET' : 'MISSING',
+      EASEBUZZ_MERCHANT_KEY: process.env.EASEBUZZ_MERCHANT_KEY ? 'SET' : 'MISSING',
+      EASEBUZZ_SALT: process.env.EASEBUZZ_SALT ? 'SET' : 'MISSING',
+      EASEBUZZ_ENV: !ease ? 'MISSING' : ['test', 'prod'].includes(ease) ? 'SET' : 'INVALID',
+      RESEND_API_KEY: process.env.RESEND_API_KEY ? 'SET' : 'MISSING',
+      TRANSACTIONAL_FROM_EMAIL: !from ? 'MISSING' : from.includes('@') ? 'SET' : 'INVALID',
+      SENTRY_DSN: !dsn ? 'MISSING' : (dsn.startsWith('https://') || dsn.includes('@')) ? 'SET' : 'INVALID',
+    },
+    easebuzzEnv: !ease ? 'MISSING' : ease === 'prod' || ease === 'test' ? ease : 'INVALID',
+  };
+}
 export function checkEnvironment(): EnvCheckResult & {
   allRequired: string[];
   allOptional: string[];

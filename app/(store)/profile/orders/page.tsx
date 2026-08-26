@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
 interface OrderItem {
   id: string;
@@ -11,6 +12,7 @@ interface OrderItem {
 
 interface Order {
   id: string;
+  orderNumber: string;
   createdAt: string;
   status: string;
   total: number;
@@ -21,9 +23,11 @@ const STATUS_LABELS: Record<string, string> = {
   pending: 'Pending',
   confirmed: 'Confirmed',
   processing: 'Processing',
+  fulfilling: 'Fulfilling',
   shipped: 'Shipped',
   delivered: 'Delivered',
   cancelled: 'Cancelled',
+  returned: 'Returned',
   refunded: 'Refunded',
 };
 
@@ -48,12 +52,18 @@ export default function OrdersPage() {
         const result = await getMyOrdersAction();
 
         if (result.success && result.data) {
-          const mapped: Order[] = result.data.map((o: any) => ({
+          const mapped: Order[] = result.data.map((o) => ({
             id: o.id,
+            orderNumber: o.orderNumber,
             createdAt: o.createdAt,
             status: o.status,
             total: o.total,
-            items: [],
+            items: (o.items ?? []).map((item) => ({
+              id: item.id,
+              name: item.productTitle ?? item.productId,
+              quantity: item.quantity,
+              price: item.price,
+            })),
           }));
           setOrders(mapped);
         }
@@ -112,8 +122,13 @@ export default function OrdersPage() {
               <div key={order.id} className="acct-order">
                 <div className="acct-order__head">
                   <div>
-                    <p className="acct-order__id">#{order.id.slice(0, 8)}</p>
+                    <p className="acct-order__id">{order.orderNumber}</p>
                     <p className="acct-order__date">{formatDate(order.createdAt)}</p>
+                    {order.items.length > 0 && (
+                      <p className="acct-order__date">
+                        {order.items.map((i) => `${i.name} ×${i.quantity}`).join(' · ')}
+                      </p>
+                    )}
                   </div>
                   <span className={`acct-order__status acct-order__status--${order.status}`}>
                     {STATUS_LABELS[order.status] || order.status}
@@ -121,7 +136,9 @@ export default function OrdersPage() {
                 </div>
                 <div className="acct-order__foot">
                   <span className="acct-order__total">{formatPrice(order.total)}</span>
-                  <button type="button" className="acct-order__view">View details →</button>
+                  <Link href={`/profile/orders/${order.id}`} className="acct-order__view">
+                    View details →
+                  </Link>
                 </div>
               </div>
             ))}

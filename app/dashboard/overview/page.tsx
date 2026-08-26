@@ -1,13 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Zap, Flame, TrendingUp, Star, ArrowRight, Users, Trophy, ChevronRight } from 'lucide-react';
+import { Zap, Flame, TrendingUp, Star, Trophy, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/nectar-portal/cn';
-import {
-  DEMO_USER, DEMO_WALLET, DEMO_PROGRESSION, DEMO_REPUTATION,
-  DEMO_ACTIVE_CAMPAIGNS, DEMO_ACTIVE_QUESTS, DEMO_ACTIVITY_TIMELINE,
-  DEMO_LEADERBOARD_POSITION, TIER_CONFIG, PLATFORM_CONFIG,
-} from '@/lib/nectar-portal/demo';
+import { TIER_CONFIG, PLATFORM_CONFIG } from '@/lib/nectar-portal/demo';
+import { getActivityAction, getLeaderboardAction } from '@/app/actions/loyalty';
 
 function AnimatedNumber({ value, duration = 1000 }: { value: number; duration?: number }) {
   const [display, setDisplay] = useState(0);
@@ -48,7 +45,7 @@ function XpRing({ pct, tier }: { pct: number; tier: keyof typeof TIER_CONFIG }) 
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <div className="text-2xl font-black text-text-primary" style={{ color: cfg.color }}>{pct.toFixed(0)}%</div>
-        <div className="text-[10px] text-text-muted uppercase tracking-wider">to {DEMO_PROGRESSION.nextTier}</div>
+        <div className="text-[10px] text-text-muted uppercase tracking-wider">tier progress</div>
       </div>
     </div>
   );
@@ -75,42 +72,17 @@ function StatCard({ label, value, sub, color, icon: Icon, delay = 0 }: {
   );
 }
 
-function CampaignBanner({ campaign }: { campaign: typeof DEMO_ACTIVE_CAMPAIGNS[0] }) {
-  return (
-    <div
-      className="relative overflow-hidden rounded-2xl border p-5 cursor-pointer group hover:border-opacity-60 transition-all"
-      style={{ borderColor: `${campaign.color}30`, background: `${campaign.color}08` }}
-    >
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
-        style={{ background: `radial-gradient(ellipse 60% 60% at 50% 0%, ${campaign.color}12 0%, transparent 70%)` }} />
-      <div className="relative flex items-center gap-4">
-        <div className="text-3xl">{campaign.emoji}</div>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-0.5">
-            <span className="dot-live" />
-            <span className="text-sm font-bold text-text-primary">{campaign.name}</span>
-          </div>
-          <div className="text-xs text-text-muted">{campaign.boost}</div>
-          <div className="text-xs mt-1" style={{ color: campaign.color }}>Ends {campaign.endsAt}</div>
-        </div>
-        <ArrowRight className="h-4 w-4 text-text-muted group-hover:text-text-primary group-hover:translate-x-0.5 transition-all" />
-      </div>
-    </div>
-  );
-}
-
-function QuestProgress({ quest }: { quest: typeof DEMO_ACTIVE_QUESTS[0] }) {
-  const pct = (quest.completedSteps / quest.steps) * 100;
+function QuestProgress({ quest }: { quest: { name: string; done: number; steps: number; status: string } }) {
+  const pct = quest.steps ? (quest.done / quest.steps) * 100 : 0;
   return (
     <div className="card-hover p-4 space-y-3">
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold text-text-primary">{quest.name}</span>
-        <span className="text-[10px] text-nectar-400 font-semibold uppercase tracking-wider">{quest.frequency}</span>
+        <span className="text-[10px] text-nectar-400 font-semibold uppercase tracking-wider">{quest.status}</span>
       </div>
       <div className="space-y-1.5">
         <div className="flex justify-between text-xs">
-          <span className="text-text-muted">Step {quest.completedSteps} / {quest.steps}</span>
-          <span className="text-nectar-400 font-semibold">+{quest.reward.toLocaleString()} pts</span>
+          <span className="text-text-muted">Step {quest.done} / {quest.steps}</span>
         </div>
         <div className="h-1.5 w-full rounded-full overflow-hidden bg-base-overlay">
           <div
@@ -120,10 +92,10 @@ function QuestProgress({ quest }: { quest: typeof DEMO_ACTIVE_QUESTS[0] }) {
         </div>
       </div>
       <div className="flex gap-1.5">
-        {Array.from({ length: quest.steps }).map((_, i) => (
+        {Array.from({ length: Math.max(quest.steps, 1) }).map((_, i) => (
           <div
             key={i}
-            className={cn('h-1 flex-1 rounded-full transition-all', i < quest.completedSteps ? 'bg-nectar-400' : 'bg-base-overlay')}
+            className={cn('h-1 flex-1 rounded-full transition-all', i < quest.done ? 'bg-nectar-400' : 'bg-base-overlay')}
           />
         ))}
       </div>
@@ -131,22 +103,13 @@ function QuestProgress({ quest }: { quest: typeof DEMO_ACTIVE_QUESTS[0] }) {
   );
 }
 
-function ActivityItem({ event }: { event: typeof DEMO_ACTIVITY_TIMELINE[0] }) {
-  const platCfg = PLATFORM_CONFIG[event.platform as keyof typeof PLATFORM_CONFIG];
-  const relTime = new Date(event.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
+function ActivityItem({ event }: { event: { source: string; delta: number; createdAt: string } }) {
+  const relTime = new Date(event.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   return (
     <div className="flex items-start gap-3 py-3 border-b border-border-subtle last:border-0 animate-stream-in">
-      <div className="text-xl shrink-0 mt-0.5">{event.emoji}</div>
       <div className="flex-1 min-w-0">
-        <div className="text-sm text-text-primary font-medium">{event.title}</div>
-        <div className="flex items-center gap-2 mt-1">
-          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
-            style={{ color: platCfg?.color, background: `${platCfg?.color}18` }}>
-            {platCfg?.name}
-          </span>
-          <span className="text-xs text-text-muted">{event.description}</span>
-        </div>
+        <div className="text-sm text-text-primary font-medium">{event.source || 'wallet'}</div>
+        <div className="text-xs text-text-muted mt-1">{event.delta > 0 ? '+' : ''}{event.delta} SPRR</div>
       </div>
       <span className="text-[10px] text-text-muted shrink-0">{relTime}</span>
     </div>
@@ -154,7 +117,52 @@ function ActivityItem({ event }: { event: typeof DEMO_ACTIVITY_TIMELINE[0] }) {
 }
 
 export default function OverviewPage() {
-  const tierCfg = TIER_CONFIG[DEMO_PROGRESSION.tier];
+  const [live, setLive] = useState<{
+    email: string;
+    sprrBalance: number;
+    xp: number;
+    lifetimeEarned: number;
+    tier: 'STREET' | 'PLAYER' | 'LEGEND';
+    progressPct: number;
+    quests: { id: string; name: string; done: number; steps: number; status: string }[];
+  } | null>(null);
+
+  const [ranks, setRanks] = useState<Array<{ rank: number; name: string; isSelf: boolean }>>([]);
+  const [activity, setActivity] = useState<Array<{ id: string; source: string; delta: number; createdAt: string }>>([]);
+
+  useEffect(() => {
+    (async () => {
+      const { getLoyaltySnapshotAction } = await import('@/app/actions/loyalty');
+      const result = await getLoyaltySnapshotAction();
+      if (result.success) {
+        setLive({
+          email: result.data.email,
+          sprrBalance: result.data.sprrBalance,
+          xp: result.data.xp,
+          lifetimeEarned: result.data.lifetimeEarned,
+          tier: result.data.tier,
+          progressPct: result.data.progressPct,
+          quests: result.data.quests,
+        });
+      }
+      const [lb, act] = await Promise.all([getLeaderboardAction(), getActivityAction()]);
+      if (lb.success) setRanks(lb.data);
+      if (act.success) {
+        setActivity(act.data.slice(0, 6).map((t) => ({
+          id: t.id,
+          source: t.source,
+          delta: t.delta,
+          createdAt: t.createdAt,
+        })));
+      }
+    })();
+  }, []);
+
+  const tierKey = live?.tier === 'LEGEND' ? 'nectar' : live?.tier === 'PLAYER' ? 'sprout' : 'seed';
+  const tierCfg = TIER_CONFIG[tierKey];
+  const displayName = live?.email || 'Member';
+  const points = live?.sprrBalance ?? 0;
+  const xp = live?.xp ?? 0;
 
   return (
     <div className="min-h-screen p-6 space-y-6">
@@ -174,7 +182,7 @@ export default function OverviewPage() {
           <div className="space-y-4">
             <div>
               <div className="text-sm text-text-muted mb-1">Welcome back</div>
-              <h1 className="text-4xl font-black text-text-primary tracking-tight">{DEMO_USER.displayName}</h1>
+              <h1 className="text-4xl font-black text-text-primary tracking-tight">{displayName}</h1>
             </div>
 
             {/* Tier badge */}
@@ -188,32 +196,28 @@ export default function OverviewPage() {
             {/* Streak */}
             <div className="flex items-center gap-2">
               <Flame className="h-4 w-4 text-nectar-400" />
-              <span className="text-sm font-semibold text-text-primary">{DEMO_PROGRESSION.currentStreakDays}-day streak</span>
-              <span className="text-xs text-text-muted">Best: {DEMO_PROGRESSION.longestStreakDays} days</span>
+              <span className="text-sm font-semibold text-text-primary">Live Street / Playr / Legend wallet</span>
+              <span className="text-xs text-text-muted">{live ? `${live.progressPct}% to next tier` : 'Sign in to load wallet'}</span>
             </div>
           </div>
 
           {/* XP Ring */}
           <div className="shrink-0">
-            <XpRing pct={DEMO_PROGRESSION.xpProgressPct} tier={DEMO_PROGRESSION.tier} />
+            <XpRing pct={live?.progressPct ?? 0} tier={tierKey} />
             <div className="text-center mt-2 text-xs text-text-muted">
-              {DEMO_PROGRESSION.lifetimeXp.toLocaleString()} / {DEMO_PROGRESSION.xpToNextTier.toLocaleString()} XP
+              {xp.toLocaleString()} XP · {points.toLocaleString()} SPRR
             </div>
           </div>
 
           {/* Platform breakdown */}
           <div className="shrink-0 space-y-2">
             <div className="text-xs text-text-muted uppercase tracking-wider mb-3">Active on</div>
-            {DEMO_USER.platforms.map(p => {
+            {['streetplayr'].map(p => {
               const cfg = PLATFORM_CONFIG[p as keyof typeof PLATFORM_CONFIG];
               return (
                 <div key={p} className="flex items-center gap-2">
                   <span className="text-lg">{cfg.emoji}</span>
                   <span className="text-sm text-text-secondary">{cfg.name}</span>
-                  {p === DEMO_USER.primaryPlatform && (
-                    <span className="text-[9px] rounded-full px-1.5 py-0.5 font-bold"
-                      style={{ color: cfg.color, background: `${cfg.color}20` }}>PRIMARY</span>
-                  )}
                 </div>
               );
             })}
@@ -224,33 +228,33 @@ export default function OverviewPage() {
       {/* Stats grid */}
       <div className="grid grid-cols-4 gap-4">
         <StatCard
-          label="NECTAR Points"
-          value={<AnimatedNumber value={DEMO_WALLET.nectarPoints} />}
-          sub={`${DEMO_WALLET.pendingPoints.toLocaleString()} pending · ${DEMO_WALLET.lifetimeEarned.toLocaleString()} lifetime`}
+          label="SPRR Balance"
+          value={<AnimatedNumber value={points} />}
+          sub={`${(live?.lifetimeEarned ?? 0).toLocaleString()} lifetime earned`}
           color="#FBBF24"
           icon={Zap}
           delay={0}
         />
         <StatCard
           label="Lifetime XP"
-          value={<AnimatedNumber value={DEMO_PROGRESSION.lifetimeXp} />}
-          sub={`${DEMO_PROGRESSION.seasonXp.toLocaleString()} this season`}
+          value={<AnimatedNumber value={xp} />}
+          sub="From profiles.xp + wallet_transactions"
           color={tierCfg.color}
           icon={TrendingUp}
           delay={80}
         />
         <StatCard
           label="Achievements"
-          value={`${DEMO_PROGRESSION.achievementsUnlocked} / ${DEMO_PROGRESSION.totalAchievements}`}
-          sub={`${((DEMO_PROGRESSION.achievementsUnlocked / DEMO_PROGRESSION.totalAchievements) * 100).toFixed(0)}% complete`}
+          value={`${live?.quests.filter((q) => q.status === 'completed').length ?? 0} / ${live?.quests.length ?? 0}`}
+          sub="Live loyalty_quests"
           color="#A78BFA"
           icon={Trophy}
           delay={160}
         />
         <StatCard
           label="Reputation"
-          value={<><AnimatedNumber value={DEMO_REPUTATION.overallScore} /><span className="text-lg text-text-muted">/100</span></>}
-          sub={`Trust level: ${DEMO_REPUTATION.trustLevel}`}
+          value={live?.tier ?? 'STREET'}
+          sub="Canonical Street / Playr / Legend"
           color="#34D399"
           icon={Star}
           delay={240}
@@ -270,7 +274,15 @@ export default function OverviewPage() {
               <span className="dot-live" />
             </div>
             <div className="space-y-3">
-              {DEMO_ACTIVE_CAMPAIGNS.map(c => <CampaignBanner key={c.id} campaign={c} />)}
+              {(live?.quests ?? []).length === 0 && (
+                <div className="card p-4 text-sm text-text-muted">No live campaigns. Quests load from loyalty_quests.</div>
+              )}
+              {(live?.quests ?? []).map((q) => (
+                <div key={q.id} className="card p-4 text-sm">
+                  <div className="font-semibold">{q.name}</div>
+                  <div className="text-text-muted">{q.done}/{q.steps} · {q.status}</div>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -278,11 +290,11 @@ export default function OverviewPage() {
           <div>
             <h2 className="section-title mb-3">Your Rankings</h2>
             <div className="card p-4 space-y-3">
-              {Object.entries(DEMO_LEADERBOARD_POSITION).map(([key, lb]) => (
-                <div key={key} className="flex items-center justify-between">
+              {ranks.length === 0 && <div className="text-sm text-text-muted">No live rankings yet.</div>}
+              {ranks.slice(0, 5).map((lb) => (
+                <div key={`${lb.rank}-${lb.name}`} className="flex items-center justify-between">
                   <div>
-                    <div className="text-xs font-medium text-text-primary">{lb.label}</div>
-                    <div className="text-[10px] text-text-muted">of {lb.total.toLocaleString()} users</div>
+                    <div className="text-xs font-medium text-text-primary">{lb.name}{lb.isSelf ? ' (you)' : ''}</div>
                   </div>
                   <div className="text-right">
                     <div className="text-lg font-black text-nectar-400">#{lb.rank}</div>
@@ -302,7 +314,10 @@ export default function OverviewPage() {
             </a>
           </div>
           <div className="space-y-3">
-            {DEMO_ACTIVE_QUESTS.map(q => <QuestProgress key={q.id} quest={q} />)}
+            {(live?.quests ?? []).length === 0 && (
+              <div className="card p-4 text-sm text-text-muted">No live quests.</div>
+            )}
+            {(live?.quests ?? []).map((q) => <QuestProgress key={q.id} quest={q} />)}
           </div>
         </div>
 
@@ -315,7 +330,8 @@ export default function OverviewPage() {
             </a>
           </div>
           <div className="card px-4 py-2">
-            {DEMO_ACTIVITY_TIMELINE.slice(0, 6).map(e => (
+            {activity.length === 0 && <div className="py-3 text-sm text-text-muted">No wallet activity yet.</div>}
+            {activity.map((e) => (
               <ActivityItem key={e.id} event={e} />
             ))}
           </div>

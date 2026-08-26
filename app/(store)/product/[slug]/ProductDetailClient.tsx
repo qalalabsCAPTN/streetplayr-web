@@ -20,6 +20,7 @@ import {
   SIZE_GUIDE_ROWS,
   sortApparelSizes,
 } from '@/lib/products/sizes';
+import { trackAddToCart, trackViewItem } from '@/lib/analytics/ecommerce';
 
 /* ── Lazy-load AI Try-On — no SSR ── */
 const AITryOn = dynamic(
@@ -105,6 +106,11 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
   const galleryRightRef = useRef<HTMLDivElement>(null);
   const tryOnRef = useRef<HTMLDivElement>(null);
   const [tryOnReady, setTryOnReady] = useState(false);
+
+  useEffect(() => {
+    const numeric = parseFloat(props.price.replace(/[^0-9.-]+/g, '')) || 0;
+    trackViewItem({ item_id: props.productId, item_name: props.title, price: numeric });
+  }, [props.productId, props.title, props.price]);
 
   useEffect(() => {
     const el = tryOnRef.current;
@@ -259,6 +265,12 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
       selectedSize
     );
     cart.showToast('Added to bag');
+    trackAddToCart({
+      item_id: props.productId,
+      item_name: props.title,
+      price: parseFloat(props.price.replace(/[^0-9.-]+/g, '')) || 0,
+      quantity,
+    });
     return true;
   };
 

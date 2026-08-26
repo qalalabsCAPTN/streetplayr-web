@@ -75,9 +75,9 @@ export async function GET(request: Request) {
     // Fetch all active orders (not terminal states) that have a Unicommerce code
     const { data: activeOrders, error: fetchError } = await admin
       .from('orders')
-      .select('id, status, metadata')
-      .in('status', ['confirmed', 'processing', 'shipped'])
-      .not('metadata->uniwareCode', 'is', null);
+      .select('id, status, source_order_id, order_number, tracking_number, carrier, shipped_at, delivered_at')
+      .in('status', ['confirmed', 'processing', 'fulfilling', 'shipped'])
+      .not('source_order_id', 'is', null);
 
     if (fetchError) {
       throw new Error(`Failed to fetch active orders: ${fetchError.message}`);
@@ -98,9 +98,7 @@ export async function GET(request: Request) {
     for (const order of activeOrders) {
       try {
         ordersChecked++;
-        const meta = (order.metadata as Record<string, any>) || {};
-        const uniwareCode = meta.uniwareCode as string;
-
+        const uniwareCode = order.source_order_id as string;
         if (!uniwareCode) continue;
 
         // 1. Fetch order status from Unicommerce
@@ -134,27 +132,21 @@ export async function GET(request: Request) {
 
           if (shipments.length > 0) {
             const primaryShipment = shipments[0];
-            const trackingMeta = {
-              ...meta,
-              tracking: {
-                courierName: primaryShipment.courierName,
-                trackingNumber: primaryShipment.trackingNumber,
-                waybillNumber: primaryShipment.waybillNumber,
-                shippingPackageCode: primaryShipment.shippingPackageCode,
-                shipmentStatus: primaryShipment.status,
-                dispatchedAt: primaryShipment.dispatchedAt,
-                deliveredAt: primaryShipment.deliveredAt,
-                lastSyncedAt: new Date().toISOString(),
-              },
-            };
-
-            // Only update if tracking info changed
-            const prevTracking = meta.tracking as Record<string, any> | undefined;
-            if (!prevTracking || prevTracking.trackingNumber !== primaryShipment.trackingNumber ||
-                prevTracking.shipmentStatus !== primaryShipment.status) {
+            const trackingNumber = primaryShipment.trackingNumber || order.tracking_number;
+            const carrier = primaryShipment.courierName || order.carrier;
+            if (
+              trackingNumber !== order.tracking_number ||
+              carrier !== order.carrier ||
+              (primaryShipment.status === 'DELIVERED' && !order.delivered_at)
+            ) {
               await admin
                 .from('orders')
-                .update({ metadata: trackingMeta })
+                .update({
+                  tracking_number: trackingNumber ?? null,
+                  carrier: carrier ?? null,
+                  shipped_at: primaryShipment.dispatchedAt || order.shipped_at || null,
+                  delivered_at: primaryShipment.deliveredAt || order.delivered_at || null,
+                })
                 .eq('id', order.id);
               trackingUpdated++;
             }

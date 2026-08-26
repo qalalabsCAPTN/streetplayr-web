@@ -51,6 +51,20 @@ export const ReservationService = {
       const admin = createAdminClient();
       const expiresAt = new Date(Date.now() + ttlMinutes * 60 * 1000).toISOString();
 
+      const { data: existing } = orderId
+        ? await admin
+            .from('inventory_reservations')
+            .select('*')
+            .eq('order_id', orderId)
+            .eq('variant_id', variantId)
+            .in('reservation_state', ['pending', 'held'])
+            .maybeSingle()
+        : { data: null };
+
+      if (existing) {
+        return { success: true, data: reservationStateFromDb(existing) };
+      }
+
       const { data: reservationId, error } = await admin.rpc('reserve_inventory', {
         p_variant_id: variantId,
         p_product_id: productId,
@@ -60,12 +74,46 @@ export const ReservationService = {
       });
 
       if (error) {
-        const isStock = error.message.includes('Insufficient stock');
-        return {
-          success: false,
-          error: isStock ? 'Insufficient stock available.' : error.message,
-          code: isStock ? 'INSUFFICIENT_STOCK' : 'RESERVATION_FAILED',
-        };
+        const available = await getAvailableInventory(variantId);
+        if (available < quantity) {
+          return {
+            success: false,
+            error: 'Insufficient stock available.',
+            code: 'INSUFFICIENT_STOCK',
+          };
+        }
+        const { data: inserted, error: insErr } = await admin
+          .from('inventory_reservations')
+          .insert({
+            variant_id: variantId,
+            product_id: productId,
+            reserved_quantity: quantity,
+            reservation_owner: ownerId,
+            expires_at: expiresAt,
+            reservation_state: 'pending',
+            order_id: orderId ?? null,
+          })
+          .select('*')
+          .single();
+        if (insErr || !inserted) {
+          const isStock = error.message.includes('Insufficient stock');
+          return {
+            success: false,
+            error: isStock ? 'Insufficient stock available.' : (insErr?.message ?? error.message),
+            code: isStock ? 'INSUFFICIENT_STOCK' : 'RESERVATION_FAILED',
+          };
+        }
+        await recordEvent({
+          domain: 'reservation',
+          severity: 'info',
+          action: 'reservation.created',
+          actorId: ownerId,
+          resourceType: 'inventory_reservations',
+          resourceId: inserted.id,
+          message: `Reserved ${quantity}x of variant ${variantId} (insert fallback)`,
+          metadata: { source, variantId, productId, quantity, expiresAt, orderId },
+        });
+        return { success: true, data: reservationStateFromDb(inserted) };
       }
 
       // Link reservation to order if provided
@@ -124,7 +172,17 @@ export const ReservationService = {
     reservationId: string,
     actorId: string
   ): Promise<OrchestrationResponse<InventoryReservation>> {
-    const result = await this.transitionState(reservationId, 'converted', actorId, 'payment_confirmed');
+    const admin = createAdminClient();
+    const { error: rpcError } = await admin.rpc('convert_inventory_reservation', {
+      p_reservation_id: reservationId,
+    });
+    if (rpcError) {
+      const result = await this.transitionState(reservationId, 'converted', actorId, 'payment_confirmed');
+      if (!result.success) {
+        return { success: false, error: rpcError.message, code: 'CONVERT_FAILED' };
+      }
+    }
+    const result = await this.getById(reservationId);
 
     if (result.success) {
       await recordEvent({
@@ -165,12 +223,46 @@ export const ReservationService = {
    * Release a reservation back to available pool.
    * Can be called from any non-terminal state.
    */
+  async getById(reservationId: string): Promise<OrchestrationResponse<InventoryReservation>> {
+    try {
+      const admin = createAdminClient();
+      const { data: row } = await admin
+        .from('inventory_reservations')
+        .select('*')
+        .eq('id', reservationId)
+        .maybeSingle();
+      if (!row) return { success: false, error: 'Reservation not found.', code: 'NOT_FOUND' };
+      return { success: true, data: reservationStateFromDb(row) };
+    } catch (e: any) {
+      return { success: false, error: e.message, code: 'RESERVATION_ERROR' };
+    }
+  },
+
+  async releaseAllForOrder(orderId: string, actorId: string, reason: string): Promise<void> {
+    const admin = createAdminClient();
+    const { data } = await admin
+      .from('inventory_reservations')
+      .select('id')
+      .eq('order_id', orderId)
+      .in('reservation_state', ['pending', 'held', 'converted']);
+    for (const row of data ?? []) {
+      await this.release(row.id, actorId, reason);
+    }
+  },
+
   async release(
     reservationId: string,
     actorId: string,
     reason?: string
   ): Promise<OrchestrationResponse<InventoryReservation>> {
-    const result = await this.transitionState(reservationId, 'released', actorId, 'system_release');
+    const admin = createAdminClient();
+    const { error: rpcError } = await admin.rpc('release_inventory_reservation', {
+      p_reservation_id: reservationId,
+    });
+    if (rpcError) {
+      await this.transitionState(reservationId, 'released', actorId, 'system_release');
+    }
+    const result = await this.getById(reservationId);
 
     if (result.success) {
       await recordEvent({

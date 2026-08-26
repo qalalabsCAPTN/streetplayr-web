@@ -1,4 +1,6 @@
 import type { NextConfig } from "next";
+import path from "path";
+import { withSentryConfig } from "@sentry/nextjs";
 import { validateEnvironment } from "./lib/env/validate";
 
 // STARTUP-BLOCKING: validates critical env vars before build/server init.
@@ -6,6 +8,13 @@ import { validateEnvironment } from "./lib/env/validate";
 validateEnvironment();
 
 const nextConfig: NextConfig = {
+  // Client SDK reads NEXT_PUBLIC_SENTRY_DSN. Same DSN as SENTRY_DSN (public ingest key).
+  env: {
+    NEXT_PUBLIC_SENTRY_DSN: process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN || "",
+  },
+  turbopack: {
+    root: path.join(__dirname),
+  },
   // Tree-shake heavy barrel packages (framer-motion, lucide, R3F helpers)
   experimental: {
     optimizePackageImports: [
@@ -62,4 +71,15 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  silent: !process.env.CI,
+  widenClientFileUpload: true,
+  sourcemaps: {
+    disable: !process.env.SENTRY_AUTH_TOKEN,
+  },
+  telemetry: false,
+  tunnelRoute: "/sentry-tunnel",
+});

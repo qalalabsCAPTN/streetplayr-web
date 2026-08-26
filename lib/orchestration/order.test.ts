@@ -13,6 +13,8 @@ let currentRow: { id: string; status: string; notes?: string } | null = null;
 const ordersQuery = {
   select: vi.fn(function (this: any) { return this; }),
   eq: vi.fn(function (this: any) { return this; }),
+  in: vi.fn(function (this: any) { return this; }),
+  maybeSingle: vi.fn(() => Promise.resolve({ data: currentRow })),
   single: vi.fn(() => Promise.resolve({ data: currentRow })),
   update: vi.fn(function (this: any) { return this; }),
 };
@@ -21,8 +23,9 @@ vi.mock('@/lib/supabase/admin', () => ({
   createAdminClient: () => ({ from: vi.fn(() => ordersQuery) }),
 }));
 
-vi.mock('@/lib/orchestration/events', () => ({
-  recordEvent: vi.fn().mockResolvedValue(undefined),
+vi.mock('@/lib/notifications/email', () => ({
+  sendTransactionalEmail: vi.fn().mockResolvedValue({ sent: false }),
+  orderEmailHtml: () => '',
 }));
 
 vi.mock('@/lib/products/brand', () => ({

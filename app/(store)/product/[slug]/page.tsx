@@ -30,6 +30,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   return {
     title: `${title} — StreetplayR`,
     description: product.description,
+    alternates: { canonical: `https://streetplayr.com/product/${product.slug}` },
     openGraph: {
       title: `${title} — StreetplayR`,
       description: product.description,
@@ -79,8 +80,30 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
     model3d: meta?.model3d,
   };
 
+  const inStock = variantsWithStock.some((v) => v.stockQuantity > 0);
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: displayData.title,
+    description: displayData.description,
+    image: displayData.images,
+    sku: product.slug,
+    url: `https://streetplayr.com/product/${product.slug}`,
+    brand: { '@type': 'Brand', name: 'StreetPlayR' },
+    offers: {
+      '@type': 'Offer',
+      url: `https://streetplayr.com/product/${product.slug}`,
+      priceCurrency: 'INR',
+      price: product.price,
+      availability: inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      itemCondition: 'https://schema.org/NewCondition',
+    },
+  };
+
   return (
-    <ProductDetailClient
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <ProductDetailClient
       productId={product.id}
       title={displayData.title}
       price={displayData.price}
@@ -94,5 +117,6 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
       slug={product.slug}
       model3d={displayData.model3d}
     />
+    </>
   );
 }

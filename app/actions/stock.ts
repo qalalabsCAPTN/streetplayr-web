@@ -112,3 +112,43 @@ export async function validateCartStockAction(
     return { success: false, error: e.message, code: 'VALIDATION_ERROR' };
   }
 }
+
+/** Batch available qty from inventory minus active reservations. */
+export async function getCatalogAvailabilityAction(
+  variantIds: string[]
+): Promise<Record<string, number>> {
+  const unique = [...new Set(variantIds.filter(Boolean))].slice(0, 500);
+  const out: Record<string, number> = {};
+  if (unique.length === 0) return out;
+
+  try {
+    const admin = createAdminClient();
+    const { data: inv } = await admin
+      .from('inventory')
+      .select('variant_id, quantity')
+      .in('variant_id', unique);
+    const { data: reservations } = await admin
+      .from('inventory_reservations')
+      .select('variant_id, reserved_quantity')
+      .in('variant_id', unique)
+      .in('reservation_state', ['pending', 'held']);
+
+    const reservedBy = new Map<string, number>();
+    for (const row of reservations ?? []) {
+      reservedBy.set(
+        row.variant_id,
+        (reservedBy.get(row.variant_id) ?? 0) + Number(row.reserved_quantity ?? 0)
+      );
+    }
+    for (const id of unique) out[id] = 0;
+    for (const row of inv ?? []) {
+      out[row.variant_id] = Math.max(
+        0,
+        Number(row.quantity ?? 0) - (reservedBy.get(row.variant_id) ?? 0)
+      );
+    }
+  } catch {
+    for (const id of unique) out[id] = 0;
+  }
+  return out;
+}

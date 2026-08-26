@@ -1,6 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import { resolveStorefrontBrandId } from '@/lib/products/brand';
-import type { Order, OrderStatus, OrchestrationResponse } from './types';
+import type { Order, OrderItem, OrderStatus, OrchestrationResponse } from './types';
 import { recordEvent } from './events';
 import { emitPurchaseCompleted } from '@/lib/nectar/purchase-event';
 
@@ -21,6 +21,29 @@ function fireNectarPurchaseCompletedIfNewlyConfirmed(fromStatus: string, updated
   }).catch((e) => {
     console.error('[nectar] purchase.completed emit threw unexpectedly:', e);
   });
+}
+
+async function notifyOrderStatus(order: Order, fromStatus: string, targetStatus: string): Promise<void> {
+  const email = (order.shippingAddress as { email?: string }).email;
+  if (!email) return;
+  const { sendTransactionalEmail, orderEmailHtml } = await import('@/lib/notifications/email');
+  const map: Record<string, { template: 'order_confirmation' | 'shipment' | 'delivery' | 'refund' | 'cancellation'; title: string; body: string }> = {
+    confirmed: { template: 'order_confirmation', title: 'Order confirmed', body: 'Payment verified. We are preparing your order.' },
+    shipped: { template: 'shipment', title: 'Order shipped', body: order.trackingNumber ? `Tracking: ${order.trackingNumber}` : 'Your order is on the way.' },
+    delivered: { template: 'delivery', title: 'Order delivered', body: 'Your StreetPlayR order was delivered.' },
+    refunded: { template: 'refund', title: 'Refund processed', body: 'A refund was issued for this order.' },
+    cancelled: { template: 'cancellation', title: 'Order cancelled', body: 'This order was cancelled. Inventory was released.' },
+  };
+  const mail = map[targetStatus];
+  if (!mail) return;
+  await sendTransactionalEmail({
+    to: email,
+    template: mail.template,
+    orderId: order.id,
+    html: orderEmailHtml(mail.title, mail.body, order.orderNumber),
+    text: `${mail.title} — ${order.orderNumber}`,
+  });
+  void fromStatus;
 }
 
 // CORRECTION (verified against a live pg_dump of the actual DB, not the
@@ -48,20 +71,43 @@ const VALID_TRANSITIONS: Record<string, string[]> = {
   refunded: [],
 };
 
-function orderFromDb(row: any): Order {
+function itemsFromDb(rows: any[] | null | undefined): OrderItem[] {
+  return (rows ?? []).map((row) => ({
+    id: row.id,
+    orderId: row.order_id,
+    productId: row.product_id,
+    variantId: row.variant_id,
+    productTitle: row.product_title,
+    variantTitle: row.variant_title,
+    sku: row.sku,
+    quantity: row.quantity,
+    price: Number(row.unit_price ?? row.total_price ?? 0),
+    metadata: row.metadata ?? {},
+  }));
+}
+
+function orderFromDb(row: any, items: OrderItem[] = []): Order {
   return {
     id: row.id,
+    orderNumber: row.order_number ?? row.id,
     userId: row.notes ?? '',
+    customerId: row.customer_id,
     status: row.status,
-    total: row.grand_total ?? 0,
-    subtotal: row.subtotal ?? 0,
-    shippingCost: row.shipping_total ?? 0,
-    taxAmount: row.tax_total ?? 0,
+    paymentStatus: row.payment_status,
+    fulfillmentStatus: row.fulfillment_status,
+    total: Number(row.grand_total ?? 0),
+    subtotal: Number(row.subtotal ?? 0),
+    shippingCost: Number(row.shipping_total ?? row.shipping_cost ?? 0),
+    taxAmount: Number(row.tax_total ?? row.tax_amount ?? 0),
+    discountTotal: Number(row.discount_total ?? 0),
     currency: row.currency ?? 'INR',
     shippingAddress: row.shipping_address ?? {},
     billingAddress: row.billing_address,
     paymentIntentId: row.payment_intent_id,
-    metadata: row.metadata ?? {},
+    trackingNumber: row.tracking_number ?? null,
+    carrier: row.carrier ?? null,
+    items,
+    metadata: {},
     notes: row.notes,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -96,7 +142,18 @@ export const OrderService = {
         .eq('customer_id', customer.id)
         .order('created_at', { ascending: false });
 
-      return (data ?? []).map(orderFromDb);
+      const ids = (data ?? []).map((o: { id: string }) => o.id);
+      const { data: itemRows } = ids.length
+        ? await admin.from('order_items').select('*').in('order_id', ids)
+        : { data: [] as any[] };
+      const byOrder = new Map<string, ReturnType<typeof itemsFromDb>>();
+      for (const row of itemRows ?? []) {
+        const list = byOrder.get(row.order_id) ?? [];
+        list.push(...itemsFromDb([row]));
+        byOrder.set(row.order_id, list);
+      }
+
+      return (data ?? []).map((row: any) => orderFromDb(row, byOrder.get(row.id) ?? []));
     } catch {
       return [];
     }
@@ -110,7 +167,9 @@ export const OrderService = {
         .select('*')
         .eq('id', orderId)
         .single();
-      return data ? orderFromDb(data) : null;
+      if (!data) return null;
+      const { data: itemRows } = await admin.from('order_items').select('*').eq('order_id', orderId);
+      return orderFromDb(data, itemsFromDb(itemRows));
     } catch {
       return null;
     }
@@ -126,7 +185,7 @@ export const OrderService = {
 
       const { data: updated, error } = await admin
         .from('orders')
-        .update({ status: 'confirmed' })
+        .update({ payment_intent_id: paymentIntentId })
         .eq('id', orderId)
         .eq('status', 'pending')
         .select('*')
@@ -150,8 +209,6 @@ export const OrderService = {
         message: `Order submitted for payment — PaymentIntent ${paymentIntentId}`,
         metadata: { paymentIntentId },
       });
-
-      fireNectarPurchaseCompletedIfNewlyConfirmed('pending', updated);
 
       return { success: true, data: orderFromDb(updated) };
     } catch (e: any) {
@@ -200,7 +257,19 @@ export const OrderService = {
     actorId: string,
     reason?: string
   ): Promise<OrchestrationResponse<Order>> {
-    return this.transitionStatus(orderId, 'on_hold', actorId, reason);
+    await recordEvent({
+      domain: 'order',
+      severity: 'warning',
+      action: 'order.hold_unsupported',
+      actorId,
+      resourceType: 'orders',
+      resourceId: orderId,
+      message: `Hold requested but live orders.status has no on_hold value${reason ? ': ' + reason : ''}`,
+      metadata: { reason },
+    });
+    const order = await this.getById(orderId);
+    if (!order) return { success: false, error: 'Order not found.', code: 'NOT_FOUND' };
+    return { success: true, data: order };
   },
 
   async refund(
@@ -268,7 +337,16 @@ export const OrderService = {
 
       fireNectarPurchaseCompletedIfNewlyConfirmed(current.status, updated);
 
-      return { success: true, data: orderFromDb(updated) };
+      if (targetStatus === 'cancelled' || targetStatus === 'refunded') {
+        const { ReservationService } = await import('./reservation');
+        await ReservationService.releaseAllForOrder(orderId, actorId, targetStatus);
+      }
+
+      const hydrated = orderFromDb(updated, itemsFromDb(
+        (await admin.from('order_items').select('*').eq('order_id', orderId)).data
+      ));
+      await notifyOrderStatus(hydrated, current.status, targetStatus);
+      return { success: true, data: hydrated };
     } catch (e: any) {
       return { success: false, error: e.message, code: 'ORDER_TRANSITION_ERROR' };
     }

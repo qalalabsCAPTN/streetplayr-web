@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, forwardRef, useImperativeHandle, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useCallback, forwardRef, useImperativeHandle, useRef, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCartStore } from "@/store/cartStore";
 import Link from "next/link";
 import Image from "next/image";
@@ -9,6 +9,9 @@ import { formatPrice, formatProductTitle } from "@/lib/utils/format";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { maxRedeemableCredits } from "@/lib/loyalty/redemption";
+import { trackBeginCheckout } from "@/lib/analytics/ecommerce";
+import type { TotalsResult } from "@/lib/commerce/totals";
+import type { AddressData } from "@/app/actions/address";
 
 function CheckoutInput({ label, id, type = "text", value, onChange, placeholder }: {
   label: string;
@@ -32,14 +35,20 @@ function CheckoutInput({ label, id, type = "text", value, onChange, placeholder 
   );
 }
 
-const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }>(function CheckoutFormContent(props, ref) {
+type QuoteView = TotalsResult & { couponDiscount: number; creditsApplied: number };
+
+const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }, {
+  couponCode: string;
+  onQuote: (quote: QuoteView | null) => void;
+}>(function CheckoutFormContent({ couponCode, onQuote }, ref) {
   const router = useRouter();
-  const { items, clearCart } = useCartStore();
+  const { items } = useCartStore();
   const [phase, setPhase] = useState<'form' | 'processing' | 'error'>('form');
   const [error, setError] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<'demo' | 'easebuzz'>('easebuzz');
   const [creditsToApply, setCreditsToApply] = useState(0);
   const [memberBalance, setMemberBalance] = useState(0);
+  const [savedAddresses, setSavedAddresses] = useState<AddressData[]>([]);
 
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -49,7 +58,8 @@ const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }>(f
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [postalCode, setPostalCode] = useState("");
-  const [country, setCountry] = useState("");
+  const [country, setCountry] = useState("IN");
+  const [gstin, setGstin] = useState("");
 
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const maxCredits = maxRedeemableCredits(memberBalance, subtotal);
@@ -64,15 +74,75 @@ const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }>(f
           const balance = profile?.sprrBalance ?? 0;
           setMemberBalance(balance);
           setCreditsToApply((prev) => Math.min(prev, maxRedeemableCredits(balance, subtotal)));
+          if (profile?.email) setEmail((prev) => prev || profile.email || '');
+          if (profile?.name) {
+            const parts = String(profile.name).split(' ');
+            setFirstName((prev) => prev || parts[0] || '');
+            setLastName((prev) => prev || parts.slice(1).join(' '));
+          }
         }
       } catch {
         if (!cancelled) setMemberBalance(0);
       }
+      try {
+        const { getAddressesAction } = await import('@/app/actions/address');
+        const result = await getAddressesAction();
+        if (!cancelled && result.success && result.data) {
+          setSavedAddresses(result.data);
+          const primary = result.data.find((a) => a.is_primary) ?? result.data[0];
+          if (primary) applySaved(primary);
+        }
+      } catch { /* no saved addresses */ }
     })();
     return () => {
       cancelled = true;
     };
   }, [subtotal]);
+
+  const applySaved = (row: AddressData) => {
+    setAddress(row.line1);
+    setCity(row.city);
+    setState(row.state);
+    setPostalCode(row.pincode);
+    setPhone(row.phone || phone);
+    const parts = (row.name || '').split(' ');
+    if (parts[0]) setFirstName(parts[0]);
+    if (parts.length > 1) setLastName(parts.slice(1).join(' '));
+    setCountry('IN');
+  };
+
+  useEffect(() => {
+    if (!items.length) {
+      onQuote(null);
+      return;
+    }
+    let cancelled = false;
+    const t = setTimeout(async () => {
+      try {
+        const { quoteCheckoutAction } = await import('@/app/actions/checkout');
+        const result = await quoteCheckoutAction({
+          items: items.map((i) => ({
+            productId: i.productId,
+            variantId: i.id,
+            quantity: i.quantity,
+            price: i.price,
+          })),
+          country,
+          state,
+          gstin: gstin || undefined,
+          creditsToApply,
+          couponCode: couponCode || undefined,
+        });
+        if (!cancelled) onQuote(result.success && result.data ? result.data : null);
+      } catch {
+        if (!cancelled) onQuote(null);
+      }
+    }, 250);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [items, country, state, gstin, creditsToApply, couponCode, onQuote]);
 
   const handleCompleteOrder = useCallback(async () => {
     if (!email || !firstName || !lastName || !address || !city || !country) {
@@ -110,12 +180,16 @@ const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }>(f
       }
 
       const checkout = await initiateCheckoutAction(checkoutItems, {
+        name: `${firstName} ${lastName}`.trim(),
         line1: address,
         city,
         state,
-        postalCode: postalCode,
+        postalCode,
         country,
-      }, undefined, creditsToApply);
+        phone,
+        email,
+        gstin: gstin || undefined,
+      }, undefined, creditsToApply, couponCode || undefined);
 
       if (!checkout.success) {
         setError(checkout.error ?? "Checkout failed.");
@@ -140,8 +214,6 @@ const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }>(f
           return;
         }
 
-        // Full redirect to Easebuzz's hosted checkout — the webhook
-        // (surl/furl) brings the customer back to /checkout/success.
         window.location.href = session.data.paymentUrl;
         return;
       }
@@ -160,7 +232,7 @@ const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }>(f
       setError(e.message ?? "An unexpected error occurred.");
       setPhase('form');
     }
-  }, [email, firstName, lastName, phone, address, city, state, postalCode, country, items, router, clearCart, paymentMethod, creditsToApply]);
+  }, [email, firstName, lastName, phone, address, city, state, postalCode, country, gstin, items, router, paymentMethod, creditsToApply, couponCode]);
 
   useImperativeHandle(ref, () => ({ completeOrder: handleCompleteOrder }), [handleCompleteOrder]);
 
@@ -174,9 +246,28 @@ const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }>(f
 
   return (
     <div className="checkout-stack">
-      {/* ── Shipping Form ── */}
       <div className="checkout-panel">
         <h2 className="checkout-panel__title">Shipping</h2>
+
+        {savedAddresses.length > 0 && (
+          <div className="checkout-fields" style={{ marginBottom: 16 }}>
+            <label htmlFor="savedAddress">Saved address</label>
+            <select
+              id="savedAddress"
+              onChange={(e) => {
+                const row = savedAddresses.find((a) => a.id === e.target.value);
+                if (row) applySaved(row);
+              }}
+              defaultValue={savedAddresses.find((a) => a.is_primary)?.id ?? savedAddresses[0]?.id}
+            >
+              {savedAddresses.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.label || a.line1} · {a.pincode}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div className="checkout-fields">
           <div className="checkout-fields-row">
@@ -191,12 +282,11 @@ const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }>(f
           <div className="checkout-fields-row checkout-fields-row--3">
             <CheckoutInput id="city" label="City" placeholder="City" value={city} onChange={setCity} />
             <CheckoutInput id="state" label="State" placeholder="State" value={state} onChange={setState} />
-            <CheckoutInput id="postalCode" label="Postal code" placeholder="Postal code" value={postalCode} onChange={setPostalCode} />
+            <CheckoutInput id="postalCode" label="PIN / Postal code" placeholder="560001" value={postalCode} onChange={setPostalCode} />
           </div>
           <div className="checkout-field">
             <label htmlFor="country">Country</label>
             <select id="country" value={country} onChange={(e) => setCountry(e.target.value)}>
-              <option value="">Select country</option>
               <option value="IN">India</option>
               <option value="US">United States</option>
               <option value="GB">United Kingdom</option>
@@ -204,12 +294,12 @@ const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }>(f
               <option value="SG">Singapore</option>
             </select>
           </div>
+          <CheckoutInput id="gstin" label="GSTIN (optional, B2B)" placeholder="22AAAAA0000A1Z5" value={gstin} onChange={setGstin} />
         </div>
 
         {error && <p className="checkout-error">{error}</p>}
       </div>
 
-      {/* ── Loyalty ── */}
       <div className="checkout-panel">
         <h2 className="checkout-panel__title">Loyalty</h2>
         <div className="checkout-loyalty">
@@ -238,7 +328,6 @@ const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }>(f
         )}
       </div>
 
-      {/* ── Payment Method ── */}
       <div className="checkout-panel">
         <h2 className="checkout-panel__title">Payment</h2>
 
@@ -276,7 +365,12 @@ const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }>(f
   );
 });
 
-function OrderSummary({ items, total }: { items: any[]; total: number }) {
+function OrderSummary({ items, quote, fallbackSubtotal }: {
+  items: any[];
+  quote: QuoteView | null;
+  fallbackSubtotal: number;
+}) {
+  const payable = quote?.grandTotal ?? fallbackSubtotal;
   return (
     <div className="checkout-summary">
       <h3 className="checkout-summary__title">Order summary ({items.length})</h3>
@@ -300,49 +394,98 @@ function OrderSummary({ items, total }: { items: any[]; total: number }) {
       <div className="checkout-summary__rows">
         <div>
           <span>Subtotal</span>
-          <span>{formatPrice(total)}</span>
+          <span>{formatPrice(quote?.subtotal ?? fallbackSubtotal)}</span>
         </div>
+        {(quote?.discount ?? 0) > 0 && (
+          <div>
+            <span>Discount</span>
+            <span>−{formatPrice(quote!.discount)}</span>
+          </div>
+        )}
         <div>
           <span>Shipping</span>
-          <span className="muted">Calculated at checkout</span>
+          <span>{quote ? formatPrice(quote.shipping) : '…'}</span>
+        </div>
+        <div>
+          <span>{quote?.taxLabel ?? 'GST'}</span>
+          <span>{quote ? formatPrice(quote.tax) : '…'}</span>
         </div>
       </div>
 
       <div className="checkout-summary__total">
         <span>Total</span>
-        <span>{formatPrice(total)}</span>
+        <span>{formatPrice(payable)}</span>
       </div>
 
-      <p className="checkout-summary__secure">🔒 Encrypted checkout. Your information is secure.</p>
+      <p className="checkout-summary__secure">
+        {quote?.shippingLabel ?? 'Shipping and GST are calculated on the server.'}
+      </p>
     </div>
   );
 }
 
-function PromoCode() {
+function PromoCode({ onApplied }: { onApplied: (code: string, error?: string) => void }) {
   const [code, setCode] = useState("");
+  const [busy, setBusy] = useState(false);
+  const { items } = useCartStore();
+  const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+
   return (
     <div className="checkout-promo">
       <input value={code} onChange={(e) => setCode(e.target.value)} placeholder="Promo code" />
-      <button type="button" className="pill">Apply</button>
+      <button
+        type="button"
+        className="pill"
+        disabled={busy}
+        onClick={async () => {
+          setBusy(true);
+          try {
+            const { applyCouponQuoteAction } = await import('@/app/actions/order');
+            const result = await applyCouponQuoteAction(code, subtotal);
+            if (result.ok) onApplied(result.data.code);
+            else onApplied('', result.error);
+          } finally {
+            setBusy(false);
+          }
+        }}
+      >
+        Apply
+      </button>
     </div>
   );
 }
 
-export default function CheckoutPage() {
+function CheckoutPageInner() {
   const { items } = useCartStore();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [mounted, setMounted] = useState(false);
   const formRef = useRef<{ completeOrder: () => Promise<void> }>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [quote, setQuote] = useState<QuoteView | null>(null);
+  const [retryBusy, setRetryBusy] = useState(false);
+  const [retryError, setRetryError] = useState<string | null>(null);
+
+  const retryOrderId = searchParams.get('order_id');
+  const paymentFailed = searchParams.get('error') === 'payment_failed';
+  const paymentPending = searchParams.get('pending') === '1';
 
   useEffect(() => {
     setMounted(true);
-    if (items.length === 0) {
+    if (items.length === 0 && !retryOrderId) {
       router.push("/cart");
     }
-  }, [items.length, router]);
+    if (items.length > 0) {
+      trackBeginCheckout(
+        items.reduce((s, i) => s + i.price * i.quantity, 0),
+        items.map((i) => ({ item_id: i.productId, item_name: i.name, price: i.price, quantity: i.quantity }))
+      );
+    }
+  }, [items.length, router, retryOrderId, items]);
 
-  if (!mounted || items.length === 0) return null;
+  if (!mounted || (items.length === 0 && !retryOrderId)) return null;
 
   const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const itemCount = items.length;
@@ -354,6 +497,38 @@ export default function CheckoutPage() {
       await formRef.current?.completeOrder();
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleRetry = async () => {
+    if (!retryOrderId || retryBusy) return;
+    setRetryBusy(true);
+    setRetryError(null);
+    try {
+      const { retryPaymentAction, getOrderAction } = await import('@/app/actions/order');
+      const payable = await retryPaymentAction(retryOrderId);
+      if (!payable.success) {
+        setRetryError(payable.error ?? 'Order is not payable.');
+        return;
+      }
+      const order = await getOrderAction(retryOrderId);
+      const ship = (order.data?.shippingAddress ?? {}) as { name?: string; email?: string; phone?: string };
+      const { createEasebuzzPaymentAction } = await import('@/app/actions/easebuzz');
+      const session = await createEasebuzzPaymentAction({
+        orderId: retryOrderId,
+        customerName: ship.name || 'Customer',
+        customerEmail: ship.email || '',
+        customerPhone: ship.phone || '',
+      });
+      if (!session.success || !session.data) {
+        setRetryError(session.error ?? 'Could not restart payment.');
+        return;
+      }
+      window.location.href = session.data.paymentUrl;
+    } catch (e: any) {
+      setRetryError(e.message ?? 'Retry failed.');
+    } finally {
+      setRetryBusy(false);
     }
   };
 
@@ -370,9 +545,55 @@ export default function CheckoutPage() {
           <span className="checkout-step-count">{itemCount} items</span>
         </div>
 
-        <div className="checkout-grid">
-          <div className="checkout-main">
-            <CheckoutFormContent ref={formRef} />
+        {(paymentFailed || paymentPending) && retryOrderId && (
+          <div className="checkout-panel" style={{ marginBottom: 24 }}>
+            <h2 className="checkout-panel__title">
+              {paymentFailed ? 'Payment failed' : 'Payment pending'}
+            </h2>
+            <p className="checkout-summary__secure">
+              Your cart was not cleared. Retry payment for this order, or place a new one.
+            </p>
+            <button
+              type="button"
+              className="checkout-submit storefront-cta"
+              disabled={retryBusy}
+              onClick={handleRetry}
+            >
+              {retryBusy ? 'Restarting payment…' : 'Retry payment'}
+            </button>
+            {retryError && <p className="checkout-error">{retryError}</p>}
+          </div>
+        )}
+
+        {items.length > 0 && (
+          <div className="checkout-grid">
+            <div className="checkout-main">
+              <CheckoutFormContent ref={formRef} couponCode={couponCode} onQuote={setQuote} />
+              <button
+                type="button"
+                onClick={handleCheckout}
+                disabled={isProcessing}
+                className="checkout-submit storefront-cta"
+              >
+                {isProcessing ? 'Placing order…' : 'Complete order'}
+              </button>
+            </div>
+            <div className="checkout-aside">
+              <OrderSummary items={items} quote={quote} fallbackSubtotal={total} />
+              <PromoCode
+                onApplied={(code, err) => {
+                  setCouponCode(code);
+                  setCouponError(err ?? null);
+                }}
+              />
+              {couponCode && <p className="checkout-summary__secure">Applied: {couponCode}</p>}
+              {couponError && <p className="checkout-error">{couponError}</p>}
+            </div>
+          </div>
+        )}
+
+        {items.length > 0 && (
+          <div className="checkout-sticky-bar">
             <button
               type="button"
               onClick={handleCheckout}
@@ -382,22 +603,7 @@ export default function CheckoutPage() {
               {isProcessing ? 'Placing order…' : 'Complete order'}
             </button>
           </div>
-          <div className="checkout-aside">
-            <OrderSummary items={items} total={total} />
-            <PromoCode />
-          </div>
-        </div>
-
-        <div className="checkout-sticky-bar">
-          <button
-            type="button"
-            onClick={handleCheckout}
-            disabled={isProcessing}
-            className="checkout-submit storefront-cta"
-          >
-            {isProcessing ? 'Placing order…' : 'Complete order'}
-          </button>
-        </div>
+        )}
 
         <div className="checkout-footer-row">
           <Link href="/cart">← Return to cart</Link>
@@ -406,5 +612,13 @@ export default function CheckoutPage() {
       </div>
       <Footer />
     </>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-transparent" />}>
+      <CheckoutPageInner />
+    </Suspense>
   );
 }

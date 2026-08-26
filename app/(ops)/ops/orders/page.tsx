@@ -2,18 +2,18 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 
 type OrderStatus =
-  | "draft" | "pending_payment" | "confirmed" | "processing"
-  | "shipped" | "delivered" | "cancelled" | "on_hold" | "refunded";
+  | "pending" | "confirmed" | "processing" | "fulfilling"
+  | "shipped" | "delivered" | "cancelled" | "returned" | "refunded";
 
 const STATUS_STYLES: Record<OrderStatus, { color: string; label: string }> = {
-  draft: { color: "text-[var(--ops-text-muted)]", label: "Draft" },
-  pending_payment: { color: "text-yellow-400", label: "Pending Payment" },
+  pending: { color: "text-yellow-400", label: "Pending Payment" },
   confirmed: { color: "text-blue-400", label: "Confirmed" },
   processing: { color: "text-[var(--sp-accent)]", label: "Processing" },
+  fulfilling: { color: "text-orange-400", label: "Fulfilling" },
   shipped: { color: "text-blue-300", label: "Shipped" },
   delivered: { color: "text-green-400", label: "Delivered" },
   cancelled: { color: "text-red-400/70", label: "Cancelled" },
-  on_hold: { color: "text-orange-400", label: "On Hold" },
+  returned: { color: "text-orange-300", label: "Returned" },
   refunded: { color: "text-[var(--ops-text-muted)]", label: "Refunded" },
 };
 
@@ -23,7 +23,7 @@ async function getOrdersWithTimeline() {
 
     const { data: orders } = await admin
       .from("orders")
-      .select("id, user_id, status, total, created_at, updated_at")
+      .select("id, order_number, customer_id, status, grand_total, created_at, updated_at")
       .order("created_at", { ascending: false })
       .limit(50);
 
@@ -31,7 +31,7 @@ async function getOrdersWithTimeline() {
 
     const { data: orderItems } = await admin
       .from("order_items")
-      .select("order_id, quantity, price")
+      .select("order_id, quantity, unit_price, total_price")
       .in("order_id", orderIds.length > 0 ? orderIds : ["00000000-0000-0000-0000-000000000000"]);
 
     const { data: events } = await admin
@@ -59,8 +59,9 @@ async function getOrdersWithTimeline() {
 
     return (orders ?? []).map((o: any) => ({
       id: o.id,
+      orderNumber: o.order_number ?? o.id,
       status: o.status as OrderStatus,
-      total: o.total,
+      total: Number(o.grand_total ?? 0),
       items: itemsByOrder[o.id] ?? 0,
       timeline: eventsByOrder[o.id] ?? [],
     }));
@@ -81,7 +82,7 @@ function formatTime(ts: string) {
 export default async function OrdersPage() {
   const orders = await getOrdersWithTimeline();
   const activeOrders = orders.filter((o) =>
-    ["pending_payment", "confirmed", "processing"].includes(o.status)
+    ["pending", "confirmed", "processing", "fulfilling"].includes(o.status)
   ).length;
   const deliveredCount = orders.filter((o) => o.status === "delivered").length;
   const revenue = orders.reduce(
@@ -112,7 +113,7 @@ export default async function OrdersPage() {
           <div className="text-right">
             <div className="text-[9px] font-mono text-[var(--ops-text-muted)] uppercase tracking-widest">Revenue</div>
             <div className="text-xl font-mono text-white">
-              ${revenue.toLocaleString()}
+              ₹{revenue.toLocaleString("en-IN")}
             </div>
           </div>
         </div>
@@ -128,8 +129,8 @@ export default async function OrdersPage() {
               <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-6">
                 <div className="space-y-4">
                   <div className="flex flex-wrap items-center gap-4">
-                    <span className={`text-[9px] font-mono uppercase tracking-[0.2em] ${STATUS_STYLES[order.status].color}`}>
-                      {STATUS_STYLES[order.status].label}
+                    <span className={`text-[9px] font-mono uppercase tracking-[0.2em] ${STATUS_STYLES[order.status]?.color ?? "text-white/40"}`}>
+                      {STATUS_STYLES[order.status]?.label ?? order.status}
                     </span>
                     <span className="text-[10px] font-mono text-[var(--ops-text-muted)]">
                       {order.id.slice(0, 8)}...
@@ -137,12 +138,12 @@ export default async function OrdersPage() {
                   </div>
                   <div>
                     <h3 className="text-2xl font-display uppercase tracking-tight text-white group-hover:pl-4 transition-all duration-700">
-                      Order {order.id.slice(0, 13)}
+                      Order {order.orderNumber}
                     </h3>
                   </div>
                   <div className="flex items-center gap-8 text-[10px] font-mono text-[var(--ops-text-muted)] uppercase tracking-widest">
                     <span>{order.items} Item{order.items !== 1 ? "s" : ""}</span>
-                    <span>${order.total.toLocaleString()}</span>
+                    <span>₹{Number(order.total).toLocaleString("en-IN")}</span>
                   </div>
                 </div>
 

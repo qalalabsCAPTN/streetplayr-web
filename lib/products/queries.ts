@@ -49,6 +49,7 @@ export type CatalogVariant = {
   id: string;
   size: string;
   price?: number;
+  stockQuantity?: number;
 };
 
 export type CatalogProduct = {

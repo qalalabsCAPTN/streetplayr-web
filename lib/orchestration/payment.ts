@@ -40,11 +40,11 @@ const ORDER_TRANSITION_MAP: Record<PaymentEventType, string | null> = {
   'payment_intent.created': null, // No order status change, reservation → held
   'payment_intent.processing': null,
   'payment_intent.succeeded': 'confirmed',
-  'payment_intent.payment_failed': null, // Reserved stays held for retry
+  'payment_intent.payment_failed': null, // order stays pending for retry; holds are released
   'payment_intent.canceled': 'cancelled',
   'payment_intent.expired': 'cancelled',
   'charge.refunded': 'refunded',
-  'charge.disputed': 'on_hold',
+  'charge.disputed': null,
   'charge.refund.updated': null,
 };
 
@@ -122,7 +122,7 @@ export const PaymentService = {
       // `orders` table has no `user_id` column; do not select one.
       const { data: order } = await admin
         .from('orders')
-        .select('id, notes, status, discount_total')
+        .select('id, notes, status, discount_total, order_number, shipping_address')
         .eq('payment_intent_id', params.providerTransactionId)
         .single();
 
@@ -220,8 +220,8 @@ export const PaymentService = {
           // Mark idempotency as failed so retry doesn't reprocess from scratch
           await guard.fail(transitionResult.error);
           return { success: false, error: transitionResult.error, code: 'TRANSITION_FAILED' };
-        } else if (params.eventType === 'payment_intent.succeeded') {
-          // Emit payment.completed on successful payment
+        }
+        if (params.eventType === 'payment_intent.succeeded') {
           await recordEvent({
             domain: 'payment',
             severity: 'info',
@@ -287,44 +287,25 @@ export const PaymentService = {
 
             const { data: fullOrder } = await admin
               .from('orders')
-              .select('id, display_code, shipping_address, billing_address, currency, metadata, created_at, grand_total')
+              .select('id, order_number, shipping_address, billing_address, currency, created_at, grand_total, source_order_id')
               .eq('id', order.id)
               .single();
 
             if (fullOrder && orderItems && orderItems.length > 0) {
-              const shippingAddr = fullOrder.shipping_address as Record<string, any> || {};
-              const billingAddr = (fullOrder.billing_address as Record<string, any>) || shippingAddr;
               const channelCode = process.env.UNICOMMERCE_CHANNEL_CODE || 'STREETPLAYR_WEB';
+              const { unicommerceShipTo } = await import('@/lib/commerce/address');
+              const shippingAddr = unicommerceShipTo(fullOrder.shipping_address);
+              const billingAddr = unicommerceShipTo(fullOrder.billing_address || fullOrder.shipping_address);
 
               const ucResult = await UnicommerceService.orders.createOrder(
                 {
                   id: fullOrder.id,
-                  displayCode: fullOrder.display_code || fullOrder.id.slice(0, 12).toUpperCase(),
+                  displayCode: fullOrder.order_number || fullOrder.id.slice(0, 12).toUpperCase(),
                   createdAt: fullOrder.created_at,
                   currency: fullOrder.currency || 'INR',
                   paymentMethod: 'PREPAID',
-                  shippingAddress: {
-                    name: shippingAddr.name || shippingAddr.full_name || '',
-                    addressLine1: shippingAddr.address_line_1 || shippingAddr.addressLine1 || '',
-                    addressLine2: shippingAddr.address_line_2 || shippingAddr.addressLine2 || '',
-                    city: shippingAddr.city || '',
-                    state: shippingAddr.state || '',
-                    country: shippingAddr.country || 'IN',
-                    pincode: shippingAddr.pincode || shippingAddr.zip || '',
-                    phone: shippingAddr.phone || '',
-                    email: shippingAddr.email || '',
-                  },
-                  billingAddress: {
-                    name: billingAddr.name || billingAddr.full_name || '',
-                    addressLine1: billingAddr.address_line_1 || billingAddr.addressLine1 || '',
-                    addressLine2: billingAddr.address_line_2 || billingAddr.addressLine2 || '',
-                    city: billingAddr.city || '',
-                    state: billingAddr.state || '',
-                    country: billingAddr.country || 'IN',
-                    pincode: billingAddr.pincode || billingAddr.zip || '',
-                    phone: billingAddr.phone || '',
-                    email: billingAddr.email || '',
-                  },
+                  shippingAddress: shippingAddr,
+                  billingAddress: billingAddr,
                   items: orderItems.map((item: any) => ({
                     sku: item.product_variants?.sku || '',
                     name: item.product_variants?.title || '',
@@ -335,12 +316,10 @@ export const PaymentService = {
                 channelCode
               );
 
-              if (ucResult.success && ucResult.uniwareCode) {
-                // Store Unicommerce code in order metadata for status sync
-                const prevMeta = (fullOrder.metadata as Record<string, any>) || {};
+              if (ucResult.success && ucResult.uniwareCode && !fullOrder.source_order_id) {
                 await admin
                   .from('orders')
-                  .update({ metadata: { ...prevMeta, uniwareCode: ucResult.uniwareCode } })
+                  .update({ source_order_id: ucResult.uniwareCode })
                   .eq('id', order.id);
               }
             }
@@ -353,6 +332,25 @@ export const PaymentService = {
               order.id
             );
           }
+        }
+      }
+
+      if (params.eventType === 'payment_intent.payment_failed') {
+        const ship = (order.shipping_address ?? {}) as { email?: string };
+        if (ship.email) {
+          const { sendTransactionalEmail, orderEmailHtml } = await import('@/lib/notifications/email');
+          const number = order.order_number || order.id;
+          await sendTransactionalEmail({
+            to: ship.email,
+            template: 'payment_failure',
+            orderId: order.id,
+            html: orderEmailHtml(
+              'Payment failed',
+              'Your payment did not go through. Your bag is still saved — you can retry checkout.',
+              number
+            ),
+            text: `Payment failed for order ${number}. You can retry.`,
+          });
         }
       }
 

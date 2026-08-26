@@ -13,9 +13,11 @@ const STATUS_VARIANT: Record<string, 'success' | 'error' | 'warning' | 'info' | 
   cancelled: 'error',
   refunded: 'error',
   processing: 'warning',
-  pending_payment: 'warning',
+  pending: 'warning',
+  fulfilling: 'warning',
   shipped: 'info',
   confirmed: 'info',
+  returned: 'muted',
 };
 
 export default function OrdersPage() {
@@ -83,15 +85,21 @@ export default function OrdersPage() {
                   </tr>
                 ) : (
                   orders.map((order) => (
-                    <tr key={order.id}>
+                    <tr
+                      key={order.id}
+                      className="cursor-pointer"
+                      onClick={() => {
+                        window.location.href = `/admin/orders/${order.id}`;
+                      }}
+                    >
                       <td>
                         <div className="font-mono text-xs text-text-primary">
-                          {order.id.slice(0, 8)}…
+                          {order.order_number || order.id.slice(0, 8)}
                         </div>
                       </td>
                       <td>
                         <span className="font-mono text-[10px] text-text-muted">
-                          {order.user_id.slice(0, 8)}…
+                          {order.customer_email}
                         </span>
                       </td>
                       <td>
@@ -100,7 +108,7 @@ export default function OrdersPage() {
                         </Badge>
                       </td>
                       <td className="font-medium text-text-primary">
-                        {formatCurrency(order.total)}
+                        {formatCurrency(order.grand_total)}
                       </td>
                       <td className="text-text-muted">{formatRelativeTime(order.created_at)}</td>
                     </tr>

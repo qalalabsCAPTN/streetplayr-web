@@ -10,6 +10,22 @@ import { UnicommerceLogger } from './logging';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { OrderService } from '@/lib/orchestration/order';
 
+async function findOrderByUnicommerceCode(orderCode: string) {
+  const admin = createAdminClient();
+  const { data: bySource } = await admin
+    .from('orders')
+    .select('id, status')
+    .eq('source_order_id', orderCode)
+    .maybeSingle();
+  if (bySource) return { admin, order: bySource };
+  const { data: byNumber } = await admin
+    .from('orders')
+    .select('id, status')
+    .eq('order_number', orderCode)
+    .maybeSingle();
+  return { admin, order: byNumber ?? null };
+}
+
 export type UnicommerceWebhookEvent =
   | { type: 'order.shipped'; payload: { orderCode: string; trackingNumber: string; waybill: string; courier: string } }
   | { type: 'order.delivered'; payload: { orderCode: string; deliveredAt: string } }
@@ -93,19 +109,9 @@ export class UnicommerceWebhookService {
 
         // Update order status and tracking metadata in Supabase
         try {
-          const admin = createAdminClient();
+          const { admin, order } = await findOrderByUnicommerceCode(orderCode);
 
-          // Find order by Unicommerce code stored in metadata
-          const { data: orders } = await admin
-            .from('orders')
-            .select('id, status, metadata')
-            .contains('metadata', { uniwareCode: orderCode });
-
-          if (orders && orders.length > 0) {
-            const order = orders[0];
-            const meta = (order.metadata as Record<string, any>) || {};
-
-            // Transition status to shipped
+          if (order) {
             await OrderService.transitionStatus(
               order.id,
               'shipped',
@@ -113,19 +119,12 @@ export class UnicommerceWebhookService {
               `webhook:order.shipped`
             );
 
-            // Store tracking metadata
             await admin
               .from('orders')
               .update({
-                metadata: {
-                  ...meta,
-                  tracking: {
-                    courierName: courier,
-                    trackingNumber,
-                    waybillNumber: waybill,
-                    lastSyncedAt: new Date().toISOString(),
-                  },
-                },
+                tracking_number: trackingNumber || null,
+                carrier: courier || null,
+                shipped_at: new Date().toISOString(),
               })
               .eq('id', order.id);
           }
@@ -152,17 +151,9 @@ export class UnicommerceWebhookService {
 
         // Update order status to delivered in Supabase
         try {
-          const admin = createAdminClient();
+          const { admin, order } = await findOrderByUnicommerceCode(orderCode);
 
-          const { data: orders } = await admin
-            .from('orders')
-            .select('id, status, metadata')
-            .contains('metadata', { uniwareCode: orderCode });
-
-          if (orders && orders.length > 0) {
-            const order = orders[0];
-            const meta = (order.metadata as Record<string, any>) || {};
-
+          if (order) {
             await OrderService.transitionStatus(
               order.id,
               'delivered',
@@ -170,19 +161,10 @@ export class UnicommerceWebhookService {
               `webhook:order.delivered`
             );
 
-            // Update tracking with delivery timestamp
-            const prevTracking = (meta.tracking as Record<string, any>) || {};
             await admin
               .from('orders')
               .update({
-                metadata: {
-                  ...meta,
-                  tracking: {
-                    ...prevTracking,
-                    deliveredAt,
-                    lastSyncedAt: new Date().toISOString(),
-                  },
-                },
+                delivered_at: deliveredAt || new Date().toISOString(),
               })
               .eq('id', order.id);
           }

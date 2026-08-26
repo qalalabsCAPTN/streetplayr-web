@@ -76,7 +76,7 @@ export default async function WalletPage() {
             <div className="flex items-center gap-2 mb-4">
               <Wallet className="h-5 w-5 text-nectar-400" />
               <span className="text-sm font-semibold text-text-muted uppercase tracking-wider">
-                NECTAR Wallet
+                StreetPlayR wallet
               </span>
             </div>
             <div className="text-6xl font-black text-text-primary tabular-nums mb-2">

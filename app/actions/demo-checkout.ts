@@ -65,11 +65,20 @@ export async function confirmDemoOrderAction(
       return { success: false, error: submitResult.error, code: submitResult.code };
     }
 
-    await admin
+    const confirmResult = await OrderService.confirm(orderId, user.id);
+    if (!confirmResult.success) {
+      return { success: false, error: confirmResult.error, code: confirmResult.code };
+    }
+
+    const { ReservationService } = await import('@/lib/orchestration/reservation');
+    const holds = await admin
       .from('inventory_reservations')
-      .update({ reservation_state: 'held' })
+      .select('id')
       .eq('order_id', orderId)
-      .eq('reservation_state', 'pending');
+      .in('reservation_state', ['pending', 'held']);
+    for (const row of holds.data ?? []) {
+      await ReservationService.convert(row.id, user.id);
+    }
 
     await recordEvent({
       domain: 'order',

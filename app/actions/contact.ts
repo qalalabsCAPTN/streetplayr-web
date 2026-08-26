@@ -1,6 +1,8 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { sendTransactionalEmail } from '@/lib/notifications/email';
+import { rateLimit } from '@/lib/security/rate-limit';
 
 export type ContactInput = {
   name: string;
@@ -15,13 +17,9 @@ export type ActionResponse = {
   error?: string;
 };
 
-/**
- * Server Action: Submit Contact Form
- */
 export async function submitContactAction(input: ContactInput): Promise<ActionResponse> {
   const { name, email, subject, message } = input;
 
-  // Basic Validation
   if (!name || name.trim().length < 2) {
     return { success: false, error: 'Name must be at least 2 characters.' };
   }
@@ -35,44 +33,57 @@ export async function submitContactAction(input: ContactInput): Promise<ActionRe
     return { success: false, error: 'Message must be at least 10 characters.' };
   }
 
+  const rl = await rateLimit({ key: `contact:${email.toLowerCase()}`, limit: 5, windowMs: 10 * 60_000 });
+  if (!rl.ok) {
+    return { success: false, error: 'Too many messages. Please wait before sending again.' };
+  }
+
+  let ticketStored = false;
   try {
-    // Simulate premium processing delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const supabase = await createClient();
+    const { error } = await supabase.from('support_tickets').insert([
+      {
+        name,
+        email,
+        subject,
+        message,
+        cc: 'orders@playR.in',
+        created_at: new Date().toISOString(),
+      },
+    ]);
+    ticketStored = !error;
+  } catch {
+    ticketStored = false;
+  }
 
-    // Attempt to insert into support_tickets if available
-    try {
-      const supabase = await createClient();
-      
-      const { error } = await supabase
-        .from('support_tickets')
-        .insert([
-          {
-            name,
-            email,
-            subject,
-            message,
-            cc: 'orders@playR.in',
-            created_at: new Date().toISOString(),
-          }
-        ]);
-        
-      if (error && process.env.NODE_ENV !== 'production') {
-        console.warn('Supabase support_tickets insert skipped or failed:', error.message);
-      }
-    } catch {
-      // Ignore database client or stub errors so submission still succeeds locally
-    }
+  const ack = await sendTransactionalEmail({
+    to: email,
+    template: 'contact_ack',
+    html: `<p>We received your message, ${name}.</p><p>Subject: ${subject}</p>`,
+    text: `We received your message (${subject}).`,
+  });
 
-    return {
-      success: true,
-      message: 'Transmission received. Our operators will respond within 24 cycles.',
-    };
-  } catch (error: unknown) {
-    console.error('submitContactAction error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Transmission failed. Please check your network and try again.';
+  if (!ticketStored && !ack.sent) {
     return {
       success: false,
-      error: errorMessage,
+      error: ack.error || 'Could not store or send your message. Try again or email orders@playR.in.',
     };
   }
+  if (ticketStored && !ack.sent) {
+    return {
+      success: true,
+      message: 'Message received. Confirmation email could not be sent — our team still has your request.',
+    };
+  }
+  if (!ticketStored && ack.sent) {
+    return {
+      success: true,
+      message: 'Message emailed. Our team will reply soon.',
+    };
+  }
+
+  return {
+    success: true,
+    message: 'Message received. Our team will reply soon.',
+  };
 }

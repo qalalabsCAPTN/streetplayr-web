@@ -27,6 +27,10 @@ let paymentEvents: any[];
 function makeOrdersQuery() {
   const q: any = {};
   q.select = () => q;
+  q.in = () => q;
+  q.maybeSingle = async function (this: any) {
+    return q.single();
+  };
   q.eq = function (this: any, col: string, val: string) {
     if (col === 'id') this._id = val;
     if (col === 'payment_intent_id') this._paymentIntentId = val;
@@ -79,7 +83,14 @@ vi.mock('@/lib/supabase/admin', () => ({
     from: (table: string) => {
       if (table === 'orders') return makeOrdersQuery();
       if (table === 'payment_events') return { insert: makePaymentEventsInsert };
-      if (table === 'inventory_reservations') return { select: () => ({ eq: () => ({ then: (r: any) => r({ data: [] }) }) }) };
+      const empty: any = {};
+      empty.select = () => empty;
+      empty.eq = () => empty;
+      empty.in = () => empty;
+      empty.maybeSingle = async () => ({ data: null });
+      empty.single = async () => ({ data: null });
+      empty.then = (r: any) => Promise.resolve({ data: [] }).then(r);
+      if (table === 'inventory_reservations' || table === 'order_items') return empty;
       throw new Error(`unexpected table in test: ${table}`);
     },
   }),
@@ -95,7 +106,10 @@ vi.mock('@/lib/orchestration/idempotency', () => ({
   }),
 }));
 
-vi.mock('@/lib/orchestration/events', () => ({ recordEvent: vi.fn().mockResolvedValue(undefined) }));
+vi.mock('@/lib/notifications/email', () => ({
+  sendTransactionalEmail: vi.fn().mockResolvedValue({ sent: false }),
+  orderEmailHtml: () => '',
+}));
 
 const transitionStatusMock = vi.fn().mockResolvedValue({ success: true });
 vi.mock('@/lib/orchestration/order', () => ({ OrderService: { transitionStatus: (...a: any[]) => transitionStatusMock(...a) } }));

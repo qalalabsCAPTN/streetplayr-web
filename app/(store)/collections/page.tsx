@@ -167,7 +167,18 @@ function CollectionsInner() {
     try {
       const { loadClientCatalog } = await import('@/lib/products/client-catalog');
       const catalog = await loadClientCatalog();
-      setProducts(catalog);
+      const variantIds = catalog.flatMap((p) => (p.variants ?? []).map((v) => v.id));
+      const { getCatalogAvailabilityAction } = await import('@/app/actions/stock');
+      const stock = await getCatalogAvailabilityAction(variantIds);
+      setProducts(
+        catalog.map((p) => ({
+          ...p,
+          variants: (p.variants ?? []).map((v) => ({
+            ...v,
+            stockQuantity: stock[v.id] ?? 0,
+          })),
+        }))
+      );
     } catch (err) {
       console.error('[collections] load failed:', err);
       setError('Could not load products. Please try again.');
@@ -296,9 +307,12 @@ function CollectionsInner() {
         if (!matches) return false;
       }
 
-      // Availability Filter
+      // Availability Filter — real inventory.quantity minus reservations
       if (activeAvailability === 'Out of stock') {
-        return false; // local mock products are in stock by default
+        return (p.variants ?? []).length > 0 && (p.variants ?? []).every((v) => (v.stockQuantity ?? 0) <= 0);
+      }
+      if (activeAvailability === 'In stock') {
+        return (p.variants ?? []).some((v) => (v.stockQuantity ?? 0) > 0);
       }
 
       return true;

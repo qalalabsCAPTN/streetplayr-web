@@ -6,10 +6,10 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Wallet, Trophy, Medal, Scroll,
   GitBranch, Activity, BarChart3, Star, Settings,
-  ChevronRight, Zap, Bell, Menu, X,
+  ChevronRight, Bell, Menu, X,
 } from 'lucide-react';
 import { cn } from '@/lib/nectar-portal/cn';
-import { DEMO_USER, DEMO_PROGRESSION, DEMO_WALLET, TIER_CONFIG } from '@/lib/nectar-portal/demo';
+import { TIER_CONFIG } from '@/lib/nectar-portal/demo';
 
 const NAV = [
   { label: 'Overview',       href: '/dashboard/overview',      icon: LayoutDashboard },
@@ -26,8 +26,30 @@ const NAV = [
 
 function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
-  const tierCfg = TIER_CONFIG[DEMO_PROGRESSION.tier];
-  const xpPct = DEMO_PROGRESSION.xpProgressPct;
+  const [email, setEmail] = useState('Member');
+  const [tier, setTier] = useState('STREET');
+  const [xp, setXp] = useState(0);
+  const [pct, setPct] = useState(0);
+  const [balance, setBalance] = useState(0);
+
+  useEffect(() => {
+    (async () => {
+      const { getLoyaltySnapshotAction } = await import('@/app/actions/loyalty');
+      const result = await getLoyaltySnapshotAction();
+      if (result.success) {
+        setEmail(result.data.email || 'Member');
+        setTier(result.data.tier);
+        setXp(result.data.xp);
+        setPct(result.data.progressPct);
+        setBalance(result.data.sprrBalance);
+      }
+    })();
+  }, []);
+
+  const tierKey = tier === 'LEGEND' ? 'nectar' : tier === 'PLAYER' ? 'sprout' : 'seed';
+  const tierCfg = TIER_CONFIG[tierKey];
+  const xpPct = pct;
+  const initials = email.slice(0, 2).toUpperCase();
 
   return (
     <>
@@ -50,10 +72,10 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
         <div className="rounded-xl p-3" style={{ background: tierCfg.bg, border: `1px solid ${tierCfg.color}30` }}>
           <div className="flex items-center gap-2 mb-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-base-overlay text-xs font-bold text-text-primary">
-              {DEMO_USER.avatarInitials}
+              {initials}
             </div>
             <div>
-              <div className="text-xs font-semibold text-text-primary">{DEMO_USER.displayName}</div>
+              <div className="text-xs font-semibold text-text-primary">{email}</div>
               <div className="text-[10px] font-bold uppercase tracking-widest" style={{ color: tierCfg.color }}>
                 {tierCfg.name}
               </div>
@@ -61,8 +83,8 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
           </div>
           <div className="space-y-1">
             <div className="flex justify-between text-[10px]">
-              <span className="text-text-muted">{DEMO_PROGRESSION.lifetimeXp.toLocaleString()} XP</span>
-              <span style={{ color: tierCfg.color }}>{xpPct.toFixed(0)}% → {DEMO_PROGRESSION.nextTier}</span>
+              <span className="text-text-muted">{xp.toLocaleString()} XP</span>
+              <span style={{ color: tierCfg.color }}>{xpPct.toFixed(0)}%</span>
             </div>
             <div className="h-1.5 w-full rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
               <div
@@ -96,19 +118,13 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
 
       <div className="border-t border-border p-3">
         <div className="rounded-xl bg-base-overlay border border-border px-3 py-2.5">
-          <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">NECTAR Points</div>
+          <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">StreetPlayR wallet</div>
           <div className="flex items-baseline gap-1.5">
             <span className="text-xl font-bold text-nectar-400 tabular-nums">
-              {DEMO_WALLET.nectarPoints.toLocaleString()}
+              {balance.toLocaleString()}
             </span>
-            <span className="text-[10px] text-text-muted">pts</span>
+            <span className="text-[10px] text-text-muted">SPRR</span>
           </div>
-          {DEMO_WALLET.pendingPoints > 0 && (
-            <div className="flex items-center gap-1 mt-1 text-[10px] text-status-success">
-              <Zap className="h-2.5 w-2.5" />
-              +{DEMO_WALLET.pendingPoints.toLocaleString()} pending
-            </div>
-          )}
         </div>
       </div>
     </>

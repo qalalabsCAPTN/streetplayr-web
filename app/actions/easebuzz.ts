@@ -6,6 +6,7 @@ import { resolveStorefrontBrandId } from '@/lib/products/brand';
 import { recordEvent } from '@/lib/orchestration/events';
 import type { OrchestrationResponse } from '@/lib/orchestration/types';
 import { getEasebuzzCredentials, initiatePayment } from '@/lib/easebuzz/client';
+import { rateLimit } from '@/lib/security/rate-limit';
 
 export interface EasebuzzInitiateParams {
   orderId: string;
@@ -33,6 +34,11 @@ export async function createEasebuzzPaymentAction(
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { success: false, error: 'Not authenticated.', code: 'UNAUTHORIZED' };
+
+    const rl = await rateLimit({ key: `easebuzz:${user.id}`, limit: 8, windowMs: 60_000 });
+    if (!rl.ok) {
+      return { success: false, error: 'Too many payment attempts. Wait a moment.', code: 'RATE_LIMITED' };
+    }
 
     const creds = getEasebuzzCredentials();
     if (!creds) {

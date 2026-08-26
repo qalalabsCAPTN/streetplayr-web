@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { checkEnvironment } from '@/lib/env/validate';
+import { checkEnvironment, launchEnvPresence } from '@/lib/env/validate';
 import { UnicommerceService } from '@/src/integrations/unicommerce';
 
 type SubStatus = 'ok' | 'degraded' | 'down';
@@ -43,6 +43,7 @@ interface FullHealthReport {
     realtime: { status: SubStatus; enabled: boolean };
     unicommerce?: { status: SubStatus; details?: string; error?: string };
     nectar?: { status: SubStatus; details?: string };
+    launchEnv?: ReturnType<typeof launchEnvPresence>;
   };
 }
 
@@ -133,6 +134,11 @@ export async function GET(req: NextRequest) {
     report.status = 'degraded';
   }
 
+  if (!process.env.CRON_SECRET) {
+    report.subsystems.cron.status = 'degraded';
+    if (environment === 'production') report.status = 'degraded';
+  }
+
   if (!report.subsystems.webhooks.easebuzzConfigured) {
     report.subsystems.webhooks.status = 'degraded';
     if (environment === 'production') {
@@ -196,6 +202,7 @@ export async function GET(req: NextRequest) {
 
   // Always 200 so container boot / load balancers stay up; status field carries health.
   if (detailed) {
+    report.subsystems.launchEnv = launchEnvPresence();
     return NextResponse.json(report, { status: 200 });
   }
 

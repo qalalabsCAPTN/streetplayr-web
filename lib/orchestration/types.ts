@@ -42,23 +42,33 @@ export type OrderStatus =
   | 'pending'
   | 'confirmed'
   | 'processing'
+  | 'fulfilling'
   | 'shipped'
   | 'delivered'
   | 'cancelled'
+  | 'returned'
   | 'refunded';
 
 export interface Order {
   id: string;
+  orderNumber: string;
   userId: string;
+  customerId?: string;
   status: OrderStatus;
+  paymentStatus?: string;
+  fulfillmentStatus?: string;
   total: number;
   subtotal: number;
   shippingCost: number;
   taxAmount: number;
+  discountTotal?: number;
   currency: string;
   shippingAddress: Record<string, unknown>;
   billingAddress?: Record<string, unknown>;
   paymentIntentId?: string;
+  trackingNumber?: string | null;
+  carrier?: string | null;
+  items: OrderItem[];
   metadata: Record<string, unknown>;
   notes?: string;
   createdAt: string;
@@ -70,6 +80,9 @@ export interface OrderItem {
   orderId: string;
   productId: string;
   variantId?: string;
+  productTitle?: string;
+  variantTitle?: string;
+  sku?: string | null;
   quantity: number;
   price: number;
   metadata: Record<string, unknown>;
