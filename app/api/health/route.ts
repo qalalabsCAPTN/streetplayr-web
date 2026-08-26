@@ -37,11 +37,12 @@ interface FullHealthReport {
     };
     webhooks: {
       status: SubStatus;
-      stripeVerification: 'enabled' | 'stub' | 'disabled';
+      easebuzzConfigured: boolean;
       error?: string;
     };
     realtime: { status: SubStatus; enabled: boolean };
     unicommerce?: { status: SubStatus; details?: string; error?: string };
+    nectar?: { status: SubStatus; details?: string };
   };
 }
 
@@ -85,10 +86,13 @@ export async function GET(req: NextRequest) {
       },
       webhooks: {
         status: 'ok',
-        stripeVerification: process.env.STRIPE_WEBHOOK_SECRET ? 'enabled' : 'stub',
+        easebuzzConfigured: Boolean(
+          process.env.EASEBUZZ_MERCHANT_KEY && process.env.EASEBUZZ_SALT && process.env.EASEBUZZ_ENV
+        ),
       },
       realtime: { status: 'ok', enabled: true },
       unicommerce: { status: 'ok', details: 'Checking connection...' },
+      nectar: { status: 'ok', details: 'Checking configuration...' },
     },
   };
 
@@ -129,10 +133,42 @@ export async function GET(req: NextRequest) {
     report.status = 'degraded';
   }
 
-  if (!process.env.STRIPE_WEBHOOK_SECRET) {
+  if (!report.subsystems.webhooks.easebuzzConfigured) {
     report.subsystems.webhooks.status = 'degraded';
     if (environment === 'production') {
       report.status = 'degraded';
+    }
+  }
+
+  const nectarBase =
+    process.env.NECTAR_API_URL || process.env.NEXT_PUBLIC_NECTAR_API_URL || '';
+  const nectarSecret =
+    process.env.NECTAR_SIGNING_SECRET || process.env.PLATFORM_TOKEN_STREETPLAYR || '';
+  if (!nectarBase || !nectarSecret) {
+    report.subsystems.nectar = {
+      status: 'degraded',
+      details: 'NECTAR_API_URL / signing secret not fully configured',
+    };
+    if (environment === 'production') report.status = 'degraded';
+  } else {
+    try {
+      const nectarProbe = await withTimeout(
+        fetch(`${nectarBase.replace(/\/$/, '')}/health`, { method: 'GET' }).then(async (r) => ({
+          ok: r.ok,
+          status: r.status,
+        })),
+        2500,
+        'Nectar',
+      );
+      report.subsystems.nectar = {
+        status: nectarProbe.ok ? 'ok' : 'degraded',
+        details: nectarProbe.ok ? `reachable (${nectarProbe.status})` : `HTTP ${nectarProbe.status}`,
+      };
+      if (!nectarProbe.ok && environment === 'production') report.status = 'degraded';
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Nectar unreachable';
+      report.subsystems.nectar = { status: 'degraded', details: message };
+      if (environment === 'production') report.status = 'degraded';
     }
   }
 

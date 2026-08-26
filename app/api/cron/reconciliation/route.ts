@@ -6,7 +6,7 @@ import { idempotencyGuard } from '@/lib/orchestration/idempotency';
  * Cron: Reconciliation Cycle
  *
  * Every 15 minutes. Detects and resolves:
- *   - Orphaned payments (orders stuck in pending_payment with confirmed Stripe payment)
+ *   - Orphaned payments (orders stuck pending with confirmed Easebuzz payment)
  *   - Stale reservations (reservations held > 2h with no order activity)
  *
  * Idempotent: Auto-confirms are guarded by OrderService.transitionStatus

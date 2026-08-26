@@ -32,7 +32,7 @@ export default function ProductCard({
 }: ProductCardProps) {
   return (
     <motion.article
-      className={`group relative overflow-hidden border border-white/[0.10] bg-[#231e27] shadow-[0_18px_60px_rgba(12,6,18,0.24)] rounded-xl ${className}`}
+      className={`group relative overflow-hidden border border-white/[0.08] bg-[#0c0c0c] shadow-[0_18px_60px_rgba(0,0,0,0.35)] rounded-xl ${className}`}
       transition={{ duration: 0.22, ease: [0, 0, 0.2, 1] }}
       whileHover={{ y: -4 }}
     >

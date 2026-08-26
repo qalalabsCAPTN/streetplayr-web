@@ -27,8 +27,8 @@
 3. If the code does reach `/auth/callback` and still fails, check server logs for `[Auth Callback] exchangeCodeForSession error:` — usually a PKCE code-verifier cookie mismatch (must use the browser Supabase client for `signInWithOAuth`, not a Server Action — already implemented correctly in `LoginModal.tsx`/`login/page.tsx`).
 
 ### Payment webhook not updating order status
-1. Verify signature secret (`STRIPE_WEBHOOK_SECRET`) matches the endpoint configured in the Stripe/Easebuzz dashboard for **this** environment.
-2. Check `lib/orchestration/payment.ts` — only has a single `UnicommerceLogger.error` call; most payment failures currently rely on function return values, not persisted logs. If diagnosing after the fact, check Cloud Run stdout logs for the request, not just the structured log sink.
+1. Verify Easebuzz reverse-hash uses the same `EASEBUZZ_SALT` / `EASEBUZZ_ENV` as initiate for **this** environment.
+2. Check `lib/orchestration/payment.ts` and `operational_events` for `payment.*` / Unicommerce push failures.
 
 ## Rollback
 See `ROLLBACK.md`.

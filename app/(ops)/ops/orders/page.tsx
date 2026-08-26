@@ -182,7 +182,7 @@ export default async function OrdersPage() {
       <section className="pt-12 border-t border-[var(--ops-border-subtle)] flex gap-24">
         <div className="space-y-1">
           <div className="text-[9px] font-mono text-[var(--ops-text-muted)] uppercase tracking-widest">Fulfillment Authority</div>
-          <div className="text-[10px] font-mono text-[var(--ops-text-secondary)]">Stripe / ShipEngine Sync</div>
+          <div className="text-[10px] font-mono text-[var(--ops-text-secondary)]">Payment / ShipEngine Sync</div>
         </div>
         <div className="space-y-1">
           <div className="text-[9px] font-mono text-[var(--ops-text-muted)] uppercase tracking-widest">Data Source</div>

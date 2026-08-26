@@ -1,11 +1,5 @@
 /**
- * Environment Validation — production startup checks.
- *
- * Two tiers:
- *   BUILD-TIME (validateEnvironment): fails build if core Supabase vars missing.
- *   RUNTIME  (validateRuntime):       fails server start if production vars missing.
- *
- * This prevents silent empty-state failures while keeping developer builds working.
+ * Environment validation — build-time vs runtime production checks.
  */
 
 const CORE_ENV_VARS = {
@@ -15,9 +9,9 @@ const CORE_ENV_VARS = {
 } as const;
 
 const PRODUCTION_ENV_VARS = {
-  STRIPE_SECRET_KEY: 'Stripe secret key (server-only)',
-  STRIPE_WEBHOOK_SECRET: 'Stripe webhook signing secret',
-  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: 'Stripe publishable key',
+  EASEBUZZ_MERCHANT_KEY: 'Easebuzz merchant key (server-only)',
+  EASEBUZZ_SALT: 'Easebuzz salt (server-only)',
+  EASEBUZZ_ENV: 'Easebuzz environment (test|prod)',
   CRON_SECRET: 'Secret for cron job authorization',
 } as const;
 
@@ -45,16 +39,7 @@ function collectMissing(vars: Record<string, string>): string[] {
   return missing;
 }
 
-/**
- * BUILD-TIME validation. Blocks build if core Supabase vars are missing.
- * Called from next.config.ts — runs on every `next build` and `next start`.
- *
- * In development missing vars produce a warning but do NOT block startup,
- * allowing local work without a configured Supabase project.
- * In production missing vars throw and block startup.
- *
- * Does NOT require Stripe/cron vars — those are runtime-only checks.
- */
+/** Build-time: require core Supabase vars in production. */
 export function validateEnvironment(): EnvCheckResult {
   const missing = collectMissing(CORE_ENV_VARS);
 
@@ -80,13 +65,14 @@ export function validateEnvironment(): EnvCheckResult {
   return { valid: missing.length === 0, missing, warnings: [] };
 }
 
-/**
- * RUNTIME validation. Checks production-critical vars (Stripe, cron).
- * Called during server initialization. Throws in production if missing.
- */
+/** Runtime: Easebuzz + cron required in production. */
 export function validateRuntime(): EnvCheckResult {
   const missing = collectMissing(PRODUCTION_ENV_VARS);
   const warnings = collectMissing(OPTIONAL_ENV_VARS);
+
+  if (process.env.EASEBUZZ_ENV && !['test', 'prod'].includes(process.env.EASEBUZZ_ENV)) {
+    warnings.push(`EASEBUZZ_ENV must be 'test' or 'prod' (got '${process.env.EASEBUZZ_ENV}')`);
+  }
 
   if (missing.length > 0) {
     const message =
@@ -102,10 +88,7 @@ export function validateRuntime(): EnvCheckResult {
   return { valid: missing.length === 0, missing, warnings };
 }
 
-/**
- * Comprehensive health-check-friendly check.
- * Returns status without throwing — safe for /api/health endpoints.
- */
+/** Health-check friendly env status (no throw). */
 export function checkEnvironment(): EnvCheckResult & {
   allRequired: string[];
   allOptional: string[];

@@ -48,7 +48,7 @@ export default function BestSellers({ products }: BestSellersProps) {
           <Reveal key={product.id} delay={index * 0.1} className="flex">
             <Link
               href={product.slug ? `/product/${product.slug}` : "/collections"}
-              className="group relative w-full aspect-[4/5] bg-[#231e27] overflow-hidden border border-white/[0.10] shadow-[0_22px_70px_rgba(12,6,18,0.30)]"
+              className="group relative w-full aspect-[4/5] bg-[#0c0c0c] overflow-hidden border border-white/[0.08] shadow-[0_22px_70px_rgba(0,0,0,0.40)]"
             >
               <Image
                 src={product.image}

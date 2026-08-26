@@ -29,9 +29,13 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+*.log
+_dev.log
+srv.log
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -40,12 +44,22 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-srv.log
 supabase/.temp/
 
 Nectar 2.0.zip
 *.zip
 /scratch/
+.git-rewrite/
 
-
-_dev.log
+# local QA / probe artifacts
+/qa-screenshots/
+lighthouse*.json
+lh-*-raw.json
+_an.*
+scripts/.live-smoke-preflight.json
+scripts/advisor_*.json
+scripts/matrix_*.json
+scripts/perf_*.json
+scripts/sec_*.json
+scripts/*_out.json
+scripts/.webp-convert-report.json

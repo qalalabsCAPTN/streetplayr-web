@@ -4,7 +4,7 @@
 A Next.js storefront backed by Supabase (products, collections, orders, auth) with:
 - Product catalog synced automatically from Unicommerce every few minutes (products, inventory, order status, returns).
 - Email, phone OTP, Google, and Facebook sign-in.
-- Stripe and Easebuzz checkout.
+- Easebuzz checkout.
 - Wishlist, wallet/member credits, order tracking.
 - 21 active products across 5 collections (Short Sleeve, Long Sleeve, Tanks, Sweatpants, All Products), verified live against the production database.
 

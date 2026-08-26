@@ -40,7 +40,7 @@ export default function NewDrops({ products }: NewDropsProps) {
           <Reveal delay={0.1} className="md:col-span-8 flex">
             <Link
               href={drops[0].slug ? `/product/${drops[0].slug}` : "/collections"}
-              className="w-full h-full group relative aspect-video bg-[#231e27] overflow-hidden border border-white/[0.10] shadow-[0_22px_70px_rgba(12,6,18,0.30)] rounded-xl"
+              className="w-full h-full group relative aspect-video bg-[#0c0c0c] overflow-hidden border border-white/[0.08] shadow-[0_22px_70px_rgba(0,0,0,0.40)] rounded-xl"
             >
               <Image
                 src={drops[0].image}
@@ -67,7 +67,7 @@ export default function NewDrops({ products }: NewDropsProps) {
           <Reveal delay={0.2} className="md:col-span-4 flex">
             <Link
               href={drops[1].slug ? `/product/${drops[1].slug}` : "/collections"}
-              className="w-full h-full group relative aspect-[4/5] bg-[#231e27] overflow-hidden border border-white/[0.10] shadow-[0_22px_70px_rgba(12,6,18,0.30)] rounded-xl"
+              className="w-full h-full group relative aspect-[4/5] bg-[#0c0c0c] overflow-hidden border border-white/[0.08] shadow-[0_22px_70px_rgba(0,0,0,0.40)] rounded-xl"
             >
               <Image
                 src={drops[1].image}
@@ -94,7 +94,7 @@ export default function NewDrops({ products }: NewDropsProps) {
           <Reveal key={product.id} delay={(i + 2) * 0.1} className="md:col-span-4 flex">
             <Link
               href={product.slug ? `/product/${product.slug}` : "/collections"}
-              className="w-full h-full group relative aspect-square bg-[#231e27] overflow-hidden border border-white/[0.10] shadow-[0_22px_70px_rgba(12,6,18,0.26)] rounded-xl"
+              className="w-full h-full group relative aspect-square bg-[#0c0c0c] overflow-hidden border border-white/[0.08] shadow-[0_22px_70px_rgba(0,0,0,0.35)] rounded-xl"
             >
               <Image
                 src={product.image}
@@ -111,7 +111,7 @@ export default function NewDrops({ products }: NewDropsProps) {
         ))}
 
         <Reveal delay={(drops.slice(2).length + 2) * 0.1} className="md:col-span-4 flex">
-          <div className="w-full h-full flex flex-col justify-center items-center border border-dashed border-white/[0.10] p-8 text-center bg-[#231e27]/72 hover:bg-[#2b2430] transition-colors group cursor-pointer aspect-square shadow-[0_22px_70px_rgba(12,6,18,0.20)] rounded-xl">
+          <div className="w-full h-full flex flex-col justify-center items-center border border-dashed border-white/[0.10] p-8 text-center bg-[#0c0c0c]/80 hover:bg-white/[0.04] transition-colors group cursor-pointer aspect-square shadow-[0_22px_70px_rgba(0,0,0,0.30)] rounded-xl">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-white/48 mb-4">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
             </svg>

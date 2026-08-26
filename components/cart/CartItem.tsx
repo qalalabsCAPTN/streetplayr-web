@@ -22,11 +22,11 @@ export default function CartItem({ item, index = 0 }: CartItemProps) {
       exit={{ opacity: 0, y: -24 }}
       transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: index * 0.12 }}
     >
-      <div className="group relative flex gap-3 md:gap-4 p-3 md:p-5 bg-[#1f1a23] border border-white/[0.08] hover:border-[#ddb7ff] transition-all duration-500 rounded-xl">
+      <div className="group relative flex gap-3 md:gap-4 p-3 md:p-5 bg-[#0c0c0c]/90 backdrop-blur-md border border-white/[0.08] hover:border-white/[0.16] transition-all duration-500 rounded-xl">
         {/* Image */}
         <Link
           href={`/product/${item.productId}`}
-          className="w-[88px] md:w-48 shrink-0 self-start aspect-square md:aspect-[4/5] bg-[#231e27] overflow-hidden"
+          className="w-[88px] md:w-48 shrink-0 self-start aspect-square md:aspect-[4/5] bg-[#0a0a0a] overflow-hidden"
         >
           <Image
             src={item.image || "/images/placeholder.jpg"}

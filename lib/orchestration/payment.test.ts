@@ -114,10 +114,14 @@ vi.mock('@/lib/orchestration/reservation', () => ({
 const awardSPRRMock = vi.fn().mockResolvedValue(undefined);
 const awardXPMock = vi.fn().mockResolvedValue(undefined);
 const processReferralMock = vi.fn().mockResolvedValue(undefined);
+const redeemSPRRMock = vi.fn().mockResolvedValue(undefined);
+const refundSPRRMock = vi.fn().mockResolvedValue(undefined);
 vi.mock('@/lib/nectar/engine', () => ({
   awardSPRR: (...a: any[]) => awardSPRRMock(...a),
   awardXP: (...a: any[]) => awardXPMock(...a),
   processReferral: (...a: any[]) => processReferralMock(...a),
+  redeemSPRR: (...a: any[]) => redeemSPRRMock(...a),
+  refundSPRR: (...a: any[]) => refundSPRRMock(...a),
 }));
 
 const createOrderMock = vi.fn().mockResolvedValue({ success: false });
@@ -155,6 +159,8 @@ beforeEach(() => {
   awardSPRRMock.mockClear();
   awardXPMock.mockClear();
   processReferralMock.mockClear();
+  redeemSPRRMock.mockClear();
+  refundSPRRMock.mockClear();
   createOrderMock.mockClear();
 });
 
@@ -224,29 +230,36 @@ describe('PaymentService.processWebhookEvent — duplicate/concurrent delivery',
     expect(transitionStatusMock).toHaveBeenCalledTimes(0); // payment_failed has no order transition (stays pending for retry)
   });
 
-  it('9. success → duplicate success does not re-award Nectar reward', async () => {
+  it('9. success → duplicate success does not re-run checkout credit redeem', async () => {
+    orders[ORDER_ID].discount_total = 100;
     await PaymentService.processWebhookEvent(baseEvent());
     await PaymentService.processWebhookEvent(baseEvent());
-    expect(awardSPRRMock).toHaveBeenCalledTimes(1);
-    expect(awardXPMock).toHaveBeenCalledTimes(1);
+    expect(redeemSPRRMock).toHaveBeenCalledTimes(1);
+    expect(awardSPRRMock).not.toHaveBeenCalled();
+    expect(awardXPMock).not.toHaveBeenCalled();
   });
 });
 
-describe('PaymentService.processWebhookEvent — reward identity model', () => {
-  it('credits the auth user id carried in orders.notes, not orders.customer_id or orders.user_id', async () => {
+describe('PaymentService.processWebhookEvent — Nectar ownership boundary', () => {
+  it('does not locally award purchase SPRR/XP (Nectar owns purchase.completed rewards)', async () => {
     await PaymentService.processWebhookEvent(baseEvent());
-    expect(awardSPRRMock).toHaveBeenCalledWith(AUTH_USER_ID, expect.any(Number), expect.any(String), 'earned');
-    expect(awardXPMock).toHaveBeenCalledWith(AUTH_USER_ID, expect.any(Number), expect.any(String));
-    expect(processReferralMock).toHaveBeenCalledWith(AUTH_USER_ID);
-  });
-
-  it('skips rewards (without failing the payment) and logs an operational event when notes is empty', async () => {
-    orders[ORDER_ID].notes = null;
-    const result = await PaymentService.processWebhookEvent(baseEvent());
-    expect(result.success).toBe(true);
     expect(awardSPRRMock).not.toHaveBeenCalled();
     expect(awardXPMock).not.toHaveBeenCalled();
     expect(processReferralMock).not.toHaveBeenCalled();
+  });
+
+  it('redeems checkout credits from orders.notes auth user when discount_total > 0', async () => {
+    orders[ORDER_ID].discount_total = 250;
+    await PaymentService.processWebhookEvent(baseEvent());
+    expect(redeemSPRRMock).toHaveBeenCalledWith(AUTH_USER_ID, 250, expect.stringContaining(ORDER_ID));
+  });
+
+  it('skips credit redeem when notes is empty (without failing payment)', async () => {
+    orders[ORDER_ID].notes = null;
+    orders[ORDER_ID].discount_total = 100;
+    const result = await PaymentService.processWebhookEvent(baseEvent());
+    expect(result.success).toBe(true);
+    expect(redeemSPRRMock).not.toHaveBeenCalled();
   });
 });
 

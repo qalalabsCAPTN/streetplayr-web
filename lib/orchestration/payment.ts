@@ -14,14 +14,13 @@ import { recordEvent } from './events';
 import { idempotencyGuard } from './idempotency';
 import { OrderService } from './order';
 import { ReservationService } from './reservation';
-import { awardSPRR, awardXP, processReferral, redeemSPRR, refundSPRR } from '@/lib/nectar/engine';
+import { redeemSPRR, refundSPRR } from '@/lib/nectar/engine';
 import { UnicommerceService, UnicommerceLogger } from '@/src/integrations/unicommerce';
 
 /**
  * Map of canonical payment event types to corresponding reservation state
- * transitions. Provider-neutral: every gateway adapter (Stripe, Easebuzz)
- * maps its own vocabulary into this shared PaymentEventType before it ever
- * reaches this table.
+ * transitions. Provider-neutral: gateway adapters map their vocabulary into
+ * PaymentEventType before reaching this table.
  */
 const RESERVATION_TRANSITION_MAP: Record<string, (id: string, actor: string) => Promise<any>> = {
   'payment_intent.created': ReservationService.hold,
@@ -239,45 +238,41 @@ export const PaymentService = {
             },
           });
 
-          // NECTAR: award XP and SPRR on successful payment.
-          // Identity: `order.notes` carries the creating auth user's id
-          // (see the order-lookup comment above) — awardSPRR/awardXP/
-          // processReferral all key off `profiles.id`, which IS the auth
-          // user id, so this is the correct identifier, not a workaround.
-          // The live `orders` table has no `user_id` column and `customers`
-          // has no auth link at all (verified — see audit report), so this
-          // is genuinely the only live-working identity path today.
+          // Member checkout credits (SPRR spent at checkout) stay on StreetPlayR.
+          // Purchase XP/SPRR awards + referrals are owned by Nectar via
+          // purchase.completed (OrderService → emitPurchaseCompleted). Do not
+          // award locally here — that double-credits the same payment.
           const orderUserId: string | null = order.notes || null;
 
           if (orderUserId) {
-            const sprrAward = Math.floor(params.amount / 100);
-            const xpAward = Math.floor(params.amount / 50);
-            if (sprrAward > 0) {
-              await awardSPRR(orderUserId, sprrAward, `Order #${order.id.slice(0, 8)}`, 'earned');
+            try {
+              const creditsUsed = Math.floor(Number(order.discount_total ?? 0));
+              if (creditsUsed > 0) {
+                await redeemSPRR(orderUserId, creditsUsed, `Order credit ${order.id}`);
+              }
+            } catch (creditErr: unknown) {
+              const creditMessage =
+                creditErr instanceof Error ? creditErr.message : String(creditErr);
+              await recordEvent({
+                domain: 'payment',
+                severity: 'error',
+                action: 'payment.credit_redeem_failed',
+                actorId: 'system',
+                resourceType: 'orders',
+                resourceId: order.id,
+                message: `Checkout credit redeem failed for order ${order.id} (payment already confirmed): ${creditMessage}`,
+                metadata: { orderId: order.id, eventType: params.eventType },
+              });
             }
-            if (xpAward > 0) {
-              await awardXP(orderUserId, xpAward, `Order #${order.id.slice(0, 8)}`);
-            }
-
-            // Member credits: deduct the order's discount_total once payment succeeds.
-            const creditsUsed = Math.floor(Number(order.discount_total ?? 0));
-            if (creditsUsed > 0) {
-              await redeemSPRR(orderUserId, creditsUsed, `Order credit ${order.id}`);
-            }
-
-            // NECTAR: process referral if this is the referred user's first paid order
-            await processReferral(orderUserId);
           } else {
-            // Never silently skip — this order can't be credited and someone
-            // needs to know. Payment/order processing itself still succeeds.
             await recordEvent({
               domain: 'payment',
-              severity: 'warning',
-              action: 'payment.reward_identity_missing',
+              severity: 'info',
+              action: 'payment.nectar_identity_notes_empty',
               actorId: 'system',
               resourceType: 'orders',
               resourceId: order.id,
-              message: `Order ${order.id} has no resolvable auth user id (orders.notes empty) — Nectar rewards skipped for this payment.`,
+              message: `Order ${order.id} has empty orders.notes — purchase.completed identity resolves via customers.email → profiles (see PURCHASE_COMPLETED_CONTRACT).`,
               metadata: { orderId: order.id, eventType: params.eventType },
             });
           }

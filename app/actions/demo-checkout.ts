@@ -6,15 +6,57 @@ import { OrderService } from '@/lib/orchestration/order';
 import { recordEvent } from '@/lib/orchestration/events';
 import type { OrchestrationResponse } from '@/lib/orchestration/types';
 
+/**
+ * Dev-only checkout confirm. Disabled in production — UI gate is not enough.
+ */
 export async function confirmDemoOrderAction(
   orderId: string
 ): Promise<OrchestrationResponse<{ orderId: string }>> {
   try {
+    if (process.env.NODE_ENV === 'production') {
+      return {
+        success: false,
+        error: 'Demo checkout is not available in production.',
+        code: 'DEMO_DISABLED',
+      };
+    }
+
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return { success: false, error: 'Not authenticated.', code: 'UNAUTHORIZED' };
 
     const admin = createAdminClient();
+
+    const { data: order, error: orderErr } = await admin
+      .from('orders')
+      .select('id, status, notes, customer_id')
+      .eq('id', orderId)
+      .maybeSingle();
+
+    if (orderErr || !order) {
+      return { success: false, error: 'Order not found.', code: 'ORDER_NOT_FOUND' };
+    }
+
+    if (order.status !== 'pending') {
+      return { success: false, error: 'Order is not payable.', code: 'ORDER_NOT_PAYABLE' };
+    }
+
+    const ownsByNotes = order.notes === user.id;
+    let ownsByCustomer = false;
+    if (order.customer_id) {
+      const { data: customer } = await admin
+        .from('customers')
+        .select('email')
+        .eq('id', order.customer_id)
+        .maybeSingle();
+      ownsByCustomer = Boolean(customer?.email && customer.email === user.email);
+    }
+
+    if (!ownsByNotes && !ownsByCustomer) {
+      return { success: false, error: 'Not authorized for this order.', code: 'FORBIDDEN' };
+    }
 
     const demoPaymentIntentId = `demo_${orderId.slice(0, 12)}`;
 
@@ -41,7 +83,8 @@ export async function confirmDemoOrderAction(
     });
 
     return { success: true, data: { orderId } };
-  } catch (e: any) {
-    return { success: false, error: e.message, code: 'DEMO_CHECKOUT_ERROR' };
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : 'Demo checkout failed';
+    return { success: false, error: message, code: 'DEMO_CHECKOUT_ERROR' };
   }
 }

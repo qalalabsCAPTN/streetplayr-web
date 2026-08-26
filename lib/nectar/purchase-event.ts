@@ -9,6 +9,7 @@
  */
 import { createAdminClient } from '@/lib/supabase/admin';
 import { buildEvent, emitEvent, type EmitEventResult } from './client';
+import { recordEvent } from '@/lib/orchestration/events';
 
 interface OrderRow {
   id: string;
@@ -103,5 +104,42 @@ export async function emitPurchaseCompleted(order: OrderRow): Promise<EmitEventR
     },
   });
 
-  return emitEvent(event);
+  const result = await emitEvent(event);
+
+  if (!result?.ok) {
+    await recordEvent({
+      domain: 'order',
+      severity: 'error',
+      action: 'nectar.purchase_completed_emit_failed',
+      actorId: 'system',
+      resourceType: 'orders',
+      resourceId: order.id,
+      message: `purchase.completed emit failed for order ${order.id}: ${result?.error ?? 'unknown'}`,
+      metadata: {
+        orderId: order.id,
+        eventId: event.eventId,
+        actorUserId,
+        error: result?.error ?? null,
+        retryable: true,
+      },
+    });
+  } else {
+    await recordEvent({
+      domain: 'order',
+      severity: 'info',
+      action: 'nectar.purchase_completed_emitted',
+      actorId: 'system',
+      resourceType: 'orders',
+      resourceId: order.id,
+      message: `purchase.completed emitted to Nectar for order ${order.id} (${result.status ?? 'ok'})`,
+      metadata: {
+        orderId: order.id,
+        eventId: event.eventId,
+        actorUserId,
+        status: result.status ?? 'ok',
+      },
+    });
+  }
+
+  return result;
 }

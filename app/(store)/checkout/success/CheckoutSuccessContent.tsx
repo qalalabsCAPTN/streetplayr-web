@@ -146,7 +146,7 @@ export default function CheckoutSuccessContent() {
               className="mt-16 space-y-8 max-w-sm mx-auto"
             >
               {order && (
-                <div className="border border-white/[0.06] bg-[#1f1a23]/50 p-5 space-y-3 rounded-xl">
+                <div className="border border-white/[0.08] bg-[#0c0c0c]/80 p-5 space-y-3 rounded-xl">
                   <div className="flex justify-between items-center">
                     <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/30">Order</span>
                     <span className="font-mono text-[10px] text-white/60">#{order.id.slice(0, 8)}</span>

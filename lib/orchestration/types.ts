@@ -95,24 +95,19 @@ export type PaymentEventType =
   | 'charge.disputed'
   | 'charge.refund.updated';
 
-// Gateways that plug into this orchestration layer via a webhook adapter.
-// 'stripe' is a currently-inactive/orphaned adapter (no checkout flow
-// creates a Stripe PaymentIntent anywhere in this app) kept only because
-// its webhook route still exists; 'easebuzz' is the active provider.
-export type PaymentProvider = 'stripe' | 'easebuzz';
+// Active payment gateway for checkout. Historical payment_events rows may
+// still store provider hints in raw_payload; physical DB columns remain
+// stripe_event_id / stripe_payment_intent_id (legacy names, provider-neutral values).
+export type PaymentProvider = 'easebuzz';
 
 export interface PaymentEvent {
   id: string;
   orderId: string;
   eventType: PaymentEventType;
   provider?: PaymentProvider;
-  /** Provider-issued event identifier (Stripe's `event.id`, or an
-   *  app-constructed `easebuzz:{txnid}:{eventType}` key). Physically still
-   *  stored in the `stripe_event_id` DB column pending the provider-neutral
-   *  rename migration proposed in the audit — see lib/orchestration/payment.ts. */
+  /** Provider-issued event id (e.g. easebuzz:{txnid}:{eventType}). Stored in stripe_event_id. */
   providerEventId?: string;
-  /** Provider-issued transaction identifier (Stripe PaymentIntent id, or
-   *  Easebuzz `txnid`). Physically still stored in `stripe_payment_intent_id`. */
+  /** Provider-issued transaction id (Easebuzz txnid). Stored in stripe_payment_intent_id. */
   providerTransactionId?: string;
   amount: number;
   currency: string;

@@ -49,7 +49,7 @@ If no `profiles` row matches (e.g. a guest checkout with no StreetPlayR account)
 
 ## Trigger point (why the payment webhook itself isn't touched)
 
-The event fires from `lib/orchestration/order.ts::transitionStatus()` / `submitForPayment()`, specifically only on a `pending → confirmed` transition — the point every payment success path (Easebuzz webhook, Stripe webhook, demo checkout, cron reconciliation) already funnels through via `OrderService`. This is an **orchestration-layer** hook, not a payment-gateway change: `lib/orchestration/payment.ts`, `app/api/webhooks/easebuzz/route.ts`, and `app/api/webhooks/stripe/route.ts` are untouched, per the "do not work on payment" scope rule. See the `fireNectarPurchaseCompletedIfNewlyConfirmed()` helper in `order.ts` for the exact guard (`fromStatus === 'pending' && updated.status === 'confirmed'`).
+The event fires from `lib/orchestration/order.ts::transitionStatus()` / `submitForPayment()`, specifically only on a `pending → confirmed` transition — the point every payment success path (Easebuzz webhook, demo checkout in non-production, cron reconciliation) already funnels through via `OrderService`. See `fireNectarPurchaseCompletedIfNewlyConfirmed()` for the guard (`fromStatus === 'pending' && updated.status === 'confirmed'`).
 
 ## Delivery guarantee (be honest about what this is NOT)
 

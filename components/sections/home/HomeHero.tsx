@@ -313,7 +313,7 @@ export default function HomeHero({
             {ctaLabel?.trim() || "Shop Now"}
           </a>
           <button
-            className="inline-flex items-center gap-3 px-7 py-4 bg-[#231e27]/40 text-[#eadfed] border border-white/[0.14] font-mono text-[11px] tracking-[0.24em] font-bold uppercase transition-colors hover:bg-white/[0.06] hover:border-white/[0.24] rounded-xl cursor-pointer"
+            className="inline-flex items-center gap-3 px-7 py-4 bg-black/40 text-[#eadfed] border border-white/[0.14] font-mono text-[11px] tracking-[0.24em] font-bold uppercase transition-colors hover:bg-white/[0.06] hover:border-white/[0.24] rounded-xl cursor-pointer"
             onClick={() => setJoinOpen(true)}
           >
             Join List
@@ -341,7 +341,7 @@ export default function HomeHero({
           onClick={() => setJoinOpen(false)}
         >
           <div
-            className="relative w-full max-w-[960px] max-h-[calc(100vh-48px)] overflow-y-auto md:overflow-hidden grid grid-cols-1 md:grid-cols-[360px_1fr] bg-[#231e27] border border-white/[0.10] shadow-[0_40px_120px_-20px_rgba(12,6,18,0.92)] animate-in fade-in zoom-in-95 duration-300 rounded-2xl"
+            className="relative w-full max-w-[960px] max-h-[calc(100vh-48px)] overflow-y-auto md:overflow-hidden grid grid-cols-1 md:grid-cols-[360px_1fr] bg-[#0c0c0c]/95 backdrop-blur-xl border border-white/[0.10] shadow-[0_40px_120px_-20px_rgba(0,0,0,0.92)] animate-in fade-in zoom-in-95 duration-300 rounded-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close */}

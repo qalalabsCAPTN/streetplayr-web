@@ -71,7 +71,7 @@ export default function FeaturedCollections() {
               />
               <div className="absolute inset-0 bg-black/20 mix-blend-overlay transition-opacity duration-1000 group-hover:opacity-0" />
             </div>
-            <div className="static md:absolute md:-bottom-16 left-8 md:left-12 mt-4 md:mt-0 flex flex-col bg-[#231e27]/80 backdrop-blur-md p-6 border border-white/10 rounded-lg">
+            <div className="lookbook-caption static md:absolute md:-bottom-16 left-8 md:left-12 mt-4 md:mt-0 flex flex-col p-6 rounded-lg">
               <span className="font-mono text-xs text-white/50 tracking-[0.2em] mb-2 uppercase">Editorial</span>
               <h3 className="font-display text-3xl tracking-wider">Heritage Polo</h3>
             </div>

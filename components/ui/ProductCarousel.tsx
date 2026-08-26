@@ -67,7 +67,7 @@ export default function ProductCarousel({ products }: ProductCarouselProps) {
               >
                 <Link
                   href={product.slug ? `/product/${product.slug}` : "/collections"}
-                  className="group relative block aspect-[4/5] bg-[#231e27] overflow-hidden"
+                  className="group relative block aspect-[4/5] bg-[#0c0c0c] overflow-hidden"
                   style={{ borderRadius: 16 }}
                 >
                   <img
