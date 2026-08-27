@@ -384,6 +384,41 @@ describe('UnicommerceSyncService - syncProducts', () => {
     expect(soapRequest).toHaveBeenCalledTimes(2);
   });
 
+  it('maps UniCommerce SKU PS-TEE-CRT-WHT-2XL to a 2XL variant and does not skip it', async () => {
+    const variantInserts: unknown[] = [];
+    vi.mocked(soapRequest).mockResolvedValue({
+      successful: true,
+      itemTypes: [{ skuCode: 'PS-TEE-CRT-WHT-2XL', brand: 'playR STREET' }],
+    });
+    vi.spyOn(UnicommerceProductService.prototype, 'getProductBySku').mockResolvedValue({
+      sku: 'PS-TEE-CRT-WHT-2XL',
+      name: 'StreetPlayR Tee - 2XL',
+      price: 1999,
+      enabled: true,
+      brand: 'playR STREET',
+    });
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'product_variants') {
+        const q = queryChain(null);
+        q.insert = (row: unknown) => {
+          variantInserts.push(row);
+          return Promise.resolve({ error: null });
+        };
+        return q;
+      }
+      return productSyncFrom()(table);
+    });
+
+    const result = await syncService.syncProducts();
+    expect(result.processed).toBe(1);
+    expect(result.errors).toBe(0);
+    expect(variantInserts[0]).toMatchObject({
+      sku: 'PS-TEE-CRT-WHT-2XL',
+      title: '2XL',
+      attributes: { color: 'Default', size: '2XL' },
+    });
+  });
+
   it('should abort sync and modify nothing if brand record does not exist', async () => {
     mockFrom.mockImplementation((table: string) => {
       if (table === 'brands') {

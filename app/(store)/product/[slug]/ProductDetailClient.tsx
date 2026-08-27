@@ -14,13 +14,18 @@ import RecommendedProducts from '@/components/product/RecommendedProducts';
 import RecentlyVisited, { pushRecentlyVisited } from '@/components/ui/RecentlyVisited';
 import { maxRedeemableCredits } from '@/lib/loyalty/redemption';
 import { extractGsmSpec } from '@/lib/products/copy';
+import { trackAddToCart, trackViewItem } from '@/lib/analytics/ecommerce';
 import {
   isRemovedApparelSize,
   normalizeSizeLabel,
   SIZE_GUIDE_ROWS,
-  sortApparelSizes,
 } from '@/lib/products/sizes';
-import { trackAddToCart, trackViewItem } from '@/lib/analytics/ecommerce';
+import {
+  applySizeClick,
+  initialVariantId,
+  selectVariantBySize,
+  sizesFromExistingVariants,
+} from '@/lib/products/pdp-variant-selection';
 
 /* ── Lazy-load AI Try-On — no SSR ── */
 const AITryOn = dynamic(
@@ -90,7 +95,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
   const cart = useCart();
 
   const [selectedColor, setSelectedColor] = useState(props.colors[0]?.id || 'default');
-  const [selectedSize, setSelectedSize] = useState('');
+  const [selectedVariantId, setSelectedVariantId] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [show3DViewer, setShow3DViewer] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
@@ -149,33 +154,31 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
     pushRecentlyVisited(props.slug);
   }, [props.slug]);
 
-  const liveVariants = props.variants.map((v) => ({
-    ...v,
-    stockQuantity: liveStock[v.id] ?? v.stockQuantity,
-  }));
-
-  const orderedSizes = useMemo(() => sortApparelSizes(props.sizes), [props.sizes]);
-
-  const findVariantForSize = useCallback(
-    (size: string) =>
-      liveVariants.find((v) => normalizeSizeLabel(v.size) === normalizeSizeLabel(size)),
-    [liveVariants]
+  const liveVariants = useMemo(
+    () =>
+      props.variants.map((v) => ({
+        ...v,
+        stockQuantity: liveStock[v.id] ?? v.stockQuantity,
+      })),
+    [props.variants, liveStock]
   );
+
+  const orderedSizes = useMemo(() => sizesFromExistingVariants(liveVariants), [liveVariants]);
+
+  const selectedVariant = liveVariants.find((v) => v.id === selectedVariantId);
+  const selectedSize = selectedVariant?.size ?? '';
+
+  useEffect(() => {
+    setSelectedVariantId((prev) => {
+      if (prev && liveVariants.some((v) => v.id === prev)) return prev;
+      return initialVariantId(liveVariants);
+    });
+  }, [props.productId, liveVariants]);
 
   const activeColor = props.colors.find((c) => c.id === selectedColor);
   const colorImages = activeColor?.images?.length ? activeColor.images : props.images;
   const heroImage = colorImages[0] ?? props.image;
   const allImages = colorImages.length > 0 ? colorImages : [heroImage];
-
-  useEffect(() => {
-    if (orderedSizes.length > 0) {
-      const firstAvailable = orderedSizes.find((s) => {
-        const matchingVariant = findVariantForSize(s);
-        return matchingVariant && matchingVariant.stockQuantity > 0;
-      });
-      setSelectedSize(firstAvailable || orderedSizes[0]);
-    }
-  }, [findVariantForSize, orderedSizes]);
 
   const onCarouselScroll = () => {
     const el = carouselRef.current;
@@ -226,27 +229,22 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
   }, [props.model3d]);
 
   const addToBag = async (): Promise<boolean> => {
-    if (!selectedSize) {
+    if (!selectedVariantId || !selectedVariant) {
       setSizeError('Please select a size');
       return false;
     }
-    if (isRemovedApparelSize(selectedSize)) {
+    if (isRemovedApparelSize(selectedVariant.size)) {
       setSizeError('Selected size is not available');
       return false;
     }
     setSizeError('');
-    const matchingVariant = findVariantForSize(selectedSize);
-    if (!matchingVariant) {
-      alert('Selected size not available.');
-      return false;
-    }
-    if (matchingVariant.stockQuantity < quantity) {
-      alert(`Only ${matchingVariant.stockQuantity} units available.`);
+    if (selectedVariant.stockQuantity < quantity) {
+      alert(`Only ${selectedVariant.stockQuantity} units available.`);
       return false;
     }
     try {
       const { getVariantStockAction } = await import('@/app/actions/stock');
-      const res = await getVariantStockAction(matchingVariant.id);
+      const res = await getVariantStockAction(selectedVariant.id);
       if (res.success && res.data && res.data.available < quantity) {
         alert(`Only ${res.data.available} units available.`);
         return false;
@@ -260,9 +258,9 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
         title: props.title,
         price: parseFloat(props.price.replace(/[^0-9.-]+/g, '')),
         images: colorImages,
-        variantId: matchingVariant.id,
+        variantId: selectedVariant.id,
       },
-      selectedSize
+      selectedVariant.size
     );
     cart.showToast('Added to bag');
     trackAddToCart({
@@ -275,11 +273,11 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
   };
 
   const buyNow = async () => {
-    if (!selectedSize) {
+    if (!selectedVariantId || !selectedVariant) {
       setSizeError('Please select a size');
       return;
     }
-    if (isRemovedApparelSize(selectedSize)) {
+    if (isRemovedApparelSize(selectedVariant.size)) {
       setSizeError('Selected size is not available');
       return;
     }
@@ -441,18 +439,27 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
 
             <div className="sizes" role="group" aria-label="Select size">
               {orderedSizes.map((s) => {
-                const matchingVariant = findVariantForSize(s);
-                const isSoldOut = !matchingVariant || matchingVariant.stockQuantity <= 0;
+                const matchingVariant = selectVariantBySize(liveVariants, s);
+                if (!matchingVariant) return null;
+                const isSoldOut = matchingVariant.stockQuantity <= 0;
+                const isActive = selectedVariantId === matchingVariant.id && !isSoldOut;
                 return (
                   <button
-                    key={s}
+                    key={matchingVariant.id}
                     type="button"
-                    className={`size ${selectedSize === s && !isSoldOut ? 'active' : ''} ${isSoldOut ? 'disabled' : ''}`}
-                    onClick={() => { if (!isSoldOut) { setSelectedSize(s); setSizeError(''); } }}
+                    className={`size ${isActive ? 'active' : ''} ${isSoldOut ? 'disabled' : ''}`}
+                    onClick={() => {
+                      setSelectedVariantId(
+                        applySizeClick(liveVariants, selectedVariantId, s)
+                      );
+                      setSizeError('');
+                    }}
                     disabled={isSoldOut}
-                    aria-pressed={selectedSize === s && !isSoldOut}
+                    aria-pressed={isActive}
+                    data-variant-id={matchingVariant.id}
+                    data-size={normalizeSizeLabel(matchingVariant.size)}
                   >
-                    {s}
+                    {normalizeSizeLabel(matchingVariant.size)}
                   </button>
                 );
               })}
@@ -633,7 +640,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
                 </tr>
               </thead>
               <tbody>
-                {SIZE_GUIDE_ROWS.map((row) => (
+                {SIZE_GUIDE_ROWS.filter((row) => orderedSizes.includes(row.size)).map((row) => (
                   <tr key={row.size}>
                     <td>{row.size}</td>
                     <td>{row.chestWaist}</td>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/components/CartContext';
@@ -65,7 +65,16 @@ export default function ProductCard({ product, gallery = true }: ProductCardProp
   }, [galleryMeta, product.image, product.image2, product.slug, product.images]);
 
   const [idx, setIdx] = useState(0);
+  const [desktopGalleryNav, setDesktopGalleryNav] = useState(false);
   const activeSrc = imgs[idx] ?? imgs[0] ?? '';
+
+  useEffect(() => {
+    const mq = window.matchMedia('(hover: hover) and (pointer: fine) and (min-width: 769px)');
+    const apply = () => setDesktopGalleryNav(mq.matches);
+    apply();
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
+  }, []);
 
   const onSale = product.compareAt && product.compareAt > product.price;
 
@@ -146,7 +155,7 @@ export default function ProductCard({ product, gallery = true }: ProductCardProp
         {product.soldOut && <span className="card__badge">Sold out</span>}
         {onSale && !product.soldOut && <span className="card__badge">Sale</span>}
 
-        {gallery && imgs.length > 1 && (
+        {gallery && imgs.length > 1 && desktopGalleryNav && (
           <>
             <button className="card__nav card__nav--prev" onClick={(e) => step(e, -1)} aria-label="Previous image">
               ←
@@ -154,12 +163,14 @@ export default function ProductCard({ product, gallery = true }: ProductCardProp
             <button className="card__nav card__nav--next" onClick={(e) => step(e, 1)} aria-label="Next image">
               →
             </button>
-            <div className="card__dots">
-              {imgs.map((_, i) => (
-                <span key={i} className={`card__dot ${i === idx ? 'active' : ''}`} />
-              ))}
-            </div>
           </>
+        )}
+        {gallery && imgs.length > 1 && (
+          <div className="card__dots">
+            {imgs.map((_, i) => (
+              <span key={i} className={`card__dot ${i === idx ? 'active' : ''}`} />
+            ))}
+          </div>
         )}
       </div>
 

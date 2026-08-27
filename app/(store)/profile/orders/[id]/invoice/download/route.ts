@@ -10,6 +10,9 @@ export async function GET(
 ) {
   const { id } = await params;
   const result = await getOrderAction(id);
+  if (result.code === 'FORBIDDEN' || result.code === 'UNAUTHORIZED') {
+    return NextResponse.json({ error: result.error ?? 'Not authorized.' }, { status: 403 });
+  }
   if (!result.success || !result.data) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }

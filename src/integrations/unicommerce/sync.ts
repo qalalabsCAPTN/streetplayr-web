@@ -9,7 +9,7 @@ import { UnicommerceProductService } from './products';
 import { UnicommerceInventoryService } from './inventory';
 import { getUnicommerceConfig } from './config';
 import { soapRequest } from './soapClient';
-import { isRemovedApparelSize } from '@/lib/products/sizes';
+import { isRemovedApparelSize, sizeFromSku } from '@/lib/products/sizes';
 import { displayProductName, withClientProductCopy } from '@/lib/products/copy';
 import {
   filterStreetPlayrUnicommerceItems,
@@ -208,7 +208,7 @@ export class UnicommerceSyncService {
           // e.g. "ctt-waffle-s" parent ID/slug is "ctt-waffle"
           const lastDashIndex = normProd.sku.lastIndexOf('-');
           const parentSlug = lastDashIndex > 0 ? normProd.sku.substring(0, lastDashIndex) : normProd.sku;
-          const size = lastDashIndex > 0 ? normProd.sku.substring(lastDashIndex + 1).toUpperCase() : 'DEFAULT';
+          const size = sizeFromSku(normProd.sku);
 
           if (isRemovedApparelSize(size)) {
             await UnicommerceLogger.info(

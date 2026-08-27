@@ -263,6 +263,20 @@ describe('PaymentService.processWebhookEvent — duplicate/concurrent delivery',
     expect(transitionStatusMock).not.toHaveBeenCalled();
     expect(paymentEvents).toHaveLength(0);
   });
+
+  it('11. canceled payment cancels the order and never confirms', async () => {
+    const result = await PaymentService.processWebhookEvent(
+      baseEvent({ eventType: 'payment_intent.canceled', providerEventId: 'evt:cancel' })
+    );
+    expect(result.success).toBe(true);
+    expect(transitionStatusMock).toHaveBeenCalledWith(ORDER_ID, 'cancelled', 'system', expect.any(String));
+    expect(transitionStatusMock).not.toHaveBeenCalledWith(
+      ORDER_ID,
+      'confirmed',
+      expect.anything(),
+      expect.anything()
+    );
+  });
 });
 
 describe('PaymentService.processWebhookEvent — Nectar ownership boundary', () => {

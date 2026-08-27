@@ -79,9 +79,9 @@ export default function OrdersPage() {
     loadOrders();
   }, []);
 
-  const totalSpent = orders
-    .filter((o) => countsTowardCustomerSpend(o))
-    .reduce((sum, o) => sum + o.total, 0);
+  const completed = orders.filter((o) => countsTowardCustomerSpend(o));
+  const totalSpent = completed.reduce((sum, o) => sum + o.total, 0);
+  const purchasedCount = completed.length;
   const deliveredCount = orders.filter((o) => o.status === 'delivered').length;
   const cancelledCount = orders.filter((o) => o.status === 'cancelled').length;
 
@@ -108,8 +108,8 @@ export default function OrdersPage() {
         <>
           <div className="acct-grid acct-grid--4" style={{ marginBottom: 28 }}>
             <div className="acct-card">
-              <span className="acct-card__eyebrow">Total orders</span>
-              <h2 className="acct-card__head-title">{orders.length}</h2>
+              <span className="acct-card__eyebrow">Completed purchases</span>
+              <h2 className="acct-card__head-title">{purchasedCount}</h2>
             </div>
             <div className="acct-card">
               <span className="acct-card__eyebrow">Total spent</span>

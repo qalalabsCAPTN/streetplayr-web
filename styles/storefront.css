@@ -3085,6 +3085,19 @@ body.theme-light .carousel3d__dot.active {
   opacity: 1;
 }
 
+@media (hover: none), (pointer: coarse), (max-width: 768px) {
+  .card__nav,
+  .card__nav--prev,
+  .card__nav--next,
+  .recently-visited .card__nav--prev,
+  .recently-visited .card__nav--next {
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translate(-999px, -50%) !important;
+  }
+}
+
 .best-sellers-row__grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

@@ -41,8 +41,10 @@ export function countsTowardCustomerSpend(order: { status: string; paymentStatus
 }
 
 export function customerOrderStatusLabel(order: { status: string; paymentStatus?: string | null }): string {
+  if (order.status === 'cancelled') return 'Cancelled';
   if (order.status === 'pending') {
     if (order.paymentStatus === 'failed') return 'Payment failed';
+    if (order.paymentStatus === 'cancelled') return 'Cancelled';
     return 'Payment pending';
   }
   const labels: Record<string, string> = {

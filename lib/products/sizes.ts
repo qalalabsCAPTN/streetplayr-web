@@ -1,21 +1,23 @@
-export const APPAREL_SIZE_ORDER = ['XS', 'S', 'M', 'L', 'XL'] as const;
+export const APPAREL_SIZE_ORDER = ['XS', 'S', 'M', 'L', 'XL', '2XL'] as const;
 
-/** Canonical size-guide rows — always XS → XL, matching selector order sitewide. */
+/** Canonical size-guide rows — XS → 2XL when that variant exists. */
 export const SIZE_GUIDE_ROWS = [
   { size: 'XS', chestWaist: '34" / 28"', fit: 'Slim fit / standard waist' },
   { size: 'S', chestWaist: '36" / 30"', fit: 'Slim fit / standard waist' },
   { size: 'M', chestWaist: '38" / 32"', fit: 'Relaxed fit / standard waist' },
   { size: 'L', chestWaist: '40" / 34"', fit: 'Relaxed fit / comfortable waist' },
   { size: 'XL', chestWaist: '42" / 36"', fit: 'Oversized fit / comfortable waist' },
+  { size: '2XL', chestWaist: '44" / 38"', fit: 'Oversized fit / comfortable waist' },
 ] as const;
 
+/** Sizes StreetPlayR never sells. 2XL is valid when UniCommerce has the SKU. */
 export const REMOVED_APPAREL_SIZES = new Set([
-  '2XL',
-  'XXL',
   'XXS',
   '3XL',
-  '2xl',
-  'xxl',
+  '4XL',
+  'xxs',
+  '3xl',
+  '4xl',
 ]);
 
 const ORDER_INDEX = new Map<string, number>(
@@ -27,7 +29,15 @@ const REMOVED_NORMALIZED = new Set(
 );
 
 export function normalizeSizeLabel(size: string): string {
-  return size.trim().replace(/\s+/g, '').toUpperCase();
+  const n = size.trim().replace(/\s+/g, '').toUpperCase();
+  if (n === 'XXL') return '2XL';
+  return n;
+}
+
+export function sizeFromSku(sku: string): string {
+  const lastDash = sku.lastIndexOf('-');
+  const raw = lastDash > 0 ? sku.slice(lastDash + 1) : sku;
+  return normalizeSizeLabel(raw);
 }
 
 export function isRemovedApparelSize(size: string): boolean {

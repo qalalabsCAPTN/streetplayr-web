@@ -1,4 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin';
+import { netAvailable } from './net-available';
+
+export { netAvailable };
 
 const DEMO_MODE = process.env.DEMO_INVENTORY_MODE === 'true';
 
@@ -48,7 +51,7 @@ async function getDatabaseInventory(variantId: string): Promise<number> {
       0
     );
 
-    return Math.max(0, (inv.quantity ?? 0) - reserved);
+    return netAvailable(inv.quantity ?? 0, reserved);
   } catch {
     return 0;
   }

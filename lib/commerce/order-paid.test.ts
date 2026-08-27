@@ -31,6 +31,14 @@ describe('payment capture / invoice eligibility', () => {
     expect(customerOrderStatusLabel(pendingFailed)).toBe('Payment failed');
   });
 
+  it('cancelled order is not a purchase and has no invoice', () => {
+    const cancelled = { status: 'cancelled' as const, paymentStatus: 'failed' };
+    expect(isPaymentCaptured(cancelled)).toBe(false);
+    expect(isInvoiceEligible(cancelled)).toBe(false);
+    expect(countsTowardCustomerSpend(cancelled)).toBe(false);
+    expect(customerOrderStatusLabel(cancelled)).toBe('Cancelled');
+  });
+
   it('pending payment remains pending', () => {
     expect(customerOrderStatusLabel(pendingUnpaid)).toBe('Payment pending');
     expect(isPayableOrder(pendingUnpaid)).toBe(true);
@@ -75,7 +83,19 @@ describe('source invariants — no client confirmation, no unpaid invoice, no re
     );
     expect(src).toMatch(/getOrderAction/);
     expect(src).toMatch(/isInvoiceEligible/);
+    expect(src).toMatch(/code === 'FORBIDDEN'/);
     expect(src).toMatch(/status: 403/);
+  });
+
+  it('invoice HTML page forbids unpaid, failed, cancelled, and cross-customer', () => {
+    const src = readFileSync(
+      join(root, 'app/(store)/profile/orders/[id]/invoice/page.tsx'),
+      'utf8'
+    );
+    expect(src).toMatch(/unauthorized\(\)/);
+    expect(src).toMatch(/forbidden\(\)/);
+    expect(src).toMatch(/isInvoiceEligible/);
+    expect(src).toMatch(/code === 'FORBIDDEN'/);
   });
 
   it('retryPaymentAction does not insert a second order', () => {
@@ -96,12 +116,14 @@ describe('source invariants — no client confirmation, no unpaid invoice, no re
 
   it('mobile product-card arrows hidden on touch/mobile', () => {
     const css = readFileSync(join(root, 'styles/storefront.css'), 'utf8');
-    expect(css).toMatch(/@media \(hover: none\), \(max-width: 768px\)/);
+    expect(css).toMatch(/@media \(hover: none\), \(pointer: coarse\), \(max-width: 768px\)/);
     expect(css).toMatch(/\.card__nav/);
     expect(css).toMatch(/display: none !important;/);
     const card = readFileSync(join(root, 'components/ui/ProductCard.tsx'), 'utf8');
     expect(card).toMatch(/card__nav--prev/);
     expect(card).toMatch(/card__wish/);
+    expect(card).toMatch(/desktopGalleryNav/);
+    expect(card).toMatch(/\(hover: hover\) and \(pointer: fine\) and \(min-width: 769px\)/);
   });
 
   it('SKU-targeted inventory snapshot does not default UpdatedSinceInMinutes to 480', () => {
@@ -112,7 +134,9 @@ describe('source invariants — no client confirmation, no unpaid invoice, no re
 
   it('reservation subtraction never goes negative', () => {
     const src = readFileSync(join(root, 'lib/inventory/index.ts'), 'utf8');
-    expect(src).toMatch(/Math\.max\(0, \(inv\.quantity \?\? 0\) - reserved\)/);
+    expect(src).toMatch(/netAvailable\(inv\.quantity \?\? 0, reserved\)/);
+    const net = readFileSync(join(root, 'lib/inventory/net-available.ts'), 'utf8');
+    expect(net).toMatch(/Math\.max\(0/);
     const stock = readFileSync(join(root, 'app/actions/stock.ts'), 'utf8');
     expect(stock).toMatch(/Math\.max\(/);
     expect(stock).toMatch(/reserved_quantity/);
