@@ -114,6 +114,57 @@ describe('source invariants — no client confirmation, no unpaid invoice, no re
     expect(src).toMatch(/easebuzz.amount_mismatch/);
   });
 
+  it('checkout stepper clears the fixed header and hides Collection', () => {
+    const css = readFileSync(join(root, 'styles/storefront.css'), 'utf8');
+    expect(css).toMatch(/\.listing \{[\s\S]*?padding: calc\(16px \+ var\(--header-h\) \+ 28px\) 0 0/);
+    expect(css).toMatch(/\.listing\.listing--checkout/);
+    expect(css).toMatch(/padding-top: calc\(16px \+ var\(--header-h\) \+ 28px\)/);
+    expect(css).toMatch(/12px \+ env\(safe-area-inset-top, 0px\) \+ 56px \+ 44px/);
+    expect(css).toMatch(/\.header--checkout \.header__nav/);
+    const nav = readFileSync(join(root, 'components/layout/Navbar.tsx'), 'utf8');
+    expect(nav).toMatch(/isCheckout/);
+    expect(nav).toMatch(/header--checkout/);
+    const page = readFileSync(join(root, 'app/(store)/checkout/page.tsx'), 'utf8');
+    expect(page).toMatch(/listing listing--checkout/);
+    expect(page).toMatch(/checkout-steps__track/);
+    expect(page).not.toMatch(/checkout-step-count/);
+    expect(css).toMatch(/checkout-steps__track/);
+    expect(css).toMatch(/-webkit-text-size-adjust: 100%/);
+    expect(css).toMatch(/safe-area-inset-left/);
+  });
+
+  it('card + opens size sheet before bag drawer', () => {
+    const card = readFileSync(join(root, 'components/ui/ProductCard.tsx'), 'utf8');
+    expect(card).toMatch(/QuickAddSheet/);
+    expect(card).toMatch(/openQuickAdd/);
+    expect(card).not.toMatch(/const size = 'M'/);
+    const sheet = readFileSync(join(root, 'components/ui/QuickAddSheet.tsx'), 'utf8');
+    expect(sheet).toMatch(/Add to Bag/);
+    expect(sheet).toMatch(/Buy Now/);
+    expect(sheet).toMatch(/createPortal/);
+    expect(sheet).toMatch(/resolvedId/);
+    const css = readFileSync(join(root, 'styles/storefront.css'), 'utf8');
+    expect(css).toMatch(/\.quickadd \.size\.active/);
+    expect(css).toMatch(/\.quickadd \.size \{[\s\S]*?border: 1px solid rgba\(22, 17, 27, 0\.24\)/);
+    const cart = readFileSync(join(root, 'components/CartContext.tsx'), 'utf8');
+    expect(cart).toMatch(/opts\?: \{ openDrawer\?: boolean \}/);
+    expect(cart).toMatch(/opts\?\.openDrawer !== false/);
+    const collections = readFileSync(join(root, 'app/(store)/collections/page.tsx'), 'utf8');
+    expect(collections).toMatch(/variants: product\.variants/);
+  });
+
+  it('mobile PDP CTA is in-flow outline + solid pills, not a fixed overlay', () => {
+    const css = readFileSync(join(root, 'styles/storefront.css'), 'utf8');
+    expect(css).toMatch(/Bluorng-style: in-flow under sizes/);
+    expect(css).toMatch(/\.pdp__actions \{[\s\S]*?position: static/);
+    expect(css).toMatch(/\.pdp__atb,[\s\S]*?background: #ffffff !important/);
+    expect(css).toMatch(/\.pdp__buy,[\s\S]*?background: #000000 !important/);
+    expect(css).toMatch(/env\(safe-area-inset-bottom/);
+    const pdp = readFileSync(join(root, 'app/(store)/product/[slug]/ProductDetailClient.tsx'), 'utf8');
+    expect(pdp).toMatch(/data-selected-variant-id=\{selectedVariantId/);
+    expect(pdp).toMatch(/disabled=\{ctaSoldOut\}/);
+  });
+
   it('mobile product-card arrows hidden on touch/mobile', () => {
     const css = readFileSync(join(root, 'styles/storefront.css'), 'utf8');
     expect(css).toMatch(/@media \(hover: none\), \(pointer: coarse\), \(max-width: 768px\)/);

@@ -95,9 +95,8 @@ export default function Navbar() {
   const router = useRouter();
 
   const isProductPage = pathname ? pathname.startsWith('/product/') : false;
-  const hideMobileNav = Boolean(
-    pathname?.startsWith('/checkout') || pathname === '/cart'
-  );
+  const isCheckout = Boolean(pathname?.startsWith('/checkout'));
+  const hideMobileNav = Boolean(isCheckout || pathname === '/cart');
   const [productTitle, setProductTitle] = useState('');
 
   useEffect(() => {
@@ -238,7 +237,7 @@ export default function Navbar() {
       {/* Bluorng inverse corner notches — visible only when header is solid */}
       <div className="page-frame" aria-hidden="true" />
       <header
-        className={`header ${solid ? 'header--solid' : ''} ${scrolled ? 'header--scrolled' : ''}`}
+        className={`header ${solid ? 'header--solid' : ''} ${scrolled ? 'header--scrolled' : ''} ${isCheckout ? 'header--checkout' : ''}`}
         onMouseLeave={() => {
           if (typeof window !== 'undefined' && window.innerWidth > 900) {
             setMegaOpen(false);
@@ -246,8 +245,8 @@ export default function Navbar() {
         }}
       >
         <div className="header__inner">
-          <nav className="header__nav header__nav--desktop">
-            {isProductPage ? (
+          <nav className="header__nav header__nav--desktop" aria-hidden={isCheckout || undefined}>
+            {isCheckout ? null : isProductPage ? (
               <div className="header__breadcrumb">
                 <Link href="/collections" className="header__breadcrumb-link">
                   Collection
@@ -290,9 +289,11 @@ export default function Navbar() {
           </nav>
 
           <div className="header__logo">
-            <button className="header__pill-plus" onClick={() => setMegaOpen((v) => !v)} aria-label="Menu">
-              +
-            </button>
+            {!isCheckout && (
+              <button className="header__pill-plus" onClick={() => setMegaOpen((v) => !v)} aria-label="Menu">
+                +
+              </button>
+            )}
             <Link
               href="/home"
               className="header__pill-link"

@@ -15,7 +15,7 @@ interface SectionProduct {
   category?: string;
   soldOut?: boolean;
   compareAt?: number;
-  variants?: { id: string; size: string }[];
+  variants?: { id: string; size: string; stockQuantity?: number }[];
 }
 
 interface ProductSectionProps {

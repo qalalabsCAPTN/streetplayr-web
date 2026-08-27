@@ -1,12 +1,15 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useCart } from '@/components/CartContext';
 import { formatPrice } from '@/lib/utils/format';
 import { useWishlistStore } from '@/store/wishlistStore';
 import { normalizeProductImageUrl, resolveProductImages } from '@/lib/products/image-map';
+import QuickAddSheet, { type QuickAddVariant } from '@/components/ui/QuickAddSheet';
+import type { PdpVariant } from '@/lib/products/pdp-variant-selection';
 
 interface ProductCardProps {
   product: {
@@ -21,7 +24,7 @@ interface ProductCardProps {
     soldOut?: boolean;
     compareAt?: number;
     /** product_variants — used to resolve UUID line id on quick-add */
-    variants?: { id: string; size: string }[];
+    variants?: QuickAddVariant[];
     metadata?: {
       gallery_images?: string[];
     };
@@ -39,8 +42,12 @@ function BookmarkIcon({ filled }: { filled: boolean }) {
 
 export default function ProductCard({ product, gallery = true }: ProductCardProps) {
   const cart = useCart();
+  const router = useRouter();
   const isSaved = useWishlistStore((s) => s.isSaved(product.id));
   const requestToggle = useWishlistStore((s) => s.requestToggle);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [anchorRect, setAnchorRect] = useState<{ top: number; bottom: number; left: number; right: number } | null>(null);
+  const addBtnRef = useRef<HTMLButtonElement>(null);
 
   const galleryMeta = Array.isArray(product.images)
     ? product.images
@@ -84,20 +91,28 @@ export default function ProductCard({ product, gallery = true }: ProductCardProp
     setIdx((i) => (i + dir + imgs.length) % imgs.length);
   };
 
-  const quickAdd = (e: React.MouseEvent) => {
+  const openQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (product.soldOut) {
       cart.showToast('This product is sold out');
       return;
     }
-    const size = 'M';
-    const matching =
-      product.variants?.find((v) => v.size === size) ?? product.variants?.[0];
-    if (!matching?.id) {
+    if (!product.variants?.length) {
       cart.showToast('Open product to select size');
       return;
     }
+    const el = addBtnRef.current;
+    if (el) {
+      const r = el.getBoundingClientRect();
+      setAnchorRect({ top: r.top, bottom: r.bottom, left: r.left, right: r.right });
+    } else {
+      setAnchorRect(null);
+    }
+    setSheetOpen(true);
+  };
+
+  const addVariant = (variant: PdpVariant, openDrawer: boolean) => {
     cart.addItem(
       {
         handle: product.slug,
@@ -105,11 +120,13 @@ export default function ProductCard({ product, gallery = true }: ProductCardProp
         title: product.name,
         price: product.price,
         images: imgs,
-        variantId: matching.id,
+        variantId: variant.id,
       },
-      matching.size || size
+      variant.size,
+      { openDrawer }
     );
-    cart.showToast('Added to bag');
+    setSheetOpen(false);
+    if (openDrawer) cart.showToast('Added to bag');
   };
 
   const toggleSave = (e: React.MouseEvent) => {
@@ -131,6 +148,7 @@ export default function ProductCard({ product, gallery = true }: ProductCardProp
   };
 
   return (
+    <>
     <Link href={`/product/${product.slug}`} className="card">
       <div className="card__media">
         {activeSrc ? (
@@ -182,10 +200,30 @@ export default function ProductCard({ product, gallery = true }: ProductCardProp
             <span>{formatPrice(product.price)}</span>
           </div>
         </div>
-        <button className="card__add" onClick={quickAdd} aria-label="Quick add">
+        <button
+          ref={addBtnRef}
+          type="button"
+          className="card__add"
+          onClick={openQuickAdd}
+          aria-label="Quick add"
+        >
           +
         </button>
       </div>
     </Link>
+    <QuickAddSheet
+      open={sheetOpen}
+      onClose={() => setSheetOpen(false)}
+      title={product.name}
+      price={product.price}
+      variants={product.variants ?? []}
+      anchorRect={anchorRect}
+      onAddToBag={(variant) => addVariant(variant, true)}
+      onBuyNow={(variant) => {
+        addVariant(variant, false);
+        router.push('/checkout');
+      }}
+    />
+    </>
   );
 }

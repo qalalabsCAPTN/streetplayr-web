@@ -86,7 +86,7 @@ export const LOCAL_PRODUCTS: LocalProduct[] = [
   {
     id: "PS-TEE-INS-PRP",
     name: "playR Street INSPIRED Tee (Purple)",
-    price: 2499,
+    price: 5,
     description: "Made from premium single jersey cotton for a soft, lightweight feel, this oversized T-shirt combines a unique purple acid-washed finish with a striking white screen print for elevated everyday wear.",
     image_url: `/assets/products/inspired/image-1.webp`,
     slug: "PS-TEE-INS-PRP",

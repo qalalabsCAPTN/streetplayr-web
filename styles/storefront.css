@@ -28,11 +28,15 @@
   --radius-lg: 22px;
   --header-h: 48px;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
-  /* Mobile dock: pill ~52px tall, 6px from viewport bottom (or safe-area). */
-  --sp-mobile-dock-h: 52px;
+  /* Mobile dock: pill 8+40+8 = 56px, 6px from viewport bottom (or safe-area). */
+  --sp-mobile-dock-h: 56px;
   --sp-mobile-dock-gap: 6px;
   --sp-mobile-dock-clearance: calc(
     var(--sp-mobile-dock-h) + max(var(--sp-mobile-dock-gap), env(safe-area-inset-bottom, 0px))
+  );
+  --sp-mobile-pdp-cta-gap: 12px;
+  --sp-mobile-pdp-cta-offset: calc(
+    var(--sp-mobile-dock-clearance) + var(--sp-mobile-pdp-cta-gap)
   );
 
   /* High contrast text/border opacity tiers — light theme */
@@ -766,6 +770,7 @@ body {
   max-width: calc(100% - 20px);
   box-sizing: border-box;
   pointer-events: none;
+  transform-origin: 50% 100%;
   transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
   will-change: transform;
 }
@@ -1755,6 +1760,217 @@ body.theme-light .carousel3d__dot.active {
   color: #111;
 }
 
+/* ============ QUICK ADD SIZE SHEET (card +) ============ */
+.quickadd {
+  position: fixed;
+  inset: 0;
+  z-index: 116;
+  pointer-events: none;
+}
+
+.quickadd__scrim {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: rgba(22, 17, 27, 0.42);
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.quickadd__panel {
+  pointer-events: auto;
+  background: #ffffff;
+  color: #16111b;
+  box-shadow: 0 16px 48px rgba(22, 17, 27, 0.18);
+}
+
+.quickadd__panel--sheet {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: max(10px, env(safe-area-inset-bottom, 0px));
+  border-radius: 22px;
+  padding: 22px 18px calc(16px + env(safe-area-inset-bottom, 0px));
+}
+
+.quickadd__panel--popover {
+  position: fixed;
+  border-radius: 18px;
+  padding: 20px 18px 16px;
+  max-height: min(420px, calc(100vh - 24px));
+  overflow: auto;
+}
+
+.quickadd__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.quickadd__title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.3;
+  margin: 0 0 4px;
+}
+
+.quickadd__price {
+  margin: 0;
+  font-size: 13px;
+  color: #5c5663;
+}
+
+.quickadd__guide-btn {
+  flex: 0 0 auto;
+  border: 0;
+  background: #16111b;
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 7px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.quickadd__guide {
+  margin-bottom: 14px;
+  overflow-x: auto;
+}
+
+.quickadd__guide table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.quickadd__guide th,
+.quickadd__guide td {
+  text-align: left;
+  padding: 6px 4px;
+  border-bottom: 1px solid rgba(22, 17, 27, 0.08);
+}
+
+.quickadd__sizes {
+  margin: 0 0 16px;
+}
+
+.quickadd .size {
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid rgba(22, 17, 27, 0.24);
+  border-radius: 999px;
+  background: #ffffff;
+  color: #16111b;
+}
+
+.quickadd .size:hover:not(.disabled):not(.active) {
+  border-color: #16111b;
+  background: rgba(22, 17, 27, 0.04);
+}
+
+.quickadd .size.disabled,
+.storefront-root.theme-dark .quickadd .size.disabled {
+  background: #ffffff;
+  color: #16111b;
+  border-color: rgba(22, 17, 27, 0.12);
+  opacity: 0.32;
+  text-decoration: line-through;
+}
+
+.quickadd .size.active,
+.quickadd .size.active.disabled,
+.storefront-root .quickadd .size.active,
+.storefront-root.theme-dark .quickadd .size.active,
+.storefront-root.theme-dark .quickadd .size.active.disabled {
+  background: #16111b;
+  color: #ffffff;
+  border-color: #16111b;
+  opacity: 1;
+  text-decoration: none;
+}
+
+.quickadd .size.active.disabled {
+  opacity: 0.72;
+  text-decoration: line-through;
+}
+
+.quickadd__empty {
+  font-size: 13px;
+  color: #5c5663;
+  margin: 0 0 16px;
+}
+
+.quickadd__actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.quickadd__atb,
+.quickadd__buy {
+  width: 100%;
+  min-height: 48px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.quickadd__atb {
+  background: #ffffff;
+  color: #16111b;
+  border: 1px solid #16111b;
+}
+
+.quickadd__buy {
+  background: #000000;
+  color: #ffffff;
+  border: 1px solid #000000;
+}
+
+.quickadd__atb:disabled,
+.quickadd__buy:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.storefront-root.theme-dark .quickadd__panel {
+  background: #16111b;
+  color: #f4f0f6;
+}
+
+.storefront-root.theme-dark .quickadd__price,
+.storefront-root.theme-dark .quickadd__empty {
+  color: rgba(244, 240, 246, 0.65);
+}
+
+.storefront-root.theme-dark .quickadd__atb {
+  background: #ffffff;
+  color: #16111b;
+  border-color: #ffffff;
+}
+
+.storefront-root.theme-dark .quickadd__buy {
+  background: #000000;
+  color: #ffffff;
+  border-color: #000000;
+}
+
+.storefront-root.theme-dark .quickadd__guide th,
+.storefront-root.theme-dark .quickadd__guide td {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
 /* ============ BANNER SLIDER — match collections-hero ratio ============ */
 .bslider {
   position: relative;
@@ -2377,8 +2593,10 @@ body.theme-light .carousel3d__dot.active {
 }
 
 /* ============ FILTER CHIPS (listing) ============ */
+/* Header is position:fixed; top:16px. 40px padding parked titles/steppers
+   in the Collection band. Clear the floating bar on every listing page. */
 .listing {
-  padding: 40px 0 0;
+  padding: calc(16px + var(--header-h) + 28px) 0 0;
 }
 
 .listing__eyebrow {
@@ -4224,37 +4442,75 @@ body.theme-light .carousel3d__dot.active {
     bottom: 12px;
   }
 
+  /* Bluorng-style: in-flow under sizes, outline + solid pills. Not a fixed overlay. */
   .pdp__actions {
     grid-template-columns: 1fr;
-    gap: 8px;
-    position: fixed;
-    left: 12px;
-    right: 12px;
-    bottom: var(--sp-mobile-dock-clearance);
-    z-index: 70;
-    padding: 8px 0 0;
+    gap: 10px;
+    position: static;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    z-index: auto;
+    padding: 4px 0 0;
     margin: 0;
-    background: var(--bg);
-    box-shadow: 0 -12px 24px rgba(22, 17, 27, 0.08);
+    background: transparent;
+    box-shadow: none;
+    transform: none;
+    transition: none;
   }
 
   .pdp__actions-slot {
     display: block;
-    min-height: 92px;
+    min-height: 0;
+    margin-top: 4px;
   }
 
   .pdp-page {
-    padding-bottom: calc(var(--sp-mobile-dock-clearance) + 108px);
-    scroll-padding-bottom: calc(var(--sp-mobile-dock-clearance) + 108px);
+    padding-bottom: calc(var(--sp-mobile-dock-clearance) + 28px);
+    scroll-padding-bottom: calc(var(--sp-mobile-dock-clearance) + 28px);
   }
 
   .pdp .sizes,
   .pdp .pdp__credits {
-    scroll-margin-bottom: calc(var(--sp-mobile-dock-clearance) + 100px);
+    scroll-margin-bottom: calc(var(--sp-mobile-dock-clearance) + 24px);
   }
 
-  .storefront-root.theme-dark .pdp__actions {
-    background: var(--bg);
+  .pdp__atb,
+  .pdp__buy {
+    min-height: 48px;
+    padding: 14px 16px;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    border-radius: 999px;
+  }
+
+  .pdp__atb,
+  .storefront-root.theme-dark .pdp__atb {
+    background: #ffffff !important;
+    color: #16111b !important;
+    border: 1px solid #16111b !important;
+  }
+
+  .pdp__atb:hover,
+  .storefront-root.theme-dark .pdp__atb:hover {
+    background: #f4f0f6 !important;
+    border-color: #16111b !important;
+    color: #16111b !important;
+  }
+
+  .pdp__buy,
+  .storefront-root.theme-dark .pdp__buy {
+    background: #000000 !important;
+    color: #ffffff !important;
+    border: 1px solid #000000 !important;
+  }
+
+  .pdp__buy:hover,
+  .storefront-root.theme-dark .pdp__buy:hover {
+    background: #111111 !important;
+    border-color: #111111 !important;
+    color: #ffffff !important;
+    opacity: 1;
   }
 
   .pdp__tryon {
@@ -4279,14 +4535,6 @@ body.theme-light .carousel3d__dot.active {
     font-size: 10px;
   }
 
-  .pdp__atb,
-  .pdp__buy {
-    min-height: 38px;
-    padding: 10px 14px;
-    font-size: 10px;
-    letter-spacing: 0.14em;
-    border-radius: 999px;
-  }
 
   .tabs {
     gap: 2px;
@@ -4320,6 +4568,17 @@ body.theme-light .carousel3d__dot.active {
 
   .header__nav--desktop {
     display: none;
+  }
+
+  /* Checkout: never resurrect Collection over the stepper / logo pills. */
+  .storefront-root .header--checkout .header__nav {
+    display: none !important;
+  }
+
+  /* Mobile header is top:12px + ~34px pills, not --header-h. Extra air
+     under the floating capsules so 01 SHIPPING never kisses the icons. */
+  .storefront-root .listing.listing--checkout {
+    padding-top: calc(12px + env(safe-area-inset-top, 0px) + 56px + 44px);
   }
 
   .header__inner {
@@ -5027,21 +5286,23 @@ body.theme-light .carousel3d__dot.active {
   border-color: var(--line);
 }
 
-.storefront-root.theme-dark .pdp__atb {
-  background: #000000 !important;
-  color: #ffffff !important;
-  border-color: #000000 !important;
+@media (min-width: 901px) {
+  .storefront-root.theme-dark .pdp__atb {
+    background: #000000 !important;
+    color: #ffffff !important;
+    border-color: #000000 !important;
+  }
+
+  .storefront-root.theme-dark .pdp__atb:hover {
+    background: #111111 !important;
+    border-color: #111111 !important;
+  }
 }
 
 .storefront-root.theme-dark .sizeguide-btn:hover,
 .storefront-root.theme-dark .size:hover,
 .storefront-root.theme-dark .pdp__wish:hover {
   border-color: var(--fg);
-}
-
-.storefront-root.theme-dark .pdp__atb:hover {
-  background: #111111 !important;
-  border-color: #111111 !important;
 }
 
 .storefront-root.theme-dark .size.active {
@@ -6015,6 +6276,22 @@ body.theme-light .carousel3d__dot.active {
 }
 
 /* ============ CHECKOUT PAGE ============ */
+/* Header is position:fixed; top:16px. Default .listing padding-top:40px
+   lands the stepper in the same band as Collection. Clear the floating bar. */
+.storefront-root .listing.listing--checkout {
+  padding-top: calc(16px + var(--header-h) + 28px);
+  padding-left: max(20px, env(safe-area-inset-left, 0px));
+  padding-right: max(20px, env(safe-area-inset-right, 0px));
+}
+
+@media (max-width: 900px) {
+  .storefront-root .listing.listing--checkout {
+    padding-top: calc(12px + env(safe-area-inset-top, 0px) + 56px + 44px);
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+}
+
 .storefront-root .checkout-steps {
   display: flex;
   align-items: center;
@@ -6027,7 +6304,26 @@ body.theme-light .carousel3d__dot.active {
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--muted);
-  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+.storefront-root .checkout-steps__track {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.storefront-root .checkout-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
 }
 
 .storefront-root .checkout-step.active {
@@ -6039,12 +6335,63 @@ body.theme-light .carousel3d__dot.active {
 
 .storefront-root .checkout-step-sep {
   width: 20px;
+  min-width: 12px;
   height: 1px;
+  margin: 0 8px;
   background: var(--line);
+  flex: 0 0 auto;
 }
 
-.storefront-root .checkout-step-count {
-  margin-left: auto;
+@media (max-width: 900px) {
+  .storefront-root .checkout-steps {
+    padding-top: 2px;
+    padding-bottom: 14px;
+    letter-spacing: 0.08em;
+  }
+
+  .storefront-root .checkout-steps__track {
+    width: 100%;
+    justify-content: space-between;
+    align-items: stretch;
+  }
+
+  .storefront-root .checkout-step {
+    flex: 1 1 0%;
+    min-width: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    text-align: center;
+    line-height: 1.15;
+    padding: 6px 4px;
+    box-sizing: border-box;
+  }
+
+  .storefront-root .checkout-step.active {
+    padding: 6px 4px;
+    display: flex;
+  }
+
+  .storefront-root .checkout-step__idx {
+    font-size: 9px;
+    letter-spacing: 0.12em;
+  }
+
+  .storefront-root .checkout-step__name {
+    font-size: 8px;
+    letter-spacing: 0.06em;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .storefront-root .checkout-step-sep {
+    width: 8px;
+    min-width: 8px;
+    margin: 0 4px;
+    align-self: center;
+  }
 }
 
 .storefront-root .checkout-grid {
@@ -9745,15 +10092,17 @@ body.theme-light .carousel3d__dot.active {
 }
 
 /* 3. PDP Buttons */
-.storefront-root:not(.theme-dark) .pdp__atb {
-  background: #16111b !important;
-  color: #ffffff !important;
-  border-color: #16111b !important;
-}
+@media (min-width: 901px) {
+  .storefront-root:not(.theme-dark) .pdp__atb {
+    background: #16111b !important;
+    color: #ffffff !important;
+    border-color: #16111b !important;
+  }
 
-.storefront-root:not(.theme-dark) .pdp__atb:hover {
-  background: rgba(22, 17, 27, 0.9) !important;
-  border-color: rgba(22, 17, 27, 0.9) !important;
+  .storefront-root:not(.theme-dark) .pdp__atb:hover {
+    background: rgba(22, 17, 27, 0.9) !important;
+    border-color: rgba(22, 17, 27, 0.9) !important;
+  }
 }
 
 .storefront-root:not(.theme-dark) .pdp__buy {
@@ -10551,5 +10900,19 @@ body.theme-light .carousel3d__dot.active {
   .storefront-root:not(.theme-dark) .header--scrolled .header__logo img {
     filter: invert(1);
     mix-blend-mode: multiply;
+  }
+
+  /* Checkout: keep the empty left grid cell so the logo stays centered,
+     but never paint a Collection pill over the stepper. */
+  .storefront-root .header--checkout .header__nav,
+  .storefront-root .header--checkout.header--scrolled .header__nav {
+    visibility: hidden;
+    pointer-events: none;
+    background: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
   }
 }

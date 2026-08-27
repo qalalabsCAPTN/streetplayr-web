@@ -15,10 +15,15 @@ export function selectVariantBySize(
   return variants.find((v) => normalizeSizeLabel(v.size) === n);
 }
 
-/** First in-stock variant, else first existing variant. Never invent sizes. */
+/** Leftmost displayed in-stock size, else leftmost existing size. Never invent sizes. */
 export function initialVariantId(variants: PdpVariant[]): string {
-  const inStock = variants.find((v) => v.stockQuantity > 0);
-  return (inStock || variants[0])?.id ?? '';
+  const sizes = sizesFromExistingVariants(variants);
+  for (const size of sizes) {
+    const match = selectVariantBySize(variants, size);
+    if (match && match.stockQuantity > 0) return match.id;
+  }
+  const first = sizes[0] ? selectVariantBySize(variants, sizes[0]) : undefined;
+  return first?.id ?? variants[0]?.id ?? '';
 }
 
 /**
@@ -43,4 +48,9 @@ export function sizeIsSoldOut(variants: PdpVariant[], size: string): boolean {
 
 export function sizeExists(variants: PdpVariant[], size: string): boolean {
   return Boolean(selectVariantBySize(variants, size));
+}
+
+/** Sold-out selected variant disables Add to Bag / Buy Now. Empty selection stays clickable to prompt. */
+export function pdpCtaSoldOut(selected: PdpVariant | undefined): boolean {
+  return Boolean(selected && selected.stockQuantity <= 0);
 }

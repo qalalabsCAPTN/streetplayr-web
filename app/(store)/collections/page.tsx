@@ -491,6 +491,7 @@ function CollectionsInner() {
                       image: product.image,
                       image2: product.image2,
                       metadata: product.metadata as any,
+                      variants: product.variants,
                     }}
                     gallery={true}
                   />

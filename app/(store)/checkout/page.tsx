@@ -488,7 +488,6 @@ function CheckoutPageInner() {
   if (!mounted || (items.length === 0 && !retryOrderId)) return null;
 
   const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-  const itemCount = items.length;
 
   const handleCheckout = async () => {
     if (isProcessing) return;
@@ -535,14 +534,24 @@ function CheckoutPageInner() {
   return (
     <>
       <Navbar />
-      <div className="listing">
+      <div className="listing listing--checkout">
         <div className="checkout-steps">
-          <span className="checkout-step active">01 Shipping</span>
-          <span className="checkout-step-sep" />
-          <span className="checkout-step">02 Payment</span>
-          <span className="checkout-step-sep" />
-          <span className="checkout-step">03 Confirmation</span>
-          <span className="checkout-step-count">{itemCount} items</span>
+          <div className="checkout-steps__track">
+            <span className="checkout-step active">
+              <span className="checkout-step__idx">01</span>
+              <span className="checkout-step__name">Shipping</span>
+            </span>
+            <span className="checkout-step-sep" aria-hidden="true" />
+            <span className="checkout-step">
+              <span className="checkout-step__idx">02</span>
+              <span className="checkout-step__name">Payment</span>
+            </span>
+            <span className="checkout-step-sep" aria-hidden="true" />
+            <span className="checkout-step">
+              <span className="checkout-step__idx">03</span>
+              <span className="checkout-step__name">Confirmation</span>
+            </span>
+          </div>
         </div>
 
         {(paymentFailed || paymentPending) && retryOrderId && (

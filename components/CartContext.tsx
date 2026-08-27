@@ -46,7 +46,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }));
   }, [zustandCart.items, mounted]);
 
-  const addItem = useCallback((product: CartAddProduct, size: string) => {
+  const addItem = useCallback((product: CartAddProduct, size: string, opts?: { openDrawer?: boolean }) => {
     if (!product?.variantId) {
       console.warn('[Cart] Rejected add-to-cart without variant UUID');
       setToast('Unable to add — missing variant');
@@ -70,7 +70,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       image: resolveCartLineImage(product.images?.[0] || '', product.handle),
     };
     zustandCart.addItem(zustandItem);
-    setOpen(true);
+    if (opts?.openDrawer !== false) setOpen(true);
   }, [zustandCart]);
 
   const updateQty = useCallback((key: string, delta: number) => {

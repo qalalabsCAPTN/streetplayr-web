@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   applySizeClick,
   initialVariantId,
+  pdpCtaSoldOut,
   selectVariantBySize,
   sizeExists,
   sizeIsSoldOut,
@@ -28,6 +29,16 @@ describe('PDP size selection uses product_variant.id', () => {
     expect(applySizeClick(withSInStock, 'var-m', 'L')).toBe('var-m');
     expect(applySizeClick(withSInStock, 'var-m', 'XL')).toBe('var-xl');
     expect(applySizeClick(withSInStock, 'var-xl', 'XS')).toBe('var-xs');
+  });
+
+  it('defaults to the leftmost displayed in-stock size, not array order', () => {
+    const unordered = [
+      { id: 'var-m', size: 'M', stockQuantity: 8 },
+      { id: 'var-xl', size: 'XL', stockQuantity: 3 },
+      { id: 'var-s', size: 'S', stockQuantity: 4 },
+    ];
+    expect(initialVariantId(unordered)).toBe('var-s');
+    expect(sizesFromExistingVariants(unordered)).toEqual(['S', 'M', 'XL']);
   });
 
   it('cycle XS S M L XL XS when all in stock', () => {
@@ -75,4 +86,26 @@ describe('size existence vs inventory', () => {
     expect(sizeIsSoldOut(variants, 'M')).toBe(false);
   });
 });
+
+describe('PDP CTA uses selected variant, sold-out disables', () => {
+  it('empty selection is not sold-out (prompt, do not submit XS)', () => {
+    expect(pdpCtaSoldOut(undefined)).toBe(false);
+  });
+
+  it('in-stock selected variant keeps CTA enabled', () => {
+    expect(pdpCtaSoldOut({ id: 'var-m', size: 'M', stockQuantity: 8 })).toBe(false);
+  });
+
+  it('zero-stock selected variant disables CTA', () => {
+    expect(pdpCtaSoldOut({ id: 'var-s', size: 'S', stockQuantity: 0 })).toBe(true);
+  });
+
+  it('sticky CTA follows applySizeClick id, never stuck on XS', () => {
+    const all = variants.map((v) => ({ ...v, stockQuantity: 2 }));
+    const afterM = applySizeClick(all, 'var-xs', 'M');
+    expect(afterM).toBe('var-m');
+    expect(pdpCtaSoldOut(selectVariantBySize(all, 'M'))).toBe(false);
+  });
+});
+
 

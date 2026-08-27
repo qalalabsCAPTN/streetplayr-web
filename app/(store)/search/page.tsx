@@ -71,7 +71,11 @@ function SearchResults() {
                 slug: product.slug,
                 image: product.image,
                 category: product.collections[0],
-                variants: (product.variants ?? []).map((v) => ({ id: v.id, size: v.size })),
+                variants: (product.variants ?? []).map((v) => ({
+                  id: v.id,
+                  size: v.size,
+                  stockQuantity: v.stockQuantity,
+                })),
               }}
               gallery={true}
             />

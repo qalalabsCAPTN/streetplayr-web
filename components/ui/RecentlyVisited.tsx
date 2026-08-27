@@ -21,7 +21,7 @@ type CardProduct = {
   image: string;
   image2?: string;
   category?: string;
-  variants?: { id: string; size: string }[];
+  variants?: { id: string; size: string; stockQuantity?: number }[];
 };
 
 export default function RecentlyVisited({ excludeSlug }: { excludeSlug?: string }) {
@@ -53,7 +53,11 @@ export default function RecentlyVisited({ excludeSlug }: { excludeSlug?: string 
               image: p!.image,
               image2: p!.image2,
               category: p!.collections[0],
-              variants: (p!.variants ?? []).map((v) => ({ id: v.id, size: v.size })),
+              variants: (p!.variants ?? []).map((v) => ({
+                id: v.id,
+                size: v.size,
+                stockQuantity: v.stockQuantity,
+              })),
             }))
         );
       } catch {

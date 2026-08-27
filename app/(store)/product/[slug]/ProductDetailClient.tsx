@@ -23,6 +23,7 @@ import {
 import {
   applySizeClick,
   initialVariantId,
+  pdpCtaSoldOut,
   selectVariantBySize,
   sizesFromExistingVariants,
 } from '@/lib/products/pdp-variant-selection';
@@ -110,6 +111,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
   const carouselRef = useRef<HTMLDivElement>(null);
   const galleryRightRef = useRef<HTMLDivElement>(null);
   const tryOnRef = useRef<HTMLDivElement>(null);
+  const sizeGroupRef = useRef<HTMLDivElement>(null);
   const [tryOnReady, setTryOnReady] = useState(false);
 
   useEffect(() => {
@@ -231,6 +233,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
   const addToBag = async (): Promise<boolean> => {
     if (!selectedVariantId || !selectedVariant) {
       setSizeError('Please select a size');
+      sizeGroupRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return false;
     }
     if (isRemovedApparelSize(selectedVariant.size)) {
@@ -275,6 +278,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
   const buyNow = async () => {
     if (!selectedVariantId || !selectedVariant) {
       setSizeError('Please select a size');
+      sizeGroupRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
     if (isRemovedApparelSize(selectedVariant.size)) {
@@ -287,6 +291,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
   };
 
   const gsmSpec = extractGsmSpec(props.description);
+  const ctaSoldOut = pdpCtaSoldOut(selectedVariant);
   const isWishlisted = useWishlistStore((s) => s.isSaved(props.productId));
   const requestToggle = useWishlistStore((s) => s.requestToggle);
   const saved = isWishlisted;
@@ -437,7 +442,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
               ) : null;
             })()}
 
-            <div className="sizes" role="group" aria-label="Select size">
+            <div className="sizes" role="group" aria-label="Select size" ref={sizeGroupRef}>
               {orderedSizes.map((s) => {
                 const matchingVariant = selectVariantBySize(liveVariants, s);
                 if (!matchingVariant) return null;
@@ -491,10 +496,22 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
 
             <div className="pdp__actions-slot">
               <div className="pdp__actions">
-                <button type="button" className="pdp__atb" onClick={addToBag}>
+                <button
+                  type="button"
+                  className="pdp__atb"
+                  onClick={addToBag}
+                  disabled={ctaSoldOut}
+                  data-selected-variant-id={selectedVariantId || undefined}
+                >
                   Add to Bag
                 </button>
-                <button type="button" className="pdp__buy" onClick={buyNow}>
+                <button
+                  type="button"
+                  className="pdp__buy"
+                  onClick={buyNow}
+                  disabled={ctaSoldOut}
+                  data-selected-variant-id={selectedVariantId || undefined}
+                >
                   Buy Now
                 </button>
               </div>

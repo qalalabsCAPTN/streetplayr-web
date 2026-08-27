@@ -12,7 +12,7 @@ export default function RecommendedProducts({ currentSlug }: { currentSlug: stri
       slug: string;
       image: string;
       category?: string;
-      variants?: { id: string; size: string }[];
+      variants?: { id: string; size: string; stockQuantity?: number }[];
     }>
   >([]);
 

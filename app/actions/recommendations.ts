@@ -13,6 +13,10 @@ export async function getRecommendedProductsAction(currentSlug: string) {
     slug: p.slug,
     image: p.image,
     category: p.collections[0],
-    variants: (p.variants ?? []).map((v) => ({ id: v.id, size: v.size })),
+    variants: (p.variants ?? []).map((v) => ({
+      id: v.id,
+      size: v.size,
+      stockQuantity: v.stockQuantity,
+    })),
   }));
 }
