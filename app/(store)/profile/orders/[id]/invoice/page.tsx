@@ -1,4 +1,5 @@
 import { getOrderAction } from '@/app/actions/order';
+import { isInvoiceEligible, isPayableOrder } from '@/lib/commerce/order-paid';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 
@@ -13,6 +14,31 @@ export default async function OrderInvoicePage({
   const result = await getOrderAction(id);
   if (!result.success || !result.data) notFound();
   const order = result.data;
+
+  if (!isInvoiceEligible(order)) {
+    return (
+      <div className="acct-card" style={{ padding: 24 }}>
+        <p className="acct-card__eyebrow">Payment</p>
+        <h1 className="acct-hero__name">
+          {isPayableOrder(order) ? 'Payment pending' : 'Invoice unavailable'}
+        </h1>
+        <p>Order {order.orderNumber}</p>
+        <p>
+          Status: {order.status} · Payment: {order.paymentStatus ?? 'pending'}
+        </p>
+        <p className="acct-card__sub">
+          A purchase invoice is issued only after Easebuzz confirms payment. This order has not been paid.
+        </p>
+        {isPayableOrder(order) && (
+          <p>
+            <Link href={`/checkout?error=payment_failed&order_id=${order.id}`}>Retry payment</Link>
+          </p>
+        )}
+        <Link href={`/profile/orders/${order.id}`}>← Order</Link>
+      </div>
+    );
+  }
+
   const ship = order.shippingAddress as Record<string, string>;
 
   return (

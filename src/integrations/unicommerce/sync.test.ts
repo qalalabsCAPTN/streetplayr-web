@@ -39,6 +39,69 @@ vi.mock('@/lib/supabase/admin', () => ({
   }),
 }));
 
+function queryChain(maybeSingleData: unknown, listData: unknown[] = []) {
+  const q: Record<string, unknown> = {};
+  const self = () => q;
+  q.select = self;
+  q.eq = self;
+  q.neq = self;
+  q.not = self;
+  q.in = self;
+  q.limit = self;
+  q.order = self;
+  q.update = self;
+  q.insert = () => q;
+  q.maybeSingle = () => Promise.resolve({ data: maybeSingleData, error: null });
+  q.single = () => Promise.resolve({ data: maybeSingleData, error: null });
+  q.then = (resolve: (value: unknown) => unknown) =>
+    Promise.resolve({ data: listData, error: null }).then(resolve);
+  return q;
+}
+
+function inventoryFrom(mockVariants: { id: string; sku: string }[], inventoryTable?: Record<string, unknown>) {
+  return (table: string) => {
+    if (table === 'brands') {
+      return queryChain({ id: 'brand-ok' });
+    }
+    if (table === 'products') {
+      return queryChain(null, [{ id: 'p1', metadata: { brand: 'playR STREET' } }]);
+    }
+    if (table === 'product_variants') {
+      return queryChain(null, mockVariants);
+    }
+    if (table === 'inventory') {
+      return inventoryTable ?? queryChain(null);
+    }
+    return queryChain(null);
+  };
+}
+
+function productSyncFrom() {
+  return (table: string) => {
+    if (table === 'brands') {
+      return queryChain({ id: 'brand-ok' });
+    }
+    if (table === 'products') {
+      const q = queryChain(
+        { id: 'parent-1', organization_id: 'org-1', featured_image_url: '/x.jpg', metadata: { brand: 'playR STREET' } },
+        []
+      );
+      q.insert = () => ({
+        select: () => ({
+          single: () => Promise.resolve({ data: { id: 'parent-1' }, error: null }),
+        }),
+      });
+      return q;
+    }
+    if (table === 'product_variants') {
+      const q = queryChain(null);
+      q.insert = () => Promise.resolve({ error: null });
+      return q;
+    }
+    return queryChain(null);
+  };
+}
+
 describe('UnicommerceSyncService - syncInventory', () => {
   let syncService: UnicommerceSyncService;
 
@@ -48,32 +111,21 @@ describe('UnicommerceSyncService - syncInventory', () => {
   });
 
   it('should successfully sync stock when inventory snapshot returns data', async () => {
-    // 1. Mock DB active variants
     const mockVariants = [
       { id: 'var-1', sku: 'SKU-A' },
       { id: 'var-2', sku: 'SKU-B' },
     ];
-    
-    mockFrom.mockImplementation((table: string) => {
-      if (table === 'product_variants') {
-        return {
-          select: () => ({
-            not: () => Promise.resolve({ data: mockVariants, error: null }),
+
+    mockFrom.mockImplementation(
+      inventoryFrom(mockVariants, {
+        select: () => ({
+          eq: () => ({
+            maybeSingle: () => Promise.resolve({ data: null, error: null }),
           }),
-        };
-      }
-      if (table === 'inventory') {
-        // mock no existing inventory
-        return {
-          select: () => ({
-            eq: () => ({
-              maybeSingle: () => Promise.resolve({ data: null, error: null }),
-            }),
-          }),
-          insert: () => Promise.resolve({ error: null }),
-        };
-      }
-    });
+        }),
+        insert: () => Promise.resolve({ error: null }),
+      })
+    );
 
     // 2. Mock inventory snapshot API
     vi.spyOn(UnicommerceInventoryService.prototype, 'getInventorySnapshot').mockResolvedValue([
@@ -82,52 +134,86 @@ describe('UnicommerceSyncService - syncInventory', () => {
 
     const result = await syncService.syncInventory();
     expect(result.success).toBe(true);
-    expect(result.processed).toBe(2); // Processes both var-1 and var-2
+    expect(result.processed).toBe(1);
     expect(result.errors).toBe(0);
   });
 
-  it('should handle zero stock default for missing variants in snapshot', async () => {
+  it('preserves last known stock when a SKU is missing from a successful snapshot', async () => {
     const mockVariants = [
       { id: 'var-1', sku: 'SKU-A' },
       { id: 'var-2', sku: 'SKU-B' },
     ];
-    
-    const upserts: any[] = [];
-    mockFrom.mockImplementation((table: string) => {
-      if (table === 'product_variants') {
-        return {
-          select: () => ({
-            not: () => Promise.resolve({ data: mockVariants, error: null }),
-          }),
-        };
-      }
-      if (table === 'inventory') {
-        return {
-          select: () => ({
-            eq: () => ({
-              maybeSingle: () => Promise.resolve({ data: null, error: null }),
-            }),
-          }),
-          insert: (data: any) => {
-            upserts.push(data);
-            return Promise.resolve({ error: null });
-          },
-        };
-      }
-    });
 
-    // Mock only SKU-A returned
+    const writes: any[] = [];
+    mockFrom.mockImplementation(
+      inventoryFrom(mockVariants, {
+        select: () => ({
+          eq: (_col: string, variantId: string) => ({
+            maybeSingle: () =>
+              Promise.resolve({
+                data: variantId === 'var-2' ? { id: 'inv-b', quantity: 40 } : null,
+                error: null,
+              }),
+          }),
+        }),
+        insert: (data: any) => {
+          writes.push({ op: 'insert', data });
+          return Promise.resolve({ error: null });
+        },
+        update: (data: any) => {
+          writes.push({ op: 'update', data });
+          return { eq: () => Promise.resolve({ error: null }) };
+        },
+      })
+    );
+
     vi.spyOn(UnicommerceInventoryService.prototype, 'getInventorySnapshot').mockResolvedValue([
       { sku: 'SKU-A', stock: 5, blocked: 0 },
     ]);
 
     const result = await syncService.syncInventory();
     expect(result.success).toBe(true);
-    expect(upserts).toHaveLength(2);
-    // SKU-A stock is 5
-    expect(upserts.find((u) => u.variant_id === 'var-1').quantity).toBe(5);
-    // SKU-B stock defaults to 0 (missing in snapshot)
-    expect(upserts.find((u) => u.variant_id === 'var-2').quantity).toBe(0);
+    expect(writes).toHaveLength(1);
+    expect(writes[0].data.quantity).toBe(5);
+    expect(writes.some((w) => w.data.quantity === 0)).toBe(false);
+  });
+
+  it('writes explicit zero-stock from UniCommerce as sold out', async () => {
+    const mockVariants = [{ id: 'var-1', sku: 'SKU-A' }];
+    const inserts: any[] = [];
+    mockFrom.mockImplementation(
+      inventoryFrom(mockVariants, {
+        select: () => ({
+          eq: () => ({
+            maybeSingle: () => Promise.resolve({ data: null, error: null }),
+          }),
+        }),
+        insert: (data: any) => {
+          inserts.push(data);
+          return Promise.resolve({ error: null });
+        },
+      })
+    );
+    vi.spyOn(UnicommerceInventoryService.prototype, 'getInventorySnapshot').mockResolvedValue([
+      { sku: 'SKU-A', stock: 0, blocked: 0 },
+    ]);
+    const result = await syncService.syncInventory();
+    expect(result.success).toBe(true);
+    expect(inserts[0].quantity).toBe(0);
+  });
+
+  it('does not touch inventory when snapshot is empty', async () => {
+    const mockVariants = [{ id: 'var-1', sku: 'SKU-A' }];
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'inventory') {
+        throw new Error('Should not touch inventory table on empty snapshot');
+      }
+      return inventoryFrom(mockVariants)(table);
+    });
+    vi.spyOn(UnicommerceInventoryService.prototype, 'getInventorySnapshot').mockResolvedValue([]);
+    const result = await syncService.syncInventory();
+    expect(result.success).toBe(true);
+    expect(result.processed).toBe(0);
   });
 
   it('should abort and preserve database stock if SOAP request throws an error', async () => {
@@ -136,17 +222,10 @@ describe('UnicommerceSyncService - syncInventory', () => {
     ];
     
     mockFrom.mockImplementation((table: string) => {
-      if (table === 'product_variants') {
-        return {
-          select: () => ({
-            not: () => Promise.resolve({ data: mockVariants, error: null }),
-          }),
-        };
-      }
-      // if it calls insert or update on inventory, fail test
       if (table === 'inventory') {
         throw new Error('Should not touch inventory table on SOAP error');
       }
+      return inventoryFrom(mockVariants)(table);
     });
 
     // Mock SOAP request error
@@ -160,14 +239,53 @@ describe('UnicommerceSyncService - syncInventory', () => {
   });
 
   it('leaves failed snapshot chunks unchanged and still updates successful chunks', async () => {
-    const mockVariants = [
-      { id: 'var-1', sku: 'SKU-A' },
-    ];
+    const mockVariants = Array.from({ length: 51 }, (_, i) => ({
+      id: `var-${i}`,
+      sku: `SKU-${i}`,
+    }));
+    const inserts: any[] = [];
+    mockFrom.mockImplementation(
+      inventoryFrom(mockVariants, {
+        select: () => ({
+          eq: () => ({
+            maybeSingle: () => Promise.resolve({ data: null, error: null }),
+          }),
+        }),
+        insert: (data: any) => {
+          inserts.push(data);
+          return Promise.resolve({ error: null });
+        },
+      })
+    );
+    vi.spyOn(UnicommerceInventoryService.prototype, 'getInventorySnapshot')
+      .mockRejectedValueOnce(new Error('timeout'))
+      .mockResolvedValue([{ sku: 'SKU-50', stock: 9, blocked: 0 }]);
+
+    const result = await syncService.syncInventory();
+    expect(result.errors).toBeGreaterThan(0);
+    expect(inserts).toHaveLength(1);
+    expect(inserts[0].variant_id).toBe('var-50');
+    expect(inserts[0].quantity).toBe(9);
+  });
+
+  it('does not inventory-sync products whose metadata.brand is not playR STREET', async () => {
     mockFrom.mockImplementation((table: string) => {
+      if (table === 'brands') return queryChain({ id: 'brand-ok' });
+      if (table === 'products') {
+        return queryChain(null, [
+          { id: 'p-street', metadata: { brand: 'playR STREET' } },
+          { id: 'p-adidas', metadata: { brand: 'Adidas' } },
+        ]);
+      }
       if (table === 'product_variants') {
         return {
           select: () => ({
-            not: () => Promise.resolve({ data: mockVariants, error: null }),
+            in: (_col: string, ids: string[]) => {
+              expect(ids).toEqual(['p-street']);
+              return {
+                not: () => Promise.resolve({ data: [{ id: 'var-1', sku: 'SKU-A' }], error: null }),
+              };
+            },
           }),
         };
       }
@@ -181,14 +299,13 @@ describe('UnicommerceSyncService - syncInventory', () => {
           insert: () => Promise.resolve({ error: null }),
         };
       }
+      return queryChain(null);
     });
-    vi.spyOn(UnicommerceInventoryService.prototype, 'getInventorySnapshot')
-      .mockRejectedValueOnce(new Error('timeout'))
-      .mockResolvedValue([{ sku: 'SKU-A', stock: 3, blocked: 0 }]);
-
-    const first = await syncService.syncInventory();
-    expect(first.success).toBe(false);
-    expect(first.errors).toBeGreaterThan(0);
+    vi.spyOn(UnicommerceInventoryService.prototype, 'getInventorySnapshot').mockResolvedValue([
+      { sku: 'SKU-A', stock: 3, blocked: 0 },
+    ]);
+    const result = await syncService.syncInventory();
+    expect(result.processed).toBe(1);
   });
 });
 
@@ -200,97 +317,71 @@ describe('UnicommerceSyncService - syncProducts', () => {
     syncService = new UnicommerceSyncService();
   });
 
-  it('should successfully sync products with brand playR STREET and skip others', async () => {
-    // 1. Mock soapRequest for SearchItemTypesRequest
+  it('imports only playR STREET and never fetches Brand B or Brand C SKUs', async () => {
     vi.mocked(soapRequest).mockResolvedValue({
       successful: true,
       itemTypes: [
-        { skuCode: 'ctt-waffle-s', brand: 'playR STREET' },
-        { skuCode: 'invalid-brand-sku', brand: 'PlayR Sports' },
+        { skuCode: 'street-tee-s', brand: 'playR STREET' },
+        { skuCode: 'adidas-sku', brand: 'Adidas' },
+        { skuCode: 'playr-jersey', brand: 'playR' },
       ],
     });
 
-    // 2. Mock getProductBySku to return detailed product specs
-    vi.spyOn(UnicommerceProductService.prototype, 'getProductBySku').mockImplementation(async (sku) => {
-      if (sku === 'ctt-waffle-s') {
-        return {
-          sku: 'ctt-waffle-s',
-          name: 'playR Create Waffle Tee - S',
-          price: 1999,
-          enabled: true,
-          brand: 'playR STREET',
-        };
-      }
-      if (sku === 'invalid-brand-sku') {
-        return {
-          sku: 'invalid-brand-sku',
-          name: 'Invalid Product',
-          price: 1999,
-          enabled: true,
-          brand: 'PlayR Sports',
-        };
-      }
-      return null;
-    });
+    const getBySku = vi
+      .spyOn(UnicommerceProductService.prototype, 'getProductBySku')
+      .mockImplementation(async (sku) => {
+        if (sku === 'street-tee-s') {
+          return {
+            sku: 'street-tee-s',
+            name: 'StreetPlayR Tee - S',
+            price: 1999,
+            enabled: true,
+            brand: 'playR STREET',
+          };
+        }
+        throw new Error(`GetItemType must not run for other-brand SKU ${sku}`);
+      });
 
-    // 3. Mock DB operations
-    mockFrom.mockImplementation((table: string) => {
-      if (table === 'product_variants') {
-        return {
-          select: () => ({
-            not: () => Promise.resolve({ data: [], error: null }),
-            eq: () => ({
-              maybeSingle: () => Promise.resolve({ data: null, error: null }),
-            }),
-          }),
-          insert: () => Promise.resolve({ error: null }),
-          update: () => ({
-            eq: () => Promise.resolve({ error: null }),
-          }),
-        };
-      }
-      if (table === 'products') {
-        return {
-          select: () => ({
-            limit: () => ({
-              maybeSingle: () => Promise.resolve({ data: { organization_id: 'org-1', brand_id: 'brand-ok' }, error: null }),
-            }),
-            eq: () => ({
-              maybeSingle: () => Promise.resolve({ data: { id: 'parent-1' }, error: null }),
-            }),
-          }),
-          update: () => {
-            const chain = {
-              eq: () => chain,
-              neq: () => chain,
-              not: () => chain,
-              then: (onfulfilled: any) => Promise.resolve({ error: null }).then(onfulfilled),
-            };
-            return chain;
-          },
-          insert: () => ({
-            select: () => ({
-              single: () => Promise.resolve({ data: { id: 'parent-1' }, error: null }),
-            }),
-          }),
-        };
-      }
-      if (table === 'brands') {
-        return {
-          select: () => ({
-            eq: () => ({
-              maybeSingle: () => Promise.resolve({ data: { id: 'brand-ok' }, error: null }),
-            }),
-          }),
-        };
-      }
-      return {};
-    });
+    mockFrom.mockImplementation(productSyncFrom());
 
     const result = await syncService.syncProducts();
     expect(result.success).toBe(true);
-    expect(result.processed).toBe(1); // Only ctt-waffle-s is imported
-    expect(result.errors).toBe(0);
+    expect(result.processed).toBe(1);
+    expect(result.unicommerceReceived).toBe(3);
+    expect(result.streetplayrReceived).toBe(1);
+    expect(result.skippedOtherBrands).toBe(2);
+    expect(getBySku.mock.calls.map((c) => c[0])).toEqual(['street-tee-s']);
+  });
+
+  it('paginates SearchItemTypes then brand-filters the combined catalog', async () => {
+    const page1 = Array.from({ length: 100 }, (_, i) => ({
+      skuCode: `adidas-${i}`,
+      brand: 'Adidas',
+    }));
+    const page2 = [
+      { skuCode: 'street-tee-s', brand: 'playR STREET' },
+      { skuCode: 'playr-jersey', brand: 'playR' },
+    ];
+    vi.mocked(soapRequest)
+      .mockResolvedValueOnce({ successful: true, itemTypes: page1 })
+      .mockResolvedValueOnce({ successful: true, itemTypes: page2 });
+
+    vi.spyOn(UnicommerceProductService.prototype, 'getProductBySku').mockResolvedValue({
+      sku: 'street-tee-s',
+      name: 'StreetPlayR Tee - S',
+      price: 1999,
+      enabled: true,
+      brand: 'playR STREET',
+    });
+
+    mockFrom.mockImplementation(productSyncFrom());
+
+    const result = await syncService.syncProducts();
+    expect(result.unicommerceReceived).toBe(102);
+    expect(result.streetplayrReceived).toBe(1);
+    expect(result.skippedOtherBrands).toBe(101);
+    expect(result.processed).toBe(1);
+    expect(soapRequest).toHaveBeenCalledTimes(2);
   });
 
   it('should abort sync and modify nothing if brand record does not exist', async () => {

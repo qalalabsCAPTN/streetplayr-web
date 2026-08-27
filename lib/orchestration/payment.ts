@@ -122,7 +122,7 @@ export const PaymentService = {
       // `orders` table has no `user_id` column; do not select one.
       const { data: order } = await admin
         .from('orders')
-        .select('id, notes, status, discount_total, order_number, shipping_address')
+        .select('id, notes, status, discount_total, order_number, shipping_address, grand_total')
         .eq('payment_intent_id', params.providerTransactionId)
         .single();
 
@@ -132,6 +132,39 @@ export const PaymentService = {
           error: `No order found for transaction ${params.providerTransactionId}`,
           code: 'ORDER_NOT_FOUND',
         };
+      }
+
+      if (params.eventType === 'payment_intent.succeeded') {
+        const expected = Number(order.grand_total);
+        const reported = Number(params.rawPayload?.amount);
+        if (
+          !Number.isFinite(expected) ||
+          expected <= 0 ||
+          !Number.isFinite(reported) ||
+          Math.abs(reported - expected) >= 0.01
+        ) {
+          await recordEvent({
+            domain: 'payment',
+            severity: 'critical',
+            action: 'payment.amount_mismatch',
+            actorId: 'system',
+            resourceType: 'orders',
+            resourceId: order.id,
+            message: `Payment success rejected: callback amount ${reported} does not match order grand_total ${expected}`,
+            metadata: {
+              orderId: order.id,
+              expected,
+              reported,
+              providerTransactionId: params.providerTransactionId,
+            },
+          });
+          await guard.fail('AMOUNT_MISMATCH');
+          return {
+            success: false,
+            error: 'Payment amount does not match order total.',
+            code: 'AMOUNT_MISMATCH',
+          };
+        }
       }
 
       // Log the payment event. Physical columns are still named

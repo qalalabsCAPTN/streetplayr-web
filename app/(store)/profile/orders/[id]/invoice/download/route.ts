@@ -1,4 +1,5 @@
 import { getOrderAction } from '@/app/actions/order';
+import { isInvoiceEligible } from '@/lib/commerce/order-paid';
 import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -13,6 +14,16 @@ export async function GET(
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
   const order = result.data;
+  if (!isInvoiceEligible(order)) {
+    return NextResponse.json(
+      {
+        error: 'Invoice is only available after successful payment.',
+        status: order.status,
+        paymentStatus: order.paymentStatus ?? 'pending',
+      },
+      { status: 403 }
+    );
+  }
   const ship = order.shippingAddress as Record<string, string>;
   const rows = order.items
     .map(

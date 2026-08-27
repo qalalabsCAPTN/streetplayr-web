@@ -243,13 +243,20 @@ function translateSoapResponse(operation: string, xml: string, facilityCode: str
     case 'GetInventorySnapshotRequest': {
       if (!successful) return { successful: false, errors };
       const snapshotBlocks = getTagBlocks(xml, 'InventorySnapshot');
-      const inventorySnapshots = snapshotBlocks.map((block) => ({
-        itemTypeSKU: getTagValue(block, 'ItemSKU'),
-        inventory: parseInt(getTagValue(block, 'Inventory'), 10) || 0,
-        blocked: parseInt(getTagValue(block, 'PendingInventoryAssessment'), 10) || 0,
-        openOrders: 0,
-        facilityCode,
-      }));
+      const inventorySnapshots = snapshotBlocks
+        .map((block) => {
+          const raw = getTagValue(block, 'Inventory');
+          const inventory = parseInt(raw, 10);
+          if (raw === '' || !Number.isFinite(inventory)) return null;
+          return {
+            itemTypeSKU: getTagValue(block, 'ItemSKU'),
+            inventory,
+            blocked: parseInt(getTagValue(block, 'PendingInventoryAssessment'), 10) || 0,
+            openOrders: 0,
+            facilityCode,
+          };
+        })
+        .filter((row): row is NonNullable<typeof row> => row !== null);
       return {
         successful: true,
         inventorySnapshots,

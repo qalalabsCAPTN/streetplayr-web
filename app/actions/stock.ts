@@ -4,6 +4,7 @@ import { getAvailableInventory } from '@/lib/inventory';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { recordEvent } from '@/lib/orchestration/events';
 import type { OrchestrationResponse } from '@/lib/orchestration/types';
+import { resolveStorefrontBrandId } from '@/lib/products/brand';
 
 interface VariantStock {
   variantId: string;
@@ -77,9 +78,28 @@ export async function validateCartStockAction(
   items: { variantId: string; quantity: number }[]
 ): Promise<OrchestrationResponse<{ valid: boolean; failures: CartStockCheck[] }>> {
   try {
+    const admin = createAdminClient();
+    const brandId = await resolveStorefrontBrandId(admin);
     const failures: CartStockCheck[] = [];
 
     for (const item of items) {
+      const { data: owned } = await admin
+        .from('product_variants')
+        .select('id, products!inner(brand_id)')
+        .eq('id', item.variantId)
+        .eq('products.brand_id', brandId)
+        .maybeSingle();
+
+      if (!owned) {
+        failures.push({
+          variantId: item.variantId,
+          requested: item.quantity,
+          available: 0,
+          sufficient: false,
+        });
+        continue;
+      }
+
       const available = await getAvailableInventory(item.variantId);
 
       if (available < item.quantity) {

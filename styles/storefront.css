@@ -1676,13 +1676,13 @@ body.theme-light .carousel3d__dot.active {
   transform: translate(0, -50%) scale(1.08);
 }
 
-@media (hover: none) {
-  .card__nav--prev {
-    transform: translate(0, -50%);
-  }
-
-  .card__nav--next {
-    transform: translate(0, -50%);
+@media (hover: none), (max-width: 768px) {
+  .card__nav,
+  .card__nav--prev,
+  .card__nav--next,
+  .recently-visited .card__nav--prev,
+  .recently-visited .card__nav--next {
+    display: none !important;
   }
 }
 

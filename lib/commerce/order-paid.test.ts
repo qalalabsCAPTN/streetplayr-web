@@ -1,0 +1,120 @@
+import { readFileSync } from 'fs';
+import { join } from 'path';
+import { describe, expect, it } from 'vitest';
+import {
+  countsTowardCustomerSpend,
+  customerOrderStatusLabel,
+  isInvoiceEligible,
+  isPayableOrder,
+  isPaymentCaptured,
+  ownsOrder,
+} from './order-paid';
+
+const pendingUnpaid = { status: 'pending' as const, paymentStatus: 'pending' };
+const pendingFailed = { status: 'pending' as const, paymentStatus: 'failed' };
+const paidConfirmed = { status: 'confirmed' as const, paymentStatus: 'paid' };
+const pendingButPaidFlag = { status: 'pending' as const, paymentStatus: 'paid' };
+const confirmedUnpaid = { status: 'confirmed' as const, paymentStatus: 'pending' };
+
+describe('payment capture / invoice eligibility', () => {
+  it('checkout pending is not a paid/confirmed purchase', () => {
+    expect(isPaymentCaptured(pendingUnpaid)).toBe(false);
+    expect(isInvoiceEligible(pendingUnpaid)).toBe(false);
+    expect(isPayableOrder(pendingUnpaid)).toBe(true);
+    expect(countsTowardCustomerSpend(pendingUnpaid)).toBe(false);
+  });
+
+  it('failed payment stays payable and never looks captured', () => {
+    expect(isPaymentCaptured(pendingFailed)).toBe(false);
+    expect(isInvoiceEligible(pendingFailed)).toBe(false);
+    expect(isPayableOrder(pendingFailed)).toBe(true);
+    expect(customerOrderStatusLabel(pendingFailed)).toBe('Payment failed');
+  });
+
+  it('pending payment remains pending', () => {
+    expect(customerOrderStatusLabel(pendingUnpaid)).toBe('Payment pending');
+    expect(isPayableOrder(pendingUnpaid)).toBe(true);
+  });
+
+  it('invoice unavailable for unpaid order', () => {
+    expect(isInvoiceEligible(pendingUnpaid)).toBe(false);
+    expect(isInvoiceEligible(pendingFailed)).toBe(false);
+    expect(isInvoiceEligible(confirmedUnpaid)).toBe(false);
+    expect(isInvoiceEligible(pendingButPaidFlag)).toBe(false);
+  });
+
+  it('invoice available only after verified paid + fulfillment status', () => {
+    expect(isInvoiceEligible(paidConfirmed)).toBe(true);
+    expect(isInvoiceEligible({ status: 'shipped', paymentStatus: 'paid' })).toBe(true);
+  });
+
+  it('customer cannot own another customer order by id alone', () => {
+    expect(
+      ownsOrder({ userId: 'user-a', shippingAddress: { email: 'a@x.com' } }, 'user-b', 'b@x.com')
+    ).toBe(false);
+    expect(
+      ownsOrder({ userId: 'user-a', shippingAddress: { email: 'a@x.com' } }, 'user-a', 'a@x.com')
+    ).toBe(true);
+  });
+});
+
+describe('source invariants — no client confirmation, no unpaid invoice, no retry duplicate order', () => {
+  const root = process.cwd();
+
+  it('checkout insert is pending, never confirmed', () => {
+    const src = readFileSync(join(root, 'app/actions/checkout.ts'), 'utf8');
+    expect(src).toMatch(/status: 'pending'/);
+    expect(src).toMatch(/payment_status: 'pending'/);
+    expect(src).not.toMatch(/status: 'confirmed'/);
+  });
+
+  it('invoice download requires isInvoiceEligible after getOrderAction', () => {
+    const src = readFileSync(
+      join(root, 'app/(store)/profile/orders/[id]/invoice/download/route.ts'),
+      'utf8'
+    );
+    expect(src).toMatch(/getOrderAction/);
+    expect(src).toMatch(/isInvoiceEligible/);
+    expect(src).toMatch(/status: 403/);
+  });
+
+  it('retryPaymentAction does not insert a second order', () => {
+    const src = readFileSync(join(root, 'app/actions/order.ts'), 'utf8');
+    expect(src).toMatch(/isPayableOrder/);
+    expect(src).toMatch(/retryPaymentAction/);
+    const retryBlock = src.slice(src.indexOf('export async function retryPaymentAction'));
+    expect(retryBlock).not.toMatch(/\.from\('orders'\)\s*\n\s*\.insert/);
+    expect(retryBlock).toMatch(/ReservationService\.create/);
+  });
+
+  it('Easebuzz webhook does not confirm on invalid hash', () => {
+    const src = readFileSync(join(root, 'app/api/webhooks/easebuzz/route.ts'), 'utf8');
+    expect(src).toMatch(/verifyResponseHash/);
+    expect(src).toMatch(/Invalid response signature/);
+    expect(src).toMatch(/easebuzz.amount_mismatch/);
+  });
+
+  it('mobile product-card arrows hidden on touch/mobile', () => {
+    const css = readFileSync(join(root, 'styles/storefront.css'), 'utf8');
+    expect(css).toMatch(/@media \(hover: none\), \(max-width: 768px\)/);
+    expect(css).toMatch(/\.card__nav/);
+    expect(css).toMatch(/display: none !important;/);
+    const card = readFileSync(join(root, 'components/ui/ProductCard.tsx'), 'utf8');
+    expect(card).toMatch(/card__nav--prev/);
+    expect(card).toMatch(/card__wish/);
+  });
+
+  it('SKU-targeted inventory snapshot does not default UpdatedSinceInMinutes to 480', () => {
+    const src = readFileSync(join(process.cwd(), 'src/integrations/unicommerce/inventory.ts'), 'utf8');
+    expect(src).toMatch(/skus && skus\.length > 0/);
+    expect(src).toMatch(/UpdatedSinceInMinutes/);
+  });
+
+  it('reservation subtraction never goes negative', () => {
+    const src = readFileSync(join(root, 'lib/inventory/index.ts'), 'utf8');
+    expect(src).toMatch(/Math\.max\(0, \(inv\.quantity \?\? 0\) - reserved\)/);
+    const stock = readFileSync(join(root, 'app/actions/stock.ts'), 'utf8');
+    expect(stock).toMatch(/Math\.max\(/);
+    expect(stock).toMatch(/reserved_quantity/);
+  });
+});

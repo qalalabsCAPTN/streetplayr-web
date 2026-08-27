@@ -63,7 +63,7 @@ export async function createEasebuzzPaymentAction(
 
     const { data: order } = await admin
       .from('orders')
-      .select('id, order_number, grand_total, status, customer_id, notes')
+      .select('id, order_number, grand_total, status, payment_status, customer_id, notes')
       .eq('id', params.orderId)
       .single();
 
@@ -77,10 +77,10 @@ export async function createEasebuzzPaymentAction(
       return { success: false, error: 'Order does not belong to user.', code: 'UNAUTHORIZED_ORDER' };
     }
 
-    if (order.status !== 'pending') {
+    if (order.status !== 'pending' || order.payment_status === 'paid') {
       return {
         success: false,
-        error: `Order is not payable in its current state (${order.status}).`,
+        error: `Order is not payable in its current state (${order.status}/${order.payment_status ?? 'pending'}).`,
         code: 'ORDER_NOT_PAYABLE',
       };
     }

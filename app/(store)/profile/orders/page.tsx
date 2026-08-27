@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import {
+  countsTowardCustomerSpend,
+  customerOrderStatusLabel,
+} from '@/lib/commerce/order-paid';
 
 interface OrderItem {
   id: string;
@@ -15,12 +19,13 @@ interface Order {
   orderNumber: string;
   createdAt: string;
   status: string;
+  paymentStatus?: string;
   total: number;
   items: OrderItem[];
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  pending: 'Pending',
+  pending: 'Payment pending',
   confirmed: 'Confirmed',
   processing: 'Processing',
   fulfilling: 'Fulfilling',
@@ -57,6 +62,7 @@ export default function OrdersPage() {
             orderNumber: o.orderNumber,
             createdAt: o.createdAt,
             status: o.status,
+            paymentStatus: o.paymentStatus,
             total: o.total,
             items: (o.items ?? []).map((item) => ({
               id: item.id,
@@ -73,7 +79,9 @@ export default function OrdersPage() {
     loadOrders();
   }, []);
 
-  const totalSpent = orders.reduce((sum, o) => sum + o.total, 0);
+  const totalSpent = orders
+    .filter((o) => countsTowardCustomerSpend(o))
+    .reduce((sum, o) => sum + o.total, 0);
   const deliveredCount = orders.filter((o) => o.status === 'delivered').length;
   const cancelledCount = orders.filter((o) => o.status === 'cancelled').length;
 
@@ -131,7 +139,7 @@ export default function OrdersPage() {
                     )}
                   </div>
                   <span className={`acct-order__status acct-order__status--${order.status}`}>
-                    {STATUS_LABELS[order.status] || order.status}
+                    {customerOrderStatusLabel(order) || STATUS_LABELS[order.status] || order.status}
                   </span>
                 </div>
                 <div className="acct-order__foot">

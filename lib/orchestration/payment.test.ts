@@ -154,6 +154,7 @@ function baseEvent(overrides: Partial<Parameters<typeof PaymentService.processWe
     providerTransactionId: 'txn-1',
     amount: 49900,
     currency: 'inr',
+    rawPayload: { amount: 499 },
     ...overrides,
   };
 }
@@ -164,7 +165,7 @@ beforeEach(() => {
   // `notes` carries the creating auth user's id — the verified, live
   // identity mechanism (see lib/orchestration/payment.ts). No `user_id`
   // column exists on the live `orders` table.
-  orders = { [ORDER_ID]: { id: ORDER_ID, notes: AUTH_USER_ID, status: 'pending', payment_intent_id: 'txn-1', metadata: {} } };
+  orders = { [ORDER_ID]: { id: ORDER_ID, notes: AUTH_USER_ID, status: 'pending', payment_intent_id: 'txn-1', grand_total: 499, metadata: {} } };
   paymentEvents = [];
   transitionStatusMock.mockClear().mockResolvedValue({ success: true });
   holdMock.mockClear();
@@ -251,6 +252,16 @@ describe('PaymentService.processWebhookEvent — duplicate/concurrent delivery',
     expect(redeemSPRRMock).toHaveBeenCalledTimes(1);
     expect(awardSPRRMock).not.toHaveBeenCalled();
     expect(awardXPMock).not.toHaveBeenCalled();
+  });
+
+  it('10. success with mismatched amount does not confirm the order', async () => {
+    const result = await PaymentService.processWebhookEvent(
+      baseEvent({ rawPayload: { amount: 1 } })
+    );
+    expect(result.success).toBe(false);
+    expect(result.code).toBe('AMOUNT_MISMATCH');
+    expect(transitionStatusMock).not.toHaveBeenCalled();
+    expect(paymentEvents).toHaveLength(0);
   });
 });
 

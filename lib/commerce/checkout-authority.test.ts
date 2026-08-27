@@ -33,5 +33,6 @@ describe('checkout / order schema authority', () => {
     expect(src).toMatch(/PAID/);
     expect(src).toMatch(/setState\('pending'\)/);
     expect(src).toMatch(/clearCart\(\)/);
+    expect(src).toMatch(/paymentStatus === 'paid'/);
   });
 });

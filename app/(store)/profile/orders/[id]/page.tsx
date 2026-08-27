@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import type { Order } from '@/lib/orchestration/types';
+import { customerOrderStatusLabel, isInvoiceEligible, isPayableOrder } from '@/lib/commerce/order-paid';
 
 function money(n: number) {
   return '₹' + n.toLocaleString('en-IN');
@@ -49,13 +50,14 @@ export default function OrderDetailPage() {
 
   const canCancel = ['pending', 'confirmed'].includes(order.status);
   const canReturn = ['shipped', 'delivered'].includes(order.status);
-  const canRetry = order.status === 'pending' && order.paymentStatus !== 'paid';
+  const canRetry = isPayableOrder(order);
+  const canInvoice = isInvoiceEligible(order);
 
   return (
     <div>
       <Link href="/profile/orders" className="acct-card__sub">← Orders</Link>
       <div className="acct-hero">
-        <p className="acct-hero__greet">{order.status}</p>
+        <p className="acct-hero__greet">{customerOrderStatusLabel(order)}</p>
         <h1 className="acct-hero__name">{order.orderNumber}</h1>
       </div>
 
@@ -86,11 +88,18 @@ export default function OrderDetailPage() {
 
       <div className="acct-card" style={{ marginBottom: 20 }}>
         <span className="acct-card__eyebrow">Documents</span>
-        <p>
-          <Link href={`/profile/orders/${order.id}/invoice`}>View invoice</Link>
-          {' · '}
-          <a href={`/profile/orders/${order.id}/invoice/download`}>Download invoice</a>
-        </p>
+        {canInvoice ? (
+          <p>
+            <Link href={`/profile/orders/${order.id}/invoice`}>View invoice</Link>
+            {' · '}
+            <a href={`/profile/orders/${order.id}/invoice/download`}>Download invoice</a>
+          </p>
+        ) : (
+          <p className="acct-card__sub">
+            Invoice is issued after successful payment.
+            {canRetry ? ' Complete payment to receive an invoice.' : ''}
+          </p>
+        )}
       </div>
 
       {error && <p className="checkout-error">{error}</p>}

@@ -5,6 +5,7 @@
 
 import { createStaticClient } from '@/lib/supabase/static';
 import { resolveStorefrontBrandId } from './brand';
+import { isStreetPlayrCatalogMetadata } from '@/src/integrations/unicommerce/streetplayr-brand';
 import {
   getLocalProductBySlug,
   getLocalActiveProducts,
@@ -235,6 +236,8 @@ function isValidStorefrontProduct(p: any): boolean {
   const gallery = meta.gallery_images || p.gallery;
   if (!Array.isArray(gallery) || gallery.length === 0) return false;
   if (gallery.some((img: any) => !img || typeof img !== 'string' || img.trim() === '' || img.includes('null'))) return false;
+
+  if (!isStreetPlayrCatalogMetadata(meta)) return false;
 
   // 6. Variants/Inventory check (has at least one variant to prevent ghost listings)
   const variants = p.variants;

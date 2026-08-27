@@ -128,6 +128,36 @@ describe('SOAP Client Request Translation', () => {
     expect(result.inventorySnapshots[0].blocked).toBe(5);
   });
 
+  it('skips inventory snapshot rows with missing Inventory instead of coercing to zero', async () => {
+    const mockResponseXml = `
+      <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+        <SOAP-ENV:Body>
+          <GetInventorySnapshotResponse xmlns="http://uniware.unicommerce.com/services/">
+            <Successful>true</Successful>
+            <InventorySnapshots>
+              <InventorySnapshot>
+                <ItemSKU>BAD-SKU</ItemSKU>
+              </InventorySnapshot>
+              <InventorySnapshot>
+                <ItemSKU>OK-SKU</ItemSKU>
+                <Inventory>12</Inventory>
+              </InventorySnapshot>
+            </InventorySnapshots>
+          </GetInventorySnapshotResponse>
+        </SOAP-ENV:Body>
+      </SOAP-ENV:Envelope>
+    `;
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      status: 200,
+      ok: true,
+      text: async () => mockResponseXml,
+    }));
+    const result = await soapRequest<any>('GetInventorySnapshotRequest', '<ser:ItemSKU>OK-SKU</ser:ItemSKU>');
+    expect(result.inventorySnapshots).toHaveLength(1);
+    expect(result.inventorySnapshots[0].itemTypeSKU).toBe('OK-SKU');
+    expect(result.inventorySnapshots[0].inventory).toBe(12);
+  });
+
   it('should parse InventoryAdjustmentRequest successfully', async () => {
     const mockResponseXml = `
       <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">

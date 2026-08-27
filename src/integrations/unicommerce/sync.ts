@@ -11,6 +11,11 @@ import { getUnicommerceConfig } from './config';
 import { soapRequest } from './soapClient';
 import { isRemovedApparelSize } from '@/lib/products/sizes';
 import { displayProductName, withClientProductCopy } from '@/lib/products/copy';
+import {
+  filterStreetPlayrUnicommerceItems,
+  isStreetPlayrCatalogMetadata,
+  isStreetPlayrUnicommerceBrand,
+} from './streetplayr-brand';
 
 export class UnicommerceSyncService {
   private productService: UnicommerceProductService;
@@ -24,9 +29,19 @@ export class UnicommerceSyncService {
   /**
    * Syncs catalog products and variants from Unicommerce into the Supabase database.
    */
-  async syncProducts(): Promise<{ success: boolean; processed: number; errors: number }> {
+  async syncProducts(): Promise<{
+    success: boolean;
+    processed: number;
+    errors: number;
+    unicommerceReceived: number;
+    streetplayrReceived: number;
+    skippedOtherBrands: number;
+  }> {
     let processed = 0;
     let errors = 0;
+    let unicommerceReceived = 0;
+    let streetplayrReceived = 0;
+    let skippedOtherBrandCount = 0;
 
     try {
       await UnicommerceLogger.info('sync.products_start', 'Starting product synchronization job');
@@ -72,23 +87,24 @@ export class UnicommerceSyncService {
           }
         }
 
-        // Apply Storefront Filtering Strategy
-        const allowlistStr = process.env.UNICOMMERCE_SYNC_ALLOWLIST || 
-          'ctt-waffle,black-warrior,inspired,star-tank-dark,carpenter-grey,stick-no-bills,warrior-bob,IK5737,IK5738,IK5745';
+        // Brand gate first. SKU allowlist is optional extra restrictor, never a brand bypass.
+        const allowlistStr = process.env.UNICOMMERCE_SYNC_ALLOWLIST || '';
         const allowedPatterns = allowlistStr.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 
-        // Fetch existing variants to allow syncing them
-        const { data: existingVariants } = await admin
-          .from('product_variants')
-          .select('sku')
-          .not('sku', 'is', null);
-        const existingSkusSet = new Set((existingVariants || []).map(v => v.sku.toLowerCase()));
+        const { kept: streetplayrItems, skipped: skippedOtherBrands } =
+          filterStreetPlayrUnicommerceItems(allItemTypes);
+        unicommerceReceived = allItemTypes.length;
+        streetplayrReceived = streetplayrItems.length;
+        skippedOtherBrandCount = skippedOtherBrands;
 
-        const candidates = allItemTypes.filter(it => {
-          const skuLower = it.skuCode.toLowerCase();
-          const matchesAllowlist = allowedPatterns.some(pattern => skuLower.includes(pattern));
-          const existsInDb = existingSkusSet.has(skuLower);
-          return matchesAllowlist || existsInDb;
+        const brandFilterMsg = `UniCommerce items ${allItemTypes.length}; StreetPlayR (Brand=playR STREET) ${streetplayrItems.length}; skipped other brands ${skippedOtherBrands}`;
+        console.log(brandFilterMsg);
+        await UnicommerceLogger.info('sync.products_brand_filter', brandFilterMsg);
+
+        const candidates = streetplayrItems.filter((it) => {
+          if (!allowedPatterns.length) return true;
+          const skuLower = (it.skuCode || '').toLowerCase();
+          return allowedPatterns.some((pattern) => skuLower.includes(pattern));
         });
 
         candidateParentSlugs = Array.from(new Set(candidates.map(c => {
@@ -112,8 +128,13 @@ export class UnicommerceSyncService {
           const detailPromises = candidateChunk.map(async (it) => {
             try {
               const detailRes = await this.productService.getProductBySku(it.skuCode);
-              if (detailRes && detailRes.enabled) {
+              if (detailRes && detailRes.enabled && isStreetPlayrUnicommerceBrand(detailRes.brand)) {
                 normalizedProducts.push(detailRes);
+              } else if (detailRes && !isStreetPlayrUnicommerceBrand(detailRes.brand)) {
+                await UnicommerceLogger.info(
+                  'sync.product_skip',
+                  `Skipped ${it.skuCode}: GetItemType Brand=${detailRes.brand || '(empty)'} is not playR STREET`
+                );
               }
             } catch (err) {
               await UnicommerceLogger.error(
@@ -135,7 +156,12 @@ export class UnicommerceSyncService {
           'stick-no-bills-xs', 'stick-no-bills-s', 'stick-no-bills-m', 'stick-no-bills-l', 'stick-no-bills-xl', 'stick-no-bills-2xl',
           'warrior-bob-xs', 'warrior-bob-s', 'warrior-bob-m', 'warrior-bob-l', 'warrior-bob-xl', 'warrior-bob-2xl'
         ];
-        normalizedProducts = await this.productService.getProductsBySkus(skusToSync);
+        const restProducts = await this.productService.getProductsBySkus(skusToSync);
+        const restFiltered = filterStreetPlayrUnicommerceItems(restProducts);
+        unicommerceReceived = restProducts.length;
+        streetplayrReceived = restFiltered.kept.length;
+        skippedOtherBrandCount = restFiltered.skipped;
+        normalizedProducts = restFiltered.kept;
         candidateParentSlugs = Array.from(new Set(skusToSync.map(s => {
           const lastDash = s.lastIndexOf('-');
           return lastDash > 0 ? s.substring(0, lastDash) : s;
@@ -166,11 +192,9 @@ export class UnicommerceSyncService {
       for (const normProd of normalizedProducts) {
         try {
           const brandVal = (normProd.brand || '').trim();
-          const brandLower = brandVal.replace(/[®™]/g, '').replace(/\s+/g, ' ').toLowerCase();
 
-          if (brandLower !== 'playr street') {
-            const reason = 'Brand is not playR STREET';
-            const skipLogMsg = `Skipped: ${normProd.sku} (${brandVal || 'Unknown Brand'}) - Reason: ${reason}`;
+          if (!isStreetPlayrUnicommerceBrand(brandVal)) {
+            const skipLogMsg = `Skipped: ${normProd.sku} (${brandVal || 'Unknown Brand'}) - not StreetPlayR UniCommerce Brand playR STREET`;
             console.log(skipLogMsg);
             await UnicommerceLogger.info('sync.product_skip', skipLogMsg);
             continue;
@@ -199,6 +223,7 @@ export class UnicommerceSyncService {
             .from('products')
             .select('id')
             .eq('slug', parentSlug)
+            .eq('brand_id', brandId)
             .maybeSingle();
 
           if (!dbProduct) {
@@ -291,6 +316,7 @@ export class UnicommerceSyncService {
             .from('product_variants')
             .select('id')
             .eq('sku', normProd.sku)
+            .eq('product_id', dbProduct.id)
             .maybeSingle();
 
           if (checkError) {
@@ -367,6 +393,22 @@ export class UnicommerceSyncService {
         }
       }
 
+      const { data: leaked } = await admin
+        .from('products')
+        .select('id, slug, metadata')
+        .eq('brand_id', brandId)
+        .eq('status', 'active');
+      const leakedIds = (leaked ?? [])
+        .filter((row) => !isStreetPlayrCatalogMetadata(row.metadata))
+        .map((row) => row.id);
+      if (leakedIds.length > 0) {
+        await admin.from('products').update({ status: 'draft' }).in('id', leakedIds);
+        await UnicommerceLogger.info(
+          'sync.foreign_brand_drafted',
+          `Drafted ${leakedIds.length} streetplayr-brand_id rows whose metadata.brand is not playR STREET`
+        );
+      }
+
       // 4. Cache Invalidation
       try {
         const { clearCatalogLkg } = await import('@/lib/products/catalog-cache');
@@ -384,30 +426,94 @@ export class UnicommerceSyncService {
         'system',
         { processed, errors, startTime: new Date(Date.now() - processed * 50).toISOString(), endTime: new Date().toISOString() }
       );
-      return { success: true, processed, errors };
+      return {
+        success: true,
+        processed,
+        errors,
+        unicommerceReceived,
+        streetplayrReceived,
+        skippedOtherBrands: skippedOtherBrandCount,
+      };
     } catch (err: any) {
       await UnicommerceLogger.error('sync.products_error', 'Product synchronization job crashed', err);
-      return { success: false, processed, errors };
+      return {
+        success: false,
+        processed,
+        errors,
+        unicommerceReceived,
+        streetplayrReceived,
+        skippedOtherBrands: skippedOtherBrandCount,
+      };
     }
   }
 
   /**
    * Syncs active variant inventory counts from Unicommerce snapshot API to the DB's inventory table.
    */
-  async syncInventory(): Promise<{ success: boolean; processed: number; errors: number }> {
+  async syncInventory(): Promise<{
+    success: boolean;
+    processed: number;
+    errors: number;
+    matched: number;
+    explicitZero: number;
+    positiveStock: number;
+    skippedNoSnapshot: number;
+  }> {
     let processed = 0;
     let errors = 0;
     let zeroStockRows = 0;
+    let positiveStock = 0;
+    let skippedNoSnapshot = 0;
 
     try {
       await UnicommerceLogger.info('sync.inventory_start', 'Starting inventory synchronization job');
 
       const admin = createAdminClient();
 
-      // 1. Fetch all variants from database that have a SKU
+      const brandSlug = process.env.NEXT_PUBLIC_BRAND_ID || 'streetplayr';
+      const { data: brandData } = await admin
+        .from('brands')
+        .select('id')
+        .eq('slug', brandSlug)
+        .maybeSingle();
+
+      if (!brandData?.id) {
+        throw new Error(`Inventory sync aborted: brand slug "${brandSlug}" not found.`);
+      }
+
+      const { data: brandProducts, error: brandProdErr } = await admin
+        .from('products')
+        .select('id, metadata')
+        .eq('brand_id', brandData.id)
+        .eq('status', 'active');
+
+      if (brandProdErr) {
+        throw new Error(`Failed to load StreetPlayR products: ${brandProdErr.message}`);
+      }
+
+      const productIds = (brandProducts ?? [])
+        .filter((row) => isStreetPlayrCatalogMetadata(row.metadata))
+        .map((p) => p.id);
+      if (productIds.length === 0) {
+        await UnicommerceLogger.warn(
+          'sync.inventory_no_skus',
+          'No StreetPlayR products found for inventory sync'
+        );
+        return {
+          success: true,
+          processed: 0,
+          errors: 0,
+          matched: 0,
+          explicitZero: 0,
+          positiveStock: 0,
+          skippedNoSnapshot: 0,
+        };
+      }
+
       const { data: dbVariants, error: fetchError } = await admin
         .from('product_variants')
         .select('id, sku')
+        .in('product_id', productIds)
         .not('sku', 'is', null);
 
       if (fetchError || !dbVariants) {
@@ -417,19 +523,32 @@ export class UnicommerceSyncService {
       const skus = dbVariants.map((v) => v.sku);
       if (skus.length === 0) {
         await UnicommerceLogger.warn('sync.inventory_no_skus', 'No active SKUs found in database for inventory sync');
-        return { success: true, processed: 0, errors: 0 };
+        return {
+          success: true,
+          processed: 0,
+          errors: 0,
+          matched: 0,
+          explicitZero: 0,
+          positiveStock: 0,
+          skippedNoSnapshot: 0,
+        };
       }
 
       const chunkSize = 50;
       const snapshots: Array<{ sku: string; stock: number }> = [];
-      const fetchedSku = new Set<string>();
 
       for (let i = 0; i < skus.length; i += chunkSize) {
         const chunk = skus.slice(i, i + chunkSize);
         try {
           const chunkSnapshots = await this.inventoryService.getInventorySnapshot(chunk);
+          if (!chunkSnapshots.length) {
+            await UnicommerceLogger.warn(
+              'sync.inventory_empty_chunk',
+              `Inventory snapshot returned 0 rows for chunk at offset ${i} (${chunk.length} SKUs requested); leaving those SKUs unchanged`
+            );
+            continue;
+          }
           snapshots.push(...chunkSnapshots);
-          for (const sku of chunk) fetchedSku.add(sku.toLowerCase());
         } catch (chunkErr) {
           errors++;
           await UnicommerceLogger.error(
@@ -446,16 +565,22 @@ export class UnicommerceSyncService {
         snapshotMap.set(snap.sku.toLowerCase(), snap.stock);
       }
 
-      // 4. Update only SKUs we successfully fetched. Failed chunks keep existing stock.
+      // 4. Update only SKUs UniCommerce explicitly returned.
+      // Missing SKU / empty chunk / timeout = keep last known quantity.
+      // Explicit stock 0 in the snapshot is a real sold-out write.
       for (const dbVariant of dbVariants) {
         const skuLower = dbVariant.sku.toLowerCase();
-        if (!fetchedSku.has(skuLower)) continue;
+        if (!snapshotMap.has(skuLower)) {
+          skippedNoSnapshot++;
+          continue;
+        }
         try {
-          const hasSnapshot = snapshotMap.has(skuLower);
-          const stock = hasSnapshot ? Math.max(0, snapshotMap.get(skuLower)!) : 0;
+          const stock = Math.max(0, snapshotMap.get(skuLower)!);
 
-          if (!hasSnapshot) {
+          if (stock === 0) {
             zeroStockRows++;
+          } else {
+            positiveStock++;
           }
 
           // Check if there is an existing inventory record for this variant
@@ -521,6 +646,8 @@ export class UnicommerceSyncService {
         `Catalog Variants: ${dbVariants.length}`,
         `Returned Snapshots: ${snapshots.length}`,
         `Updated Rows: ${processed}`,
+        `Skipped / no snapshot: ${skippedNoSnapshot}`,
+        `Positive Stock Rows: ${positiveStock}`,
         `Zero Stock Rows: ${zeroStockRows}`,
         `Failed Rows: ${errors}`
       ].join('\n');
@@ -530,13 +657,29 @@ export class UnicommerceSyncService {
         'sync.inventory_completed',
         logMessage,
         'system',
-        { catalogVariants: dbVariants.length, returnedSnapshots: snapshots.length, updatedRows: processed, zeroStockRows, failedRows: errors }
+        { catalogVariants: dbVariants.length, returnedSnapshots: snapshots.length, updatedRows: processed, zeroStockRows, positiveStock, skippedNoSnapshot, failedRows: errors }
       );
 
-      return { success: processed > 0 || errors === 0, processed, errors };
+      return {
+        success: processed > 0 || errors === 0,
+        processed,
+        errors,
+        matched: processed,
+        explicitZero: zeroStockRows,
+        positiveStock,
+        skippedNoSnapshot,
+      };
     } catch (err: any) {
       await UnicommerceLogger.error('sync.inventory_error', 'Inventory synchronization job crashed', err);
-      return { success: false, processed: 0, errors };
+      return {
+        success: false,
+        processed: 0,
+        errors: 1,
+        matched: 0,
+        explicitZero: 0,
+        positiveStock: 0,
+        skippedNoSnapshot: 0,
+      };
     }
   }
 }

@@ -62,7 +62,11 @@ export const ReservationService = {
         : { data: null };
 
       if (existing) {
-        return { success: true, data: reservationStateFromDb(existing) };
+        await admin
+          .from('inventory_reservations')
+          .update({ expires_at: expiresAt })
+          .eq('id', existing.id);
+        return { success: true, data: reservationStateFromDb({ ...existing, expires_at: expiresAt }) };
       }
 
       const { data: reservationId, error } = await admin.rpc('reserve_inventory', {

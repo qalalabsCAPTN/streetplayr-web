@@ -123,14 +123,19 @@ export async function quoteCheckoutAction(params: {
     if (!user) return { success: false, error: 'Not authenticated.', code: 'UNAUTHORIZED' };
 
     const admin = createAdminClient();
+    const brandId = await resolveStorefrontBrandId(admin);
     let subtotal = 0;
     for (const item of params.items) {
-      const { data: variant } = await admin
+      const { data: owned } = await admin
         .from('product_variants')
-        .select('price')
+        .select('price, products!inner(brand_id)')
         .eq('id', item.variantId)
+        .eq('products.brand_id', brandId)
         .maybeSingle();
-      const unit = Number(variant?.price ?? item.price);
+      if (!owned) {
+        return { success: false, error: 'This item is not sold on StreetPlayR.', code: 'FOREIGN_BRAND' };
+      }
+      const unit = Number(owned.price ?? item.price);
       subtotal += unit * item.quantity;
     }
 
@@ -188,6 +193,7 @@ export async function initiateCheckoutAction(
     }
 
     const admin = createAdminClient();
+    const brandId = await resolveStorefrontBrandId(admin);
     const canonical = toCanonical(
       shippingAddress,
       user.email || '',
@@ -229,9 +235,14 @@ export async function initiateCheckoutAction(
 
       const { data: product } = await admin
         .from('products')
-        .select('title')
+        .select('title, brand_id')
         .eq('id', variant.product_id)
+        .eq('brand_id', brandId)
         .maybeSingle();
+
+      if (!product) {
+        return { success: false, error: 'This item is not sold on StreetPlayR.', code: 'FOREIGN_BRAND' };
+      }
 
       priced.push({
         ...item,
@@ -289,7 +300,6 @@ export async function initiateCheckoutAction(
       return { success: false, error: 'Could not resolve customer record.', code: 'CUSTOMER_NOT_FOUND' };
     }
 
-    const brandId = await resolveStorefrontBrandId(admin);
     const orderNumber = generateOrderNumber();
     const snapshot = toAddressSnapshot(canonical);
 

@@ -43,22 +43,32 @@ export class UnicommerceInventoryService {
         const skusXml = skus
           ? skus.map((sku) => `<ser:ItemType><ser:ItemSKU>${sku}</ser:ItemSKU></ser:ItemType>`).join('')
           : '';
+        // SKU-targeted snapshot must be current on-hand, not "changed in last 8h".
+        // The old default of 480 minutes dropped unchanged SKUs from the
+        // response; callers then treated missing SKUs as stock 0.
+        const sinceXml =
+          skus && skus.length > 0
+            ? ''
+            : `<ser:UpdatedSinceInMinutes>${updatedSinceInMinutes ?? 480}</ser:UpdatedSinceInMinutes>`;
         response = await soapRequest<UniwareInventorySnapshotResponse>(
           'GetInventorySnapshotRequest',
           `<ser:GetInventorySnapshotRequest>
             <ser:ItemTypes>${skusXml}</ser:ItemTypes>
-            <ser:UpdatedSinceInMinutes>${updatedSinceInMinutes ?? 480}</ser:UpdatedSinceInMinutes>
+            ${sinceXml}
           </ser:GetInventorySnapshotRequest>`
         );
       } else {
+        const body: { itemTypeSKUs?: string[]; updatedSinceInMinutes?: number } = {
+          itemTypeSKUs: skus,
+        };
+        if (!(skus && skus.length > 0)) {
+          body.updatedSinceInMinutes = updatedSinceInMinutes ?? 480;
+        } else if (updatedSinceInMinutes != null) {
+          body.updatedSinceInMinutes = updatedSinceInMinutes;
+        }
         response = await request<UniwareInventorySnapshotResponse>(
           '/services/rest/v1/inventory/inventorySnapshot/get',
-          {
-            body: {
-              itemTypeSKUs: skus,
-              updatedSinceInMinutes,
-            },
-          }
+          { body }
         );
       }
 

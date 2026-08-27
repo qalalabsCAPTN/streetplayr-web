@@ -6,13 +6,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import type { OrchestrationResponse, Order } from '@/lib/orchestration/types';
 import { sendTransactionalEmail, orderEmailHtml } from '@/lib/notifications/email';
 import { rateLimit } from '@/lib/security/rate-limit';
-
-function ownsOrder(order: Order, userId: string, email?: string | null): boolean {
-  if (order.userId && order.userId === userId) return true;
-  const ship = order.shippingAddress as { email?: string };
-  if (email && ship.email && ship.email.toLowerCase() === email.toLowerCase()) return true;
-  return false;
-}
+import { isPayableOrder, ownsOrder } from '@/lib/commerce/order-paid';
 
 export async function getMyOrdersAction(): Promise<OrchestrationResponse<Order[]>> {
   try {
@@ -188,7 +182,7 @@ export async function retryPaymentAction(
   if (!order || !ownsOrder(order, user.id, user.email)) {
     return { success: false, error: 'Not authorized.', code: 'FORBIDDEN' };
   }
-  if (order.status !== 'pending' || order.paymentStatus === 'paid') {
+  if (!isPayableOrder(order)) {
     return { success: false, error: 'Order is not payable.', code: 'ORDER_NOT_PAYABLE' };
   }
 

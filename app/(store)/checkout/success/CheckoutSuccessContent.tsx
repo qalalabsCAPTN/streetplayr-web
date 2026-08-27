@@ -14,9 +14,11 @@ interface OrderData {
   orderNumber: string;
   total: number;
   status: string;
+  paymentStatus?: string;
 }
 
 const PAID = new Set(['confirmed', 'processing', 'fulfilling', 'shipped', 'delivered']);
+
 
 export default function CheckoutSuccessContent() {
   const searchParams = useSearchParams();
@@ -53,9 +55,10 @@ export default function CheckoutSuccessContent() {
           orderNumber: data.orderNumber,
           total: data.total,
           status: data.status,
+          paymentStatus: data.paymentStatus,
         });
 
-        if (PAID.has(data.status)) {
+        if (PAID.has(data.status) && data.paymentStatus === 'paid') {
           setState('confirmed');
           clearCart();
           trackPurchase(
