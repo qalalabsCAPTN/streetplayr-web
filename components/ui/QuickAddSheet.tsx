@@ -63,10 +63,12 @@ export default function QuickAddSheet({
   }, []);
 
   useEffect(() => {
-    if (open) {
-      setSelectedId(initialVariantId(live));
-      setGuideOpen(false);
-    }
+    if (!open) return;
+    setSelectedId((prev) => {
+      if (prev && live.some((v) => v.id === prev)) return prev;
+      return initialVariantId(live);
+    });
+    setGuideOpen(false);
   }, [open, live]);
 
   useEffect(() => {

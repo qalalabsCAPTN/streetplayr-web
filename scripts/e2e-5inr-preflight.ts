@@ -176,7 +176,7 @@ async function main() {
 
   report.UniCommerceCredentials =
     present(ucUrl) && present(ucUser) && present(ucPass) && present(ucFacility) ? 'PASS' : 'FAIL';
-  report.UniCommerceChannel = present(ucChannel) ? `PASS:${ucChannel}` : 'FAIL:missing_uses_STREETPLAYR_WEB_fallback';
+  report.UniCommerceChannel = present(ucChannel) ? `PASS:${ucChannel}` : 'FAIL:missing_uses_CUSTOM_fallback';
   report.NectarConfig = present(nectarUrl) && present(nectarSecret) ? 'PASS' : 'FAIL';
   report.NotificationsConfig = smtp ? 'PASS' : 'FAIL:smtp_incomplete';
 

@@ -79,6 +79,54 @@ describe('size existence vs inventory', () => {
     expect(sizesFromExistingVariants(with2xl)).toEqual(['XS', 'S', 'M', 'L', 'XL', '2XL']);
   });
 
+  it('XL → 2XL uses 2XL variant id, never XL', () => {
+    const with2xl = [
+      ...variants.map((v) => ({ ...v, stockQuantity: 2 })),
+      { id: 'var-2xl', size: '2XL', stockQuantity: 4 },
+    ];
+    expect(applySizeClick(with2xl, 'var-xl', '2XL')).toBe('var-2xl');
+    expect(applySizeClick(with2xl, 'var-2xl', 'XL')).toBe('var-xl');
+    expect(applySizeClick(with2xl, 'var-2xl', 'XS')).toBe('var-xs');
+  });
+
+  it('STAAR-style S-XL catalog never invents XS or 2XL', () => {
+    const tank = [
+      { id: 't-s', size: 'S', stockQuantity: 3 },
+      { id: 't-m', size: 'M', stockQuantity: 0 },
+      { id: 't-l', size: 'L', stockQuantity: 2 },
+      { id: 't-xl', size: 'XL', stockQuantity: 1 },
+    ];
+    expect(sizesFromExistingVariants(tank)).toEqual(['S', 'M', 'L', 'XL']);
+    expect(sizeExists(tank, 'XS')).toBe(false);
+    expect(sizeExists(tank, '2XL')).toBe(false);
+    expect(sizeIsSoldOut(tank, 'M')).toBe(true);
+    expect(applySizeClick(tank, 't-s', '2XL')).toBe('t-s');
+  });
+
+  it('XL → 2XL uses 2XL variant id, never XL', () => {
+    const with2xl = [
+      ...variants.map((v) => ({ ...v, stockQuantity: 2 })),
+      { id: 'var-2xl', size: '2XL', stockQuantity: 4 },
+    ];
+    expect(applySizeClick(with2xl, 'var-xl', '2XL')).toBe('var-2xl');
+    expect(applySizeClick(with2xl, 'var-2xl', 'XL')).toBe('var-xl');
+    expect(applySizeClick(with2xl, 'var-2xl', 'XS')).toBe('var-xs');
+  });
+
+  it('STAAR-style S-XL catalog never invents XS or 2XL', () => {
+    const tank = [
+      { id: 't-s', size: 'S', stockQuantity: 3 },
+      { id: 't-m', size: 'M', stockQuantity: 0 },
+      { id: 't-l', size: 'L', stockQuantity: 2 },
+      { id: 't-xl', size: 'XL', stockQuantity: 1 },
+    ];
+    expect(sizesFromExistingVariants(tank)).toEqual(['S', 'M', 'L', 'XL']);
+    expect(sizeExists(tank, 'XS')).toBe(false);
+    expect(sizeExists(tank, '2XL')).toBe(false);
+    expect(sizeIsSoldOut(tank, 'M')).toBe(true);
+    expect(applySizeClick(tank, 't-s', '2XL')).toBe('t-s');
+  });
+
   it('zero-stock existing size is sold out, not missing', () => {
     expect(sizeExists(variants, 'S')).toBe(true);
     expect(sizeIsSoldOut(variants, 'S')).toBe(true);
