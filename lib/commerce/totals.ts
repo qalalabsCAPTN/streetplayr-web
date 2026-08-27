@@ -35,6 +35,27 @@ function money(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
+/** Whole rupees for legacy INTEGER order columns (tax_amount, shipping_cost, subtotal). */
+export function rupeesInt(n: number): number {
+  return Math.round(money(n));
+}
+
+/**
+ * Dual-write payload: live `*_total` columns keep paise; INTEGER duals
+ * (`tax_amount`, `shipping_cost`, `subtotal`) cannot store "5.2" GST.
+ */
+export function orderInsertMoney(totals: TotalsResult) {
+  return {
+    subtotal: rupeesInt(totals.subtotal),
+    shipping_total: totals.shipping,
+    tax_total: rupeesInt(totals.tax),
+    shipping_cost: rupeesInt(totals.shipping),
+    tax_amount: rupeesInt(totals.tax),
+    discount_total: rupeesInt(totals.discount),
+    grand_total: rupeesInt(totals.grandTotal),
+  };
+}
+
 function envNumber(key: string, fallback: number): number {
   const raw = Number(process.env[key]);
   return Number.isFinite(raw) && raw >= 0 ? raw : fallback;
@@ -71,7 +92,7 @@ export function calcTax(params: {
     ? envNumber('GST_B2B_RATE', envNumber('GST_APPAREL_RATE', 5))
     : envNumber('GST_APPAREL_RATE', 5);
   const rate = percent / 100;
-  const tax = money(params.goodsAndShipping * rate);
+  const tax = rupeesInt(params.goodsAndShipping * rate);
   return {
     tax,
     rate,

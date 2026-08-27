@@ -128,6 +128,9 @@ describe('source invariants — no client confirmation, no unpaid invoice, no re
     expect(page).toMatch(/listing listing--checkout/);
     expect(page).toMatch(/checkout-steps__track/);
     expect(page).not.toMatch(/checkout-step-count/);
+    expect(page).toMatch(/GSTIN \(optional, B2B\)/);
+    expect(page).toMatch(/GSTIN is optional/);
+    expect(page).not.toMatch(/!gstin/);
     expect(css).toMatch(/checkout-steps__track/);
     expect(css).toMatch(/-webkit-text-size-adjust: 100%/);
     expect(css).toMatch(/safe-area-inset-left/);

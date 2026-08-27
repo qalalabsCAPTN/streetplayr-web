@@ -13,13 +13,14 @@ import { trackBeginCheckout } from "@/lib/analytics/ecommerce";
 import type { TotalsResult } from "@/lib/commerce/totals";
 import type { AddressData } from "@/app/actions/address";
 
-function CheckoutInput({ label, id, type = "text", value, onChange, placeholder }: {
+function CheckoutInput({ label, id, type = "text", value, onChange, placeholder, required = false }: {
   label: string;
   id: string;
   type?: string;
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
+  required?: boolean;
 }) {
   return (
     <div className="checkout-field">
@@ -30,6 +31,8 @@ function CheckoutInput({ label, id, type = "text", value, onChange, placeholder 
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
+        required={required}
+        aria-required={required}
       />
     </div>
   );
@@ -129,7 +132,7 @@ const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }, {
           })),
           country,
           state,
-          gstin: gstin || undefined,
+          gstin: gstin.trim() || undefined,
           creditsToApply,
           couponCode: couponCode || undefined,
         });
@@ -145,6 +148,7 @@ const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }, {
   }, [items, country, state, gstin, creditsToApply, couponCode, onQuote]);
 
   const handleCompleteOrder = useCallback(async () => {
+    // GSTIN is optional (B2B) — never part of this required check.
     if (!email || !firstName || !lastName || !address || !city || !country) {
       setError("Please fill in all required fields.");
       return;
@@ -188,7 +192,7 @@ const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }, {
         country,
         phone,
         email,
-        gstin: gstin || undefined,
+        gstin: gstin.trim() || undefined,
       }, undefined, creditsToApply, couponCode || undefined);
 
       if (!checkout.success) {
@@ -248,6 +252,7 @@ const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }, {
     <div className="checkout-stack">
       <div className="checkout-panel">
         <h2 className="checkout-panel__title">Shipping</h2>
+        {error && <p className="checkout-error" role="alert">{error}</p>}
 
         {savedAddresses.length > 0 && (
           <div className="checkout-fields" style={{ marginBottom: 16 }}>
@@ -294,10 +299,15 @@ const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }, {
               <option value="SG">Singapore</option>
             </select>
           </div>
-          <CheckoutInput id="gstin" label="GSTIN (optional, B2B)" placeholder="22AAAAA0000A1Z5" value={gstin} onChange={setGstin} />
+          <CheckoutInput
+            id="gstin"
+            label="GSTIN (optional, B2B)"
+            placeholder="22AAAAA0000A1Z5"
+            value={gstin}
+            onChange={setGstin}
+            required={false}
+          />
         </div>
-
-        {error && <p className="checkout-error">{error}</p>}
       </div>
 
       <div className="checkout-panel">

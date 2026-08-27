@@ -11,10 +11,11 @@ import { maxRedeemableCredits } from '@/lib/loyalty/redemption';
 import { isRemovedApparelSize } from '@/lib/products/sizes';
 import {
   assertShippableAddress,
+  normalizeGstin,
   toAddressSnapshot,
   type CanonicalAddress,
 } from '@/lib/commerce/address';
-import { quoteTotals, type TotalsResult } from '@/lib/commerce/totals';
+import { orderInsertMoney, quoteTotals, type TotalsResult } from '@/lib/commerce/totals';
 import { generateOrderNumber } from '@/lib/commerce/order-number';
 import { quoteCoupon, recordCouponRedemption } from '@/lib/commerce/coupons';
 import { rateLimit } from '@/lib/security/rate-limit';
@@ -105,7 +106,7 @@ function toCanonical(address: CheckoutAddress, email: string, name: string): Can
     country: (address.country || 'IN').toUpperCase(),
     phone: address.phone || '',
     email: address.email || email,
-    gstin: address.gstin,
+    gstin: normalizeGstin(address.gstin),
   };
 }
 
@@ -162,7 +163,7 @@ export async function quoteCheckoutAction(params: {
       discount: couponDiscount + creditsApplied,
       country: params.country,
       state: params.state,
-      gstin: params.gstin,
+      gstin: normalizeGstin(params.gstin),
     });
 
     return { success: true, data: { ...totals, couponDiscount, creditsApplied } };
@@ -313,13 +314,10 @@ export async function initiateCheckoutAction(
         status: 'pending',
         fulfillment_status: 'unfulfilled',
         payment_status: 'pending',
-        subtotal,
-        shipping_total: totals.shipping,
-        tax_total: totals.tax,
-        shipping_cost: totals.shipping,
-        tax_amount: totals.tax,
-        discount_total: couponDiscount + creditsApplied,
-        grand_total: totals.grandTotal,
+        ...orderInsertMoney({
+          ...totals,
+          discount: couponDiscount + creditsApplied,
+        }),
         currency: 'INR',
         source: 'streetplayr',
         shipping_address: {

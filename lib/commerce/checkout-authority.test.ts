@@ -15,6 +15,9 @@ describe('checkout / order schema authority', () => {
     expect(src).toMatch(/customer_id/);
     expect(src).toMatch(/grand_total/);
     expect(src).toMatch(/unit_price/);
+    expect(src).toMatch(/orderInsertMoney/);
+    expect(src).not.toMatch(/tax_amount:\s*totals\.tax/);
+    expect(src).toMatch(/normalizeGstin/);
     expect(src).not.toMatch(/user_id:/);
   });
 

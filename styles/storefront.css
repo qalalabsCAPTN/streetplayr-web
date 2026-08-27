@@ -6569,7 +6569,8 @@ body.theme-light .carousel3d__dot.active {
 }
 
 .storefront-root .checkout-error {
-  margin-top: 16px;
+  margin-top: 12px;
+  margin-bottom: 12px;
   font-size: 12px;
   color: #c0301f;
 }

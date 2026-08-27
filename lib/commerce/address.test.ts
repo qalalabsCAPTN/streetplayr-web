@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { fromAddressSnapshot, toAddressSnapshot, unicommerceShipTo } from './address';
+import {
+  assertShippableAddress,
+  fromAddressSnapshot,
+  normalizeGstin,
+  toAddressSnapshot,
+  unicommerceShipTo,
+} from './address';
 
 describe('canonical address aliases', () => {
   it('reads UniCommerce keys and checkout keys the same way', () => {
@@ -46,5 +52,26 @@ describe('canonical address aliases', () => {
     const ship = unicommerceShipTo(snap);
     expect(ship.addressLine1).toBe('12 MG Road');
     expect(ship.pincode).toBe('560001');
+  });
+
+  it('GSTIN is optional — empty and junk never fail shippable address', () => {
+    const base = {
+      name: 'A',
+      line1: '12 MG Road',
+      line2: '',
+      city: 'Bengaluru',
+      state: 'KA',
+      postalCode: '560001',
+      country: 'IN',
+      phone: '9999999999',
+      email: 'a@x.com',
+    };
+    expect(assertShippableAddress(base)).toBeNull();
+    expect(assertShippableAddress({ ...base, gstin: undefined })).toBeNull();
+    expect(normalizeGstin('')).toBeUndefined();
+    expect(normalizeGstin('   ')).toBeUndefined();
+    expect(normalizeGstin('vfhsnghfsdgsgfsdgsdfgs')).toBeUndefined();
+    expect(fromAddressSnapshot({ ...base, gstin: 'vfhsnghfsdgsgfsdgsdfgs' }).gstin).toBeUndefined();
+    expect(normalizeGstin('22AAAAA0000A1Z5')).toBe('22AAAAA0000A1Z5');
   });
 });
