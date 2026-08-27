@@ -113,6 +113,9 @@ export class UnicommerceMapper {
     categoryCode?: string;
     enabled: boolean;
     brand?: string;
+    color?: string;
+    size?: string;
+    ean?: string;
   }): NormalizedProduct {
     // Uniware item types lack media; map known streetwear SKUs → local asset packs
     const pack = resolveProductImages(raw.skuCode);
@@ -125,6 +128,9 @@ export class UnicommerceMapper {
       category: raw.categoryCode,
       enabled: raw.enabled,
       brand: raw.brand,
+      color: raw.color,
+      size: raw.size,
+      ean: raw.ean,
     };
   }
 

@@ -18,5 +18,17 @@ describe('UniCommerce retry/timeout helpers', () => {
     expect(isRetryableSoapError({ name: 'TimeoutError', message: 'aborted' })).toBe(true);
     expect(isRetryableSoapError({ name: 'Error', message: 'ETIMEDOUT' })).toBe(true);
     expect(isRetryableSoapError({ name: 'Error', message: 'SOAP Fault' })).toBe(false);
+    expect(
+      isRetryableSoapError({
+        name: 'TypeError',
+        message: 'Failed to parse URL from /services/soap/?version=1.9',
+      })
+    ).toBe(false);
+    expect(
+      isRetryableSoapError({
+        name: 'Error',
+        message: 'UNICOMMERCE_API_URL is missing or not an absolute http(s) URL',
+      })
+    ).toBe(false);
   });
 });

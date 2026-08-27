@@ -16,6 +16,7 @@ import {
   isStreetPlayrCatalogMetadata,
   isStreetPlayrUnicommerceBrand,
 } from './streetplayr-brand';
+import { variantAttributesFromUniware } from './variant-attributes';
 
 export class UnicommerceSyncService {
   private productService: UnicommerceProductService;
@@ -311,12 +312,18 @@ export class UnicommerceSyncService {
             }
           }
 
-          // 2. Upsert Variant manually to handle missing UNIQUE constraint on SKU column
+          // 2. Upsert by SKU (canonical join key). Never rewrite sku.
+          const attributes = variantAttributesFromUniware({
+            sku: normProd.sku,
+            color: normProd.color,
+            size: normProd.size || size,
+            ean: normProd.ean,
+          });
+
           const { data: existingVariant, error: checkError } = await admin
             .from('product_variants')
-            .select('id')
+            .select('id, sku')
             .eq('sku', normProd.sku)
-            .eq('product_id', dbProduct.id)
             .maybeSingle();
 
           if (checkError) {
@@ -324,30 +331,29 @@ export class UnicommerceSyncService {
           }
 
           if (existingVariant) {
-            // Update
             const { error: variantError } = await admin
               .from('product_variants')
               .update({
-                title: size,
+                title: attributes.size,
                 price: Math.round(normProd.price),
-                attributes: { color: 'Default', size },
+                attributes,
                 updated_at: new Date().toISOString(),
               })
-              .eq('id', existingVariant.id);
+              .eq('id', existingVariant.id)
+              .eq('sku', normProd.sku);
 
             if (variantError) {
               throw new Error(`Failed to update variant ${normProd.sku}: ${variantError.message}`);
             }
           } else {
-            // Insert
             const { error: variantError } = await admin
               .from('product_variants')
               .insert({
                 product_id: dbProduct.id,
                 sku: normProd.sku,
-                title: size,
+                title: attributes.size,
                 price: Math.round(normProd.price),
-                attributes: { color: 'Default', size },
+                attributes,
                 updated_at: new Date().toISOString(),
               });
 

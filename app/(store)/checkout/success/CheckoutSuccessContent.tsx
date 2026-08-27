@@ -61,6 +61,9 @@ export default function CheckoutSuccessContent() {
         if (PAID.has(data.status) && data.paymentStatus === 'paid') {
           setState('confirmed');
           clearCart();
+          void import('@/app/actions/order').then(({ ensureUniwareForwardAction }) =>
+            ensureUniwareForwardAction(resolvedOrderId).catch(() => undefined)
+          );
           trackPurchase(
             data.orderNumber || data.id,
             data.total,

@@ -15,7 +15,7 @@ import { idempotencyGuard } from './idempotency';
 import { OrderService } from './order';
 import { ReservationService } from './reservation';
 import { redeemSPRR, refundSPRR } from '@/lib/nectar/engine';
-import { UnicommerceService, UnicommerceLogger } from '@/src/integrations/unicommerce';
+import { UnicommerceLogger } from '@/src/integrations/unicommerce';
 
 /**
  * Map of canonical payment event types to corresponding reservation state
@@ -310,54 +310,11 @@ export const PaymentService = {
             });
           }
 
-          // UNICOMMERCE: Forward confirmed order to Unicommerce (fire-and-forget)
-          // Failures are logged but do NOT block order confirmation.
+          // UNICOMMERCE: Forward confirmed order (fire-and-forget).
           try {
-            const { data: orderItems } = await admin
-              .from('order_items')
-              .select('variant_id, quantity, unit_price, product_variants!inner(sku, title)')
-              .eq('order_id', order.id);
-
-            const { data: fullOrder } = await admin
-              .from('orders')
-              .select('id, order_number, shipping_address, billing_address, currency, created_at, grand_total, source_order_id')
-              .eq('id', order.id)
-              .single();
-
-            if (fullOrder && orderItems && orderItems.length > 0) {
-              const channelCode = process.env.UNICOMMERCE_CHANNEL_CODE || 'STREETPLAYR_WEB';
-              const { unicommerceShipTo } = await import('@/lib/commerce/address');
-              const shippingAddr = unicommerceShipTo(fullOrder.shipping_address);
-              const billingAddr = unicommerceShipTo(fullOrder.billing_address || fullOrder.shipping_address);
-
-              const ucResult = await UnicommerceService.orders.createOrder(
-                {
-                  id: fullOrder.id,
-                  displayCode: fullOrder.order_number || fullOrder.id.slice(0, 12).toUpperCase(),
-                  createdAt: fullOrder.created_at,
-                  currency: fullOrder.currency || 'INR',
-                  paymentMethod: 'PREPAID',
-                  shippingAddress: shippingAddr,
-                  billingAddress: billingAddr,
-                  items: orderItems.map((item: any) => ({
-                    sku: item.product_variants?.sku || '',
-                    name: item.product_variants?.title || '',
-                    price: item.unit_price,
-                    quantity: item.quantity,
-                  })),
-                },
-                channelCode
-              );
-
-              if (ucResult.success && ucResult.uniwareCode && !fullOrder.source_order_id) {
-                await admin
-                  .from('orders')
-                  .update({ source_order_id: ucResult.uniwareCode })
-                  .eq('id', order.id);
-              }
-            }
-          } catch (ucErr: any) {
-            // Non-blocking: log and continue
+            const { forwardPaidOrderToUnicommerce } = await import('@/lib/orchestration/unicommerce-forward');
+            await forwardPaidOrderToUnicommerce(order.id);
+          } catch (ucErr: unknown) {
             await UnicommerceLogger.error(
               'payment.unicommerce_forward_failed',
               `Failed to forward order ${order.id} to Unicommerce`,

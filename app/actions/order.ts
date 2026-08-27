@@ -41,6 +41,29 @@ export async function getOrderAction(
   }
 }
 
+/** Paid orders missing Uniware source_order_id get another forward attempt. */
+export async function ensureUniwareForwardAction(orderId: string): Promise<OrchestrationResponse<{ uniwareCode?: string }>> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: 'Not authenticated.', code: 'UNAUTHORIZED' };
+
+    const order = await OrderService.getById(orderId);
+    if (!order || !ownsOrder(order, user.id, user.email)) {
+      return { success: false, error: 'Not authorized.', code: 'FORBIDDEN' };
+    }
+
+    const { forwardPaidOrderToUnicommerce } = await import('@/lib/orchestration/unicommerce-forward');
+    const result = await forwardPaidOrderToUnicommerce(orderId);
+    if (!result.ok) {
+      return { success: false, error: result.error ?? 'Uniware forward failed', code: 'UNICOMMERCE_FORWARD_FAILED' };
+    }
+    return { success: true, data: { uniwareCode: result.uniwareCode } };
+  } catch (e: unknown) {
+    return { success: false, error: e instanceof Error ? e.message : 'forward failed', code: 'UNICOMMERCE_FORWARD_FAILED' };
+  }
+}
+
 export async function cancelMyOrderAction(orderId: string): Promise<OrchestrationResponse<Order>> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

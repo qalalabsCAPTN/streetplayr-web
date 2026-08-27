@@ -61,5 +61,5 @@ export class UnicommerceService {
 }
 
 export * from './types';
-export { getUnicommerceConfig } from './config';
+export { getUnicommerceConfig, normalizeUnicommerceApiUrl, buildUnicommerceSoapUrl } from './config';
 export { UnicommerceLogger } from './logging';

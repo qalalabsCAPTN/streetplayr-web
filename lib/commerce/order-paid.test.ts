@@ -114,6 +114,23 @@ describe('source invariants — no client confirmation, no unpaid invoice, no re
     expect(src).toMatch(/easebuzz.amount_mismatch/);
   });
 
+  it('paid orders retry Uniware forward after a failed SOAP URL', () => {
+    const payment = readFileSync(join(root, 'lib/orchestration/payment.ts'), 'utf8');
+    expect(payment).toMatch(/forwardPaidOrderToUnicommerce/);
+    const idem = readFileSync(join(root, 'lib/orchestration/idempotency.ts'), 'utf8');
+    expect(idem).toMatch(/status === 'failed'/);
+    const recon = readFileSync(join(root, 'lib/orchestration/reconciliation.ts'), 'utf8');
+    expect(recon).toMatch(/forwardUnpushedUniwareOrders/);
+    const success = readFileSync(
+      join(root, 'app/(store)/checkout/success/CheckoutSuccessContent.tsx'),
+      'utf8'
+    );
+    expect(success).toMatch(/ensureUniwareForwardAction/);
+    const soap = readFileSync(join(root, 'src/integrations/unicommerce/soapClient.ts'), 'utf8');
+    expect(soap).toMatch(/buildUnicommerceSoapUrl/);
+    expect(soap).not.toMatch(/\$\{config\.apiUrl\}\/services\/soap/);
+  });
+
   it('checkout stepper clears the fixed header and hides Collection', () => {
     const css = readFileSync(join(root, 'styles/storefront.css'), 'utf8');
     expect(css).toMatch(/\.listing \{[\s\S]*?padding: calc\(16px \+ var\(--header-h\) \+ 28px\) 0 0/);

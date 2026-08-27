@@ -80,21 +80,38 @@ export async function idempotencyGuard(
       .single();
 
     if (record) {
+      const complete = async (data?: unknown) => {
+        await admin
+          .from(IDEMPOTENCY_TABLE)
+          .update({ status: 'completed', data: data ?? null })
+          .eq('key', key);
+      };
+      const fail = async (error?: string) => {
+        await admin
+          .from(IDEMPOTENCY_TABLE)
+          .update({ status: 'failed', data: { error } })
+          .eq('key', key);
+      };
+
+      if (record.status === 'completed' && !isExpired(record.expires_at)) {
+        return { canProceed: false, existingData: record.data, complete, fail };
+      }
+
+      // Failed or expired keys must be retryable — a Uniware URL miss used to
+      // lock createOrder for 24h and block the paid-order forward forever.
+      if (record.status === 'failed' || isExpired(record.expires_at)) {
+        await admin
+          .from(IDEMPOTENCY_TABLE)
+          .update({ status: 'processing', data: null, expires_at: expiresAt })
+          .eq('key', key);
+        return { canProceed: true, existingData: null, complete, fail };
+      }
+
       return {
-        canProceed: record.status === 'processing' && !isExpired(record.expires_at),
+        canProceed: record.status === 'processing',
         existingData: record.data,
-        complete: async (data) => {
-          await admin
-            .from(IDEMPOTENCY_TABLE)
-            .update({ status: 'completed', data: data ?? null })
-            .eq('key', key);
-        },
-        fail: async (error) => {
-          await admin
-            .from(IDEMPOTENCY_TABLE)
-            .update({ status: 'failed', data: { error } })
-            .eq('key', key);
-        },
+        complete,
+        fail,
       };
     }
   }

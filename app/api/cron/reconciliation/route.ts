@@ -51,6 +51,7 @@ export async function GET(request: Request) {
       processed: true,
       ordersConfirmed: result.ordersConfirmed.length,
       staleReservationsReleased: result.staleReservationsReleased,
+      uniwareForwarded: result.uniwareForwarded?.length ?? 0,
     });
   } catch (e: any) {
     await guard.fail(e.message);

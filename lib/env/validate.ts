@@ -106,6 +106,21 @@ function smtpStatus(): 'SET' | 'MISSING' | 'INVALID' {
   return 'SET';
 }
 
+function uniChannelStatus(): 'SET' | 'MISSING' {
+  return process.env.UNICOMMERCE_CHANNEL_CODE?.trim() ? 'SET' : 'MISSING';
+}
+
+function uniUrlStatus(): 'SET' | 'MISSING' | 'INVALID' {
+  const raw = process.env.UNICOMMERCE_API_URL?.trim();
+  if (!raw) return 'MISSING';
+  try {
+    const u = new URL(raw);
+    return u.protocol === 'http:' || u.protocol === 'https:' ? 'SET' : 'INVALID';
+  } catch {
+    return 'INVALID';
+  }
+}
+
 /** Presence-only launch env. Never returns secret values. */
 export function launchEnvPresence(): {
   vars: Record<string, 'SET' | 'MISSING' | 'INVALID'>;
@@ -122,6 +137,8 @@ export function launchEnvPresence(): {
       SMTP: smtpStatus(),
       TRANSACTIONAL_FROM_EMAIL: !from ? 'MISSING' : from.includes('@') ? 'SET' : 'INVALID',
       SENTRY_DSN: !dsn ? 'MISSING' : (dsn.startsWith('https://') || dsn.includes('@')) ? 'SET' : 'INVALID',
+      UNICOMMERCE_API_URL: uniUrlStatus(),
+      UNICOMMERCE_CHANNEL_CODE: uniChannelStatus(),
     },
     easebuzzEnv: !ease ? 'MISSING' : ease === 'prod' || ease === 'test' ? ease : 'INVALID',
   };

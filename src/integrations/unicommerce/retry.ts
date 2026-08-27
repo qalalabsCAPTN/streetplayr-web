@@ -12,6 +12,14 @@ export function isRetryableSoapError(error: unknown): boolean {
   const err = error as { name?: string; message?: string };
   if (err.name === 'TimeoutError' || err.name === 'AbortError') return true;
   const msg = err.message || '';
+  if (
+    msg.includes('Failed to parse URL')
+    || msg.includes('Invalid URL')
+    || msg.includes('UNICOMMERCE_API_URL')
+    || msg.includes('relative path')
+  ) {
+    return false;
+  }
   return (
     err.name === 'TypeError' ||
     msg.includes('fetch') ||

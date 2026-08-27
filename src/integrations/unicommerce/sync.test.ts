@@ -396,6 +396,9 @@ describe('UnicommerceSyncService - syncProducts', () => {
       price: 1999,
       enabled: true,
       brand: 'playR STREET',
+      color: 'White',
+      size: '2XL',
+      ean: '8905570041953',
     });
     mockFrom.mockImplementation((table: string) => {
       if (table === 'product_variants') {
@@ -415,7 +418,7 @@ describe('UnicommerceSyncService - syncProducts', () => {
     expect(variantInserts[0]).toMatchObject({
       sku: 'PS-TEE-CRT-WHT-2XL',
       title: '2XL',
-      attributes: { color: 'Default', size: '2XL' },
+      attributes: { color: 'White', size: '2XL', ean: '8905570041953' },
     });
   });
 

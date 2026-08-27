@@ -17,6 +17,9 @@ export interface NormalizedProduct {
   enabled: boolean;
   metadata?: Record<string, any>;
   brand?: string;
+  color?: string;
+  size?: string;
+  ean?: string;
 }
 
 export interface NormalizedVariant {
@@ -137,6 +140,7 @@ export interface UniwareProductGetResponse extends UniwareResponse {
     maxRetailPrice?: number;
     enabled: boolean;
     hsnCode?: string;
+    ean?: string;
   };
 }
 

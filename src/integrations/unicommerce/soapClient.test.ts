@@ -1,18 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { soapRequest, getTagValue, getTagBlocks } from './soapClient';
 
-// Mock getUnicommerceConfig to avoid throwing errors during testing
-vi.mock('./config', () => ({
-  getUnicommerceConfig: () => ({
-    apiUrl: 'https://playr.unicommerce.com',
-    username: 'testuser',
-    password: 'testpassword',
-    facilityCode: 'playR_Delhi',
-    clientId: 'my-client',
-    transportMode: 'SOAP',
-    isDemoMode: false,
-  }),
-}));
+vi.mock('./config', async () => {
+  const actual = await vi.importActual<typeof import('./config')>('./config');
+  return {
+    ...actual,
+    getUnicommerceConfig: () => ({
+      apiUrl: 'https://playr.unicommerce.com',
+      username: 'testuser',
+      password: 'testpassword',
+      facilityCode: 'playR_Delhi',
+      clientId: 'my-client',
+      transportMode: 'SOAP',
+      isDemoMode: false,
+    }),
+  };
+});
 
 describe('SOAP Client Helpers', () => {
   describe('getTagValue', () => {
@@ -72,6 +75,9 @@ describe('SOAP Client Request Translation', () => {
             <Name>Fortore 3 Jersey</Name>
             <Description>Test Desc</Description>
             <MaxRetailPrice>1999.00</MaxRetailPrice>
+            <Color>Purple</Color>
+            <Size>M</Size>
+            <Ean>8905570042165</Ean>
             <Enabled>true</Enabled>
           </GetItemTypeResponse>
         </SOAP-ENV:Body>
@@ -92,6 +98,9 @@ describe('SOAP Client Request Translation', () => {
     expect(result.itemTypeDTO.name).toBe('Fortore 3 Jersey');
     expect(result.itemTypeDTO.basePrice).toBe(1999);
     expect(result.itemTypeDTO.enabled).toBe(true);
+    expect(result.itemTypeDTO.color).toBe('Purple');
+    expect(result.itemTypeDTO.size).toBe('M');
+    expect(result.itemTypeDTO.ean).toBe('8905570042165');
   });
 
   it('should parse GetInventorySnapshotRequest successfully', async () => {

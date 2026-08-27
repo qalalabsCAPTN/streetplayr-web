@@ -139,9 +139,8 @@ vi.mock('@/lib/nectar/engine', () => ({
 }));
 
 const createOrderMock = vi.fn().mockResolvedValue({ success: false });
-vi.mock('@/src/integrations/unicommerce', () => ({
-  UnicommerceService: { orders: { createOrder: (...a: any[]) => createOrderMock(...a) } },
-  UnicommerceLogger: { error: vi.fn(), info: vi.fn() },
+vi.mock('@/lib/orchestration/unicommerce-forward', () => ({
+  forwardPaidOrderToUnicommerce: vi.fn().mockResolvedValue({ ok: true, skipped: true }),
 }));
 
 const { PaymentService } = await import('./payment');

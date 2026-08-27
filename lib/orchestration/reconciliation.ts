@@ -102,10 +102,12 @@ export const ReconciliationService = {
   async runFullCycle(): Promise<{
     ordersConfirmed: string[];
     staleReservationsReleased: number;
+    uniwareForwarded: string[];
   }> {
-    const [ordersConfirmed, staleReservationsReleased] = await Promise.all([
+    const [ordersConfirmed, staleReservationsReleased, uniware] = await Promise.all([
       this.findOrphanedPayments(),
       this.releaseStaleReservations(),
+      this.forwardUnpushedUniwareOrders(),
     ]);
 
     await recordEvent({
@@ -115,10 +117,15 @@ export const ReconciliationService = {
       actorId: 'system',
       resourceType: 'system',
       resourceId: 'reconciliation',
-      message: `Reconciliation cycle complete. ${ordersConfirmed.length} orders confirmed, ${staleReservationsReleased} stale reservations released.`,
-      metadata: { ordersConfirmed, staleReservationsReleased },
+      message: `Reconciliation cycle complete. ${ordersConfirmed.length} orders confirmed, ${staleReservationsReleased} stale reservations released, ${uniware.forwarded.length} Uniware forwards.`,
+      metadata: { ordersConfirmed, staleReservationsReleased, uniware },
     });
 
-    return { ordersConfirmed, staleReservationsReleased };
+    return { ordersConfirmed, staleReservationsReleased, uniwareForwarded: uniware.forwarded };
+  },
+
+  async forwardUnpushedUniwareOrders() {
+    const { forwardUnpushedPaidOrders } = await import('@/lib/orchestration/unicommerce-forward');
+    return forwardUnpushedPaidOrders(20);
   },
 };

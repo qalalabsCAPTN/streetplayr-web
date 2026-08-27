@@ -2,7 +2,7 @@
  * Unicommerce Base SOAP Client with WS-Security, XML Translation, and SRE Observability.
  */
 
-import { getUnicommerceConfig } from './config';
+import { getUnicommerceConfig, buildUnicommerceSoapUrl } from './config';
 import { UnicommerceLogger } from './logging';
 import { backoffMs, isRetryableSoapError, soapTimeoutMs } from './retry';
 
@@ -52,7 +52,7 @@ export async function soapRequest<T>(
   options: SOAPOptions = {}
 ): Promise<T> {
   const config = getUnicommerceConfig();
-  const url = `${config.apiUrl}/services/soap/?version=1.9`;
+  const url = buildUnicommerceSoapUrl(config.apiUrl, options.facilityCode || config.facilityCode);
 
   const correlationId = options.correlationId || `corr_${Math.random().toString(36).substr(2, 9)}`;
   const requestId = options.requestId || `req_${Math.random().toString(36).substr(2, 9)}`;
@@ -94,8 +94,7 @@ export async function soapRequest<T>(
         ...options.headers,
       };
 
-      const requestUrl = url + (facilityCode ? `&facility=${facilityCode}` : '');
-      const response = await fetch(requestUrl, {
+      const response = await fetch(url, {
         method: 'POST',
         headers,
         body: soapEnvelope,
@@ -236,6 +235,7 @@ function translateSoapResponse(operation: string, xml: string, facilityCode: str
           maxRetailPrice: parseFloat(getTagValue(xml, 'MaxRetailPrice')) || 0,
           enabled: getTagValue(xml, 'Enabled') === 'true',
           hsnCode: getTagValue(xml, 'HSNCode') || undefined,
+          ean: getTagValue(xml, 'Ean') || getTagValue(xml, 'EAN') || undefined,
         },
       };
     }

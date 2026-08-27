@@ -2,6 +2,36 @@
  * Environment-based configuration for the Unicommerce (Uniware) integration.
  */
 
+export function normalizeUnicommerceApiUrl(raw: string | undefined | null): string {
+  const trimmed = String(raw ?? '').trim().replace(/\/+$/, '');
+  if (!trimmed) return '';
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return '';
+    return `${parsed.protocol}//${parsed.host}${parsed.pathname === '/' ? '' : parsed.pathname.replace(/\/+$/, '')}`;
+  } catch {
+    return '';
+  }
+}
+
+export function buildUnicommerceSoapUrl(apiUrl: string, facilityCode?: string): string {
+  const base = normalizeUnicommerceApiUrl(apiUrl);
+  if (!base) {
+    throw new Error(
+      'UNICOMMERCE_API_URL is missing or not an absolute http(s) URL. Cannot call /services/soap as a relative path.'
+    );
+  }
+  const endpoint = new URL('services/soap/', `${base}/`);
+  endpoint.searchParams.set('version', '1.9');
+  if (facilityCode) endpoint.searchParams.set('facility', facilityCode);
+  return endpoint.toString();
+}
+
+export function isUnicommerceLiveConfigured(config?: UnicommerceConfig): boolean {
+  const c = config ?? getUnicommerceConfig();
+  return Boolean(normalizeUnicommerceApiUrl(c.apiUrl) && c.username && c.password);
+}
+
 export interface UnicommerceConfig {
   apiUrl: string;
   clientId: string;
@@ -21,7 +51,7 @@ export function getUnicommerceConfig(): UnicommerceConfig {
   const isDemoMode = process.env.DEMO_INVENTORY_MODE === 'true';
 
 
-  const apiUrl = process.env.UNICOMMERCE_API_URL || '';
+  const apiUrl = normalizeUnicommerceApiUrl(process.env.UNICOMMERCE_API_URL);
   const clientId = process.env.UNICOMMERCE_CLIENT_ID || 'my-trusted-client';
   const username = process.env.UNICOMMERCE_USERNAME || '';
   const password = process.env.UNICOMMERCE_PASSWORD || '';
@@ -48,7 +78,7 @@ export function getUnicommerceConfig(): UnicommerceConfig {
 
 
   return {
-    apiUrl: apiUrl.replace(/\/$/, ''), // Remove trailing slash if present
+    apiUrl,
     clientId,
     username,
     password,
