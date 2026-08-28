@@ -49,7 +49,13 @@ function CreateAccountForm() {
     if (password !== confirm) { setError("Passwords do not match."); return; }
 
     setPending(true);
-    const result = await signUpWithEmailAction(email.trim(), password, fullName.trim());
+    const result = await signUpWithEmailAction(
+      email.trim(),
+      password,
+      fullName.trim(),
+      undefined,
+      window.location.origin
+    );
     setPending(false);
 
     if (!result.success) {
@@ -96,7 +102,7 @@ function CreateAccountForm() {
     return (
       <div className="lmodal__verify">
         <p className="lmodal__title" style={{ fontSize: 18 }}>Verify your email</p>
-        <p className="lmodal__sub">Confirmation sent to {email}</p>
+        <p className="lmodal__sub">Activation link sent to {email}. Open it to confirm your account, then sign in.</p>
         <Link href="/login" className="lmodal__foot-link">Back to login</Link>
       </div>
     );

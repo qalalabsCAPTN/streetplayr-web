@@ -6,7 +6,7 @@ import { getSmtpConfig } from './smtp';
 import { EMAIL_SUBJECT, type TransactionalTemplate } from './templates';
 
 export type { TransactionalTemplate };
-export { orderEmailHtml } from './templates';
+export { orderEmailHtml, orderEmailText } from './templates';
 
 type SendMailer = {
   sendMail: (opts: {

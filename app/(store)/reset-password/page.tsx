@@ -3,8 +3,9 @@
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { resetPasswordAction } from "@/app/actions/auth";
+import { createClient } from "@/lib/supabase/client";
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -13,6 +14,13 @@ function ResetPasswordForm() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+    if (!code) return;
+    void createClient().auth.exchangeCodeForSession(code);
+  }, []);
 
   async function handleSubmit() {
     setError("");

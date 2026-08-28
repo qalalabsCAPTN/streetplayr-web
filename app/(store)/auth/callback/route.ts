@@ -7,7 +7,7 @@ import { attributeSignup } from '@/lib/nectar/referrals';
 const ALLOWED_REDIRECT_PATHS = [
   '/', '/home', '/profile', '/profile/wallet', '/profile/orders',
   '/profile/addresses', '/profile/settings', '/cart', '/checkout',
-  '/dashboard', '/wishlist',
+  '/dashboard', '/wishlist', '/reset-password',
 ];
 
 function isValidRedirect(path: string): boolean {
@@ -28,9 +28,16 @@ const debug = (msg: string, ...args: unknown[]) =>
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
+  const tokenHash = requestUrl.searchParams.get('token_hash');
+  const otpType = requestUrl.searchParams.get('type');
   const nextParam = requestUrl.searchParams.get('next');
   const refParam = requestUrl.searchParams.get('ref'); // Referral code passed via OAuth redirect URL
   const next = nextParam && isValidRedirect(nextParam) ? nextParam : '/profile';
+  const EMAIL_OTP_TYPES = ['signup', 'invite', 'magiclink', 'email', 'recovery'] as const;
+  const isEmailOtpType = (
+    value: string | null
+  ): value is (typeof EMAIL_OTP_TYPES)[number] =>
+    Boolean(value && (EMAIL_OTP_TYPES as readonly string[]).includes(value));
 
   // Dynamic host resolution for local/staging/production proxies
   const forwardedHost = request.headers.get('x-forwarded-host');
@@ -38,15 +45,18 @@ export async function GET(request: Request) {
   const baseUrl = forwardedHost ? `${forwardedProto}://${forwardedHost}` : requestUrl.origin;
 
   debug('Start', {
-    requestUrl: request.url,
+    origin: requestUrl.origin,
+    path: requestUrl.pathname,
     code: code ? '***' : null,
+    tokenHash: tokenHash ? '***' : null,
+    otpType,
     next,
     forwardedHost,
     forwardedProto,
     baseUrl
   });
 
-  if (code) {
+  if (code || (tokenHash && isEmailOtpType(otpType))) {
     try {
       const cookieStore = await cookies();
       
@@ -79,11 +89,12 @@ export async function GET(request: Request) {
         }
       );
 
-      debug('Exchanging code for session...');
-      const { data: sessionData, error } = await supabase.auth.exchangeCodeForSession(code);
+      const { data: sessionData, error } = tokenHash && isEmailOtpType(otpType)
+        ? await supabase.auth.verifyOtp({ type: otpType, token_hash: tokenHash })
+        : await supabase.auth.exchangeCodeForSession(code!);
 
       if (error) {
-        console.error('[Auth Callback] exchangeCodeForSession error:', error.message, error);
+        console.error('[Auth Callback] session error:', error.message, error);
         return NextResponse.redirect(`${baseUrl}/auth/auth-code-error?error=${encodeURIComponent(error.message)}`);
       }
 
@@ -118,7 +129,7 @@ export async function GET(request: Request) {
       return NextResponse.redirect(`${baseUrl}/auth/auth-code-error?error=${encodeURIComponent(e.message || 'unknown_exception')}`);
     }
   } else {
-    console.warn('[Auth Callback] No code parameter found in callback URL.');
+    console.warn('[Auth Callback] No code or token_hash parameter found in callback URL.');
   }
 
   return NextResponse.redirect(`${baseUrl}/auth/auth-code-error?error=missing_code`);

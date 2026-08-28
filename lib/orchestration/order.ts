@@ -27,6 +27,7 @@ async function notifyOrderStatus(order: Order, fromStatus: string, targetStatus:
   const email = (order.shippingAddress as { email?: string }).email;
   if (!email) return;
   const { sendTransactionalEmail, orderEmailHtml } = await import('@/lib/notifications/email');
+  const { orderEmailText } = await import('@/lib/notifications/templates');
   const map: Record<string, { template: 'order_confirmation' | 'shipment' | 'delivery' | 'refund' | 'cancellation'; title: string; body: string }> = {
     confirmed: { template: 'order_confirmation', title: 'Order confirmed', body: 'Payment verified. We are preparing your order.' },
     shipped: { template: 'shipment', title: 'Order shipped', body: order.trackingNumber ? `Tracking: ${order.trackingNumber}` : 'Your order is on the way.' },
@@ -36,12 +37,27 @@ async function notifyOrderStatus(order: Order, fromStatus: string, targetStatus:
   };
   const mail = map[targetStatus];
   if (!mail) return;
+  const details =
+    targetStatus === 'confirmed'
+      ? {
+          items: order.items.map((item) => ({
+            title:
+              [item.productTitle, item.variantTitle].filter(Boolean).join(' — ') ||
+              item.sku ||
+              'Item',
+            quantity: item.quantity,
+            price: item.price,
+          })),
+          total: order.total,
+          currency: order.currency,
+        }
+      : undefined;
   await sendTransactionalEmail({
     to: email,
     template: mail.template,
     orderId: order.id,
-    html: orderEmailHtml(mail.title, mail.body, order.orderNumber),
-    text: `${mail.title} — ${order.orderNumber}`,
+    html: orderEmailHtml(mail.title, mail.body, order.orderNumber, details),
+    text: orderEmailText(mail.title, mail.body, order.orderNumber, details),
   });
   void fromStatus;
 }
