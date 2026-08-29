@@ -6,8 +6,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  signInWithGoogleAction,
-  signInWithFacebookAction,
   signInWithEmailAction,
   signInWithPhoneAction,
   verifyOTPAction,
@@ -83,7 +81,7 @@ export default function LoginModal({
     return () => clearTimeout(t);
   }, [resendCooldown]);
 
-  async function handleSocial(_action: typeof signInWithGoogleAction, provider: 'google' | 'facebook') {
+  async function handleSocial(provider: 'google' | 'facebook') {
     setAuthError('');
     if (!isSupabaseConfigured) {
       demoLogin({ provider: provider === 'facebook' ? 'google' : provider });
@@ -223,7 +221,7 @@ export default function LoginModal({
                 type="button"
                 className="lmodal__social"
                 disabled={socialPending}
-                onClick={() => handleSocial(signInWithGoogleAction, 'google')}
+                onClick={() => handleSocial('google')}
               >
                 {activeSocialProvider === 'google' ? (
                   <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -244,7 +242,7 @@ export default function LoginModal({
                 type="button"
                 className="lmodal__social"
                 disabled={socialPending}
-                onClick={() => handleSocial(signInWithFacebookAction, 'facebook')}
+                onClick={() => handleSocial('facebook')}
               >
                 {activeSocialProvider === 'facebook' ? (
                   <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

@@ -26,8 +26,7 @@ function fireNectarPurchaseCompletedIfNewlyConfirmed(fromStatus: string, updated
 async function notifyOrderStatus(order: Order, fromStatus: string, targetStatus: string): Promise<void> {
   const email = (order.shippingAddress as { email?: string }).email;
   if (!email) return;
-  const { sendTransactionalEmail, orderEmailHtml } = await import('@/lib/notifications/email');
-  const { orderEmailText } = await import('@/lib/notifications/templates');
+  const { sendTransactionalEmail, orderEmailHtml, orderEmailText } = await import('@/lib/notifications/email');
   const map: Record<string, { template: 'order_confirmation' | 'shipment' | 'delivery' | 'refund' | 'cancellation'; title: string; body: string }> = {
     confirmed: { template: 'order_confirmation', title: 'Order confirmed', body: 'Payment verified. We are preparing your order.' },
     shipped: { template: 'shipment', title: 'Order shipped', body: order.trackingNumber ? `Tracking: ${order.trackingNumber}` : 'Your order is on the way.' },

@@ -12,23 +12,6 @@ const debug = process.env.NODE_ENV === 'development'
  */
 export const AuthService = {
   /**
-   * Returns the role for a given user ID.
-   * Uses admin client to bypass RLS for role checks.
-   */
-  async getUserRole(userId: string): Promise<UserRole> {
-    try {
-      const supabase = createAdminClient();
-      const { data } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', userId)
-        .single();
-      return (data?.role as UserRole) || 'member';
-    } catch {
-      return 'member';
-    }
-  },
-  /**
    * Fetches the current user profile from Supabase.
    * Only queries columns that exist in the profiles table — missing columns
    * (sprr_balance, referral_code, wallet_id, etc.) are gracefully defaulted.
@@ -146,30 +129,6 @@ export const AuthService = {
   },
 
   /**
-   * Email + password sign up.
-   */
-  async signUpWithEmail(email: string, password: string, fullName?: string) {
-    const supabase = await createClient();
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: fullName ?? '' },
-      },
-    });
-    return { data, error };
-  },
-
-  /**
-   * Send password reset email.
-   */
-  async resetPasswordRequest(email: string, redirectTo: string) {
-    const supabase = await createClient();
-    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
-    return { error };
-  },
-
-  /**
    * Update password (called after reset link click).
    */
   async updatePassword(newPassword: string) {
@@ -200,34 +159,6 @@ export const AuthService = {
       phone: `${prefix}${phone}`,
       token,
       type: 'sms',
-    });
-    return { data, error };
-  },
-
-  /**
-   * Starts the Google Auth flow.
-   */
-  async signInWithGoogle(redirectTo: string) {
-    const supabase = await createClient();
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo,
-      },
-    });
-    return { data, error };
-  },
-
-  /**
-   * Starts the Facebook Auth flow.
-   */
-  async signInWithFacebook(redirectTo: string) {
-    const supabase = await createClient();
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'facebook',
-      options: {
-        redirectTo,
-      },
     });
     return { data, error };
   },

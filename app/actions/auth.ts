@@ -301,29 +301,3 @@ export async function resetPasswordAction(newPassword: string): Promise<ActionRe
     return { success: false, error: 'Password reset failed. Please try again.' };
   }
 }
-
-/**
- * Server Action: Start Google Login
- */
-export async function signInWithGoogleAction(redirectTo: string): Promise<ActionResponse> {
-  try {
-    const result = await AuthService.signInWithGoogle(redirectTo);
-    if (result.error) return { success: false, error: result.error.message };
-    return { success: true, data: result.data };
-  } catch (e: any) {
-    return { success: false, error: 'Google login failed.' };
-  }
-}
-
-/**
- * Server Action: Start Facebook Login
- */
-export async function signInWithFacebookAction(redirectTo: string): Promise<ActionResponse> {
-  try {
-    const result = await AuthService.signInWithFacebook(redirectTo);
-    if (result.error) return { success: false, error: result.error.message };
-    return { success: true, data: result.data };
-  } catch (e: any) {
-    return { success: false, error: 'Facebook login failed.' };
-  }
-}
