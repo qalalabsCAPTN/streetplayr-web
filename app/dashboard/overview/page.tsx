@@ -122,7 +122,7 @@ export default function OverviewPage() {
     sprrBalance: number;
     xp: number;
     lifetimeEarned: number;
-    tier: 'STREET' | 'PLAYER' | 'LEGEND';
+    tier: 'ROOKIE' | 'PRO' | 'LEGEND' | 'CREATORS' | 'TALENT';
     progressPct: number;
     quests: { id: string; name: string; done: number; steps: number; status: string }[];
   } | null>(null);
@@ -158,7 +158,7 @@ export default function OverviewPage() {
     })();
   }, []);
 
-  const tierKey = live?.tier === 'LEGEND' ? 'nectar' : live?.tier === 'PLAYER' ? 'sprout' : 'seed';
+  const tierKey = live?.tier === 'LEGEND' ? 'nectar' : live?.tier === 'PRO' ? 'sprout' : 'seed';
   const tierCfg = TIER_CONFIG[tierKey];
   const displayName = live?.email || 'Member';
   const points = live?.sprrBalance ?? 0;

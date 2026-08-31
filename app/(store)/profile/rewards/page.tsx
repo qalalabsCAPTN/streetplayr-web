@@ -30,7 +30,7 @@ export default async function RewardsPage() {
   const streakDays = profile.current_streak_days ?? 0;
   const tier = deriveTier(sprr);
   const threshold = TIER_THRESHOLDS[tier];
-  const nextTier = tier === 'STREET' ? 'PLAYER' : tier === 'PLAYER' ? 'LEGEND' : null;
+  const nextTier = tier === 'ROOKIE' ? 'PRO' : tier === 'PRO' ? 'LEGEND' : null;
   const progress = threshold.max ? Math.min(1, (sprr - threshold.min) / (threshold.max - threshold.min)) : 1;
   const multiplier = getTierMultiplier(tier);
 

@@ -2,49 +2,47 @@ import { describe, it, expect } from 'vitest';
 import { deriveTier, getProgress, getTierMultiplier, getStreakLabel, type Tier } from './engine';
 
 describe('Nectar Engine - deriveTier', () => {
-  it('returns STREET when SPRR is less than 500', () => {
-    expect(deriveTier(0)).toBe('STREET');
-    expect(deriveTier(100)).toBe('STREET');
-    expect(deriveTier(499)).toBe('STREET');
+  it('returns ROOKIE when purchaseCount is less than 3', () => {
+    expect(deriveTier(0)).toBe('ROOKIE');
+    expect(deriveTier(1)).toBe('ROOKIE');
+    expect(deriveTier(2)).toBe('ROOKIE');
   });
 
-  it('returns PLAYER when SPRR is between 500 and 4999 inclusive', () => {
-    expect(deriveTier(500)).toBe('PLAYER');
-    expect(deriveTier(2500)).toBe('PLAYER');
-    expect(deriveTier(4999)).toBe('PLAYER');
+  it('returns PRO when purchaseCount is between 3 and 4 inclusive', () => {
+    expect(deriveTier(3)).toBe('PRO');
+    expect(deriveTier(4)).toBe('PRO');
   });
 
-  it('returns LEGEND when SPRR is 5000 or greater', () => {
-    expect(deriveTier(5000)).toBe('LEGEND');
-    expect(deriveTier(10000)).toBe('LEGEND');
+  it('returns LEGEND when purchaseCount is 5 or greater', () => {
+    expect(deriveTier(5)).toBe('LEGEND');
+    expect(deriveTier(10)).toBe('LEGEND');
   });
 });
 
 describe('Nectar Engine - getProgress', () => {
-  it('returns 50% progress toward PLAYER when SPRR is 250', () => {
-    const result = getProgress(250);
-    expect(result.tier).toBe('STREET');
-    expect(result.progress).toBe(0.5); // (250 - 0) / (500 - 0)
-    expect(result.next).toBe('PLAYER');
+  it('returns 0% progress toward PRO when purchaseCount is 1', () => {
+    const result = getProgress(1);
+    expect(result.tier).toBe('ROOKIE');
+    expect(result.progress).toBe(0); // (1 - 1) / (3 - 1) = 0
+    expect(result.next).toBe('PRO');
   });
 
-  it('returns 0% progress toward PLAYER when SPRR is 0', () => {
-    const result = getProgress(0);
-    expect(result.tier).toBe('STREET');
-    expect(result.progress).toBe(0);
-    expect(result.next).toBe('PLAYER');
+  it('returns 50% progress toward PRO when purchaseCount is 2', () => {
+    const result = getProgress(2);
+    expect(result.tier).toBe('ROOKIE');
+    expect(result.progress).toBe(0.5); // (2 - 1) / (3 - 1) = 0.5
+    expect(result.next).toBe('PRO');
   });
 
-  it('returns 100% progress toward LEGEND when SPRR is 4999', () => {
-    const result = getProgress(4999);
-    expect(result.tier).toBe('PLAYER');
-    // progress is (4999 - 500) / (5000 - 500) = 4499 / 4500
-    expect(result.progress).toBeCloseTo(0.9998, 4);
+  it('returns 50% progress toward LEGEND when purchaseCount is 4', () => {
+    const result = getProgress(4);
+    expect(result.tier).toBe('PRO');
+    expect(result.progress).toBe(0.5); // (4 - 3) / (5 - 3) = 0.5
     expect(result.next).toBe('LEGEND');
   });
 
   it('returns 100% progress (1.0) and next as null when tier is LEGEND', () => {
-    const result = getProgress(5000);
+    const result = getProgress(5);
     expect(result.tier).toBe('LEGEND');
     expect(result.progress).toBe(1);
     expect(result.next).toBeNull();
@@ -52,16 +50,16 @@ describe('Nectar Engine - getProgress', () => {
 });
 
 describe('Nectar Engine - getTierMultiplier', () => {
-  it('returns 1.0 multiplier for STREET tier', () => {
-    expect(getTierMultiplier('STREET')).toBe(1.0);
+  it('returns 1.0 multiplier for ROOKIE tier', () => {
+    expect(getTierMultiplier('ROOKIE')).toBe(1.0);
   });
 
-  it('returns 1.25 multiplier for PLAYER tier', () => {
-    expect(getTierMultiplier('PLAYER')).toBe(1.25);
+  it('returns 1.0 multiplier for PRO tier', () => {
+    expect(getTierMultiplier('PRO')).toBe(1.0);
   });
 
-  it('returns 1.5 multiplier for LEGEND tier', () => {
-    expect(getTierMultiplier('LEGEND')).toBe(1.5);
+  it('returns 1.0 multiplier for LEGEND tier', () => {
+    expect(getTierMultiplier('LEGEND')).toBe(1.0);
   });
 
   it('returns 1.0 multiplier for any invalid/unknown tier', () => {
@@ -98,5 +96,139 @@ describe('Nectar Engine - getStreakLabel', () => {
   it('returns Unstoppable when days is 30 or greater', () => {
     expect(getStreakLabel(30)).toBe('Unstoppable');
     expect(getStreakLabel(100)).toBe('Unstoppable');
+  });
+});
+
+// We can mock the DB client to test the new DB functions
+import { vi } from 'vitest';
+import { assignManualTier, grantSocialSignupBonus } from './engine';
+import { createAdminClient } from '@/lib/supabase/admin';
+
+vi.mock('@/lib/supabase/admin', () => ({
+  createAdminClient: vi.fn(),
+}));
+
+describe('assignManualTier', () => {
+  it('allows super_admin to assign CREATORS tier', async () => {
+    const updateMock = vi.fn().mockReturnThis();
+    
+    const singleMock = vi.fn()
+      .mockResolvedValueOnce({ data: { role: 'super_admin' } })
+      .mockResolvedValueOnce({ data: { tier: 'ROOKIE' } });
+
+    const profilesChain = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: singleMock,
+      update: updateMock,
+    };
+
+    const mockAdminClient = {
+      from: vi.fn().mockImplementation((table) => {
+        if (table === 'profiles') return profilesChain;
+        if (table === 'operational_events') {
+          return {
+            insert: vi.fn().mockResolvedValue({}),
+          };
+        }
+        return {};
+      }),
+    };
+    (createAdminClient as any).mockReturnValue(mockAdminClient);
+
+    await assignManualTier('admin_123', 'user_123', 'CREATORS');
+
+    expect(updateMock).toHaveBeenCalledWith({ tier: 'CREATORS' });
+  });
+
+  it('rejects unauthorized users from manual assignment', async () => {
+    const mockAdminClient = {
+      from: vi.fn().mockImplementation(() => ({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: { role: 'member' } }),
+      })),
+    };
+    (createAdminClient as any).mockReturnValue(mockAdminClient);
+
+    await expect(assignManualTier('user_123', 'user_456', 'TALENT')).rejects.toThrow('Unauthorized');
+  });
+
+  it('is idempotent and skips update if already assigned', async () => {
+    const updateMock = vi.fn().mockReturnThis();
+    
+    const singleMock = vi.fn()
+      .mockResolvedValueOnce({ data: { role: 'ops_admin' } })
+      .mockResolvedValueOnce({ data: { tier: 'TALENT' } });
+
+    const profilesChain = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: singleMock,
+      update: updateMock,
+    };
+
+    const mockAdminClient = {
+      from: vi.fn().mockImplementation((table) => {
+        if (table === 'profiles') return profilesChain;
+        return {};
+      }),
+    };
+    (createAdminClient as any).mockReturnValue(mockAdminClient);
+
+    await assignManualTier('admin_123', 'user_123', 'TALENT');
+    expect(updateMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('grantSocialSignupBonus', () => {
+  it('is idempotent and grants exactly 50 SPRR and 25 XP', async () => {
+    const updateMock = vi.fn().mockReturnThis();
+    const mockAdminClient = {
+      from: vi.fn().mockImplementation((table) => {
+        if (table === 'wallet_transactions') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({ data: null }), // No existing tx
+            insert: vi.fn().mockResolvedValue({}),
+          };
+        }
+        if (table === 'profiles') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            single: vi.fn().mockResolvedValue({ data: { sprr_balance: 10, xp: 5 } }),
+            update: updateMock,
+          };
+        }
+        return {};
+      }),
+    };
+    (createAdminClient as any).mockReturnValue(mockAdminClient);
+
+    await grantSocialSignupBonus('user_123');
+    // 50 SPRR, 25 XP mirrored
+    expect(updateMock).toHaveBeenCalledWith({ sprr_balance: 60, xp: 30 });
+  });
+
+  it('skips if already granted', async () => {
+    const updateMock = vi.fn().mockReturnThis();
+    const mockAdminClient = {
+      from: vi.fn().mockImplementation((table) => {
+        if (table === 'wallet_transactions') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'tx_123' } }), // Existing tx
+          };
+        }
+        return { update: updateMock };
+      }),
+    };
+    (createAdminClient as any).mockReturnValue(mockAdminClient);
+
+    await grantSocialSignupBonus('user_123');
+    expect(updateMock).not.toHaveBeenCalled();
   });
 });

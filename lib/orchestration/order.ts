@@ -17,6 +17,7 @@ function fireNectarPurchaseCompletedIfNewlyConfirmed(fromStatus: string, updated
     id: updatedOrder.id,
     customer_id: updatedOrder.customer_id ?? null,
     grand_total: updatedOrder.grand_total ?? null,
+    subtotal: updatedOrder.subtotal ?? null,
     currency: updatedOrder.currency ?? null,
   }).catch((e) => {
     console.error('[nectar] purchase.completed emit threw unexpectedly:', e);

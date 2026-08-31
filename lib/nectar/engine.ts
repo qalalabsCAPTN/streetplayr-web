@@ -1,25 +1,27 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 
-export type Tier = 'STREET' | 'PLAYER' | 'LEGEND';
+export type Tier = 'ROOKIE' | 'PRO' | 'LEGEND' | 'CREATORS' | 'TALENT';
 
 export const TIER_THRESHOLDS: Record<Tier, { min: number; max: number | null; label: string }> = {
-  STREET: { min: 0, max: 500, label: 'Street' },
-  PLAYER: { min: 500, max: 5000, label: 'Playr' },
-  LEGEND: { min: 5000, max: null, label: 'Legend' },
+  ROOKIE: { min: 1, max: 3, label: 'Rookie' },
+  PRO: { min: 3, max: 5, label: 'Pro' },
+  LEGEND: { min: 5, max: null, label: 'Legend' },
+  CREATORS: { min: 999999, max: null, label: 'Creators' },
+  TALENT: { min: 999999, max: null, label: 'Talent' },
 };
 
-export function deriveTier(sprr: number): Tier {
-  if (sprr >= 5000) return 'LEGEND';
-  if (sprr >= 500) return 'PLAYER';
-  return 'STREET';
+export function deriveTier(purchaseCount: number): Tier {
+  if (purchaseCount >= 5) return 'LEGEND';
+  if (purchaseCount >= 3) return 'PRO';
+  return 'ROOKIE';
 }
 
-export function getProgress(sprr: number): { tier: Tier; progress: number; next: Tier | null } {
-  const tier = deriveTier(sprr);
+export function getProgress(purchaseCount: number): { tier: Tier; progress: number; next: Tier | null } {
+  const tier = deriveTier(purchaseCount);
   const threshold = TIER_THRESHOLDS[tier];
-  const nextTier = tier === 'STREET' ? 'PLAYER' : tier === 'PLAYER' ? 'LEGEND' : null;
+  const nextTier = tier === 'ROOKIE' ? 'PRO' : tier === 'PRO' ? 'LEGEND' : null;
   if (!threshold.max) return { tier, progress: 1, next: null };
-  return { tier, progress: Math.min(1, (sprr - threshold.min) / (threshold.max - threshold.min)), next: nextTier };
+  return { tier, progress: Math.min(1, Math.max(0, (purchaseCount - threshold.min) / (threshold.max - threshold.min))), next: nextTier };
 }
 
 /**
@@ -28,9 +30,11 @@ export function getProgress(sprr: number): { tier: Tier; progress: number; next:
  */
 export function getTierMultiplier(tier: Tier): number {
   const multipliers: Record<Tier, number> = {
-    STREET: 1.0,
-    PLAYER: 1.25,
-    LEGEND: 1.5,
+    ROOKIE: 1.0,
+    PRO: 1.0,
+    LEGEND: 1.0,
+    CREATORS: 1.0,
+    TALENT: 1.0,
   };
   return multipliers[tier] ?? 1.0;
 }
@@ -65,13 +69,23 @@ export async function awardSPRR(
   userId: string,
   amount: number,
   source: string,
-  type: 'earned' | 'referral_bonus' | 'adjustment' = 'earned'
+  type: 'earned' | 'referral_bonus' | 'adjustment' = 'earned',
+  mirrorXp: boolean = true
 ): Promise<void> {
   if (amount <= 0) return;
   const admin = createAdminClient();
-  const { data: profile } = await admin.from('profiles').select('sprr_balance').eq('id', userId).single();
+  const { data: profile } = await admin.from('profiles').select('sprr_balance, xp').eq('id', userId).single();
   const currentSprr = profile?.sprr_balance ?? 0;
-  await admin.from('profiles').update({ sprr_balance: currentSprr + amount }).eq('id', userId);
+  
+  // XP Mirroring Rule: 50% of Points earned are mirrored as XP
+  const currentXp = profile?.xp ?? 0;
+  const xpAmount = mirrorXp ? Math.floor(amount * 0.5) : 0;
+
+  await admin.from('profiles').update({ 
+    sprr_balance: currentSprr + amount,
+    xp: currentXp + xpAmount 
+  }).eq('id', userId);
+  
   await admin.from('wallet_transactions').insert({
     user_id: userId,
     type,
@@ -121,7 +135,7 @@ export async function refundSPRR(userId: string, amount: number, source: string)
     .eq('source', source)
     .maybeSingle();
   if (existing) return;
-  await awardSPRR(userId, amount, source, 'adjustment');
+  await awardSPRR(userId, amount, source, 'adjustment', false);
 }
 
 /**
@@ -163,8 +177,8 @@ export async function claimBonus(userId: string, campaignId: string): Promise<{ 
  * Idempotent — checks welcome_bonus_granted before granting.
  * Adapted from NECTAR 2.0 ReferralService convertReferral welcome bonus pattern.
  */
-export const WELCOME_BONUS_SPRR = 50;
-export const WELCOME_BONUS_XP = 25;
+export const WELCOME_BONUS_SPRR = 100;
+export const WELCOME_BONUS_XP = 50;
 
 export async function grantWelcomeBonus(userId: string): Promise<void> {
   const admin = createAdminClient();
@@ -203,6 +217,28 @@ export async function grantWelcomeBonus(userId: string): Promise<void> {
 }
 
 /**
+ * Grant a social signup bonus (e.g., via Google/Facebook OAuth).
+ * Feature-gated and strictly idempotent per user lifetime.
+ */
+export async function grantSocialSignupBonus(userId: string): Promise<void> {
+  const admin = createAdminClient();
+
+  const { data: existing } = await admin
+    .from('wallet_transactions')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('source', 'social_signup')
+    .maybeSingle();
+
+  if (existing) return;
+
+  const SOCIAL_SIGNUP_BONUS = 50;
+
+  // Award the points. awardSPRR automatically handles XP mirroring (50% = 25 XP)
+  await awardSPRR(userId, SOCIAL_SIGNUP_BONUS, 'social_signup', 'earned');
+}
+
+/**
  * Process a referral: award the referrer when the referred user completes their first order.
  */
 export async function processReferral(referredUserId: string): Promise<void> {
@@ -215,8 +251,8 @@ export async function processReferral(referredUserId: string): Promise<void> {
 
   if (!claim || claim.status !== 'pending') return;
 
-  const sprrBonus = 200;
-  const xpBonus = 100;
+  const sprrBonus = 50;
+  const xpBonus = 25;
 
   await awardSPRR(claim.referrer_id, sprrBonus, 'Referral bonus', 'referral_bonus');
   await awardXP(claim.referrer_id, xpBonus, 'Referral bonus');
@@ -227,4 +263,59 @@ export async function processReferral(referredUserId: string): Promise<void> {
     bonus_xp: xpBonus,
     claimed_at: new Date().toISOString(),
   }).eq('id', claim.id);
+}
+
+/**
+ * Manually assign a user to the CREATORS or TALENT tier.
+ * This overrides standard purchase-count progression.
+ * Passing 'NONE' reverts the user back to normal progression.
+ */
+export async function assignManualTier(
+  adminUserId: string,
+  targetUserId: string,
+  tier: 'CREATORS' | 'TALENT' | 'NONE'
+): Promise<void> {
+  const admin = createAdminClient();
+  
+  // Security check: verify adminUserId is actually an admin
+  const { data: adminProfile } = await admin
+    .from('profiles')
+    .select('role')
+    .eq('id', adminUserId)
+    .single();
+
+  if (!adminProfile || (adminProfile.role !== 'super_admin' && adminProfile.role !== 'ops_admin')) {
+    throw new Error('Unauthorized: Only admins can manually assign tiers.');
+  }
+
+  // Idempotency check
+  const { data: targetProfile } = await admin
+    .from('profiles')
+    .select('tier')
+    .eq('id', targetUserId)
+    .single();
+
+  const currentTier = targetProfile?.tier?.toUpperCase();
+  const targetTier = tier === 'NONE' ? null : tier;
+  
+  if (currentTier === targetTier) return;
+  if (tier === 'NONE' && currentTier !== 'CREATORS' && currentTier !== 'TALENT') return;
+
+  // Reversible update
+  await admin.from('profiles').update({ tier: targetTier }).eq('id', targetUserId);
+  
+  // Auditable
+  try {
+    await admin.from('operational_events').insert({
+      domain: 'loyalty',
+      action: 'tier.manual_override',
+      actor_id: adminUserId,
+      resource_type: 'profiles',
+      resource_id: targetUserId,
+      message: `Manually set tier to ${tier}`,
+      metadata: { oldTier: currentTier, newTier: targetTier },
+    });
+  } catch (err) {
+    console.warn('[tier.manual_override] failed to log operational event:', err);
+  }
 }

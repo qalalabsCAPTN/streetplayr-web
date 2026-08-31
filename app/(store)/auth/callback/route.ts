@@ -110,6 +110,17 @@ export async function GET(request: Request) {
           console.error('[Auth Callback] grantWelcomeBonus failed:', err)
         );
 
+        // Feature-gate: Only grant social signup bonus for EXPLICITLY supported OAuth providers
+        const SUPPORTED_SOCIAL_PROVIDERS = ['google', 'facebook'];
+        if (
+          sessionData?.user?.app_metadata?.provider && 
+          SUPPORTED_SOCIAL_PROVIDERS.includes(sessionData.user.app_metadata.provider)
+        ) {
+          import('@/lib/nectar/engine').then(m => m.grantSocialSignupBonus(userId)).catch(err => 
+            console.error('[Auth Callback] grantSocialSignupBonus failed:', err)
+          );
+        }
+
         if (refParam) {
           attributeSignup(refParam, userId).catch(err =>
             console.error('[Auth Callback] attributeSignup failed:', err)

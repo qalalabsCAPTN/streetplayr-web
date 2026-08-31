@@ -6,14 +6,14 @@ import {
 } from './redemption';
 
 describe('MEMBER_CREDIT_MAX_RATIO', () => {
-  it('caps member credits at 50% of subtotal', () => {
-    expect(MEMBER_CREDIT_MAX_RATIO).toBe(0.5);
+  it('caps member credits at 10% of subtotal', () => {
+    expect(MEMBER_CREDIT_MAX_RATIO).toBe(0.1);
   });
 });
 
 describe('maxRedeemableCredits', () => {
-  it('caps at floor(subtotal * 0.5) when balance is larger (10000, 1999 → 999)', () => {
-    expect(maxRedeemableCredits(10000, 1999)).toBe(999);
+  it('caps at floor(subtotal * 0.1) when balance is larger (10000, 1999 → 199)', () => {
+    expect(maxRedeemableCredits(10000, 1999)).toBe(199);
   });
 
   it('caps at balance when balance is smaller (100, 1999 → 100)', () => {

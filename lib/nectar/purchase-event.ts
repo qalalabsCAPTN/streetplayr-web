@@ -15,6 +15,7 @@ interface OrderRow {
   id: string;
   customer_id: string | null;
   grand_total: number | null;
+  subtotal?: number | null;
   currency: string | null;
 }
 
@@ -95,6 +96,7 @@ export async function emitPurchaseCompleted(order: OrderRow): Promise<EmitEventR
     payload: {
       orderId: order.id,
       orderTotal: order.grand_total ?? 0,
+      subtotal: order.subtotal ?? order.grand_total ?? 0,
       currency: order.currency ?? 'INR',
       isFirstOrder: firstOrder,
       // Only one site is live today (see PLATFORM_ID_CONTRACT.md) — orders
