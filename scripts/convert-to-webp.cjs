@@ -42,7 +42,6 @@ async function convertFile(src) {
 async function main() {
   const roots = [
     "public/lookbook",
-    "public/assets/lookbook",
     "public/assets/empty_centre.jpg",
     "public/banners",
     "public/assets/products",

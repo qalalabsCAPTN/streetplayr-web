@@ -1,1 +1,0 @@
-﻿SELECT c.relname AS t, c.relrowsecurity AS rls, (SELECT count(*) FROM pg_policies p WHERE p.tablename=c.relname AND p.schemaname='public') AS pols FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind='r' AND c.relname IN ('cart_items','carts','wishlists','wishlist_items','wishlist') ORDER BY 1;

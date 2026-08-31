@@ -1,1 +1,0 @@
-﻿SELECT table_name||'.'||column_name AS col FROM information_schema.columns WHERE table_schema='public' AND table_name IN ('wallet_transactions','reward_redemptions','wallet_accounts','reward_rules','reward_executions','orders') ORDER BY 1;

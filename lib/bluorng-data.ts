@@ -80,27 +80,3 @@ export const discoverCollections = [
     image: '/assets/products/star-tank-dark/image-1.webp',
   },
 ];
-
-export const stores = [
-  {
-    city: 'Mumbai',
-    image: 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?auto=format&fit=crop&w=600&q=80',
-    address: 'Ground Floor, Phoenix Palladium, Senapati Bapat Marg, Lower Parel, Mumbai, Maharashtra 400013',
-    phone: '+91 22 6634 3000',
-    map: 'https://maps.google.com/?q=Phoenix+Palladium+Mumbai',
-  },
-  {
-    city: 'Bengaluru',
-    image: 'https://images.unsplash.com/photo-1567401893930-f158be9cf7b3?auto=format&fit=crop&w=600&q=80',
-    address: '2nd Floor, Orion Mall, Dr Rajkumar Rd, Rajajinagar, Bengaluru, Karnataka 560055',
-    phone: '+91 80 6728 2222',
-    map: 'https://maps.google.com/?q=Orion+Mall+Bengaluru',
-  },
-  {
-    city: 'New Delhi',
-    image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=600&q=80',
-    address: 'Ground Floor, DLF Promenade, Nelson Mandela Marg, Vasant Kunj, New Delhi, Delhi 110070',
-    phone: '+91 11 4606 8600',
-    map: 'https://maps.google.com/?q=DLF+Promenade+Delhi',
-  },
-];

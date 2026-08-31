@@ -416,8 +416,8 @@ function OrderSummary({ items, quote, fallbackSubtotal }: {
           <span>Shipping</span>
           <span>{quote ? formatPrice(quote.shipping) : '…'}</span>
         </div>
-        <div>
-          <span>{quote?.taxLabel ?? 'GST'}</span>
+        <div className="muted">
+          <span>{quote?.taxLabel ?? 'GST (incl.)'}</span>
           <span>{quote ? formatPrice(quote.tax) : '…'}</span>
         </div>
       </div>

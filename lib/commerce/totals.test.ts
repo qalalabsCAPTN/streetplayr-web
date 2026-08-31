@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { orderInsertMoney, quoteTotals } from './totals';
 
 describe('quoteTotals — server-authoritative commerce rules', () => {
-  it('applies domestic shipping and GST instead of silent zeros', () => {
+  it('applies domestic shipping and extracts GST already inside MRP', () => {
     const t = quoteTotals({ subtotal: 500, discount: 0, country: 'IN' });
     expect(t.shipping).toBe(99);
     expect(t.tax).toBeGreaterThan(0);
-    expect(t.grandTotal).toBeCloseTo(500 + 99 + t.tax, 2);
+    expect(t.grandTotal).toBe(500 + 99);
   });
 
   it('grants free shipping at the documented threshold', () => {
@@ -31,11 +31,11 @@ describe('quoteTotals — server-authoritative commerce rules', () => {
     const t = quoteTotals({ subtotal: 5, discount: 0, country: 'IN' });
     expect(t.shipping).toBe(99);
     expect(t.tax).toBe(5);
-    expect(t.grandTotal).toBe(109);
+    expect(t.grandTotal).toBe(104);
     const row = orderInsertMoney(t);
     expect(row.tax_amount).toBe(5);
     expect(row.tax_total).toBe(5);
-    expect(row.grand_total).toBe(109);
+    expect(row.grand_total).toBe(104);
     expect(Number.isInteger(row.tax_amount)).toBe(true);
     expect(Number.isInteger(row.grand_total)).toBe(true);
   });
@@ -47,9 +47,18 @@ describe('quoteTotals — server-authoritative commerce rules', () => {
     expect(open.grandTotal).toBe(b2b.grandTotal);
   });
 
-  it('uses UniWare GST percent when provided', () => {
+  it('uses UniWare GST percent when provided without adding it on top of MRP', () => {
     const t = quoteTotals({ subtotal: 1000, discount: 0, country: 'IN', taxPercent: 18 });
-    expect(t.taxLabel).toBe('GST 18%');
-    expect(t.tax).toBe(Math.round((1000 + 99) * 0.18));
+    expect(t.taxLabel).toBe('GST 18% (incl.)');
+    expect(t.grandTotal).toBe(1000 + 99);
+    expect(t.tax).toBe(Math.round(((1000 + 99) * 18) / 118));
+  });
+
+  it('sweats pant MRP 3499 at UniWare 18% stays 3499 at checkout', () => {
+    const t = quoteTotals({ subtotal: 3499, discount: 0, country: 'IN', taxPercent: 18 });
+    expect(t.shipping).toBe(0);
+    expect(t.tax).toBe(534);
+    expect(t.grandTotal).toBe(3499);
+    expect(t.taxLabel).toBe('GST 18% (incl.)');
   });
 });
