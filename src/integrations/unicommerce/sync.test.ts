@@ -399,6 +399,8 @@ describe('UnicommerceSyncService - syncProducts', () => {
       color: 'White',
       size: '2XL',
       ean: '8905570041953',
+      hsn: '61091000',
+      gstTaxTypeCode: '5',
     });
     mockFrom.mockImplementation((table: string) => {
       if (table === 'product_variants') {
@@ -418,7 +420,14 @@ describe('UnicommerceSyncService - syncProducts', () => {
     expect(variantInserts[0]).toMatchObject({
       sku: 'PS-TEE-CRT-WHT-2XL',
       title: '2XL',
-      attributes: { color: 'White', size: '2XL', ean: '8905570041953' },
+      attributes: {
+        color: 'White',
+        size: '2XL',
+        ean: '8905570041953',
+        hsn: '61091000',
+        gstTaxTypeCode: '5',
+        gstRate: 5,
+      },
     });
   });
 

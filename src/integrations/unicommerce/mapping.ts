@@ -116,6 +116,9 @@ export class UnicommerceMapper {
     color?: string;
     size?: string;
     ean?: string;
+    hsnCode?: string;
+    gstTaxTypeCode?: string;
+    taxTypeCode?: string;
   }): NormalizedProduct {
     // Uniware item types lack media; map known streetwear SKUs → local asset packs
     const pack = resolveProductImages(raw.skuCode);
@@ -131,6 +134,8 @@ export class UnicommerceMapper {
       color: raw.color,
       size: raw.size,
       ean: raw.ean,
+      hsn: raw.hsnCode,
+      gstTaxTypeCode: raw.gstTaxTypeCode || raw.taxTypeCode,
     };
   }
 

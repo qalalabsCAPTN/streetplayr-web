@@ -20,6 +20,8 @@ export interface NormalizedProduct {
   color?: string;
   size?: string;
   ean?: string;
+  hsn?: string;
+  gstTaxTypeCode?: string;
 }
 
 export interface NormalizedVariant {
@@ -140,6 +142,7 @@ export interface UniwareProductGetResponse extends UniwareResponse {
     maxRetailPrice?: number;
     enabled: boolean;
     hsnCode?: string;
+    gstTaxTypeCode?: string;
     ean?: string;
   };
 }

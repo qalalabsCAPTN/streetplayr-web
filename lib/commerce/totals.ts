@@ -5,7 +5,8 @@
  * - Domestic (IN) shipping: ₹SHIPPING_DOMESTIC_INR (default 99), free at
  *   SHIPPING_FREE_OVER_INR (default 1999) on goods subtotal after discounts.
  * - International shipping: ₹SHIPPING_INTL_INR (default 1499).
- * - Apparel GST: GST_APPAREL_RATE percent (default 5) on (goods + shipping)
+ * - Apparel GST: UniWare GstTaxTypeCode on the SKU when present (5 or 18),
+ *   else GST_APPAREL_RATE percent (default 5) on (goods + shipping)
  *   for IN destinations. Export (non-IN) is zero-rated.
  * - GSTIN is captured for B2B invoices; rate is still the apparel GST rate
  *   unless GST_B2B_RATE is set.
@@ -17,6 +18,8 @@ export type TotalsInput = {
   country: string;
   state?: string;
   gstin?: string;
+  /** UniWare GST percent for this cart (weighted). Falls back to GST_APPAREL_RATE. */
+  taxPercent?: number;
 };
 
 export type TotalsResult = {
@@ -83,14 +86,16 @@ export function calcTax(params: {
   goodsAndShipping: number;
   country: string;
   gstin?: string;
+  taxPercent?: number;
 }): { tax: number; rate: number; label: string } {
   const dest = (params.country || 'IN').toUpperCase();
   if (dest !== 'IN') {
     return { tax: 0, rate: 0, label: 'Export — zero-rated' };
   }
+  const apparel = params.taxPercent ?? envNumber('GST_APPAREL_RATE', 5);
   const percent = params.gstin
-    ? envNumber('GST_B2B_RATE', envNumber('GST_APPAREL_RATE', 5))
-    : envNumber('GST_APPAREL_RATE', 5);
+    ? envNumber('GST_B2B_RATE', apparel)
+    : apparel;
   const rate = percent / 100;
   const tax = rupeesInt(params.goodsAndShipping * rate);
   return {
@@ -98,6 +103,19 @@ export function calcTax(params: {
     rate,
     label: params.gstin ? `GST ${percent}% (GSTIN)` : `GST ${percent}%`,
   };
+}
+
+export function cartGstPercent(
+  lines: Array<{ amount: number; gstPercent?: number | null }>
+): number {
+  const fallback = envNumber('GST_APPAREL_RATE', 5);
+  const usable = lines.filter(
+    (line) => typeof line.gstPercent === 'number' && line.gstPercent > 0 && line.amount > 0
+  );
+  if (!usable.length) return fallback;
+  const total = usable.reduce((sum, line) => sum + line.amount, 0);
+  if (total <= 0) return fallback;
+  return usable.reduce((sum, line) => sum + (line.gstPercent as number) * line.amount, 0) / total;
 }
 
 export function quoteTotals(input: TotalsInput): TotalsResult {
@@ -109,6 +127,7 @@ export function quoteTotals(input: TotalsInput): TotalsResult {
     goodsAndShipping: afterDiscount + shipping,
     country: input.country,
     gstin: input.gstin,
+    taxPercent: input.taxPercent,
   });
   return {
     subtotal,

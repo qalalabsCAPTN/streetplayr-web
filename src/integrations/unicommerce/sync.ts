@@ -313,16 +313,9 @@ export class UnicommerceSyncService {
           }
 
           // 2. Upsert by SKU (canonical join key). Never rewrite sku.
-          const attributes = variantAttributesFromUniware({
-            sku: normProd.sku,
-            color: normProd.color,
-            size: normProd.size || size,
-            ean: normProd.ean,
-          });
-
           const { data: existingVariant, error: checkError } = await admin
             .from('product_variants')
-            .select('id, sku')
+            .select('id, sku, price')
             .eq('sku', normProd.sku)
             .maybeSingle();
 
@@ -330,12 +323,27 @@ export class UnicommerceSyncService {
             throw new Error(`Failed to check variant existence for SKU ${normProd.sku}: ${checkError.message}`);
           }
 
+          const attributes = variantAttributesFromUniware({
+            sku: normProd.sku,
+            color: normProd.color,
+            size: normProd.size || size,
+            ean: normProd.ean,
+            hsn: normProd.hsn,
+            gstTaxTypeCode: normProd.gstTaxTypeCode,
+          });
+
+          const uniPrice = Math.round(Number(normProd.price) || 0);
+          const price =
+            uniPrice > 0
+              ? uniPrice
+              : Math.round(Number(existingVariant?.price) || 0);
+
           if (existingVariant) {
             const { error: variantError } = await admin
               .from('product_variants')
               .update({
                 title: attributes.size,
-                price: Math.round(normProd.price),
+                price,
                 attributes,
                 updated_at: new Date().toISOString(),
               })
@@ -352,7 +360,7 @@ export class UnicommerceSyncService {
                 product_id: dbProduct.id,
                 sku: normProd.sku,
                 title: attributes.size,
-                price: Math.round(normProd.price),
+                price,
                 attributes,
                 updated_at: new Date().toISOString(),
               });

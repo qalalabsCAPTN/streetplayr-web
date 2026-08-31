@@ -157,6 +157,11 @@ async function main() {
         size: tag(detail.xml, 'Size') || sizeFromSku(sku),
         ean: tag(detail.xml, 'Ean') || tag(detail.xml, 'EAN'),
         mrp: Math.round(parseFloat(tag(detail.xml, 'MaxRetailPrice')) || 0),
+        hsn: tag(detail.xml, 'HSNCode') || tag(detail.xml, 'HsnCode'),
+        gstTaxTypeCode:
+          tag(detail.xml, 'GstTaxTypeCode')
+          || tag(detail.xml, 'GSTTaxTypeCode')
+          || tag(detail.xml, 'TaxTypeCode'),
       };
     } catch (e) {
       skippedMissingUni++;
@@ -185,6 +190,8 @@ async function main() {
       color: uni.color,
       size: uni.size,
       ean: uni.ean,
+      hsn: uni.hsn,
+      gstTaxTypeCode: uni.gstTaxTypeCode,
     });
     const { error: uErr } = await admin
       .from('product_variants')

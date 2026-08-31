@@ -46,4 +46,10 @@ describe('quoteTotals — server-authoritative commerce rules', () => {
     expect(open.tax).toBe(b2b.tax);
     expect(open.grandTotal).toBe(b2b.grandTotal);
   });
+
+  it('uses UniWare GST percent when provided', () => {
+    const t = quoteTotals({ subtotal: 1000, discount: 0, country: 'IN', taxPercent: 18 });
+    expect(t.taxLabel).toBe('GST 18%');
+    expect(t.tax).toBe(Math.round((1000 + 99) * 0.18));
+  });
 });

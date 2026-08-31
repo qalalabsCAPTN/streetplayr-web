@@ -234,7 +234,12 @@ function translateSoapResponse(operation: string, xml: string, facilityCode: str
           basePrice: parseFloat(getTagValue(xml, 'MaxRetailPrice')) || 0, // Map MaxRetailPrice to basePrice for REST compatibility
           maxRetailPrice: parseFloat(getTagValue(xml, 'MaxRetailPrice')) || 0,
           enabled: getTagValue(xml, 'Enabled') === 'true',
-          hsnCode: getTagValue(xml, 'HSNCode') || undefined,
+          hsnCode: getTagValue(xml, 'HSNCode') || getTagValue(xml, 'HsnCode') || undefined,
+          gstTaxTypeCode:
+            getTagValue(xml, 'GstTaxTypeCode')
+            || getTagValue(xml, 'GSTTaxTypeCode')
+            || getTagValue(xml, 'TaxTypeCode')
+            || undefined,
           ean: getTagValue(xml, 'Ean') || getTagValue(xml, 'EAN') || undefined,
         },
       };
@@ -414,6 +419,12 @@ function translateSoapResponse(operation: string, xml: string, facilityCode: str
         size: getTagValue(block, 'Size') || undefined,
         brand: getTagValue(block, 'Brand') || undefined,
         basePrice: parseFloat(getTagValue(block, 'MaxRetailPrice')) || parseFloat(getTagValue(block, 'BasePrice')) || 0,
+        hsnCode: getTagValue(block, 'HSNCode') || getTagValue(block, 'HsnCode') || undefined,
+        gstTaxTypeCode:
+          getTagValue(block, 'GstTaxTypeCode')
+          || getTagValue(block, 'GSTTaxTypeCode')
+          || getTagValue(block, 'TaxTypeCode')
+          || undefined,
         enabled: getTagValue(block, 'Enabled') === 'true' || getTagValue(block, 'Enabled') === '',
       }));
       return {

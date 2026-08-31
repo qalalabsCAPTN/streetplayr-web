@@ -75,6 +75,8 @@ describe('SOAP Client Request Translation', () => {
             <Name>Fortore 3 Jersey</Name>
             <Description>Test Desc</Description>
             <MaxRetailPrice>1999.00</MaxRetailPrice>
+            <GstTaxTypeCode>5</GstTaxTypeCode>
+            <HSNCode>61091000</HSNCode>
             <Color>Purple</Color>
             <Size>M</Size>
             <Ean>8905570042165</Ean>
@@ -101,6 +103,8 @@ describe('SOAP Client Request Translation', () => {
     expect(result.itemTypeDTO.color).toBe('Purple');
     expect(result.itemTypeDTO.size).toBe('M');
     expect(result.itemTypeDTO.ean).toBe('8905570042165');
+    expect(result.itemTypeDTO.gstTaxTypeCode).toBe('5');
+    expect(result.itemTypeDTO.hsnCode).toBe('61091000');
   });
 
   it('should parse GetInventorySnapshotRequest successfully', async () => {

@@ -15,7 +15,8 @@ import {
   toAddressSnapshot,
   type CanonicalAddress,
 } from '@/lib/commerce/address';
-import { orderInsertMoney, quoteTotals, type TotalsResult } from '@/lib/commerce/totals';
+import { orderInsertMoney, quoteTotals, cartGstPercent, type TotalsResult } from '@/lib/commerce/totals';
+import { gstPercentFromAttributes } from '@/src/integrations/unicommerce/variant-attributes';
 import { generateOrderNumber } from '@/lib/commerce/order-number';
 import { quoteCoupon, recordCouponRedemption } from '@/lib/commerce/coupons';
 import { rateLimit } from '@/lib/security/rate-limit';
@@ -126,10 +127,11 @@ export async function quoteCheckoutAction(params: {
     const admin = createAdminClient();
     const brandId = await resolveStorefrontBrandId(admin);
     let subtotal = 0;
+    const gstLines: Array<{ amount: number; gstPercent?: number | null }> = [];
     for (const item of params.items) {
       const { data: owned } = await admin
         .from('product_variants')
-        .select('price, products!inner(brand_id)')
+        .select('price, attributes, products!inner(brand_id)')
         .eq('id', item.variantId)
         .eq('products.brand_id', brandId)
         .maybeSingle();
@@ -137,7 +139,9 @@ export async function quoteCheckoutAction(params: {
         return { success: false, error: 'This item is not sold on StreetPlayR.', code: 'FOREIGN_BRAND' };
       }
       const unit = Number(owned.price ?? item.price);
-      subtotal += unit * item.quantity;
+      const amount = unit * item.quantity;
+      subtotal += amount;
+      gstLines.push({ amount, gstPercent: gstPercentFromAttributes(owned.attributes) });
     }
 
     let couponDiscount = 0;
@@ -164,6 +168,7 @@ export async function quoteCheckoutAction(params: {
       country: params.country,
       state: params.state,
       gstin: normalizeGstin(params.gstin),
+      taxPercent: cartGstPercent(gstLines),
     });
 
     return { success: true, data: { ...totals, couponDiscount, creditsApplied } };
@@ -203,7 +208,14 @@ export async function initiateCheckoutAction(
     const addressError = assertShippableAddress(canonical);
     if (addressError) return { success: false, error: addressError, code: 'INVALID_ADDRESS' };
 
-    const priced: Array<CheckoutItem & { sku: string | null; title: string; productTitle: string }> = [];
+    const priced: Array<
+      CheckoutItem & {
+        sku: string | null;
+        title: string;
+        productTitle: string;
+        gstPercent: number | null;
+      }
+    > = [];
     for (const item of items) {
       if (!UUID_RE.test(item.variantId)) {
         return { success: false, error: `Invalid variant ${item.variantId}`, code: 'VARIANT_NOT_FOUND' };
@@ -252,6 +264,7 @@ export async function initiateCheckoutAction(
         sku: variant.sku ?? null,
         title: variant.title ?? item.variantId,
         productTitle: product?.title ?? item.productId,
+        gstPercent: gstPercentFromAttributes(variant.attributes),
       });
     }
 
@@ -290,6 +303,9 @@ export async function initiateCheckoutAction(
       country: canonical.country,
       state: canonical.state,
       gstin: canonical.gstin,
+      taxPercent: cartGstPercent(
+        priced.map((i) => ({ amount: i.price * i.quantity, gstPercent: i.gstPercent }))
+      ),
     });
 
     if (totals.grandTotal < 1) {
