@@ -4649,7 +4649,7 @@ body.theme-light .carousel3d__dot.active {
 
   .storefront-root .header__logo img {
     height: 18px;
-    border-radius: 6px;
+    border-radius: 0;
   }
 
   .header__right {
@@ -7810,18 +7810,15 @@ body.theme-light .carousel3d__dot.active {
   }
 }
 
-/* Logo PNG = white mark on black plate — never invert (that made a black blob) */
+/* Logo PNG = white wordmark on transparent. Never invert at rest (that made a black blob). */
 .storefront-root .header__logo img {
   filter: none;
   opacity: 1;
   border-radius: 0;
 }
 
-/* Logo PNG = white mark on black plate. The plate self-adapts: the black plate
-   disappears over dark imagery (white wordmark shows). On DESKTOP only, the
-   scrolled/solid logo pill is translucent glass, so the logo is inverted +
-   multiplied there to read as a black wordmark on the light glass. Mobile keeps
-   the native plate on its solid black logo pill (white wordmark). */
+/* Transparent white wordmark. On DESKTOP light-mode scrolled glass, invert so
+   it reads as a black wordmark. Mobile / dark keep the white mark. */
 /* Home & About open over a full-bleed dark hero image even in light mode, so
    the transparent header must keep white ink there — the dark-theme default.
    Every other light-mode page has a light top strip (measured) and keeps the
@@ -10895,12 +10892,10 @@ body.theme-light .carousel3d__dot.active {
     max-width: fit-content;
   }
 
-  /* Desktop scrolled logo pill is translucent glass — invert the white-on-black
-     plate so it reads as a black wordmark on the light glass (mobile solid pill
-     keeps the native plate on its black pill). */
+  /* Desktop scrolled logo pill is translucent glass — invert the white
+     wordmark so it reads black on the light glass. */
   .storefront-root:not(.theme-dark) .header--scrolled .header__logo img {
     filter: invert(1);
-    mix-blend-mode: multiply;
   }
 
   /* Checkout: keep the empty left grid cell so the logo stays centered,
