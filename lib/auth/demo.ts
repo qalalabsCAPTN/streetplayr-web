@@ -43,6 +43,7 @@ export function demoLogin({
     avatar: null,
     referralCode: 'PLAYR-D8AC8B',
     walletId: 'WLT-0001',
+    tier: 'ROOKIE',
     joinedFrom: 'organic',
     authProvider: provider,
     isOnboarded: true,

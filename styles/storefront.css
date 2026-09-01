@@ -4188,6 +4188,15 @@ body.theme-light .carousel3d__dot.active {
   font-variant-numeric: tabular-nums;
 }
 
+.drawer__breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12.5px;
+  margin-bottom: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
 .drawer__note {
   font-size: 11px;
   color: var(--muted);

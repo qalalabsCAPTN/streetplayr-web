@@ -6,18 +6,27 @@ import {
 } from './redemption';
 
 describe('MEMBER_CREDIT_MAX_RATIO', () => {
-  it('caps member credits at 10% of subtotal', () => {
-    expect(MEMBER_CREDIT_MAX_RATIO).toBe(0.1);
+  it('defines dynamic caps based on tier', () => {
+    expect(MEMBER_CREDIT_MAX_RATIO.ROOKIE).toBe(0.05);
+    expect(MEMBER_CREDIT_MAX_RATIO.LEGEND).toBe(0.1);
   });
 });
 
 describe('maxRedeemableCredits', () => {
-  it('caps at floor(subtotal * 0.1) when balance is larger (10000, 1999 → 199)', () => {
-    expect(maxRedeemableCredits(10000, 1999)).toBe(199);
+  it('caps at floor(subtotal * 0.05) for ROOKIE when balance is larger (10000, 2000 → 100)', () => {
+    expect(maxRedeemableCredits(10000, 2000, 'ROOKIE')).toBe(100);
   });
 
-  it('caps at balance when balance is smaller (100, 1999 → 100)', () => {
-    expect(maxRedeemableCredits(100, 1999)).toBe(100);
+  it('caps at floor(subtotal * 0.075) for PRO when balance is larger (10000, 2000 → 150)', () => {
+    expect(maxRedeemableCredits(10000, 2000, 'PRO')).toBe(150);
+  });
+
+  it('caps at floor(subtotal * 0.1) for LEGEND when balance is larger (10000, 2000 → 200)', () => {
+    expect(maxRedeemableCredits(10000, 2000, 'LEGEND')).toBe(200);
+  });
+
+  it('caps at balance when balance is smaller (100, 20000 → 100)', () => {
+    expect(maxRedeemableCredits(100, 20000, 'ROOKIE')).toBe(100);
   });
 
   it('returns 0 for zero or negative inputs', () => {
@@ -35,7 +44,7 @@ describe('maxRedeemableCredits', () => {
 
   it('returns integers only', () => {
     expect(Number.isInteger(maxRedeemableCredits(100.9, 1999.7))).toBe(true);
-    expect(maxRedeemableCredits(100.9, 1999)).toBe(100);
+    expect(maxRedeemableCredits(100.9, 1999)).toBe(99);
   });
 });
 

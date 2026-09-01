@@ -2,14 +2,16 @@
  * Server-authoritative checkout totals.
  *
  * Production business rules (override via env, never via client):
- * - Domestic (IN) shipping: ₹SHIPPING_DOMESTIC_INR (default 99), free at
- *   SHIPPING_FREE_OVER_INR (default 1999) on goods subtotal after discounts.
+ * - Domestic (IN) shipping: ₹SHIPPING_DOMESTIC_INR (default 200), FREE when
+ *   goods after discount > SHIPPING_FREE_OVER_INR (default 999).
  * - International shipping: ₹SHIPPING_INTL_INR (default 1499).
- * - Catalog prices are UniWare MRP (tax-inclusive). GstTaxTypeCode (5 or 18)
- *   is the invoice split, not a surcharge — never sell above MRP.
- * - IN GST is extracted from (goods + shipping). Export is zero-rated.
+ * - Catalog unit prices are the Basic Amount (exclusive of GST).
+ * - IN GST is added on the Basic Amount after discounts at UniWare
+ *   GstTaxTypeCode (5 or 18), else GST_APPAREL_RATE (default 5).
+ *   GST is not charged on shipping. Export is zero-rated.
  * - GSTIN is captured for B2B invoices; rate is still the apparel GST rate
  *   unless GST_B2B_RATE is set.
+ * - grand_total = Basic Amount (after discount) + Shipping + GST
  */
 
 export type TotalsInput = {
@@ -64,11 +66,15 @@ function envNumber(key: string, fallback: number): number {
   return Number.isFinite(raw) && raw >= 0 ? raw : fallback;
 }
 
-/** GST already inside an MRP / shipping charge: tax = inclusive × rate / (100 + rate). */
-export function extractInclusiveGst(inclusiveAmount: number, percent: number): number {
-  const inclusive = money(inclusiveAmount);
-  if (inclusive <= 0 || !(percent > 0)) return 0;
-  return rupeesInt((inclusive * percent) / (100 + percent));
+/** Exclusive GST on a taxable (pre-tax) amount. */
+export function exclusiveGst(amount: number, percent: number): number {
+  const taxable = money(amount);
+  if (taxable <= 0 || !(percent > 0)) return 0;
+  return rupeesInt((taxable * percent) / 100);
+}
+
+export function shippingDisplay(shipping: number): string {
+  return shipping <= 0 ? 'FREE' : `₹${Math.round(shipping).toLocaleString('en-IN')}`;
 }
 
 export function calcShipping(subtotalAfterDiscount: number, country: string): {
@@ -78,37 +84,37 @@ export function calcShipping(subtotalAfterDiscount: number, country: string): {
   const goods = money(subtotalAfterDiscount);
   const dest = (country || 'IN').toUpperCase();
   if (dest === 'IN') {
-    const freeOver = envNumber('SHIPPING_FREE_OVER_INR', 1999);
-    const domestic = envNumber('SHIPPING_DOMESTIC_INR', 99);
-    if (goods >= freeOver) {
-      return { shipping: 0, label: `Free shipping over ₹${freeOver}` };
+    const freeOver = envNumber('SHIPPING_FREE_OVER_INR', 999);
+    const domestic = envNumber('SHIPPING_DOMESTIC_INR', 200);
+    if (goods > freeOver) {
+      return { shipping: 0, label: 'FREE' };
     }
-    return { shipping: domestic, label: `Standard shipping ₹${domestic}` };
+    return { shipping: domestic, label: shippingDisplay(domestic) };
   }
   const intl = envNumber('SHIPPING_INTL_INR', 1499);
-  return { shipping: intl, label: `International shipping ₹${intl}` };
+  return { shipping: intl, label: shippingDisplay(intl) };
 }
 
 export function calcTax(params: {
-  goodsAndShipping: number;
+  taxableAmount: number;
   country: string;
   gstin?: string;
   taxPercent?: number;
 }): { tax: number; rate: number; label: string } {
   const dest = (params.country || 'IN').toUpperCase();
   if (dest !== 'IN') {
-    return { tax: 0, rate: 0, label: 'Export — zero-rated' };
+    return { tax: 0, rate: 0, label: 'GST' };
   }
   const apparel = params.taxPercent ?? envNumber('GST_APPAREL_RATE', 5);
   const percent = params.gstin
     ? envNumber('GST_B2B_RATE', apparel)
     : apparel;
   const rate = percent / 100;
-  const tax = extractInclusiveGst(params.goodsAndShipping, percent);
+  const tax = exclusiveGst(params.taxableAmount, percent);
   return {
     tax,
     rate,
-    label: params.gstin ? `GST ${percent}% incl. (GSTIN)` : `GST ${percent}% (incl.)`,
+    label: 'GST',
   };
 }
 
@@ -130,9 +136,8 @@ export function quoteTotals(input: TotalsInput): TotalsResult {
   const discount = Math.min(money(input.discount), subtotal);
   const afterDiscount = money(subtotal - discount);
   const { shipping, label: shippingLabel } = calcShipping(afterDiscount, input.country);
-  const payable = money(afterDiscount + shipping);
   const { tax, rate, label: taxLabel } = calcTax({
-    goodsAndShipping: payable,
+    taxableAmount: afterDiscount,
     country: input.country,
     gstin: input.gstin,
     taxPercent: input.taxPercent,
@@ -142,7 +147,7 @@ export function quoteTotals(input: TotalsInput): TotalsResult {
     discount,
     shipping,
     tax,
-    grandTotal: payable,
+    grandTotal: money(afterDiscount + shipping + tax), // Basic (after discount) + Shipping + GST
     taxRate: rate,
     taxLabel,
     shippingLabel,

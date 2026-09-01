@@ -152,14 +152,23 @@ export async function quoteCheckoutAction(params: {
 
     const { data: walletProfile } = await admin
       .from('profiles')
-      .select('sprr_balance')
+      .select('sprr_balance, tier')
       .eq('id', user.id)
       .maybeSingle();
     const balance = typeof walletProfile?.sprr_balance === 'number' ? walletProfile.sprr_balance : 0;
+    let tier = (walletProfile?.tier as 'ROOKIE' | 'PRO' | 'LEGEND' | 'CREATORS' | 'TALENT') || 'ROOKIE';
+    if (tier === 'CREATORS' || tier === 'TALENT') {
+      const { count } = await admin.from('orders')
+        .select('*', { count: 'exact', head: true })
+        .eq('customer_id', user.id)
+        .in('status', ['confirmed', 'processing', 'fulfilling', 'shipped', 'delivered']);
+      const { deriveTier } = await import('@/lib/nectar/engine');
+      tier = deriveTier(count || 0);
+    }
     const afterCoupon = Math.max(0, subtotal - couponDiscount);
     const creditsApplied = Math.min(
       Math.max(0, Math.floor(params.creditsToApply ?? 0)),
-      maxRedeemableCredits(balance, afterCoupon)
+      maxRedeemableCredits(balance, afterCoupon, tier as any)
     );
 
     const totals = quoteTotals({
@@ -172,6 +181,49 @@ export async function quoteCheckoutAction(params: {
     });
 
     return { success: true, data: { ...totals, couponDiscount, creditsApplied } };
+  } catch (e: unknown) {
+    return { success: false, error: e instanceof Error ? e.message : 'Quote failed', code: 'QUOTE_FAILED' };
+  }
+}
+
+/** Unauthenticated bag preview. Prices and GST rates come from the DB, never the client. */
+export async function previewCartTotalsAction(
+  items: Array<{ variantId: string; quantity: number }>
+): Promise<OrchestrationResponse<TotalsResult>> {
+  try {
+    const rl = await rateLimit({ key: 'cart-preview', limit: 60, windowMs: 60_000 });
+    if (!rl.ok) {
+      return { success: false, error: 'Too many quotes.', code: 'RATE_LIMIT' };
+    }
+    const admin = createAdminClient();
+    const brandId = await resolveStorefrontBrandId(admin);
+    let subtotal = 0;
+    const gstLines: Array<{ amount: number; gstPercent?: number | null }> = [];
+    for (const item of items) {
+      if (!UUID_RE.test(item.variantId) || item.quantity < 1) continue;
+      const { data: owned } = await admin
+        .from('product_variants')
+        .select('price, attributes, products!inner(brand_id)')
+        .eq('id', item.variantId)
+        .eq('products.brand_id', brandId)
+        .maybeSingle();
+      if (!owned) continue;
+      const amount = Number(owned.price ?? 0) * item.quantity;
+      subtotal += amount;
+      gstLines.push({ amount, gstPercent: gstPercentFromAttributes(owned.attributes) });
+    }
+    if (subtotal <= 0) {
+      return { success: false, error: 'Bag is empty.', code: 'EMPTY' };
+    }
+    return {
+      success: true,
+      data: quoteTotals({
+        subtotal,
+        discount: 0,
+        country: 'IN',
+        taxPercent: cartGstPercent(gstLines),
+      }),
+    };
   } catch (e: unknown) {
     return { success: false, error: e instanceof Error ? e.message : 'Quote failed', code: 'QUOTE_FAILED' };
   }
@@ -287,14 +339,23 @@ export async function initiateCheckoutAction(
 
     const { data: walletProfile } = await admin
       .from('profiles')
-      .select('sprr_balance')
+      .select('sprr_balance, tier')
       .eq('id', user.id)
       .maybeSingle();
     const balance = typeof walletProfile?.sprr_balance === 'number' ? walletProfile.sprr_balance : 0;
+    let tier = (walletProfile?.tier as 'ROOKIE' | 'PRO' | 'LEGEND' | 'CREATORS' | 'TALENT') || 'ROOKIE';
+    if (tier === 'CREATORS' || tier === 'TALENT') {
+      const { count } = await admin.from('orders')
+        .select('*', { count: 'exact', head: true })
+        .eq('customer_id', user.id)
+        .in('status', ['confirmed', 'processing', 'fulfilling', 'shipped', 'delivered']);
+      const { deriveTier } = await import('@/lib/nectar/engine');
+      tier = deriveTier(count || 0);
+    }
     const afterCoupon = Math.max(0, subtotal - couponDiscount);
     const creditsApplied = Math.min(
       Math.max(0, Math.floor(creditsToApply)),
-      maxRedeemableCredits(balance, afterCoupon)
+      maxRedeemableCredits(balance, afterCoupon, tier as any)
     );
 
     const totals = quoteTotals({

@@ -30,7 +30,7 @@ export const AuthService = {
     const fetchProfile = async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, email, full_name, avatar_url, role, created_at, sprr_balance')
+        .select('id, email, full_name, avatar_url, role, created_at, sprr_balance, tier')
         .eq('id', session.user.id)
         .single();
 
@@ -97,7 +97,18 @@ export const AuthService = {
       return null;
     }
 
-    debug('profile found:', { id: profile.id, role: profile.role, email: profile.email });
+    let activeTier = (profile as { tier?: string }).tier || 'ROOKIE';
+    if (activeTier === 'CREATORS' || activeTier === 'TALENT') {
+      const admin = createAdminClient();
+      const { count } = await admin.from('orders')
+        .select('*', { count: 'exact', head: true })
+        .eq('customer_id', session.user.id)
+        .in('status', ['confirmed', 'processing', 'fulfilling', 'shipped', 'delivered']);
+      const { deriveTier } = await import('@/lib/nectar/engine');
+      activeTier = deriveTier(count || 0);
+    }
+
+    debug('profile found:', { id: profile.id, role: profile.role, email: profile.email, tier: activeTier });
 
     return {
       id: profile.id,
@@ -116,6 +127,7 @@ export const AuthService = {
         ? (profile as { sprr_balance?: number }).sprr_balance!
         : 0,
       role: (profile.role as UserRole) || 'member',
+      tier: activeTier,
     };
   },
 

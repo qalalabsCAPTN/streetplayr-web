@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { TopBar } from '@/components/ops2/top-bar';
 import { Badge } from '@/components/ops2/ui/badge';
 import { formatCurrency } from '@/lib/ops2/format';
+import { OrderPriceBreakdown } from '@/components/commerce/OrderPriceBreakdown';
 import { getAdminOrderAction } from '@/app/actions/ops/orders-admin';
 import { transitionAdminOrderAction } from '@/app/actions/ops/order-transitions';
 
@@ -55,26 +56,13 @@ export default function AdminOrderDetailPage() {
               <Badge variant="info">{order.status}</Badge>
             </div>
             <div className="surface p-4 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Subtotal</span>
-                <span>{formatCurrency(order.subtotal)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>Shipping</span>
-                <span>{formatCurrency(order.shippingCost)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>Tax</span>
-                <span>{formatCurrency(order.taxAmount)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>Discount</span>
-                <span>{formatCurrency(order.discountTotal ?? 0)}</span>
-              </div>
-              <div className="flex justify-between font-medium">
-                <span>Grand total</span>
-                <span>{formatCurrency(order.total)}</span>
-              </div>
+              <OrderPriceBreakdown
+                subtotal={order.subtotal}
+                discount={order.discountTotal ?? 0}
+                shipping={order.shippingCost}
+                tax={order.taxAmount}
+                grandTotal={order.total}
+              />
             </div>
             <div className="surface p-4">
               <h3 className="text-sm font-medium mb-3">Line items</h3>

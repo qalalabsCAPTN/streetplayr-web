@@ -2,20 +2,20 @@ import { describe, it, expect } from 'vitest';
 import { deriveTier, getProgress, getTierMultiplier, getStreakLabel, type Tier } from './engine';
 
 describe('Nectar Engine - deriveTier', () => {
-  it('returns ROOKIE when purchaseCount is less than 3', () => {
+  it('returns ROOKIE when purchaseCount is less than 16', () => {
     expect(deriveTier(0)).toBe('ROOKIE');
     expect(deriveTier(1)).toBe('ROOKIE');
-    expect(deriveTier(2)).toBe('ROOKIE');
+    expect(deriveTier(15)).toBe('ROOKIE');
   });
 
-  it('returns PRO when purchaseCount is between 3 and 4 inclusive', () => {
-    expect(deriveTier(3)).toBe('PRO');
-    expect(deriveTier(4)).toBe('PRO');
+  it('returns PRO when purchaseCount is between 16 and 30 inclusive', () => {
+    expect(deriveTier(16)).toBe('PRO');
+    expect(deriveTier(30)).toBe('PRO');
   });
 
-  it('returns LEGEND when purchaseCount is 5 or greater', () => {
-    expect(deriveTier(5)).toBe('LEGEND');
-    expect(deriveTier(10)).toBe('LEGEND');
+  it('returns LEGEND when purchaseCount is 31 or greater', () => {
+    expect(deriveTier(31)).toBe('LEGEND');
+    expect(deriveTier(50)).toBe('LEGEND');
   });
 });
 
@@ -23,29 +23,29 @@ describe('Nectar Engine - getProgress', () => {
   it('returns 0% progress toward PRO when purchaseCount is 1', () => {
     const result = getProgress(1);
     expect(result.tier).toBe('ROOKIE');
-    expect(result.progress).toBe(0); // (1 - 1) / (3 - 1) = 0
+    expect(result.progress).toBe(0); // (1 - 1) / (16 - 1) = 0
     expect(result.next).toBe('PRO');
   });
 
-  it('returns 50% progress toward PRO when purchaseCount is 2', () => {
-    const result = getProgress(2);
-    expect(result.tier).toBe('ROOKIE');
-    expect(result.progress).toBe(0.5); // (2 - 1) / (3 - 1) = 0.5
-    expect(result.next).toBe('PRO');
-  });
-
-  it('returns 50% progress toward LEGEND when purchaseCount is 4', () => {
+  it('returns correctly scaled progress toward PRO when purchaseCount is 4', () => {
     const result = getProgress(4);
+    expect(result.tier).toBe('ROOKIE');
+    expect(result.progress).toBeCloseTo(0.2); // (4 - 1) / (16 - 1) = 0.2
+    expect(result.next).toBe('PRO');
+  });
+
+  it('returns correctly scaled progress toward LEGEND when purchaseCount is 22', () => {
+    const result = getProgress(22);
     expect(result.tier).toBe('PRO');
-    expect(result.progress).toBe(0.5); // (4 - 3) / (5 - 3) = 0.5
+    expect(result.progress).toBeCloseTo(0.4); // (22 - 16) / (31 - 16) = 6 / 15 = 0.4
     expect(result.next).toBe('LEGEND');
   });
 
   it('returns 100% progress (1.0) and next as null when tier is LEGEND', () => {
-    const result = getProgress(5);
+    const result = getProgress(31);
     expect(result.tier).toBe('LEGEND');
     expect(result.progress).toBe(1);
-    expect(result.next).toBeNull();
+    expect(result.next).toBe(null);
   });
 });
 
@@ -208,8 +208,8 @@ describe('grantSocialSignupBonus', () => {
     (createAdminClient as any).mockReturnValue(mockAdminClient);
 
     await grantSocialSignupBonus('user_123');
-    // 50 SPRR, 25 XP mirrored
-    expect(updateMock).toHaveBeenCalledWith({ sprr_balance: 60, xp: 30 });
+    // 50 SPRR
+    expect(updateMock).toHaveBeenCalledWith({ sprr_balance: 60 });
   });
 
   it('skips if already granted', async () => {

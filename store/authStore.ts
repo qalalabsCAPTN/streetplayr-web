@@ -76,6 +76,7 @@ export interface User {
   memberSince: string;     // ISO date string
   sprrBalance: number;
   role: UserRole;
+  tier: string;
 }
 
 // ─── Store State ─────────────────────────────────────────────────────────────

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import type { Order } from '@/lib/orchestration/types';
 import { customerOrderStatusLabel, isInvoiceEligible, isPayableOrder } from '@/lib/commerce/order-paid';
+import { OrderPriceBreakdown } from '@/components/commerce/OrderPriceBreakdown';
 
 function money(n: number) {
   return '₹' + n.toLocaleString('en-IN');
@@ -63,11 +64,13 @@ export default function OrderDetailPage() {
 
       <div className="acct-card" style={{ marginBottom: 20 }}>
         <span className="acct-card__eyebrow">Totals</span>
-        <p>Subtotal {money(order.subtotal)}</p>
-        <p>Shipping {money(order.shippingCost)}</p>
-        <p>Tax {money(order.taxAmount)}</p>
-        <p>Discount {money(order.discountTotal ?? 0)}</p>
-        <h2 className="acct-card__head-title">{money(order.total)}</h2>
+        <OrderPriceBreakdown
+          subtotal={order.subtotal}
+          discount={order.discountTotal ?? 0}
+          shipping={order.shippingCost}
+          tax={order.taxAmount}
+          grandTotal={order.total}
+        />
         <p className="acct-card__sub">Payment: {order.paymentStatus ?? 'pending'}</p>
       </div>
 

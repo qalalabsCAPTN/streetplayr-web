@@ -1,5 +1,6 @@
 import { getOrderAction } from '@/app/actions/order';
 import { isInvoiceEligible } from '@/lib/commerce/order-paid';
+import { shippingDisplay } from '@/lib/commerce/totals';
 import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -45,11 +46,11 @@ export async function GET(
 <thead><tr><th>Item</th><th>Qty</th><th>Unit</th></tr></thead>
 <tbody>${rows}</tbody>
 </table>
-<p>Subtotal INR ${order.subtotal}</p>
-<p>Shipping INR ${order.shippingCost}</p>
-<p>Tax INR ${order.taxAmount}</p>
-<p>Discount INR ${order.discountTotal ?? 0}</p>
-<h2>Grand total INR ${order.total}</h2>
+<p>Basic Amount INR ${order.subtotal}</p>
+${(order.discountTotal ?? 0) > 0 ? `<p>Discount INR ${order.discountTotal}</p>` : ''}
+<p>Shipping ${shippingDisplay(order.shippingCost)}</p>
+<p>GST INR ${order.taxAmount}</p>
+<h2>Total INR ${order.total}</h2>
 </body></html>`;
 
   return new NextResponse(html, {

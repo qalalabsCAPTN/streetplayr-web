@@ -102,6 +102,7 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [liveStock, setLiveStock] = useState<Record<string, number>>({});
   const memberBalance = useAuthStore((s) => s.user?.sprrBalance ?? 0);
+  const memberTier = useAuthStore((s) => (s.user?.tier as 'ROOKIE' | 'PRO' | 'LEGEND' | 'CREATORS' | 'TALENT') || 'ROOKIE');
   const [spCredits, setSpCredits] = useState(0);
   const [tab, setTab] = useState('details');
   const [guideOpen, setGuideOpen] = useState(false);
@@ -478,13 +479,13 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
               <div className="pdp__credits-head">
                 <span className="pdp__credits-label">Member Credits</span>
                 <span className="pdp__credits-value">
-                  {spCredits} / {maxRedeemableCredits(memberBalance, Number(String(props.price).replace(/[^\d.]/g, '')) || 0) || memberBalance}
+                  {spCredits} / {maxRedeemableCredits(memberBalance, Number(String(props.price).replace(/[^\d.]/g, '')) || 0, memberTier) || memberBalance}
                 </span>
               </div>
               <input
                 type="range"
                 min="0"
-                max={Math.max(0, maxRedeemableCredits(memberBalance, Number(String(props.price).replace(/[^\d.]/g, '')) || 0))}
+                max={Math.max(0, maxRedeemableCredits(memberBalance, Number(String(props.price).replace(/[^\d.]/g, '')) || 0, memberTier))}
                 step="50"
                 value={spCredits}
                 onChange={(e) => setSpCredits(Number(e.target.value))}

@@ -8,8 +8,8 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-# Cache npm packages across builds using BuildKit cache mounts
-RUN --mount=type=cache,target=/root/.npm npm ci
+# Cache npm packages across builds
+RUN npm ci
 
 # --- Phase 2: Compile application & prune devDependencies ---
 FROM node:20.12.0-alpine AS builder
@@ -23,8 +23,8 @@ ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=mockanonkey
 ENV SUPABASE_SERVICE_ROLE_KEY=mockservicerolekey
 ENV NODE_ENV=production
 
-# Compile Next.js with compiler cache persistence across builds
-RUN --mount=type=cache,target=/app/.next/cache npm run build
+# Compile Next.js
+RUN npm run build
 
 # Prune development dependencies to minimize final runner layer size
 RUN npm prune --omit=dev

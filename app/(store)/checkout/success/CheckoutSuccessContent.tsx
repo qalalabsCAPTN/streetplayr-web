@@ -6,13 +6,17 @@ import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useCartStore } from "@/store/cartStore";
-import { formatPrice } from "@/lib/utils/format";
 import { trackPurchase } from "@/lib/analytics/ecommerce";
+import { OrderPriceBreakdown } from "@/components/commerce/OrderPriceBreakdown";
 
 interface OrderData {
   id: string;
   orderNumber: string;
   total: number;
+  subtotal: number;
+  shippingCost: number;
+  taxAmount: number;
+  discountTotal: number;
   status: string;
   paymentStatus?: string;
 }
@@ -54,6 +58,10 @@ export default function CheckoutSuccessContent() {
           id: data.id,
           orderNumber: data.orderNumber,
           total: data.total,
+          subtotal: data.subtotal,
+          shippingCost: data.shippingCost,
+          taxAmount: data.taxAmount,
+          discountTotal: data.discountTotal ?? 0,
           status: data.status,
           paymentStatus: data.paymentStatus,
         });
@@ -198,9 +206,14 @@ export default function CheckoutSuccessContent() {
                     <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/30">Order</span>
                     <span className="font-mono text-[10px] text-white/60">{order.orderNumber}</span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/30">Total</span>
-                    <span className="font-display text-2xl text-[#eadfed]">{formatPrice(order.total)}</span>
+                  <div className="font-mono text-[10px] text-white/70 space-y-2">
+                    <OrderPriceBreakdown
+                      subtotal={order.subtotal}
+                      discount={order.discountTotal}
+                      shipping={order.shippingCost}
+                      tax={order.taxAmount}
+                      grandTotal={order.total}
+                    />
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/30">Status</span>

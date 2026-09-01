@@ -3,16 +3,16 @@ import { createAdminClient } from '@/lib/supabase/admin';
 export type Tier = 'ROOKIE' | 'PRO' | 'LEGEND' | 'CREATORS' | 'TALENT';
 
 export const TIER_THRESHOLDS: Record<Tier, { min: number; max: number | null; label: string }> = {
-  ROOKIE: { min: 1, max: 3, label: 'Rookie' },
-  PRO: { min: 3, max: 5, label: 'Pro' },
-  LEGEND: { min: 5, max: null, label: 'Legend' },
+  ROOKIE: { min: 1, max: 16, label: 'Rookie' },
+  PRO: { min: 16, max: 31, label: 'Pro' },
+  LEGEND: { min: 31, max: null, label: 'Legend' },
   CREATORS: { min: 999999, max: null, label: 'Creators' },
   TALENT: { min: 999999, max: null, label: 'Talent' },
 };
 
 export function deriveTier(purchaseCount: number): Tier {
-  if (purchaseCount >= 5) return 'LEGEND';
-  if (purchaseCount >= 3) return 'PRO';
+  if (purchaseCount >= 31) return 'LEGEND';
+  if (purchaseCount >= 16) return 'PRO';
   return 'ROOKIE';
 }
 
@@ -55,35 +55,28 @@ export function getStreakLabel(days: number): string {
  * Award XP to a user profile.
  */
 export async function awardXP(userId: string, amount: number, _source: string): Promise<void> {
-  if (amount <= 0) return;
-  const admin = createAdminClient();
-  const { data: profile } = await admin.from('profiles').select('xp').eq('id', userId).single();
-  const currentXp = profile?.xp ?? 0;
-  await admin.from('profiles').update({ xp: currentXp + amount }).eq('id', userId);
+  // Client requested dropping the XP concept and unifying everything as Points (SPRR).
+  // This is now a no-op to prevent breaking existing API contracts in tests.
+  return Promise.resolve();
 }
 
 /**
- * Award SPRR and log a wallet transaction.
+ * Award SPRR points to a user.
  */
 export async function awardSPRR(
   userId: string,
   amount: number,
   source: string,
   type: 'earned' | 'referral_bonus' | 'adjustment' = 'earned',
-  mirrorXp: boolean = true
+  _mirrorXp: boolean = true // Kept for API compatibility, but unused
 ): Promise<void> {
   if (amount <= 0) return;
   const admin = createAdminClient();
-  const { data: profile } = await admin.from('profiles').select('sprr_balance, xp').eq('id', userId).single();
+  const { data: profile } = await admin.from('profiles').select('sprr_balance').eq('id', userId).single();
   const currentSprr = profile?.sprr_balance ?? 0;
-  
-  // XP Mirroring Rule: 50% of Points earned are mirrored as XP
-  const currentXp = profile?.xp ?? 0;
-  const xpAmount = mirrorXp ? Math.floor(amount * 0.5) : 0;
 
   await admin.from('profiles').update({ 
-    sprr_balance: currentSprr + amount,
-    xp: currentXp + xpAmount 
+    sprr_balance: currentSprr + amount
   }).eq('id', userId);
   
   await admin.from('wallet_transactions').insert({
@@ -178,27 +171,22 @@ export async function claimBonus(userId: string, campaignId: string): Promise<{ 
  * Adapted from NECTAR 2.0 ReferralService convertReferral welcome bonus pattern.
  */
 export const WELCOME_BONUS_SPRR = 100;
-export const WELCOME_BONUS_XP = 50;
 
 export async function grantWelcomeBonus(userId: string): Promise<void> {
   const admin = createAdminClient();
-
-  // Idempotency check — only grant once
   const { data: profile } = await admin
     .from('profiles')
-    .select('welcome_bonus_granted, sprr_balance, xp')
+    .select('welcome_bonus_granted, sprr_balance')
     .eq('id', userId)
     .single();
 
   if (!profile || profile.welcome_bonus_granted) return;
 
   const newSprr = (profile.sprr_balance ?? 0) + WELCOME_BONUS_SPRR;
-  const newXp = (profile.xp ?? 0) + WELCOME_BONUS_XP;
 
   // Atomic update: balance + flag in single query
   await admin.from('profiles').update({
     sprr_balance: newSprr,
-    xp: newXp,
     welcome_bonus_granted: true,
   }).eq('id', userId);
 
@@ -252,15 +240,13 @@ export async function processReferral(referredUserId: string): Promise<void> {
   if (!claim || claim.status !== 'pending') return;
 
   const sprrBonus = 50;
-  const xpBonus = 25;
 
   await awardSPRR(claim.referrer_id, sprrBonus, 'Referral bonus', 'referral_bonus');
-  await awardXP(claim.referrer_id, xpBonus, 'Referral bonus');
 
   await admin.from('referral_claims').update({
     status: 'fulfilled',
     bonus_sprr: sprrBonus,
-    bonus_xp: xpBonus,
+    bonus_xp: 0,
     claimed_at: new Date().toISOString(),
   }).eq('id', claim.id);
 }

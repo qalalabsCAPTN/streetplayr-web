@@ -6,9 +6,12 @@ import { useCart } from '@/components/CartContext';
 import { formatPrice } from '@/lib/utils/format';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import { OrderPriceBreakdown } from '@/components/commerce/OrderPriceBreakdown';
+import { useServerCartQuote } from '@/components/cart/useServerCartQuote';
 
 export default function CartPage() {
   const cart = useCart();
+  const quote = useServerCartQuote(cart.items.map((line: { key: string; qty: number }) => ({ key: line.key, qty: line.qty })));
 
   return (
     <>
@@ -53,11 +56,16 @@ export default function CartPage() {
           </div>
 
           <aside className="cart-page-summary">
-            <div className="drawer__total">
-              <span>Estimated total</span>
-              <span>{formatPrice(cart.total)}</span>
+            <div className="drawer__breakdown">
+              <OrderPriceBreakdown
+                subtotal={quote?.subtotal ?? 0}
+                discount={quote?.discount ?? 0}
+                shipping={quote?.shipping ?? null}
+                tax={quote?.tax ?? null}
+                grandTotal={quote?.grandTotal ?? null}
+                pending={!quote}
+              />
             </div>
-            <p className="drawer__note">Taxes included. Discounts and shipping calculated at checkout.</p>
             <Link href="/checkout" className="drawer__checkout storefront-cta">
               Check out
             </Link>

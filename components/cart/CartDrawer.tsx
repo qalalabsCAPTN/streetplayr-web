@@ -5,12 +5,15 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/components/CartContext';
 import { formatPrice } from '@/lib/utils/format';
+import { OrderPriceBreakdown } from '@/components/commerce/OrderPriceBreakdown';
+import { useServerCartQuote } from '@/components/cart/useServerCartQuote';
 
 type Suggest = { handle: string; title: string; price: number; images: string[] };
 
 export default function CartDrawer() {
   const cart = useCart();
   const [suggestions, setSuggestions] = useState<Suggest[]>([]);
+  const quote = useServerCartQuote(cart.items.map((line: { key: string; qty: number }) => ({ key: line.key, qty: line.qty })));
 
   useEffect(() => {
     if (!cart.open || suggestions.length > 0) return;
@@ -108,11 +111,16 @@ export default function CartDrawer() {
 
         {cart.items.length > 0 && (
           <div className="drawer__foot">
-            <div className="drawer__total">
-              <span>Estimated total</span>
-              <span>{formatPrice(cart.total)}</span>
+            <div className="drawer__breakdown">
+              <OrderPriceBreakdown
+                subtotal={quote?.subtotal ?? 0}
+                discount={quote?.discount ?? 0}
+                shipping={quote?.shipping ?? null}
+                tax={quote?.tax ?? null}
+                grandTotal={quote?.grandTotal ?? null}
+                pending={!quote}
+              />
             </div>
-            <p className="drawer__note">Taxes included. Discounts and shipping calculated at checkout.</p>
             <Link href="/checkout" className="drawer__checkout storefront-cta" onClick={() => cart.setOpen(false)}>
               Check out
             </Link>

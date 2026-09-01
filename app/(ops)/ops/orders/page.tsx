@@ -1,5 +1,6 @@
 ﻿import React from "react";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { shippingDisplay } from "@/lib/commerce/totals";
 
 type OrderStatus =
   | "pending" | "confirmed" | "processing" | "fulfilling"
@@ -23,7 +24,7 @@ async function getOrdersWithTimeline() {
 
     const { data: orders } = await admin
       .from("orders")
-      .select("id, order_number, customer_id, status, grand_total, created_at, updated_at")
+      .select("id, order_number, customer_id, status, grand_total, subtotal, shipping_total, shipping_cost, tax_total, tax_amount, discount_total, created_at, updated_at")
       .order("created_at", { ascending: false })
       .limit(50);
 
@@ -62,6 +63,10 @@ async function getOrdersWithTimeline() {
       orderNumber: o.order_number ?? o.id,
       status: o.status as OrderStatus,
       total: Number(o.grand_total ?? 0),
+      subtotal: Number(o.subtotal ?? 0),
+      shipping: Number(o.shipping_total ?? o.shipping_cost ?? 0),
+      tax: Number(o.tax_total ?? o.tax_amount ?? 0),
+      discount: Number(o.discount_total ?? 0),
       items: itemsByOrder[o.id] ?? 0,
       timeline: eventsByOrder[o.id] ?? [],
     }));
@@ -143,7 +148,13 @@ export default async function OrdersPage() {
                   </div>
                   <div className="flex items-center gap-8 text-[10px] font-mono text-[var(--ops-text-muted)] uppercase tracking-widest">
                     <span>{order.items} Item{order.items !== 1 ? "s" : ""}</span>
-                    <span>₹{Number(order.total).toLocaleString("en-IN")}</span>
+                    <span>Basic Amount ₹{order.subtotal.toLocaleString("en-IN")}</span>
+                    {(order.discount ?? 0) > 0 && (
+                      <span>Discount ₹{order.discount.toLocaleString("en-IN")}</span>
+                    )}
+                    <span>Shipping {shippingDisplay(order.shipping)}</span>
+                    <span>GST ₹{order.tax.toLocaleString("en-IN")}</span>
+                    <span>Total ₹{Number(order.total).toLocaleString("en-IN")}</span>
                   </div>
                 </div>
 

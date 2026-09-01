@@ -12,6 +12,7 @@ import { maxRedeemableCredits } from "@/lib/loyalty/redemption";
 import { trackBeginCheckout } from "@/lib/analytics/ecommerce";
 import type { TotalsResult } from "@/lib/commerce/totals";
 import type { AddressData } from "@/app/actions/address";
+import { OrderPriceBreakdown } from "@/components/commerce/OrderPriceBreakdown";
 
 function CheckoutInput({ label, id, type = "text", value, onChange, placeholder, required = false }: {
   label: string;
@@ -51,6 +52,7 @@ const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }, {
   const [paymentMethod, setPaymentMethod] = useState<'demo' | 'easebuzz'>('easebuzz');
   const [creditsToApply, setCreditsToApply] = useState(0);
   const [memberBalance, setMemberBalance] = useState(0);
+  const [memberTier, setMemberTier] = useState<'ROOKIE' | 'PRO' | 'LEGEND' | 'CREATORS' | 'TALENT'>('ROOKIE');
   const [savedAddresses, setSavedAddresses] = useState<AddressData[]>([]);
 
   const [email, setEmail] = useState("");
@@ -65,7 +67,7 @@ const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }, {
   const [gstin, setGstin] = useState("");
 
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-  const maxCredits = maxRedeemableCredits(memberBalance, subtotal);
+  const maxCredits = maxRedeemableCredits(memberBalance, subtotal, memberTier);
 
   useEffect(() => {
     let cancelled = false;
@@ -75,8 +77,10 @@ const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }, {
         const profile = await getProfileAction();
         if (!cancelled) {
           const balance = profile?.sprrBalance ?? 0;
+          const tier = (profile?.tier as 'ROOKIE' | 'PRO' | 'LEGEND' | 'CREATORS' | 'TALENT') || 'ROOKIE';
           setMemberBalance(balance);
-          setCreditsToApply((prev) => Math.min(prev, maxRedeemableCredits(balance, subtotal)));
+          setMemberTier(tier);
+          setCreditsToApply((prev) => Math.min(prev, maxRedeemableCredits(balance, subtotal, tier)));
           if (profile?.email) setEmail((prev) => prev || profile.email || '');
           if (profile?.name) {
             const parts = String(profile.name).split(' ');
@@ -380,7 +384,6 @@ function OrderSummary({ items, quote, fallbackSubtotal }: {
   quote: QuoteView | null;
   fallbackSubtotal: number;
 }) {
-  const payable = quote?.grandTotal ?? fallbackSubtotal;
   return (
     <div className="checkout-summary">
       <h3 className="checkout-summary__title">Order summary ({items.length})</h3>
@@ -402,33 +405,24 @@ function OrderSummary({ items, quote, fallbackSubtotal }: {
       </div>
 
       <div className="checkout-summary__rows">
-        <div>
-          <span>Subtotal</span>
-          <span>{formatPrice(quote?.subtotal ?? fallbackSubtotal)}</span>
-        </div>
-        {(quote?.discount ?? 0) > 0 && (
-          <div>
-            <span>Discount</span>
-            <span>−{formatPrice(quote!.discount)}</span>
-          </div>
-        )}
-        <div>
-          <span>Shipping</span>
-          <span>{quote ? formatPrice(quote.shipping) : '…'}</span>
-        </div>
-        <div className="muted">
-          <span>{quote?.taxLabel ?? 'GST (incl.)'}</span>
-          <span>{quote ? formatPrice(quote.tax) : '…'}</span>
-        </div>
+        <OrderPriceBreakdown
+          subtotal={quote?.subtotal ?? fallbackSubtotal}
+          discount={quote?.discount ?? 0}
+          shipping={quote?.shipping ?? null}
+          tax={quote?.tax ?? null}
+          grandTotal={quote?.grandTotal ?? null}
+          pending={!quote}
+          includeTotal={false}
+        />
       </div>
 
       <div className="checkout-summary__total">
         <span>Total</span>
-        <span>{formatPrice(payable)}</span>
+        <span>{quote ? formatPrice(quote.grandTotal) : '…'}</span>
       </div>
 
       <p className="checkout-summary__secure">
-        {quote?.shippingLabel ?? 'Shipping and GST are calculated on the server.'}
+        Shipping and GST are calculated on the server.
       </p>
     </div>
   );

@@ -2,6 +2,7 @@ import { getOrderAction } from '@/app/actions/order';
 import { isInvoiceEligible } from '@/lib/commerce/order-paid';
 import { forbidden, notFound, unauthorized } from 'next/navigation';
 import Link from 'next/link';
+import { OrderPriceBreakdown } from '@/components/commerce/OrderPriceBreakdown';
 
 export const dynamic = 'force-dynamic';
 
@@ -51,11 +52,13 @@ export default async function OrderInvoicePage({
           ))}
         </tbody>
       </table>
-      <p>Subtotal ₹{order.subtotal.toLocaleString('en-IN')}</p>
-      <p>Shipping ₹{order.shippingCost.toLocaleString('en-IN')}</p>
-      <p>Tax ₹{order.taxAmount.toLocaleString('en-IN')}</p>
-      <p>Discount ₹{(order.discountTotal ?? 0).toLocaleString('en-IN')}</p>
-      <h2>Grand total ₹{order.total.toLocaleString('en-IN')}</h2>
+      <OrderPriceBreakdown
+        subtotal={order.subtotal}
+        discount={order.discountTotal ?? 0}
+        shipping={order.shippingCost}
+        tax={order.taxAmount}
+        grandTotal={order.total}
+      />
       <p className="acct-card__sub">Print this page for a PDF copy. Amounts are server snapshots from the order row.</p>
       <Link href={`/profile/orders/${order.id}`}>← Order</Link>
       {' · '}
