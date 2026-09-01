@@ -28,16 +28,16 @@ export function OrderPriceBreakdown({
 
   return (
     <>
-      <div style={row}>
-        <span>Basic Amount</span>
-        <span>{pending ? '…' : formatPrice(subtotal)}</span>
-      </div>
       {discount > 0 && (
         <div style={row}>
           <span>Discount</span>
           <span>−{formatPrice(discount)}</span>
         </div>
       )}
+      <div style={row}>
+        <span>Basic Amount</span>
+        <span>{pending ? '…' : formatPrice(subtotal)}</span>
+      </div>
       <div style={row}>
         <span>Shipping</span>
         <span>{shipReady ? shippingDisplay(shipping) : '…'}</span>

@@ -379,10 +379,9 @@ const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }, {
   );
 });
 
-function OrderSummary({ items, quote, fallbackSubtotal }: {
+function OrderSummary({ items, quote }: {
   items: any[];
   quote: QuoteView | null;
-  fallbackSubtotal: number;
 }) {
   return (
     <div className="checkout-summary">
@@ -406,7 +405,7 @@ function OrderSummary({ items, quote, fallbackSubtotal }: {
 
       <div className="checkout-summary__rows">
         <OrderPriceBreakdown
-          subtotal={quote?.subtotal ?? fallbackSubtotal}
+          subtotal={quote?.subtotal ?? 0}
           discount={quote?.discount ?? 0}
           shipping={quote?.shipping ?? null}
           tax={quote?.tax ?? null}
@@ -490,8 +489,6 @@ function CheckoutPageInner() {
   }, [items.length, router, retryOrderId, items]);
 
   if (!mounted || (items.length === 0 && !retryOrderId)) return null;
-
-  const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
   const handleCheckout = async () => {
     if (isProcessing) return;
@@ -592,7 +589,7 @@ function CheckoutPageInner() {
               </button>
             </div>
             <div className="checkout-aside">
-              <OrderSummary items={items} quote={quote} fallbackSubtotal={total} />
+              <OrderSummary items={items} quote={quote} />
               <PromoCode
                 onApplied={(code, err) => {
                   setCouponCode(code);

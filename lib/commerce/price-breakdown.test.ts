@@ -4,7 +4,7 @@ import { join } from 'path';
 
 const root = process.cwd();
 
-describe('GST breakdown display — exclusive, server-quoted', () => {
+describe('GST breakdown display — MRP split, server-quoted', () => {
   it('checkout summary never says GST included in basic amount', () => {
     const page = readFileSync(join(root, 'app/(store)/checkout/page.tsx'), 'utf8');
     expect(page).toMatch(/OrderPriceBreakdown/);
@@ -21,13 +21,14 @@ describe('GST breakdown display — exclusive, server-quoted', () => {
     expect(drawer).not.toMatch(/Taxes included/);
   });
 
-  it('customer order, invoice, admin, and success use canonical OrderPriceBreakdown', () => {
+  it('customer order list, detail, invoice, admin, and success use canonical OrderPriceBreakdown', () => {
     const breakdown = readFileSync(join(root, 'components/commerce/OrderPriceBreakdown.tsx'), 'utf8');
     expect(breakdown).toMatch(/Basic Amount/);
     expect(breakdown).toMatch(/GST/);
     expect(breakdown).toMatch(/shippingDisplay/);
     expect(breakdown).not.toMatch(/GST \(incl\.\)/);
 
+    const orderList = readFileSync(join(root, 'app/(store)/profile/orders/page.tsx'), 'utf8');
     const order = readFileSync(join(root, 'app/(store)/profile/orders/[id]/page.tsx'), 'utf8');
     const invoice = readFileSync(join(root, 'app/(store)/profile/orders/[id]/invoice/page.tsx'), 'utf8');
     const download = readFileSync(
@@ -39,7 +40,7 @@ describe('GST breakdown display — exclusive, server-quoted', () => {
       join(root, 'app/(store)/checkout/success/CheckoutSuccessContent.tsx'),
       'utf8'
     );
-    for (const src of [order, invoice, admin, success]) {
+    for (const src of [orderList, order, invoice, admin, success]) {
       expect(src).toMatch(/OrderPriceBreakdown/);
     }
     expect(download).toMatch(/Basic Amount/);
@@ -60,6 +61,12 @@ describe('GST breakdown display — exclusive, server-quoted', () => {
     expect(src).toMatch(/Basic Amount/);
     expect(src).toMatch(/GST/);
     expect(src).toMatch(/shippingDisplay/);
+  });
+
+  it('server totals split GST from UniWare MRP, never add on top', () => {
+    const src = readFileSync(join(root, 'lib/commerce/totals.ts'), 'utf8');
+    expect(src).toMatch(/splitInclusiveMrp/);
+    expect(src).toMatch(/Never add GST on top/);
   });
 
   it('cart preview and checkout quote both call quoteTotals on the server', () => {

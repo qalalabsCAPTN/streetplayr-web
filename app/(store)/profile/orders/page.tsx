@@ -6,6 +6,7 @@ import {
   countsTowardCustomerSpend,
   customerOrderStatusLabel,
 } from '@/lib/commerce/order-paid';
+import { OrderPriceBreakdown } from '@/components/commerce/OrderPriceBreakdown';
 
 interface OrderItem {
   id: string;
@@ -21,6 +22,10 @@ interface Order {
   status: string;
   paymentStatus?: string;
   total: number;
+  subtotal: number;
+  shippingCost: number;
+  taxAmount: number;
+  discountTotal: number;
   items: OrderItem[];
 }
 
@@ -64,6 +69,10 @@ export default function OrdersPage() {
             status: o.status,
             paymentStatus: o.paymentStatus,
             total: o.total,
+            subtotal: o.subtotal,
+            shippingCost: o.shippingCost,
+            taxAmount: o.taxAmount,
+            discountTotal: o.discountTotal ?? 0,
             items: (o.items ?? []).map((item) => ({
               id: item.id,
               name: item.productTitle ?? item.productId,
@@ -142,8 +151,14 @@ export default function OrdersPage() {
                     {customerOrderStatusLabel(order) || STATUS_LABELS[order.status] || order.status}
                   </span>
                 </div>
-                <div className="acct-order__foot">
-                  <span className="acct-order__total">{formatPrice(order.total)}</span>
+                <div className="acct-order__foot" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 12 }}>
+                  <OrderPriceBreakdown
+                    subtotal={order.subtotal}
+                    discount={order.discountTotal}
+                    shipping={order.shippingCost}
+                    tax={order.taxAmount}
+                    grandTotal={order.total}
+                  />
                   <Link href={`/profile/orders/${order.id}`} className="acct-order__view">
                     View details →
                   </Link>
