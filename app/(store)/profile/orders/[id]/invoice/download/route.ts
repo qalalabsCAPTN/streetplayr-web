@@ -1,6 +1,6 @@
 import { getOrderAction } from '@/app/actions/order';
 import { isInvoiceEligible } from '@/lib/commerce/order-paid';
-import { shippingDisplay } from '@/lib/commerce/totals';
+import { shippingDisplay, formatGstLineLabel, resolveOrderGstPercent } from '@/lib/commerce/totals';
 import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -49,7 +49,7 @@ export async function GET(
 <p>Basic Amount INR ${order.subtotal}</p>
 ${(order.discountTotal ?? 0) > 0 ? `<p>Discount INR ${order.discountTotal}</p>` : ''}
 <p>Shipping ${shippingDisplay(order.shippingCost)}</p>
-<p>GST INR ${order.taxAmount}</p>
+<p>${formatGstLineLabel(resolveOrderGstPercent(order))} INR ${order.taxAmount}</p>
 <h2>Total INR ${order.total}</h2>
 </body></html>`;
 

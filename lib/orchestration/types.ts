@@ -62,6 +62,7 @@ export interface Order {
   shippingCost: number;
   taxAmount: number;
   discountTotal?: number;
+  gstPercent?: number | null;
   currency: string;
   shippingAddress: Record<string, unknown>;
   billingAddress?: Record<string, unknown>;

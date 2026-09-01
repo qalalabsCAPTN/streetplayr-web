@@ -245,10 +245,12 @@ describe('PaymentService.processWebhookEvent — duplicate/concurrent delivery',
   });
 
   it('9. success → duplicate success does not re-run checkout credit redeem', async () => {
-    orders[ORDER_ID].discount_total = 100;
+    orders[ORDER_ID].shipping_address = { credits_applied: '100' };
+    orders[ORDER_ID].discount_total = 150;
     await PaymentService.processWebhookEvent(baseEvent());
     await PaymentService.processWebhookEvent(baseEvent());
     expect(redeemSPRRMock).toHaveBeenCalledTimes(1);
+    expect(redeemSPRRMock).toHaveBeenCalledWith(AUTH_USER_ID, 100, expect.stringContaining(ORDER_ID));
     expect(awardSPRRMock).not.toHaveBeenCalled();
     expect(awardXPMock).not.toHaveBeenCalled();
   });
@@ -286,15 +288,16 @@ describe('PaymentService.processWebhookEvent — Nectar ownership boundary', () 
     expect(processReferralMock).not.toHaveBeenCalled();
   });
 
-  it('redeems checkout credits from orders.notes auth user when discount_total > 0', async () => {
-    orders[ORDER_ID].discount_total = 250;
+  it('redeems checkout credits from shipping_address.credits_applied, not coupon-inclusive discount_total', async () => {
+    orders[ORDER_ID].shipping_address = { credits_applied: '250' };
+    orders[ORDER_ID].discount_total = 400;
     await PaymentService.processWebhookEvent(baseEvent());
     expect(redeemSPRRMock).toHaveBeenCalledWith(AUTH_USER_ID, 250, expect.stringContaining(ORDER_ID));
   });
 
   it('skips credit redeem when notes is empty (without failing payment)', async () => {
     orders[ORDER_ID].notes = null;
-    orders[ORDER_ID].discount_total = 100;
+    orders[ORDER_ID].shipping_address = { credits_applied: '100' };
     const result = await PaymentService.processWebhookEvent(baseEvent());
     expect(result.success).toBe(true);
     expect(redeemSPRRMock).not.toHaveBeenCalled();

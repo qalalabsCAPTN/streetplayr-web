@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import type { Order } from '@/lib/orchestration/types';
 import { customerOrderStatusLabel, isInvoiceEligible, isPayableOrder } from '@/lib/commerce/order-paid';
 import { OrderPriceBreakdown } from '@/components/commerce/OrderPriceBreakdown';
+import { resolveOrderGstPercent } from '@/lib/commerce/totals';
 
 function money(n: number) {
   return '₹' + n.toLocaleString('en-IN');
@@ -70,6 +71,7 @@ export default function OrderDetailPage() {
           shipping={order.shippingCost}
           tax={order.taxAmount}
           grandTotal={order.total}
+          taxPercent={resolveOrderGstPercent(order)}
         />
         <p className="acct-card__sub">Payment: {order.paymentStatus ?? 'pending'}</p>
       </div>

@@ -1,6 +1,6 @@
 ﻿import React from "react";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { shippingDisplay } from "@/lib/commerce/totals";
+import { shippingDisplay, formatGstLineLabel, inferGstPercentFromSplit } from "@/lib/commerce/totals";
 
 type OrderStatus =
   | "pending" | "confirmed" | "processing" | "fulfilling"
@@ -24,7 +24,7 @@ async function getOrdersWithTimeline() {
 
     const { data: orders } = await admin
       .from("orders")
-      .select("id, order_number, customer_id, status, grand_total, subtotal, shipping_total, shipping_cost, tax_total, tax_amount, discount_total, created_at, updated_at")
+      .select("id, order_number, customer_id, status, grand_total, subtotal, shipping_total, shipping_cost, tax_total, tax_amount, discount_total, shipping_address, created_at, updated_at")
       .order("created_at", { ascending: false })
       .limit(50);
 
@@ -58,18 +58,28 @@ async function getOrdersWithTimeline() {
       }
     }
 
-    return (orders ?? []).map((o: any) => ({
+    return (orders ?? []).map((o: any) => {
+      const subtotal = Number(o.subtotal ?? 0);
+      const tax = Number(o.tax_total ?? o.tax_amount ?? 0);
+      const gstPercent =
+        (o.shipping_address as { gst_percent?: string } | null)?.gst_percent != null
+          ? Number((o.shipping_address as { gst_percent?: string }).gst_percent)
+          : inferGstPercentFromSplit(subtotal, tax);
+
+      return {
       id: o.id,
       orderNumber: o.order_number ?? o.id,
       status: o.status as OrderStatus,
       total: Number(o.grand_total ?? 0),
-      subtotal: Number(o.subtotal ?? 0),
+      subtotal,
       shipping: Number(o.shipping_total ?? o.shipping_cost ?? 0),
-      tax: Number(o.tax_total ?? o.tax_amount ?? 0),
+      tax,
+      gstPercent,
       discount: Number(o.discount_total ?? 0),
       items: itemsByOrder[o.id] ?? 0,
       timeline: eventsByOrder[o.id] ?? [],
-    }));
+    };
+    });
   } catch {
     return [];
   }
@@ -153,7 +163,7 @@ export default async function OrdersPage() {
                       <span>Discount ₹{order.discount.toLocaleString("en-IN")}</span>
                     )}
                     <span>Shipping {shippingDisplay(order.shipping)}</span>
-                    <span>GST ₹{order.tax.toLocaleString("en-IN")}</span>
+                    <span>{formatGstLineLabel(order.gstPercent)} ₹{order.tax.toLocaleString("en-IN")}</span>
                     <span>Total ₹{Number(order.total).toLocaleString("en-IN")}</span>
                   </div>
                 </div>

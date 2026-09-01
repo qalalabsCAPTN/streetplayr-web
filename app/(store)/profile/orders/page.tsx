@@ -7,6 +7,7 @@ import {
   customerOrderStatusLabel,
 } from '@/lib/commerce/order-paid';
 import { OrderPriceBreakdown } from '@/components/commerce/OrderPriceBreakdown';
+import { resolveOrderGstPercent } from '@/lib/commerce/totals';
 
 interface OrderItem {
   id: string;
@@ -26,6 +27,7 @@ interface Order {
   shippingCost: number;
   taxAmount: number;
   discountTotal: number;
+  gstPercent?: number | null;
   items: OrderItem[];
 }
 
@@ -73,6 +75,7 @@ export default function OrdersPage() {
             shippingCost: o.shippingCost,
             taxAmount: o.taxAmount,
             discountTotal: o.discountTotal ?? 0,
+            gstPercent: o.gstPercent ?? null,
             items: (o.items ?? []).map((item) => ({
               id: item.id,
               name: item.productTitle ?? item.productId,
@@ -158,6 +161,7 @@ export default function OrdersPage() {
                     shipping={order.shippingCost}
                     tax={order.taxAmount}
                     grandTotal={order.total}
+                    taxPercent={resolveOrderGstPercent(order)}
                   />
                   <Link href={`/profile/orders/${order.id}`} className="acct-order__view">
                     View details →

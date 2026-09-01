@@ -13,11 +13,22 @@ export const MEMBER_CREDIT_MAX_RATIO = {
   TALENT: 0.10
 };
 
-export function maxRedeemableCredits(balance: number, subtotal: number, tier: 'ROOKIE' | 'PRO' | 'LEGEND' | 'CREATORS' | 'TALENT' = 'ROOKIE'): number {
+export type MemberCreditTier = keyof typeof MEMBER_CREDIT_MAX_RATIO;
+
+export function memberCreditCapRatio(tier: MemberCreditTier = 'ROOKIE'): number {
+  return MEMBER_CREDIT_MAX_RATIO[tier] ?? 0.05;
+}
+
+/** Human-readable cap label for checkout UI, e.g. "5%", "7.5%", "10%". */
+export function formatMemberCreditCap(tier: MemberCreditTier = 'ROOKIE'): string {
+  const pct = memberCreditCapRatio(tier) * 100;
+  return Number.isInteger(pct) ? `${pct}%` : `${pct}%`;
+}
+
+export function maxRedeemableCredits(balance: number, subtotal: number, tier: MemberCreditTier = 'ROOKIE'): number {
   const credits = nonNegativeInt(balance);
   const total = nonNegativeInt(subtotal);
-  const ratio = MEMBER_CREDIT_MAX_RATIO[tier] ?? 0.05;
-  const cap = Math.floor(total * ratio);
+  const cap = Math.floor(total * memberCreditCapRatio(tier));
   return Math.min(credits, cap, total);
 }
 

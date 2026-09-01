@@ -1,4 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin';
+import { debitNectarWallet, creditNectarWallet } from '@/lib/nectar/ledger-write';
+import { syncSprrBalanceFromNectar } from '@/lib/nectar/balance';
 
 export type Tier = 'ROOKIE' | 'PRO' | 'LEGEND' | 'CREATORS' | 'TALENT';
 
@@ -14,6 +16,57 @@ export function deriveTier(purchaseCount: number): Tier {
   if (purchaseCount >= 31) return 'LEGEND';
   if (purchaseCount >= 16) return 'PRO';
   return 'ROOKIE';
+}
+
+const CONFIRMED_ORDER_STATUSES = ['confirmed', 'processing', 'fulfilling', 'shipped', 'delivered'] as const;
+
+/**
+ * Count paid orders for tier progression. Uses orders.notes (auth user id
+ * set at checkout) first, then customers.email → customers.id linkage.
+ */
+export async function countConfirmedOrdersForUser(
+  admin: ReturnType<typeof createAdminClient>,
+  profileId: string,
+  email?: string | null
+): Promise<number> {
+  const { count: byNotes } = await admin
+    .from('orders')
+    .select('*', { count: 'exact', head: true })
+    .eq('notes', profileId)
+    .in('status', [...CONFIRMED_ORDER_STATUSES]);
+
+  if ((byNotes ?? 0) > 0) return byNotes ?? 0;
+
+  if (!email) return 0;
+
+  const { data: customer } = await admin
+    .from('customers')
+    .select('id')
+    .eq('email', email)
+    .maybeSingle();
+
+  if (!customer?.id) return 0;
+
+  const { count } = await admin
+    .from('orders')
+    .select('*', { count: 'exact', head: true })
+    .eq('customer_id', customer.id)
+    .in('status', [...CONFIRMED_ORDER_STATUSES]);
+
+  return count ?? 0;
+}
+
+/** Checkout tier: special creator/talent roles stick; everyone else derives from order count. */
+export async function resolveMemberTier(
+  admin: ReturnType<typeof createAdminClient>,
+  profileId: string,
+  storedTier: string | null | undefined,
+  email?: string | null
+): Promise<Tier> {
+  const tier = (storedTier as Tier) || 'ROOKIE';
+  if (tier === 'CREATORS' || tier === 'TALENT') return tier;
+  const purchaseCount = await countConfirmedOrdersForUser(admin, profileId, email);
+  return deriveTier(purchaseCount);
 }
 
 export function getProgress(purchaseCount: number): { tier: Tier; progress: number; next: Tier | null } {
@@ -102,6 +155,8 @@ export async function redeemSPRR(userId: string, amount: number, source: string)
     .maybeSingle();
   if (existing) return true;
 
+  await syncSprrBalanceFromNectar(userId);
+
   const { data: profile } = await admin.from('profiles').select('sprr_balance').eq('id', userId).single();
   const currentSprr = profile?.sprr_balance ?? 0;
   if (currentSprr < amount) return false;
@@ -112,6 +167,24 @@ export async function redeemSPRR(userId: string, amount: number, source: string)
     delta: -amount,
     source,
   });
+
+  const nectarDebit = await debitNectarWallet({
+    userId,
+    amount,
+    idempotencyKey: `checkout:${source}`,
+    source: 'checkout_redemption',
+    referenceType: 'order',
+    description: source,
+  });
+  if (!nectarDebit.ok && !nectarDebit.skipped) {
+    console.warn('[nectar] checkout debit mirror failed after local redeem', {
+      userId,
+      amount,
+      source,
+      error: nectarDebit.error,
+    });
+  }
+
   return true;
 }
 
@@ -128,7 +201,18 @@ export async function refundSPRR(userId: string, amount: number, source: string)
     .eq('source', source)
     .maybeSingle();
   if (existing) return;
+
+  await creditNectarWallet({
+    userId,
+    amount,
+    idempotencyKey: `refund:${source}`,
+    source: 'checkout_refund',
+    referenceType: 'order',
+    description: source,
+  });
+
   await awardSPRR(userId, amount, source, 'adjustment', false);
+  await syncSprrBalanceFromNectar(userId);
 }
 
 /**

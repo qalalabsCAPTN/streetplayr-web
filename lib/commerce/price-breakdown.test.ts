@@ -24,7 +24,8 @@ describe('GST breakdown display — MRP split, server-quoted', () => {
   it('customer order list, detail, invoice, admin, and success use canonical OrderPriceBreakdown', () => {
     const breakdown = readFileSync(join(root, 'components/commerce/OrderPriceBreakdown.tsx'), 'utf8');
     expect(breakdown).toMatch(/Basic Amount/);
-    expect(breakdown).toMatch(/GST/);
+    expect(breakdown).toMatch(/formatGstLineLabel/);
+    expect(breakdown).toMatch(/taxPercent/);
     expect(breakdown).toMatch(/shippingDisplay/);
     expect(breakdown).not.toMatch(/GST \(incl\.\)/);
 
@@ -44,7 +45,7 @@ describe('GST breakdown display — MRP split, server-quoted', () => {
       expect(src).toMatch(/OrderPriceBreakdown/);
     }
     expect(download).toMatch(/Basic Amount/);
-    expect(download).toMatch(/GST/);
+    expect(download).toMatch(/formatGstLineLabel/);
     expect(download).toMatch(/shippingDisplay/);
   });
 
@@ -59,7 +60,7 @@ describe('GST breakdown display — MRP split, server-quoted', () => {
   it('ops order list shows Basic Amount, Shipping, GST from order row', () => {
     const src = readFileSync(join(root, 'app/(ops)/ops/orders/page.tsx'), 'utf8');
     expect(src).toMatch(/Basic Amount/);
-    expect(src).toMatch(/GST/);
+    expect(src).toMatch(/formatGstLineLabel/);
     expect(src).toMatch(/shippingDisplay/);
   });
 
@@ -74,6 +75,7 @@ describe('GST breakdown display — MRP split, server-quoted', () => {
     expect(src).toMatch(/previewCartTotalsAction/);
     expect(src).toMatch(/quoteTotals/);
     expect(src).toMatch(/cartGstPercent/);
+    expect(src).toMatch(/gst_percent/);
     expect(src).not.toMatch(/shippingAddress\.taxAmount\s*\?\?/);
   });
 });

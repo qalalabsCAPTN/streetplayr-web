@@ -8,11 +8,12 @@ import Image from "next/image";
 import { formatPrice, formatProductTitle } from "@/lib/utils/format";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { maxRedeemableCredits } from "@/lib/loyalty/redemption";
+import { maxRedeemableCredits, formatMemberCreditCap } from "@/lib/loyalty/redemption";
 import { trackBeginCheckout } from "@/lib/analytics/ecommerce";
 import type { TotalsResult } from "@/lib/commerce/totals";
 import type { AddressData } from "@/app/actions/address";
 import { OrderPriceBreakdown } from "@/components/commerce/OrderPriceBreakdown";
+import { percentFromTaxRate } from "@/lib/commerce/totals";
 
 function CheckoutInput({ label, id, type = "text", value, onChange, placeholder, required = false }: {
   label: string;
@@ -320,7 +321,7 @@ const CheckoutFormContent = forwardRef<{ completeOrder: () => Promise<void> }, {
           <div className="checkout-loyalty__icon">✦</div>
           <div className="checkout-loyalty__info">
             <div>Member balance</div>
-            <small>{memberBalance.toLocaleString('en-IN')} credits · max {maxCredits.toLocaleString('en-IN')} this order (50%)</small>
+            <small>{memberBalance.toLocaleString('en-IN')} credits · max {maxCredits.toLocaleString('en-IN')} this order ({formatMemberCreditCap(memberTier)})</small>
           </div>
           <span className="checkout-loyalty__status">{memberBalance > 0 ? 'Active' : 'Empty'}</span>
         </div>
@@ -410,6 +411,7 @@ function OrderSummary({ items, quote }: {
           shipping={quote?.shipping ?? null}
           tax={quote?.tax ?? null}
           grandTotal={quote?.grandTotal ?? null}
+          taxPercent={quote ? percentFromTaxRate(quote.taxRate) : null}
           pending={!quote}
           includeTotal={false}
         />

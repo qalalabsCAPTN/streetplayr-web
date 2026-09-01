@@ -1,4 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin';
+import { resolveCheckoutBalance } from '@/lib/nectar/balance';
 
 export interface WalletData {
   sprrBalance: number;
@@ -29,10 +30,11 @@ export interface MonthlyEarning {
  */
 export async function getWalletBalance(userId: string): Promise<WalletData> {
   const admin = createAdminClient();
+  const synced = await resolveCheckoutBalance(userId);
 
   const { data: profile } = await admin
     .from('profiles')
-    .select('sprr_balance, xp')
+    .select('xp')
     .eq('id', userId)
     .single();
 
@@ -50,7 +52,7 @@ export async function getWalletBalance(userId: string): Promise<WalletData> {
     .reduce((s: number, t: any) => s + Math.abs(t.delta ?? 0), 0);
 
   return {
-    sprrBalance: profile?.sprr_balance ?? 0,
+    sprrBalance: synced.balance,
     xp: profile?.xp ?? 0,
     lifetimeEarned,
     lifetimeRedeemed,

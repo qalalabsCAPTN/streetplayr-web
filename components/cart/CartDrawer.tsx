@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useCart } from '@/components/CartContext';
 import { formatPrice } from '@/lib/utils/format';
 import { OrderPriceBreakdown } from '@/components/commerce/OrderPriceBreakdown';
+import { percentFromTaxRate } from '@/lib/commerce/totals';
 import { useServerCartQuote } from '@/components/cart/useServerCartQuote';
 
 type Suggest = { handle: string; title: string; price: number; images: string[] };
@@ -118,6 +119,7 @@ export default function CartDrawer() {
                 shipping={quote?.shipping ?? null}
                 tax={quote?.tax ?? null}
                 grandTotal={quote?.grandTotal ?? null}
+                taxPercent={quote ? percentFromTaxRate(quote.taxRate) : null}
                 pending={!quote}
               />
             </div>

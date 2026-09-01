@@ -3,6 +3,7 @@ import { resolveStorefrontBrandId } from '@/lib/products/brand';
 import type { Order, OrderItem, OrderStatus, OrchestrationResponse } from './types';
 import { recordEvent } from './events';
 import { emitPurchaseCompleted } from '@/lib/nectar/purchase-event';
+import { gstPercentFromShippingAddress, inferGstPercentFromSplit } from '@/lib/commerce/totals';
 
 /**
  * Fires the NECTAR purchase.completed bridge event exactly once, at the
@@ -103,6 +104,13 @@ function itemsFromDb(rows: any[] | null | undefined): OrderItem[] {
 }
 
 function orderFromDb(row: any, items: OrderItem[] = []): Order {
+  const subtotal = Number(row.subtotal ?? 0);
+  const taxAmount = Number(row.tax_total ?? row.tax_amount ?? 0);
+  const shippingAddress = row.shipping_address ?? {};
+  const gstPercent =
+    gstPercentFromShippingAddress(shippingAddress) ??
+    inferGstPercentFromSplit(subtotal, taxAmount);
+
   return {
     id: row.id,
     orderNumber: row.order_number ?? row.id,
@@ -112,12 +120,13 @@ function orderFromDb(row: any, items: OrderItem[] = []): Order {
     paymentStatus: row.payment_status,
     fulfillmentStatus: row.fulfillment_status,
     total: Number(row.grand_total ?? 0),
-    subtotal: Number(row.subtotal ?? 0),
+    subtotal,
     shippingCost: Number(row.shipping_total ?? row.shipping_cost ?? 0),
-    taxAmount: Number(row.tax_total ?? row.tax_amount ?? 0),
+    taxAmount,
     discountTotal: Number(row.discount_total ?? 0),
+    gstPercent,
     currency: row.currency ?? 'INR',
-    shippingAddress: row.shipping_address ?? {},
+    shippingAddress,
     billingAddress: row.billing_address,
     paymentIntentId: row.payment_intent_id,
     trackingNumber: row.tracking_number ?? null,

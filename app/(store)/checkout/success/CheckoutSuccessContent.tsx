@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { useCartStore } from "@/store/cartStore";
 import { trackPurchase } from "@/lib/analytics/ecommerce";
 import { OrderPriceBreakdown } from "@/components/commerce/OrderPriceBreakdown";
+import { resolveOrderGstPercent } from "@/lib/commerce/totals";
 
 interface OrderData {
   id: string;
@@ -213,6 +214,7 @@ export default function CheckoutSuccessContent() {
                       shipping={order.shippingCost}
                       tax={order.taxAmount}
                       grandTotal={order.total}
+                      taxPercent={resolveOrderGstPercent(order)}
                     />
                   </div>
                   <div className="flex justify-between items-center">

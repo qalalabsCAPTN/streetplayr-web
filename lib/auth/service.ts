@@ -99,16 +99,21 @@ export const AuthService = {
 
     let activeTier = (profile as { tier?: string }).tier || 'ROOKIE';
     if (activeTier === 'CREATORS' || activeTier === 'TALENT') {
-      const admin = createAdminClient();
-      const { count } = await admin.from('orders')
-        .select('*', { count: 'exact', head: true })
-        .eq('customer_id', session.user.id)
-        .in('status', ['confirmed', 'processing', 'fulfilling', 'shipped', 'delivered']);
-      const { deriveTier } = await import('@/lib/nectar/engine');
-      activeTier = deriveTier(count || 0);
+      // Preserve special creator/talent tiers.
+    } else {
+      const { resolveMemberTier } = await import('@/lib/nectar/engine');
+      activeTier = await resolveMemberTier(
+        createAdminClient(),
+        session.user.id,
+        (profile as { tier?: string }).tier,
+        profile.email || session.user.email
+      );
     }
 
     debug('profile found:', { id: profile.id, role: profile.role, email: profile.email, tier: activeTier });
+
+    const { resolveCheckoutBalance } = await import('@/lib/nectar/balance');
+    const wallet = await resolveCheckoutBalance(session.user.id);
 
     return {
       id: profile.id,
@@ -123,9 +128,7 @@ export const AuthService = {
       authProvider: (session.user.app_metadata?.provider as any) || 'google',
       isOnboarded: false,
       memberSince: profile.created_at,
-      sprrBalance: typeof (profile as { sprr_balance?: number }).sprr_balance === 'number'
-        ? (profile as { sprr_balance?: number }).sprr_balance!
-        : 0,
+      sprrBalance: wallet.balance,
       role: (profile.role as UserRole) || 'member',
       tier: activeTier,
     };

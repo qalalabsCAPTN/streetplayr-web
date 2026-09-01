@@ -7,6 +7,7 @@ import { TopBar } from '@/components/ops2/top-bar';
 import { Badge } from '@/components/ops2/ui/badge';
 import { formatCurrency } from '@/lib/ops2/format';
 import { OrderPriceBreakdown } from '@/components/commerce/OrderPriceBreakdown';
+import { resolveOrderGstPercent } from '@/lib/commerce/totals';
 import { getAdminOrderAction } from '@/app/actions/ops/orders-admin';
 import { transitionAdminOrderAction } from '@/app/actions/ops/order-transitions';
 
@@ -62,6 +63,7 @@ export default function AdminOrderDetailPage() {
                 shipping={order.shippingCost}
                 tax={order.taxAmount}
                 grandTotal={order.total}
+                taxPercent={resolveOrderGstPercent(order)}
               />
             </div>
             <div className="surface p-4">

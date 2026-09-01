@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { orderInsertMoney, quoteTotals, shippingDisplay, splitInclusiveMrp } from './totals';
+import {
+  orderInsertMoney,
+  quoteTotals,
+  shippingDisplay,
+  splitInclusiveMrp,
+  formatGstLineLabel,
+  percentFromTaxRate,
+  inferGstPercentFromSplit,
+} from './totals';
 
 describe('quoteTotals — MRP-inclusive GST split + shipping', () => {
   it('₹3,499 MRP at 18% extracts GST; does not add GST on top', () => {
@@ -111,5 +119,23 @@ describe('quoteTotals — MRP-inclusive GST split + shipping', () => {
     });
     expect(open.tax).toBe(b2b.tax);
     expect(open.grandTotal).toBe(b2b.grandTotal);
+  });
+});
+
+describe('GST percent display helpers', () => {
+  it('formatGstLineLabel shows UniWare rate', () => {
+    expect(formatGstLineLabel(18)).toBe('GST (18%)');
+    expect(formatGstLineLabel(5)).toBe('GST (5%)');
+    expect(formatGstLineLabel(null)).toBe('GST');
+  });
+
+  it('percentFromTaxRate maps quote taxRate to display percent', () => {
+    const t = quoteTotals({ subtotal: 1000, discount: 0, country: 'IN', taxPercent: 18 });
+    expect(percentFromTaxRate(t.taxRate)).toBe(18);
+  });
+
+  it('inferGstPercentFromSplit recovers rate from basic + tax', () => {
+    const split = splitInclusiveMrp(3499, 18);
+    expect(inferGstPercentFromSplit(split.basic, split.tax)).toBe(18);
   });
 });

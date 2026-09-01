@@ -3,6 +3,7 @@ import { isInvoiceEligible } from '@/lib/commerce/order-paid';
 import { forbidden, notFound, unauthorized } from 'next/navigation';
 import Link from 'next/link';
 import { OrderPriceBreakdown } from '@/components/commerce/OrderPriceBreakdown';
+import { resolveOrderGstPercent } from '@/lib/commerce/totals';
 
 export const dynamic = 'force-dynamic';
 
@@ -58,6 +59,7 @@ export default async function OrderInvoicePage({
         shipping={order.shippingCost}
         tax={order.taxAmount}
         grandTotal={order.total}
+        taxPercent={resolveOrderGstPercent(order)}
       />
       <p className="acct-card__sub">Print this page for a PDF copy. Amounts are server snapshots from the order row.</p>
       <Link href={`/profile/orders/${order.id}`}>← Order</Link>

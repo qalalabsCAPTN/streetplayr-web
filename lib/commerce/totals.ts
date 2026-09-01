@@ -97,6 +97,48 @@ export function shippingDisplay(shipping: number): string {
   return shipping <= 0 ? 'FREE' : `₹${Math.round(shipping).toLocaleString('en-IN')}`;
 }
 
+/** Display UniWare GST % (5, 18, or weighted cart average). */
+export function displayGstPercent(percent: number): string {
+  const rounded = Math.round(percent * 10) / 10;
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+}
+
+export function formatGstLineLabel(percent?: number | null): string {
+  if (percent == null || !(percent > 0)) return 'GST';
+  return `GST (${displayGstPercent(percent)}%)`;
+}
+
+/** Convert quoteTotals taxRate (0.18) → display percent (18). */
+export function percentFromTaxRate(taxRate: number): number | null {
+  if (!(taxRate > 0)) return null;
+  return Math.round(taxRate * 1000) / 10;
+}
+
+/** Infer GST % from exclusive basic + tax split (legacy orders). */
+export function inferGstPercentFromSplit(exclusiveBasic: number, tax: number): number | null {
+  if (exclusiveBasic <= 0 || tax <= 0) return null;
+  return Math.round((tax * 1000) / exclusiveBasic) / 10;
+}
+
+export function gstPercentFromShippingAddress(addr: unknown): number | null {
+  const ship = addr as { gst_percent?: string | number } | null | undefined;
+  if (ship?.gst_percent == null || ship.gst_percent === '') return null;
+  const n = Number(ship.gst_percent);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+export function resolveOrderGstPercent(order: {
+  subtotal: number;
+  taxAmount: number;
+  shippingAddress?: unknown;
+  gstPercent?: number | null;
+}): number | null {
+  if (order.gstPercent != null && order.gstPercent > 0) return order.gstPercent;
+  const fromAddr = gstPercentFromShippingAddress(order.shippingAddress);
+  if (fromAddr != null) return fromAddr;
+  return inferGstPercentFromSplit(order.subtotal, order.taxAmount);
+}
+
 export function calcShipping(subtotalAfterDiscount: number, country: string): {
   shipping: number;
   label: string;

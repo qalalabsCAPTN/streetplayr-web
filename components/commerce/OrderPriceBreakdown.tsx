@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 import { formatPrice } from '@/lib/utils/format';
-import { shippingDisplay } from '@/lib/commerce/totals';
+import { shippingDisplay, formatGstLineLabel } from '@/lib/commerce/totals';
 
 export type PriceBreakdownAmounts = {
   subtotal: number;
@@ -8,6 +8,8 @@ export type PriceBreakdownAmounts = {
   shipping: number | null;
   tax: number | null;
   grandTotal: number | null;
+  /** UniWare GST rate (5, 18, or weighted cart %). */
+  taxPercent?: number | null;
 };
 
 /** Canonical GST/shipping breakdown. Amounts must come from the server quote or order row. */
@@ -17,6 +19,7 @@ export function OrderPriceBreakdown({
   shipping,
   tax,
   grandTotal,
+  taxPercent,
   pending = false,
   includeTotal = true,
 }: PriceBreakdownAmounts & { pending?: boolean; includeTotal?: boolean }) {
@@ -43,7 +46,7 @@ export function OrderPriceBreakdown({
         <span>{shipReady ? shippingDisplay(shipping) : '…'}</span>
       </div>
       <div style={row}>
-        <span>GST</span>
+        <span>{formatGstLineLabel(taxPercent)}</span>
         <span>{taxReady ? formatPrice(tax) : '…'}</span>
       </div>
       {includeTotal && (

@@ -8,6 +8,8 @@ import { ReservationService } from '@/lib/orchestration/reservation';
 import { OrderService } from '@/lib/orchestration/order';
 import { resolveStorefrontBrandId } from '@/lib/products/brand';
 import { maxRedeemableCredits } from '@/lib/loyalty/redemption';
+import { resolveCheckoutBalance } from '@/lib/nectar/balance';
+import { resolveMemberTier } from '@/lib/nectar/engine';
 import { isRemovedApparelSize } from '@/lib/products/sizes';
 import {
   assertShippableAddress,
@@ -152,19 +154,11 @@ export async function quoteCheckoutAction(params: {
 
     const { data: walletProfile } = await admin
       .from('profiles')
-      .select('sprr_balance, tier')
+      .select('tier')
       .eq('id', user.id)
       .maybeSingle();
-    const balance = typeof walletProfile?.sprr_balance === 'number' ? walletProfile.sprr_balance : 0;
-    let tier = (walletProfile?.tier as 'ROOKIE' | 'PRO' | 'LEGEND' | 'CREATORS' | 'TALENT') || 'ROOKIE';
-    if (tier === 'CREATORS' || tier === 'TALENT') {
-      const { count } = await admin.from('orders')
-        .select('*', { count: 'exact', head: true })
-        .eq('customer_id', user.id)
-        .in('status', ['confirmed', 'processing', 'fulfilling', 'shipped', 'delivered']);
-      const { deriveTier } = await import('@/lib/nectar/engine');
-      tier = deriveTier(count || 0);
-    }
+    const { balance } = await resolveCheckoutBalance(user.id);
+    const tier = await resolveMemberTier(admin, user.id, walletProfile?.tier, user.email);
     const afterCoupon = Math.max(0, subtotal - couponDiscount);
     const creditsApplied = Math.min(
       Math.max(0, Math.floor(params.creditsToApply ?? 0)),
@@ -339,23 +333,19 @@ export async function initiateCheckoutAction(
 
     const { data: walletProfile } = await admin
       .from('profiles')
-      .select('sprr_balance, tier')
+      .select('tier')
       .eq('id', user.id)
       .maybeSingle();
-    const balance = typeof walletProfile?.sprr_balance === 'number' ? walletProfile.sprr_balance : 0;
-    let tier = (walletProfile?.tier as 'ROOKIE' | 'PRO' | 'LEGEND' | 'CREATORS' | 'TALENT') || 'ROOKIE';
-    if (tier === 'CREATORS' || tier === 'TALENT') {
-      const { count } = await admin.from('orders')
-        .select('*', { count: 'exact', head: true })
-        .eq('customer_id', user.id)
-        .in('status', ['confirmed', 'processing', 'fulfilling', 'shipped', 'delivered']);
-      const { deriveTier } = await import('@/lib/nectar/engine');
-      tier = deriveTier(count || 0);
-    }
+    const { balance } = await resolveCheckoutBalance(user.id);
+    const tier = await resolveMemberTier(admin, user.id, walletProfile?.tier, user.email);
     const afterCoupon = Math.max(0, subtotal - couponDiscount);
     const creditsApplied = Math.min(
       Math.max(0, Math.floor(creditsToApply)),
       maxRedeemableCredits(balance, afterCoupon, tier as any)
+    );
+
+    const gstPercent = cartGstPercent(
+      priced.map((i) => ({ amount: i.price * i.quantity, gstPercent: i.gstPercent }))
     );
 
     const totals = quoteTotals({
@@ -364,9 +354,7 @@ export async function initiateCheckoutAction(
       country: canonical.country,
       state: canonical.state,
       gstin: canonical.gstin,
-      taxPercent: cartGstPercent(
-        priced.map((i) => ({ amount: i.price * i.quantity, gstPercent: i.gstPercent }))
-      ),
+      taxPercent: gstPercent,
     });
 
     if (totals.grandTotal < 1) {
@@ -401,6 +389,7 @@ export async function initiateCheckoutAction(
           ...snapshot,
           coupon_code: couponLabel ?? '',
           credits_applied: String(creditsApplied),
+          gst_percent: String(gstPercent),
         },
         billing_address: snapshot,
         notes: user.id,

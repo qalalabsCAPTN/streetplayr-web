@@ -141,6 +141,12 @@ export async function emitPurchaseCompleted(order: OrderRow): Promise<EmitEventR
         status: result.status ?? 'ok',
       },
     });
+
+    // Best-effort pull of any reward already processed (async worker may lag).
+    const { syncSprrBalanceFromNectar } = await import('@/lib/nectar/balance');
+    void syncSprrBalanceFromNectar(actorUserId).catch((e) => {
+      console.warn('[nectar] post-purchase balance sync failed', { actorUserId, orderId: order.id, e });
+    });
   }
 
   return result;

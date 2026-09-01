@@ -7,6 +7,7 @@ import { formatPrice } from '@/lib/utils/format';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { OrderPriceBreakdown } from '@/components/commerce/OrderPriceBreakdown';
+import { percentFromTaxRate } from '@/lib/commerce/totals';
 import { useServerCartQuote } from '@/components/cart/useServerCartQuote';
 
 export default function CartPage() {
@@ -63,6 +64,7 @@ export default function CartPage() {
                 shipping={quote?.shipping ?? null}
                 tax={quote?.tax ?? null}
                 grandTotal={quote?.grandTotal ?? null}
+                taxPercent={quote ? percentFromTaxRate(quote.taxRate) : null}
                 pending={!quote}
               />
             </div>

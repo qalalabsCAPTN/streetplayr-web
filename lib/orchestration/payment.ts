@@ -17,6 +17,20 @@ import { ReservationService } from './reservation';
 import { redeemSPRR, refundSPRR } from '@/lib/nectar/engine';
 import { UnicommerceLogger } from '@/src/integrations/unicommerce';
 
+/** Credits redeemed at checkout — stored on shipping_address, not discount_total (coupons). */
+function checkoutCreditsApplied(order: {
+  shipping_address?: unknown;
+  discount_total?: unknown;
+}): number {
+  const ship = order.shipping_address as { credits_applied?: string | number } | null | undefined;
+  const fromSnapshot = Number(ship?.credits_applied ?? 0);
+  if (Number.isFinite(fromSnapshot) && fromSnapshot > 0) {
+    return Math.floor(fromSnapshot);
+  }
+  // Legacy orders (pre credits_applied snapshot): discount_total was credits-only.
+  return Math.floor(Number(order.discount_total ?? 0));
+}
+
 /**
  * Map of canonical payment event types to corresponding reservation state
  * transitions. Provider-neutral: gateway adapters map their vocabulary into
@@ -279,7 +293,7 @@ export const PaymentService = {
 
           if (orderUserId) {
             try {
-              const creditsUsed = Math.floor(Number(order.discount_total ?? 0));
+              const creditsUsed = checkoutCreditsApplied(order);
               if (creditsUsed > 0) {
                 await redeemSPRR(orderUserId, creditsUsed, `Order credit ${order.id}`);
               }
@@ -348,7 +362,7 @@ export const PaymentService = {
         params.eventType === 'charge.refunded' ||
         params.eventType === 'payment_intent.canceled'
       ) {
-        const creditsUsed = Math.floor(Number(order.discount_total ?? 0));
+        const creditsUsed = checkoutCreditsApplied(order);
         const refundUserId: string | null = order.notes || null;
         if (creditsUsed > 0 && refundUserId) {
           await refundSPRR(refundUserId, creditsUsed, `Order credit refund ${order.id}`);
