@@ -48,7 +48,7 @@ export const metadata: Metadata = {
   },
   description: "StreetplayR - Enter The Play. Exclusive drops, luxury streetwear membership.",
   verification: {
-    google: GSC_VERIFICATION,
+    google: [GSC_VERIFICATION, "bLW3wiaAtW00-w5sIRUTRV5NpMR-lHLq4dB2bhhiiOo"],
   },
   icons: {
     icon: [
