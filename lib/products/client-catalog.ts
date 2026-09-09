@@ -200,7 +200,8 @@ export async function loadClientCatalog(): Promise<CatalogProduct[]> {
     }
 
     saveCatalogLkg(filtered);
-    return filtered;
+    const { attachCatalogAvailability } = await import('@/lib/products/attach-availability');
+    return attachCatalogAvailability(filtered);
   } catch (err) {
     console.error('[catalog:client] exception:', err);
     return resolveFallback(`exception: ${err instanceof Error ? err.message : String(err)}`).filter(isValidStorefrontProduct);

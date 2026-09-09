@@ -3,6 +3,7 @@
 import { useRef, useState, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import { useTryOnSaveStore } from "@/store/tryonSaveStore";
 import {
@@ -30,6 +31,33 @@ interface AITryOnProps {
 function formatTime(ms: number) {
   const s = Math.floor(ms / 1000);
   return s < 60 ? `${s}s` : `${Math.floor(s / 60)}m ${s % 60}s`;
+}
+
+const GENERIC_TRYON_ERROR = "Something went wrong. Please try again.";
+
+function isSafePublicTryOnMessage(msg: string): boolean {
+  if (!msg || msg.length > 180) return false;
+  if (/[/\\]|Error:|\bat\b|\.tsx|\.ts|\.js\b|stack|huggingface|gemini|token|secret|ECONN|ENOENT|Unauthorized/i.test(msg)) {
+    return false;
+  }
+  return true;
+}
+
+function publicTryOnError(status: number, payload: { error?: unknown }): string {
+  const raw = typeof payload.error === "string" ? payload.error : "";
+  if (status === 401) return "Sign in to use AI Try-On.";
+  if (status === 429) {
+    return isSafePublicTryOnMessage(raw)
+      ? raw
+      : "You have reached your daily try-on limit. Try again tomorrow.";
+  }
+  if (status === 503) {
+    return isSafePublicTryOnMessage(raw)
+      ? raw
+      : "AI Try-On is busy right now. Please try again shortly.";
+  }
+  if (isSafePublicTryOnMessage(raw)) return raw;
+  return GENERIC_TRYON_ERROR;
 }
 
 /* ─────────────────────────────────────────
@@ -156,6 +184,7 @@ export default function AITryOn({
 }: AITryOnProps) {
   const isEnabled = process.env.NEXT_PUBLIC_AI_TRYON_ENABLED !== "false";
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const pathname = usePathname();
   const addLocal = useTryOnSaveStore((s) => s.addLocal);
 
   const [phase, setPhase] = useState<Phase>("idle");
@@ -225,6 +254,12 @@ export default function AITryOn({
   const handleGenerate = useCallback(async () => {
     if (!userPhotoFile) return;
 
+    if (!isAuthenticated) {
+      setErrorMsg("Sign in to use AI Try-On.");
+      setPhase("error");
+      return;
+    }
+
     try {
       // 1. Upload user photo to Supabase (gets a real public URL)
       setPhase("uploading");
@@ -235,10 +270,10 @@ export default function AITryOn({
         method: "POST",
         body: form,
       });
-      const uploadData = await uploadRes.json();
+      const uploadData = await uploadRes.json().catch(() => ({}));
 
       if (!uploadRes.ok || !uploadData.url) {
-        throw new Error(uploadData.error || "Upload failed");
+        throw new Error(publicTryOnError(uploadRes.status, uploadData));
       }
 
 
@@ -263,10 +298,10 @@ export default function AITryOn({
           method: "POST",
           body: garmentForm,
         });
-        const garmentUploadData = await garmentUploadRes.json();
+        const garmentUploadData = await garmentUploadRes.json().catch(() => ({}));
 
         if (!garmentUploadRes.ok || !garmentUploadData.url) {
-          throw new Error(garmentUploadData.error || "Garment upload failed");
+          throw new Error(publicTryOnError(garmentUploadRes.status, garmentUploadData));
         }
         garmentPublicUrl = garmentUploadData.url;
       }
@@ -284,24 +319,15 @@ export default function AITryOn({
           productTitle,
         }),
       });
-      const tryonData = await tryonRes.json();
+      const tryonData = await tryonRes.json().catch(() => ({}));
       stopTimer();
 
       if (!tryonRes.ok) {
-        if (tryonRes.status === 401) {
-          throw new Error("Authentication required. Please sign in to try on this item.");
-        }
-        if (tryonRes.status === 429) {
-          throw new Error(tryonData.error || "You have reached your daily limit of 3 try-ons.");
-        }
-        if (tryonRes.status === 503) {
-          throw new Error(tryonData.error || "Store try-on quota limit reached for today. Try again tomorrow.");
-        }
-        throw new Error(tryonData.error || "AI generation failed");
+        throw new Error(publicTryOnError(tryonRes.status, tryonData));
       }
 
       if (!tryonData.output) {
-        throw new Error("AI try-on completed but returned no output image.");
+        throw new Error(GENERIC_TRYON_ERROR);
       }
 
       setResultUrl(tryonData.output);
@@ -310,12 +336,15 @@ export default function AITryOn({
       setPhase("result");
     } catch (err: unknown) {
       stopTimer();
+      const raw = err instanceof Error ? err.message : GENERIC_TRYON_ERROR;
       setErrorMsg(
-        err instanceof Error ? err.message : "Something went wrong. Try again."
+        raw === "Sign in to use AI Try-On." || isSafePublicTryOnMessage(raw)
+          ? raw
+          : GENERIC_TRYON_ERROR
       );
       setPhase("error");
     }
-  }, [userPhotoFile, productImageUrl, productTitle, startTimer, stopTimer]);
+  }, [userPhotoFile, productImageUrl, productTitle, startTimer, stopTimer, isAuthenticated]);
 
   /* ── Save to profile gallery ── */
   const handleSaveToProfile = useCallback(async () => {
@@ -667,9 +696,17 @@ export default function AITryOn({
                 <line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
               <p className="font-mono text-[9px] text-red-400/80 leading-relaxed">
-                {errorMsg || "Something went wrong. Please try again."}
+                {errorMsg || GENERIC_TRYON_ERROR}
               </p>
             </div>
+            {errorMsg === "Sign in to use AI Try-On." && (
+              <Link
+                href={`/login?redirect=${encodeURIComponent(pathname || "/")}`}
+                className="block w-full py-3.5 text-center font-mono text-[9px] uppercase tracking-[0.22em] border border-[var(--sp-ai-accent)]/30 text-[var(--sp-ai-accent)]"
+              >
+                Sign in
+              </Link>
+            )}
             <button
               onClick={handleReset}
               className="w-full py-3.5 font-mono text-[9px] uppercase tracking-[0.22em] border border-[var(--fg-12)] text-[var(--fg-60)] hover:text-[var(--fg-95)] hover:border-[var(--fg-30)] transition-all"

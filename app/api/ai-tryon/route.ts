@@ -213,6 +213,6 @@ export async function POST(req: Request) {
       message = "The AI servers are currently busy. Please try again shortly.";
     }
 
-    return NextResponse.json({ error: message, details: errorMsg }, { status });
+    return NextResponse.json({ error: message }, { status });
   }
 }

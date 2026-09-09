@@ -1420,6 +1420,7 @@ body.hdr-solid .page-frame {
   height: 100%;
   object-fit: cover;
   display: block;
+  transition: filter 0.35s ease, transform 0.35s ease;
 }
 
 .carousel3d__overlay {
@@ -1571,7 +1572,7 @@ body.theme-light .carousel3d__dot.active {
   height: 100%;
   object-fit: cover;
   opacity: 0;
-  transition: opacity 0.45s ease;
+  transition: opacity 0.45s ease, filter 0.35s ease, transform 0.35s ease;
 }
 
 .storefront-root .card__media img.active {
@@ -1712,6 +1713,39 @@ body.theme-light .carousel3d__dot.active {
 .card__dot.active {
   background: #fff;
   transform: scale(1.3);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .storefront-root .card--sold-out:hover .card__media img {
+    filter: blur(10px);
+    transform: scale(1.06);
+  }
+
+  .storefront-root .carousel3d__card--soldout:hover .carousel3d__image {
+    filter: blur(10px);
+    transform: scale(1.06);
+  }
+}
+
+@media (max-width: 900px) {
+  .storefront-root .card--sold-out .card__media img {
+    filter: blur(10px);
+    transform: scale(1.06);
+  }
+
+  .storefront-root .carousel3d__card--soldout .carousel3d__image {
+    filter: blur(10px);
+    transform: scale(1.06);
+  }
+
+  .search-listing {
+    overflow-x: clip;
+    max-width: 100%;
+  }
+
+  .search-listing .pgrid {
+    max-width: 100%;
+  }
 }
 
 .card__info {
@@ -2033,6 +2067,7 @@ body.theme-light .carousel3d__dot.active {
   z-index: 4;
   display: block;
   cursor: pointer;
+  touch-action: manipulation;
 }
 
 /* Collection banner text — centered title + CTA over soft plate */
@@ -4605,6 +4640,15 @@ body.theme-light .carousel3d__dot.active {
     display: none !important;
   }
 
+  .storefront-root .header__search-input-wrap input {
+    font-size: 16px;
+  }
+
+  .header,
+  .header__search-dropdown {
+    max-width: 100%;
+  }
+
   .bslider {
     height: min(52vh, 420px);
     min-height: 240px;
@@ -4956,6 +5000,13 @@ body.theme-light .carousel3d__dot.active {
   font-family: inherit;
   font-size: 13.5px;
   color: #111;
+}
+
+/* After the 13.5px rule so iOS does not zoom/shift the search overlay. */
+@media (max-width: 900px) {
+  .storefront-root .header__search-input-wrap input {
+    font-size: 16px;
+  }
 }
 
 .header__search-input-wrap input::placeholder {

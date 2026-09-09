@@ -11,7 +11,7 @@ export async function GET() {
       data: { user },
     } = await supabaseAuth.auth.getUser();
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Sign in required." }, { status: 401 });
     }
 
     const supabase = createAdminClient();
@@ -52,7 +52,7 @@ export async function DELETE(req: Request) {
       data: { user },
     } = await supabaseAuth.auth.getUser();
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Sign in required." }, { status: 401 });
     }
 
     const id = new URL(req.url).searchParams.get("id");

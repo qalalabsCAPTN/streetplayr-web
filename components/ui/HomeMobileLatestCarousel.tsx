@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
+import { productIsFullySoldOut } from '@/lib/products/pdp-variant-selection';
 
 const Product3DCarousel = dynamic(() => import('./Product3DCarousel'), {
   ssr: false,
@@ -20,6 +21,7 @@ interface CarouselProduct {
   soldOut?: boolean;
   image: string;
   image2?: string;
+  variants?: { id: string; stockQuantity?: number }[];
 }
 
 /**
@@ -54,7 +56,12 @@ export default function HomeMobileLatestCarousel({
         <h2 className="panel__title">Latest Drop</h2>
       </div>
       {isMobile ? (
-        <Product3DCarousel products={products} />
+        <Product3DCarousel
+          products={products.map((p) => ({
+            ...p,
+            soldOut: productIsFullySoldOut(p.variants),
+          }))}
+        />
       ) : (
         <div className="carousel3d" aria-hidden>
           <div className="carousel3d__container" />

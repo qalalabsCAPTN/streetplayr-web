@@ -121,7 +121,7 @@ export default function Product3DCarousel({ products }: { products: CarouselProd
             <Link
               key={p.slug}
               href={`/product/${p.slug}`}
-              className={`carousel3d__card ${diff === 0 ? 'carousel3d__card--active' : ''}`}
+              className={`carousel3d__card ${diff === 0 ? 'carousel3d__card--active' : ''} ${p.soldOut ? 'carousel3d__card--soldout' : ''}`}
               style={getCardStyle(index)}
               onClick={(e) => handleCardClick(e, index, diff)}
             >

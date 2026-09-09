@@ -54,3 +54,14 @@ export function sizeExists(variants: PdpVariant[], size: string): boolean {
 export function pdpCtaSoldOut(selected: PdpVariant | undefined): boolean {
   return Boolean(selected && selected.stockQuantity <= 0);
 }
+
+/**
+ * Product-level OOS: true only when every variant has known stock and none are purchasable.
+ * Missing/unknown stock does not blur. Empty/invalid variants follow existing (not sold out).
+ */
+export function productIsFullySoldOut(
+  variants: { stockQuantity?: number }[] | undefined | null
+): boolean {
+  if (!Array.isArray(variants) || variants.length === 0) return false;
+  return variants.every((v) => typeof v.stockQuantity === 'number' && v.stockQuantity <= 0);
+}

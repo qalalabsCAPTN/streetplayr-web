@@ -41,13 +41,13 @@ function SearchResults() {
   return (
     <>
       <Navbar />
-      <div className="listing">
+      <div className="listing search-listing">
         <h1 className="font-display uppercase tracking-tight text-3xl mb-4">Search</h1>
-        <p className="font-mono text-xs uppercase tracking-widest mb-8">
+        <p className="font-mono text-xs uppercase tracking-widest mb-8 break-words">
           {q ? `Query: ${q}` : 'Type in the header search'}
         </p>
         {q && (
-          <p className="font-mono text-xs mb-6">
+          <p className="font-mono text-xs mb-6 break-words">
             Sort:{' '}
             <a href={`/search?q=${encodeURIComponent(q)}&sort=newest`}>newest</a>
             {' · '}

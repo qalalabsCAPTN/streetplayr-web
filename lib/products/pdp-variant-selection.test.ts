@@ -3,6 +3,7 @@ import {
   applySizeClick,
   initialVariantId,
   pdpCtaSoldOut,
+  productIsFullySoldOut,
   selectVariantBySize,
   sizeExists,
   sizeIsSoldOut,
@@ -153,6 +154,34 @@ describe('PDP CTA uses selected variant, sold-out disables', () => {
     const afterM = applySizeClick(all, 'var-xs', 'M');
     expect(afterM).toBe('var-m');
     expect(pdpCtaSoldOut(selectVariantBySize(all, 'M'))).toBe(false);
+  });
+});
+
+describe('productIsFullySoldOut — blur only when zero purchasable variants', () => {
+  it('mixed inventory is not fully sold out', () => {
+    expect(productIsFullySoldOut(variants)).toBe(false);
+  });
+
+  it('one in-stock variant is not fully sold out', () => {
+    const onlyXl = variants.map((v) => ({
+      ...v,
+      stockQuantity: v.size === 'XL' ? 1 : 0,
+    }));
+    expect(productIsFullySoldOut(onlyXl)).toBe(false);
+  });
+
+  it('all variants OOS is fully sold out', () => {
+    const none = variants.map((v) => ({ ...v, stockQuantity: 0 }));
+    expect(productIsFullySoldOut(none)).toBe(true);
+  });
+
+  it('empty or invalid variants follow existing (not sold out)', () => {
+    expect(productIsFullySoldOut([])).toBe(false);
+    expect(productIsFullySoldOut(undefined)).toBe(false);
+  });
+
+  it('unknown stock does not blur', () => {
+    expect(productIsFullySoldOut([{ id: 'a', size: 'M' }])).toBe(false);
   });
 });
 

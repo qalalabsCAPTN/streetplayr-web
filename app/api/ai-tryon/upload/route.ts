@@ -15,7 +15,7 @@ export async function POST(req: Request) {
       data: { user },
     } = await supabaseAuth.auth.getUser();
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Sign in to use AI Try-On." }, { status: 401 });
     }
 
     const formData = await req.formData();

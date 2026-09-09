@@ -32,7 +32,7 @@ export async function POST(req: Request) {
       data: { user },
     } = await supabaseAuth.auth.getUser();
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Sign in to save this look." }, { status: 401 });
     }
 
     const body = (await req.json()) as SaveBody;

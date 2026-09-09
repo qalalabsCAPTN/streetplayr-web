@@ -10,6 +10,7 @@ import { useWishlistStore } from '@/store/wishlistStore';
 import { normalizeProductImageUrl, resolveProductImages } from '@/lib/products/image-map';
 import QuickAddSheet, { type QuickAddVariant } from '@/components/ui/QuickAddSheet';
 import type { PdpVariant } from '@/lib/products/pdp-variant-selection';
+import { productIsFullySoldOut } from '@/lib/products/pdp-variant-selection';
 
 interface ProductCardProps {
   product: {
@@ -73,7 +74,10 @@ export default function ProductCard({ product, gallery = true }: ProductCardProp
 
   const [idx, setIdx] = useState(0);
   const [desktopGalleryNav, setDesktopGalleryNav] = useState(false);
+  const mediaRef = useRef<HTMLDivElement>(null);
+  const swipeRef = useRef({ x: 0, y: 0, locked: false as false | 'x' | 'y', moved: false });
   const activeSrc = imgs[idx] ?? imgs[0] ?? '';
+  const fullySoldOut = productIsFullySoldOut(product.variants);
 
   useEffect(() => {
     const mq = window.matchMedia('(hover: hover) and (pointer: fine) and (min-width: 769px)');
@@ -82,6 +86,43 @@ export default function ProductCard({ product, gallery = true }: ProductCardProp
     mq.addEventListener('change', apply);
     return () => mq.removeEventListener('change', apply);
   }, []);
+
+  useEffect(() => {
+    const el = mediaRef.current;
+    if (!el || desktopGalleryNav || imgs.length < 2) return;
+
+    const onStart = (e: TouchEvent) => {
+      swipeRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, locked: false, moved: false };
+    };
+    const onMove = (e: TouchEvent) => {
+      const dx = e.touches[0].clientX - swipeRef.current.x;
+      const dy = e.touches[0].clientY - swipeRef.current.y;
+      if (!swipeRef.current.locked) {
+        if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+        swipeRef.current.locked = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+      }
+      if (swipeRef.current.locked === 'x') {
+        swipeRef.current.moved = true;
+        if (e.cancelable) e.preventDefault();
+      }
+    };
+    const onEnd = (e: TouchEvent) => {
+      const wasX = swipeRef.current.locked === 'x';
+      const dx = e.changedTouches[0].clientX - swipeRef.current.x;
+      swipeRef.current.locked = false;
+      if (!wasX || Math.abs(dx) < 40) return;
+      setIdx((i) => (i + (dx < 0 ? 1 : -1) + imgs.length) % imgs.length);
+    };
+
+    el.addEventListener('touchstart', onStart, { passive: true });
+    el.addEventListener('touchmove', onMove, { passive: false });
+    el.addEventListener('touchend', onEnd, { passive: true });
+    return () => {
+      el.removeEventListener('touchstart', onStart);
+      el.removeEventListener('touchmove', onMove);
+      el.removeEventListener('touchend', onEnd);
+    };
+  }, [desktopGalleryNav, imgs.length]);
 
   const onSale = product.compareAt && product.compareAt > product.price;
 
@@ -94,7 +135,7 @@ export default function ProductCard({ product, gallery = true }: ProductCardProp
   const openQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (product.soldOut) {
+    if (fullySoldOut) {
       cart.showToast('This product is sold out');
       return;
     }
@@ -149,8 +190,18 @@ export default function ProductCard({ product, gallery = true }: ProductCardProp
 
   return (
     <>
-    <Link href={`/product/${product.slug}`} className="card">
-      <div className="card__media">
+    <Link
+      href={`/product/${product.slug}`}
+      className={`card${fullySoldOut ? ' card--sold-out' : ''}`}
+      onClickCapture={(e) => {
+        if (swipeRef.current.moved) {
+          e.preventDefault();
+          e.stopPropagation();
+          swipeRef.current.moved = false;
+        }
+      }}
+    >
+      <div className="card__media" ref={mediaRef}>
         {activeSrc ? (
           <Image
             key={activeSrc}
@@ -170,8 +221,8 @@ export default function ProductCard({ product, gallery = true }: ProductCardProp
           <BookmarkIcon filled={isSaved} />
         </button>
 
-        {product.soldOut && <span className="card__badge">Sold out</span>}
-        {onSale && !product.soldOut && <span className="card__badge">Sale</span>}
+        {fullySoldOut && <span className="card__badge">Sold out</span>}
+        {onSale && !fullySoldOut && <span className="card__badge">Sale</span>}
 
         {gallery && imgs.length > 1 && desktopGalleryNav && (
           <>

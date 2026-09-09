@@ -30,6 +30,7 @@ import { normalizeProductImageUrl, resolveProductImages } from '@/lib/products/i
 import { withClientProductCopy, displayProductName } from '@/lib/products/copy';
 import { BEST_SELLERS_LIMIT, BEST_SELLERS_WINDOW_DAYS, bestSellersSince } from '@/lib/products/best-sellers';
 import { sortApparelSizes, isRemovedApparelSize, normalizeSizeLabel } from '@/lib/products/sizes';
+import { attachCatalogAvailability } from '@/lib/products/attach-availability';
 
 export interface FeedItemData {
   id: string;
@@ -275,7 +276,9 @@ export const ProductQueries = {
         const reason = error
           ? `products query failed: ${JSON.stringify(formatSupabaseError(error))}`
           : 'products query returned 0 rows';
-        return resolveCatalogFallback(reason).filter(isValidStorefrontProduct);
+        return attachCatalogAvailability(
+          resolveCatalogFallback(reason).filter(isValidStorefrontProduct)
+        );
       }
 
       const membership = await fetchMembershipMap(supabase);
@@ -336,10 +339,12 @@ export const ProductQueries = {
       }
 
       saveCatalogLkg(filteredMapped);
-      return filteredMapped;
+      return attachCatalogAvailability(filteredMapped);
     } catch (err) {
       console.error('[catalog] getCatalogProducts exception:', formatSupabaseError(err));
-      return resolveCatalogFallback(`exception: ${JSON.stringify(formatSupabaseError(err))}`).filter(isValidStorefrontProduct);
+      return attachCatalogAvailability(
+        resolveCatalogFallback(`exception: ${JSON.stringify(formatSupabaseError(err))}`).filter(isValidStorefrontProduct)
+      );
     }
   },
 

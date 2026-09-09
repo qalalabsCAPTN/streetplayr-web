@@ -407,7 +407,7 @@ export default function Lookbook({
           onClick={() => scroll("prev")}
           onMouseEnter={() => { isHoveredRef.current = true; }}
           onMouseLeave={() => { isHoveredRef.current = false; nextAutoplayAtRef.current = performance.now() + AUTOPLAY_DELAY_MS; }}
-          className={`absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-40 flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-full bg-black/60 backdrop-blur-md border border-white/[0.18] text-white/80 hover:text-white hover:bg-black/80 hover:scale-110 active:scale-95 shadow-lg transition-all duration-200 after:content-[''] after:absolute after:-inset-4 ${needsNavigation ? "flex" : "hidden"}`}
+          className={`absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-40 items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-full bg-black/60 backdrop-blur-md border border-white/[0.18] text-white/80 hover:text-white hover:bg-black/80 hover:scale-110 active:scale-95 shadow-lg transition-all duration-200 after:content-[''] after:absolute after:-inset-4 ${needsNavigation ? "hidden md:flex" : "hidden"}`}
           aria-label="Previous lookbook item"
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -426,7 +426,7 @@ export default function Lookbook({
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerUp}
           onClickCapture={handleCaptureClick}
-          className="relative w-full overflow-hidden pb-6 cursor-grab active:cursor-grabbing select-none touch-pan-y px-4 md:px-6 max-w-[min(95vw,2400px)] mx-auto"
+          className="relative w-full overflow-hidden pb-6 cursor-grab active:cursor-grabbing select-none touch-manipulation px-4 md:px-6 max-w-[min(95vw,2400px)] mx-auto"
         >
           <div
             ref={trackRef}
@@ -522,7 +522,7 @@ export default function Lookbook({
           onClick={() => scroll("next")}
           onMouseEnter={() => { isHoveredRef.current = true; }}
           onMouseLeave={() => { isHoveredRef.current = false; nextAutoplayAtRef.current = performance.now() + AUTOPLAY_DELAY_MS; }}
-          className={`absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-40 flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-full bg-black/60 backdrop-blur-md border border-white/[0.18] text-white/80 hover:text-white hover:bg-black/80 hover:scale-110 active:scale-95 shadow-lg transition-all duration-200 after:content-[''] after:absolute after:-inset-4 ${needsNavigation ? "flex" : "hidden"}`}
+          className={`absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-40 items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-full bg-black/60 backdrop-blur-md border border-white/[0.18] text-white/80 hover:text-white hover:bg-black/80 hover:scale-110 active:scale-95 shadow-lg transition-all duration-200 after:content-[''] after:absolute after:-inset-4 ${needsNavigation ? "hidden md:flex" : "hidden"}`}
           aria-label="Next lookbook item"
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
