@@ -202,6 +202,42 @@ describe('UnicommerceSyncService - syncInventory', () => {
     expect(inserts[0].quantity).toBe(0);
   });
 
+  it('retries SKUs dropped from a full 50-SKU snapshot batch', async () => {
+    const mockVariants = Array.from({ length: 50 }, (_, i) => ({
+      id: `var-${i}`,
+      sku: i === 49 ? 'PS-PNT-CORE-CRM-2XL' : `SKU-${i}`,
+    }));
+    const inserts: any[] = [];
+    mockFrom.mockImplementation(
+      inventoryFrom(mockVariants, {
+        select: () => ({
+          eq: () => ({
+            maybeSingle: () => Promise.resolve({ data: null, error: null }),
+          }),
+        }),
+        insert: (data: any) => {
+          inserts.push(data);
+          return Promise.resolve({ error: null });
+        },
+      })
+    );
+    const batch = mockVariants.slice(0, 49).map((v) => ({ sku: v.sku, stock: 4, blocked: 0 }));
+    vi.spyOn(UnicommerceInventoryService.prototype, 'getInventorySnapshot').mockImplementation(
+      async (skus?: string[]) => {
+        if (skus?.length === 50) return batch;
+        if (skus?.some((s) => s === 'PS-PNT-CORE-CRM-2XL')) {
+          return [{ sku: 'PS-PNT-CORE-CRM-2XL', stock: 2, blocked: 0 }];
+        }
+        return [];
+      }
+    );
+
+    const result = await syncService.syncInventory();
+    expect(result.success).toBe(true);
+    expect(inserts).toHaveLength(50);
+    expect(inserts.find((row) => row.variant_id === 'var-49')?.quantity).toBe(2);
+  });
+
   it('does not touch inventory when snapshot is empty', async () => {
     const mockVariants = [{ id: 'var-1', sku: 'SKU-A' }];
     mockFrom.mockImplementation((table: string) => {

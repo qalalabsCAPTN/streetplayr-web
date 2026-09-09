@@ -548,35 +548,58 @@ export class UnicommerceSyncService {
         };
       }
 
-      const chunkSize = 50;
       const snapshots: Array<{ sku: string; stock: number }> = [];
 
-      for (let i = 0; i < skus.length; i += chunkSize) {
-        const chunk = skus.slice(i, i + chunkSize);
-        try {
-          const chunkSnapshots = await this.inventoryService.getInventorySnapshot(chunk);
-          if (!chunkSnapshots.length) {
-            await UnicommerceLogger.warn(
-              'sync.inventory_empty_chunk',
-              `Inventory snapshot returned 0 rows for chunk at offset ${i} (${chunk.length} SKUs requested); leaving those SKUs unchanged`
+      const pullSnapshots = async (skuList: string[], size: number) => {
+        for (let i = 0; i < skuList.length; i += size) {
+          const chunk = skuList.slice(i, i + size);
+          try {
+            const chunkSnapshots = await this.inventoryService.getInventorySnapshot(chunk);
+            if (!chunkSnapshots.length) {
+              await UnicommerceLogger.warn(
+                'sync.inventory_empty_chunk',
+                `Inventory snapshot returned 0 rows for chunk at offset ${i} (${chunk.length} SKUs requested); leaving those SKUs unchanged`
+              );
+              continue;
+            }
+            snapshots.push(...chunkSnapshots);
+          } catch (chunkErr) {
+            errors++;
+            await UnicommerceLogger.error(
+              'sync.inventory_chunk_failed',
+              `Inventory snapshot chunk failed at offset ${i}; leaving those SKUs unchanged`,
+              chunkErr
             );
-            continue;
           }
-          snapshots.push(...chunkSnapshots);
-        } catch (chunkErr) {
-          errors++;
-          await UnicommerceLogger.error(
-            'sync.inventory_chunk_failed',
-            `Inventory snapshot chunk failed at offset ${i}; leaving those SKUs unchanged`,
-            chunkErr
-          );
         }
-      }
+      };
 
-      // 3. Build snapshot map keyed by SKU (case-insensitive)
-      const snapshotMap = new Map<string, number>();
-      for (const snap of snapshots) {
-        snapshotMap.set(snap.sku.toLowerCase(), snap.stock);
+      const buildSnapshotMap = () => {
+        const map = new Map<string, number>();
+        for (const snap of snapshots) {
+          map.set(snap.sku.toLowerCase(), snap.stock);
+        }
+        return map;
+      };
+
+      await pullSnapshots(skus, 50);
+
+      // UniCommerce 50-SKU SOAP batches can drop SKUs (e.g. PS-PNT-CORE-CRM-2XL).
+      // Retry omissions in smaller batches so stale 0-qty rows actually update.
+      let snapshotMap = buildSnapshotMap();
+      const missingAfterBatch = skus.filter((sku) => !snapshotMap.has(String(sku).toLowerCase()));
+      if (missingAfterBatch.length > 0) {
+        await UnicommerceLogger.warn(
+          'sync.inventory_retry_omitted',
+          `Retrying ${missingAfterBatch.length} SKUs omitted from batch snapshot`
+        );
+        await pullSnapshots(missingAfterBatch, 10);
+        snapshotMap = buildSnapshotMap();
+        const stillMissing = skus.filter((sku) => !snapshotMap.has(String(sku).toLowerCase()));
+        if (stillMissing.length > 0) {
+          await pullSnapshots(stillMissing, 1);
+          snapshotMap = buildSnapshotMap();
+        }
       }
 
       // 4. Update only SKUs UniCommerce explicitly returned.
