@@ -91,6 +91,8 @@ export const viewport: Viewport = {
 };
 
 export const dynamic = "force-dynamic";
+/** Run SSR/API close to Indian shoppers. Live probe was bom1 edge → iad1 compute. */
+export const preferredRegion = ["bom1"];
 
 export default async function RootLayout({
   children,

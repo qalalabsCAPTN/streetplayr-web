@@ -472,12 +472,16 @@ export class UnicommerceSyncService {
     explicitZero: number;
     positiveStock: number;
     skippedNoSnapshot: number;
+    written: number;
+    changedSlugs: string[];
   }> {
     let processed = 0;
     let errors = 0;
     let zeroStockRows = 0;
     let positiveStock = 0;
     let skippedNoSnapshot = 0;
+    let written = 0;
+    const changedSlugs = new Set<string>();
 
     try {
       await UnicommerceLogger.info('sync.inventory_start', 'Starting inventory synchronization job');
@@ -497,7 +501,7 @@ export class UnicommerceSyncService {
 
       const { data: brandProducts, error: brandProdErr } = await admin
         .from('products')
-        .select('id, metadata')
+        .select('id, metadata, slug')
         .eq('brand_id', brandData.id)
         .eq('status', 'active');
 
@@ -521,12 +525,18 @@ export class UnicommerceSyncService {
           explicitZero: 0,
           positiveStock: 0,
           skippedNoSnapshot: 0,
+          written: 0,
+          changedSlugs: [],
         };
       }
 
+      const slugByProductId = new Map(
+        (brandProducts ?? []).map((p) => [p.id, String(p.slug ?? '')])
+      );
+
       const { data: dbVariants, error: fetchError } = await admin
         .from('product_variants')
-        .select('id, sku')
+        .select('id, sku, product_id')
         .in('product_id', productIds)
         .not('sku', 'is', null);
 
@@ -545,6 +555,8 @@ export class UnicommerceSyncService {
           explicitZero: 0,
           positiveStock: 0,
           skippedNoSnapshot: 0,
+          written: 0,
+          changedSlugs: [],
         };
       }
 
@@ -665,6 +677,9 @@ export class UnicommerceSyncService {
             }
           }
 
+          written++;
+          const slug = slugByProductId.get(dbVariant.product_id);
+          if (slug) changedSlugs.add(slug);
           processed++;
         } catch (err: any) {
           errors++;
@@ -683,6 +698,7 @@ export class UnicommerceSyncService {
         `Catalog Variants: ${dbVariants.length}`,
         `Returned Snapshots: ${snapshots.length}`,
         `Updated Rows: ${processed}`,
+        `Written Rows: ${written}`,
         `Skipped / no snapshot: ${skippedNoSnapshot}`,
         `Positive Stock Rows: ${positiveStock}`,
         `Zero Stock Rows: ${zeroStockRows}`,
@@ -694,7 +710,17 @@ export class UnicommerceSyncService {
         'sync.inventory_completed',
         logMessage,
         'system',
-        { catalogVariants: dbVariants.length, returnedSnapshots: snapshots.length, updatedRows: processed, zeroStockRows, positiveStock, skippedNoSnapshot, failedRows: errors }
+        {
+          catalogVariants: dbVariants.length,
+          returnedSnapshots: snapshots.length,
+          updatedRows: processed,
+          written,
+          changedSlugs: [...changedSlugs],
+          zeroStockRows,
+          positiveStock,
+          skippedNoSnapshot,
+          failedRows: errors,
+        }
       );
 
       return {
@@ -705,6 +731,8 @@ export class UnicommerceSyncService {
         explicitZero: zeroStockRows,
         positiveStock,
         skippedNoSnapshot,
+        written,
+        changedSlugs: [...changedSlugs],
       };
     } catch (err: any) {
       await UnicommerceLogger.error('sync.inventory_error', 'Inventory synchronization job crashed', err);
@@ -716,6 +744,8 @@ export class UnicommerceSyncService {
         explicitZero: 0,
         positiveStock: 0,
         skippedNoSnapshot: 0,
+        written: 0,
+        changedSlugs: [],
       };
     }
   }

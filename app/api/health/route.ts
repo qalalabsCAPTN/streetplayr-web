@@ -119,21 +119,6 @@ export async function GET(req: NextRequest) {
     report.status = 'degraded';
   }
 
-  try {
-    const admin = createAdminClient();
-    const { error } = await withTimeout(admin.auth.getUser(), 2500, 'Supabase auth');
-    if (error && !error.message?.includes('Auth session missing')) {
-      report.subsystems.auth.status = 'degraded';
-      report.subsystems.auth.error = error.message;
-      report.status = 'degraded';
-    }
-  } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : 'Auth check failed';
-    report.subsystems.auth.status = 'degraded';
-    report.subsystems.auth.error = message;
-    report.status = 'degraded';
-  }
-
   if (!process.env.CRON_SECRET) {
     report.subsystems.cron.status = 'ok';
     report.subsystems.cron.releaseExpiryConfigured = false;
@@ -147,58 +132,80 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  const nectarBase =
-    process.env.NECTAR_API_URL || process.env.NEXT_PUBLIC_NECTAR_API_URL || '';
-  const nectarSecret =
-    process.env.NECTAR_SIGNING_SECRET || process.env.PLATFORM_TOKEN_STREETPLAYR || '';
-  if (!nectarBase || !nectarSecret) {
-    report.subsystems.nectar = {
-      status: 'degraded',
-      details: 'NECTAR_API_URL / signing secret not fully configured',
-    };
-    if (environment === 'production') report.status = 'degraded';
-  } else {
+  // Public / load-balancer probes must stay cheap. Uniware SOAP + Nectar +
+  // auth.getUser added ~2s TTFB on every unauthenticated /api/health hit.
+  if (detailed) {
     try {
-      const nectarProbe = await withTimeout(
-        fetch(`${nectarBase.replace(/\/$/, '')}/health`, { method: 'GET' }).then(async (r) => ({
-          ok: r.ok,
-          status: r.status,
-        })),
-        2500,
-        'Nectar',
-      );
-      report.subsystems.nectar = {
-        status: nectarProbe.ok ? 'ok' : 'degraded',
-        details: nectarProbe.ok ? `reachable (${nectarProbe.status})` : `HTTP ${nectarProbe.status}`,
-      };
-      if (!nectarProbe.ok && environment === 'production') report.status = 'degraded';
+      const admin = createAdminClient();
+      const { error } = await withTimeout(admin.auth.getUser(), 2500, 'Supabase auth');
+      if (error && !error.message?.includes('Auth session missing')) {
+        report.subsystems.auth.status = 'degraded';
+        report.subsystems.auth.error = error.message;
+        report.status = 'degraded';
+      }
     } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : 'Nectar unreachable';
-      report.subsystems.nectar = { status: 'degraded', details: message };
-      if (environment === 'production') report.status = 'degraded';
-    }
-  }
-
-  try {
-    const ucCheck = await withTimeout(
-      UnicommerceService.checkConnection(),
-      2500,
-      'Unicommerce',
-    );
-    report.subsystems.unicommerce = {
-      status: ucCheck.success ? 'ok' : 'degraded',
-      details: ucCheck.message,
-    };
-    if (!ucCheck.success && environment === 'production') {
+      const message = e instanceof Error ? e.message : 'Auth check failed';
+      report.subsystems.auth.status = 'degraded';
+      report.subsystems.auth.error = message;
       report.status = 'degraded';
     }
-  } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : 'Unicommerce check failed';
-    report.subsystems.unicommerce = {
-      status: 'degraded',
-      error: message,
-    };
-    report.status = 'degraded';
+
+    const nectarBase =
+      process.env.NECTAR_API_URL || process.env.NEXT_PUBLIC_NECTAR_API_URL || '';
+    const nectarSecret =
+      process.env.NECTAR_SIGNING_SECRET || process.env.PLATFORM_TOKEN_STREETPLAYR || '';
+    if (!nectarBase || !nectarSecret) {
+      report.subsystems.nectar = {
+        status: 'degraded',
+        details: 'NECTAR_API_URL / signing secret not fully configured',
+      };
+      if (environment === 'production') report.status = 'degraded';
+    } else {
+      try {
+        const nectarProbe = await withTimeout(
+          fetch(`${nectarBase.replace(/\/$/, '')}/health`, { method: 'GET' }).then(async (r) => ({
+            ok: r.ok,
+            status: r.status,
+          })),
+          2500,
+          'Nectar',
+        );
+        report.subsystems.nectar = {
+          status: nectarProbe.ok ? 'ok' : 'degraded',
+          details: nectarProbe.ok ? `reachable (${nectarProbe.status})` : `HTTP ${nectarProbe.status}`,
+        };
+        if (!nectarProbe.ok && environment === 'production') report.status = 'degraded';
+      } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : 'Nectar unreachable';
+        report.subsystems.nectar = { status: 'degraded', details: message };
+        if (environment === 'production') report.status = 'degraded';
+      }
+    }
+
+    try {
+      const ucCheck = await withTimeout(
+        UnicommerceService.checkConnection(),
+        2500,
+        'Unicommerce',
+      );
+      report.subsystems.unicommerce = {
+        status: ucCheck.success ? 'ok' : 'degraded',
+        details: ucCheck.message,
+      };
+      if (!ucCheck.success && environment === 'production') {
+        report.status = 'degraded';
+      }
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Unicommerce check failed';
+      report.subsystems.unicommerce = {
+        status: 'degraded',
+        error: message,
+      };
+      report.status = 'degraded';
+    }
+  } else {
+    report.subsystems.unicommerce = { status: 'ok', details: 'Skipped on public probe' };
+    report.subsystems.nectar = { status: 'ok', details: 'Skipped on public probe' };
   }
 
   // Always 200 so container boot / load balancers stay up; status field carries health.

@@ -54,6 +54,11 @@ export async function POST(request: Request) {
     const webhookService = new UnicommerceWebhookService();
     await webhookService.processWebhook(eventData);
 
+    if (eventData?.type === 'inventory.updated') {
+      const { revalidateStorefrontInventory } = await import('@/lib/inventory/revalidate-storefront');
+      revalidateStorefrontInventory();
+    }
+
     return NextResponse.json({ success: true });
   } catch (err: any) {
     await UnicommerceService.logger.error(

@@ -12,6 +12,7 @@
     "test:watch": "vitest",
     "sync:inventory": "npx tsx --require ./scripts/stubs/server-only-register.cjs src/integrations/unicommerce/cli-sync-inventory.ts",
     "inventory:sync": "npx tsx --require ./scripts/stubs/server-only-register.cjs src/integrations/unicommerce/cli-sync-inventory.ts",
+    "sync:catalog": "npx tsx --require ./scripts/stubs/server-only-register.cjs src/integrations/unicommerce/cli-sync-products.ts",
     "test:unicommerce": "npx tsx scripts/test-unicommerce-connection.ts"
   },
   "dependencies": {

@@ -1,5 +1,6 @@
 ﻿import React from "react";
 import { createAdminClient } from "@/lib/supabase/admin";
+import PullUniwareInventoryButton from "./PullUniwareInventoryButton";
 
 interface VariantInfo {
   id: string;
@@ -31,7 +32,7 @@ async function getInventorySnapshot(): Promise<ProductStock[]> {
       .select(`
         id, name,
         variants:product_variants(
-          id, size, color, stock_quantity
+          id, size, color
         )
       `)
       .order("name");
@@ -46,9 +47,21 @@ async function getInventorySnapshot(): Promise<ProductStock[]> {
       reservedMap[r.variant_id] = (reservedMap[r.variant_id] ?? 0) + (r.reserved_quantity ?? 0);
     }
 
+    const variantIds = (products ?? []).flatMap((p: { variants?: { id: string }[] }) =>
+      (p.variants ?? []).map((v) => v.id)
+    );
+    const { data: invRows } = await admin
+      .from("inventory")
+      .select("variant_id, quantity")
+      .in("variant_id", variantIds.length ? variantIds : ["00000000-0000-0000-0000-000000000000"]);
+    const qtyMap: Record<string, number> = {};
+    for (const row of invRows ?? []) {
+      qtyMap[row.variant_id] = Number(row.quantity ?? 0);
+    }
+
     return (products ?? []).map((p: any): ProductStock => {
       const variants: VariantInfo[] = (p.variants ?? []).map((v: any) => {
-        const stock = v.stock_quantity ?? 0;
+        const stock = qtyMap[v.id] ?? 0;
         const reserved = reservedMap[v.id] ?? 0;
         const available = stock - reserved;
         let status: VariantInfo["status"];
@@ -83,6 +96,7 @@ export default async function InventoryPage() {
           </p>
         </div>
         <div className="flex items-center gap-8">
+          <PullUniwareInventoryButton />
           <div className="text-right">
             <div className="text-xl font-mono text-white">{totalStock.toLocaleString()}</div>
             <div className="text-[9px] font-mono text-[var(--ops-text-muted)] uppercase tracking-widest">Total Pool</div>

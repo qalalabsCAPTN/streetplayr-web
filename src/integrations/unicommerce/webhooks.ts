@@ -180,7 +180,6 @@ export class UnicommerceWebhookService {
       }
 
       case 'inventory.updated': {
-        // Targeted inventory refresh for affected SKUs
         await UnicommerceLogger.info(
           'webhooks.inventory_updated',
           `Inventory updated for ${event.payload.length} items`,
@@ -189,44 +188,10 @@ export class UnicommerceWebhookService {
         );
 
         try {
-          const admin = createAdminClient();
-
-          for (const item of event.payload) {
-            // Find the variant by SKU
-            const { data: variant } = await admin
-              .from('product_variants')
-              .select('id')
-              .eq('sku', item.sku)
-              .maybeSingle();
-
-            if (!variant) continue;
-
-            // Upsert inventory record
-            const { data: existingInv } = await admin
-              .from('inventory')
-              .select('id')
-              .eq('variant_id', variant.id)
-              .maybeSingle();
-
-            const stock = Math.max(0, item.stock);
-
-            if (existingInv) {
-              await admin
-                .from('inventory')
-                .update({ quantity: stock, updated_at: new Date().toISOString() })
-                .eq('id', existingInv.id);
-            } else {
-              await admin
-                .from('inventory')
-                .insert({
-                  variant_id: variant.id,
-                  quantity: stock,
-                  reserved_quantity: 0,
-                  low_stock_threshold: 10,
-                  updated_at: new Date().toISOString(),
-                });
-            }
-          }
+          const { applySkuQuantities } = await import('@/lib/inventory/apply-sku-quantity');
+          await applySkuQuantities(
+            event.payload.map((item) => ({ sku: item.sku, quantity: item.stock, candidates: [item.sku] }))
+          );
         } catch (err: any) {
           await UnicommerceLogger.error(
             'webhooks.inventory_update_db_failed',

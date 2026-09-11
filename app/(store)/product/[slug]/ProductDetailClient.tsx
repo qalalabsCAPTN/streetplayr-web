@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '@/components/CartContext';
 import { useWishlistStore } from '@/store/wishlistStore';
 import { useAuthStore } from '@/store/authStore';
+import { getCatalogAvailabilityAction } from '@/app/actions/stock';
 import { RealtimeSubscriptions } from '@/lib/realtime/subscriptions';
 import RecommendedProducts from '@/components/product/RecommendedProducts';
 import RecentlyVisited, { pushRecentlyVisited } from '@/components/ui/RecentlyVisited';
@@ -139,6 +140,14 @@ export default function ProductDetailClient(props: ProductDetailClientProps) {
     io.observe(el);
     return () => io.disconnect();
   }, [tryOnReady]);
+
+  useEffect(() => {
+    const ids = props.variants.map((v) => v.id).filter(Boolean);
+    if (ids.length === 0) return;
+    void getCatalogAvailabilityAction(ids).then((stock) => {
+      setLiveStock((prev) => ({ ...stock, ...prev }));
+    });
+  }, [props.productId, props.variants]);
 
   useEffect(() => {
     const unsubs: (() => void)[] = [];

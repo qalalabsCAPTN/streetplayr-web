@@ -58,13 +58,13 @@ function queryChain(maybeSingleData: unknown, listData: unknown[] = []) {
   return q;
 }
 
-function inventoryFrom(mockVariants: { id: string; sku: string }[], inventoryTable?: Record<string, unknown>) {
+function inventoryFrom(mockVariants: { id: string; sku: string; product_id?: string }[], inventoryTable?: Record<string, unknown>) {
   return (table: string) => {
     if (table === 'brands') {
       return queryChain({ id: 'brand-ok' });
     }
     if (table === 'products') {
-      return queryChain(null, [{ id: 'p1', metadata: { brand: 'playR STREET' } }]);
+      return queryChain(null, [{ id: 'p1', metadata: { brand: 'playR STREET' }, slug: 'demo-product' }]);
     }
     if (table === 'product_variants') {
       return queryChain(null, mockVariants);
@@ -179,7 +179,7 @@ describe('UnicommerceSyncService - syncInventory', () => {
   });
 
   it('writes explicit zero-stock from UniCommerce as sold out', async () => {
-    const mockVariants = [{ id: 'var-1', sku: 'SKU-A' }];
+    const mockVariants = [{ id: 'var-1', sku: 'SKU-A', product_id: 'p1' }];
     const inserts: any[] = [];
     mockFrom.mockImplementation(
       inventoryFrom(mockVariants, {
@@ -200,6 +200,8 @@ describe('UnicommerceSyncService - syncInventory', () => {
     const result = await syncService.syncInventory();
     expect(result.success).toBe(true);
     expect(inserts[0].quantity).toBe(0);
+    expect(result.written).toBe(1);
+    expect(result.changedSlugs).toEqual(['demo-product']);
   });
 
   it('retries SKUs dropped from a full 50-SKU snapshot batch', async () => {

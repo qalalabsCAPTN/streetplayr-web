@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProductQueries } from "@/lib/products/queries";
 import { formatPrice } from "@/lib/utils/format";
-import { getAvailableInventory } from "@/lib/inventory";
+import { getAvailableInventoryBatch } from "@/lib/inventory";
 import { sortApparelSizes, isRemovedApparelSize } from "@/lib/products/sizes";
 import { displayProductName } from "@/lib/products/copy";
 
@@ -54,14 +54,13 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
   };
   const meta = (product as { metadata?: ProductMeta }).metadata;
 
-  const variantsWithStock = await Promise.all(
-    variants.map(async (v) => ({
-      id: v.id,
-      size: v.size,
-      color: v.color,
-      stockQuantity: await getAvailableInventory(v.id),
-    }))
-  );
+  const stockById = await getAvailableInventoryBatch(variants.map((v) => v.id));
+  const variantsWithStock = variants.map((v) => ({
+    id: v.id,
+    size: v.size,
+    color: v.color,
+    stockQuantity: stockById[v.id] ?? 0,
+  }));
 
   const sizes = sortApparelSizes(
     [...new Set(variants.map((v) => v.size).filter((s) => !isRemovedApparelSize(s)))]

@@ -27,6 +27,26 @@ async function main() {
   const res = await syncService.syncInventory();
   console.log('Sync Result:', res);
 
+  const site = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.streetplayr.com').replace(/\/$/, '');
+  const revalidateSecret = process.env.REVALIDATE_SECRET;
+  const cronSecret = process.env.CRON_SECRET;
+  if (res.written > 0 && (revalidateSecret || cronSecret)) {
+    const headers: Record<string, string> = { 'content-type': 'application/json' };
+    if (revalidateSecret) headers['x-revalidate-secret'] = revalidateSecret;
+    else if (cronSecret) headers.Authorization = `Bearer ${cronSecret}`;
+    const paths = ['/home', '/collections', '/search', ...res.changedSlugs.map((slug) => `/product/${slug}`)];
+    for (const path of [...new Set(paths)]) {
+      const rv = await fetch(`${site}/api/revalidate`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ path }),
+      });
+      console.log('revalidate', path, rv.status);
+    }
+  } else if (res.written > 0) {
+    console.log('Skipped storefront revalidate (no REVALIDATE_SECRET / CRON_SECRET). ISR max 5 min.');
+  }
+
   console.log('\n--- VERIFYING NULL INVENTORY COUNT IN DB ---');
   const admin = createAdminClient();
 

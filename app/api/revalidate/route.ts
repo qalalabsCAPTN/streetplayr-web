@@ -10,9 +10,13 @@ export async function POST(req: NextRequest) {
   try {
     const secret = process.env.REVALIDATE_SECRET;
     const provided = req.headers.get('x-revalidate-secret');
+    const cronSecret = process.env.CRON_SECRET;
+    const bearer = (req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '').trim();
 
     if (secret && provided === secret) {
       // CI / CMS webhook with shared secret
+    } else if (cronSecret && bearer === cronSecret) {
+      // Inventory sync CLI / cron
     } else {
       const auth = await requireOpsApi();
       if (isApiError(auth)) return auth;

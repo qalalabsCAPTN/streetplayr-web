@@ -2,11 +2,12 @@ import { NextResponse } from 'next/server';
 import { UnicommerceSyncService } from '@/src/integrations/unicommerce/sync';
 import { UnicommerceLogger } from '@/src/integrations/unicommerce/logging';
 import { idempotencyGuard } from '@/lib/orchestration/idempotency';
+import { revalidateStorefrontInventory } from '@/lib/inventory/revalidate-storefront';
 
 /**
  * Cron: Inventory Synchronization
  *
- * Every 3 minutes. Fetches inventory snapshots from Unicommerce
+ * Every 5 minutes (Vercel cron). Fetches inventory snapshots from Unicommerce
  * for all active SKUs and updates the local inventory table.
  *
  * Idempotent: Uses a 3-minute window key.
@@ -48,9 +49,13 @@ export async function GET(request: Request) {
     const result = await syncService.syncInventory();
     const durationMs = Date.now() - startTime;
 
+    if (result.written > 0) {
+      revalidateStorefrontInventory(result.changedSlugs);
+    }
+
     await UnicommerceLogger.info(
       'cron.sync_inventory_complete',
-      `Inventory sync cron completed in ${durationMs}ms. Processed: ${result.processed}, Errors: ${result.errors}`,
+      `Inventory sync cron completed in ${durationMs}ms. Processed: ${result.processed}, Written: ${result.written}, Errors: ${result.errors}`,
       'cron',
       { durationMs, ...result }
     );
@@ -61,6 +66,8 @@ export async function GET(request: Request) {
       processed: true,
       success: result.success,
       variantsProcessed: result.processed,
+      written: result.written,
+      changedSlugs: result.changedSlugs,
       errors: result.errors,
       durationMs,
     });
