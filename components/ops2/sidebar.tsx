@@ -7,7 +7,7 @@ import {
   Zap, BarChart3, Radio, Settings, Wallet, Gift, Trophy,
   GitBranch, Star, Layers, ChevronRight, Activity,
   ClipboardList, Swords, Target, ShieldAlert, Eye,
-  FlaskConical, PanelLeft,
+  FlaskConical, PanelLeft, TicketPercent,
 } from 'lucide-react';
 import { cn } from '@/lib/ops2/cn';
 import { PlatformSwitcher } from '@/components/ops2/platform-switcher';
@@ -40,6 +40,7 @@ const NAV: NavSection[] = [
       { label: 'Orders',      href: '/admin/orders',     icon: ClipboardList },
       { label: 'Customers',   href: '/admin/customers',  icon: Users },
       { label: 'Inventory',   href: '/admin/inventory',  icon: Package },
+      { label: 'Coupons',     href: '/admin/coupons',    icon: TicketPercent },
       { label: 'Media',       href: '/admin/commerce',   icon: Image },
     ],
   },

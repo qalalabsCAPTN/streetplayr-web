@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { TopBar } from '@/components/ops2/top-bar';
 import { KpiGrid } from '@/modules/overview/components/kpi-grid';
 import { PlatformBreakdown } from '@/modules/overview/components/platform-breakdown';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { deriveTier } from '@/lib/nectar/engine';
+import { listCouponAnalyticsAction } from '@/app/actions/admin/coupons';
 
 export const metadata: Metadata = { title: 'Analytics' };
 export const dynamic = 'force-dynamic';
@@ -28,6 +30,56 @@ async function getTierDistribution() {
   ];
 }
 
+async function CouponUtilizationPanel() {
+  const result = await listCouponAnalyticsAction();
+  if (!result.success) {
+    return (
+      <div className="surface p-5">
+        <div className="section-title mb-2">Coupon utilization</div>
+        <p className="text-sm text-text-muted">{result.error}</p>
+      </div>
+    );
+  }
+  const { totals, coupons } = result.data;
+  const top = [...coupons].sort((a, b) => b.redemptions - a.redemptions).slice(0, 6);
+  return (
+    <div className="surface p-5 space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <div className="section-title">Coupon utilization</div>
+          <p className="text-xs text-text-muted mt-1">
+            {totals.redemptions.toLocaleString('en-IN')} redemptions · ₹
+            {Math.round(totals.discountTotal).toLocaleString('en-IN')} discount given
+          </p>
+        </div>
+        <Link href="/admin/coupons" className="text-xs text-nectar-400 hover:underline">
+          Manage coupons
+        </Link>
+      </div>
+      {top.length === 0 ? (
+        <p className="text-sm text-text-muted">No coupons yet. Create one from Coupons.</p>
+      ) : (
+        <div className="space-y-3">
+          {top.map((c) => (
+            <div key={c.id} className="flex items-center gap-3">
+              <span className="font-mono text-xs text-text-primary w-28 truncate">{c.code}</span>
+              <div className="flex-1 h-1.5 rounded-full bg-base-overlay overflow-hidden">
+                <div
+                  className="h-full bg-nectar-400"
+                  style={{ width: `${c.utilizationPct ?? Math.min(100, c.redemptions * 10)}%` }}
+                />
+              </div>
+              <span className="text-xs text-text-muted w-28 text-right">
+                {c.redemptions} uses · ₹{Math.round(c.discountTotal).toLocaleString('en-IN')}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default async function AnalyticsPage() {
   const tiers = await getTierDistribution();
   const total = tiers.reduce((s, t) => s + t.count, 0);
@@ -46,6 +98,8 @@ export default async function AnalyticsPage() {
         </div>
 
         <KpiGrid period="30d" />
+
+        <CouponUtilizationPanel />
 
         <div className="grid grid-cols-3 gap-5">
           <div className="col-span-2"><PlatformBreakdown /></div>

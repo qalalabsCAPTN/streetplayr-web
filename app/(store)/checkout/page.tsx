@@ -598,7 +598,23 @@ function CheckoutPageInner() {
                   setCouponError(err ?? null);
                 }}
               />
-              {couponCode && <p className="checkout-summary__secure">Applied: {couponCode}</p>}
+              {couponCode && (
+                <p className="checkout-summary__secure">
+                  Applied: {couponCode}
+                  {quote?.couponDiscount ? ` (−${formatPrice(quote.couponDiscount)})` : ''}
+                  {' '}
+                  <button
+                    type="button"
+                    className="checkout-promo__remove"
+                    onClick={() => {
+                      setCouponCode('');
+                      setCouponError(null);
+                    }}
+                  >
+                    Remove
+                  </button>
+                </p>
+              )}
               {couponError && <p className="checkout-error">{couponError}</p>}
             </div>
           </div>

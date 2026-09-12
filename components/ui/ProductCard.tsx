@@ -8,6 +8,7 @@ import { useCart } from '@/components/CartContext';
 import { formatPrice } from '@/lib/utils/format';
 import { useWishlistStore } from '@/store/wishlistStore';
 import { normalizeProductImageUrl, resolveProductImages } from '@/lib/products/image-map';
+import NotifyMeModal from '@/components/ui/NotifyMeModal';
 import QuickAddSheet, { type QuickAddVariant } from '@/components/ui/QuickAddSheet';
 import type { PdpVariant } from '@/lib/products/pdp-variant-selection';
 import { productIsFullySoldOut } from '@/lib/products/pdp-variant-selection';
@@ -47,6 +48,7 @@ export default function ProductCard({ product, gallery = true }: ProductCardProp
   const isSaved = useWishlistStore((s) => s.isSaved(product.id));
   const requestToggle = useWishlistStore((s) => s.requestToggle);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [notifyOpen, setNotifyOpen] = useState(false);
   const [anchorRect, setAnchorRect] = useState<{ top: number; bottom: number; left: number; right: number } | null>(null);
   const addBtnRef = useRef<HTMLButtonElement>(null);
 
@@ -123,6 +125,12 @@ export default function ProductCard({ product, gallery = true }: ProductCardProp
       el.removeEventListener('touchend', onEnd);
     };
   }, [desktopGalleryNav, imgs.length]);
+
+  const openNotify = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setNotifyOpen(true);
+  };
 
   const onSale = product.compareAt && product.compareAt > product.price;
 
@@ -221,7 +229,11 @@ export default function ProductCard({ product, gallery = true }: ProductCardProp
           <BookmarkIcon filled={isSaved} />
         </button>
 
-        {fullySoldOut && <span className="card__badge">Sold out</span>}
+        {fullySoldOut && (
+          <button type="button" className="card__badge card__badge--notify" onClick={openNotify}>
+            Notify me
+          </button>
+        )}
         {onSale && !fullySoldOut && <span className="card__badge">Sale</span>}
 
         {gallery && imgs.length > 1 && desktopGalleryNav && (
@@ -273,6 +285,19 @@ export default function ProductCard({ product, gallery = true }: ProductCardProp
       onBuyNow={(variant) => {
         addVariant(variant, false);
         router.push('/checkout');
+      }}
+    />
+    <NotifyMeModal
+      open={notifyOpen}
+      onClose={() => setNotifyOpen(false)}
+      product={{
+        id: product.id,
+        name: product.name,
+        slug: product.slug,
+        variantsLabel: (product.variants ?? [])
+          .map((v) => v.size)
+          .filter(Boolean)
+          .join(', '),
       }}
     />
     </>

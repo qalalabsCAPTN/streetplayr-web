@@ -6,7 +6,7 @@ import { Command } from 'cmdk';
 import {
   Search, LayoutDashboard, Users, Wallet, Gift, Activity,
   BarChart3, Radio, Settings, Zap, GitBranch, Trophy, Star,
-  Eye, Target, ShieldAlert, Swords,
+  Eye, Target, ShieldAlert, Swords, TicketPercent,
 } from 'lucide-react';
 import { cn } from '@/lib/ops2/cn';
 import { useCommandStore } from '@/stores/ops2/command-store';
@@ -26,6 +26,7 @@ const NAV_COMMANDS: CommandItem[] = [
   { id: 'overview',    label: 'Overview',           icon: LayoutDashboard, href: '/admin/overview',              group: 'Navigate' },
   { id: 'liveops',     label: 'Live Ops',            icon: Radio,           href: '/admin/liveops',               group: 'Navigate' },
   { id: 'analytics',   label: 'Analytics',           icon: BarChart3,       href: '/admin/analytics',             group: 'Navigate' },
+  { id: 'coupons',     label: 'Coupons',             icon: TicketPercent,   href: '/admin/coupons',               group: 'Navigate' },
   { id: 'customers',   label: 'Customers',           icon: Users,           href: '/admin/customers',             group: 'Navigate' },
   { id: 'events',      label: 'Event Stream',        icon: Activity,        href: '/admin/nectar/events',         group: 'NECTAR' },
   { id: 'wallets',     label: 'Wallet Management',   icon: Wallet,          href: '/admin/nectar/wallets',        group: 'NECTAR' },
